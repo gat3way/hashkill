@@ -61,7 +61,6 @@ Enables rule attack mode. For more information on rule attacks see the
 manpage.
 
 
-
 .TP
 .B -m <statfile>  --markov <statfile>
 Use 'statfile' for Markov attack 
@@ -108,7 +107,13 @@ This increases the GPU worksize. It may give you better speed at the cost of the
 .B -i --interactive-mode
 This reduces the GPU worksize. It may give you better responsiveness but generally slower attacks.
 
+.TP
+.B -T <limit> --gpu-temp=<limit>
+Temperature threshold (default: 90C). If any GPU goes above that limit, it would be disabled for a minute
 
+.TP
+.B -t <platform> --gpu-platform=<platform>
+OpenCL platform to use where <platform> is an integer. This is useful only when you have more than one platform installed (AMD and NVidia)
 
 .SH Attack types
 
