@@ -42,7 +42,8 @@ Basically, its purposes are:
 * allow cracking lots of different types of password hashes on linux
 * employ easy to use command-line interface
 * multithreaded
-* SSE2 accelerated
+* SSE2/XOP accelerated
+* GPU accelerated
 * open-sourced, GPL-licensed
 
 Disadvantages at that moment are that it does not support GPU-based cracking. 
@@ -54,7 +55,23 @@ Disadvantages at that moment are that it does not support GPU-based cracking.
 
 Everything boils down to installing the package prerequisites, ./configure && make && make install.
 
-Please check the INSTALL file.
+Useful options to configure are:
+
+--datadir : the directory where all plugins, kernels, markov models and preinstalled rulesets will be placed
+--bindir  : location of the hashkill binary
+
+Build prerequisites:
+
+* gcc >=4.6
+* libc headers
+* json-c (also known as libjson0) and its headers for session save/restore support
+* proprietary AMD/NVidia drivers for GPU support and kernel compilation
+* zlib and its headers
+* openssl and its headers
+* pkgconfig
+* libtool
+* make
+
 
 
 3. Features
@@ -64,14 +81,13 @@ Currently (0.2.4) hashkill supports 4 attack modes:
 
 * Markov attack (default)
 * bruteforce
-* dictionary
-* hybrid (dictionary+bruteforce)
+* rule
 
 hashkill supports sessions (e.g interrupted session can be restored)
 
-Currently there are 31 plugins that can crack 35 different hash types.
+Currently there are 41 plugins that can crack more than 45 different hash types.
 
-And lots of bugs probably but it's still an early version :)
+And lots of bugs I guess :)
 
 
 4. Plugins
@@ -81,44 +97,46 @@ The following plugins are currently available:
 
 
 apr1            Apache apr1 plugin
-cisco-pix       Cisco PIX password hashes plugin
-dcc             Domain cached credentials plugin
 desunix         DES(Unix) plugin (.htpasswd)
-hashunix        MD5(Unix)/SHA256(Unix)/SHA256(Unix) plugin (shadow files)
+dmg             FileVault (v1)  passwords plugin
 ipb2            md5(md5(salt).md5(pass)) plugin (IPB > 2.x)
-(*)ldap-sha        LDAP SHA plugin
+ldap-sha        LDAP SHA plugin
 ldap-ssha       LDAP SSHA (salted SHA) plugin
 lm              LM plugin
-(*)md4             MD4 plugin
+md4             MD4 plugin
 md5-passsalt    md5(password,salt) plugin (joomla)
 md5-saltpass    md5(salt,password) plugin (osCommerce)
-(*)md5             MD5 plugin
-(*)md5md5          md5(md5(pass)) plugin
+md5             MD5 plugin
+md5md5          md5(md5(pass)) plugin
+md5unix         MD5(Unix) plugin (shadow files)
 mediawiki       md5(salt.'-'.md5(password)) plugin (Wikimedia)
+mscash          Domain cached credentials plugin
+mscash2         Domain cached credentials v2 plugin
 mssql-2000      Microsoft SQL Server 2000 plugin
 mssql-2005      Microsoft SQL Server 2005 plugin
-(*)mysql-old       MySQL < 4.1 plugin
-(*)mysql5          MySQL > 4.1 plugin
-(*)ntlm            NTLM plugin
+mysql5          MySQL > 4.1 plugin
+ntlm            NTLM plugin
 oracle-old      Oracle 7 up to 10r2 plugin
 oracle11g       Oracle 11g plugin
+osx-old         MacOSX <= 10.6 system passwords plugin
+osxlion         MacOSX Lion system passwords plugin
 phpbb3          phpBB3 hashes plugin
+pixmd5          Cisco PIX password hashes plugin
 privkey         SSH/SSL private key passphrase plugin
+rar             RAR3 passwords plugin
 ripemd160       RIPEMD-160 plugin
-sap             SAP passwords plugin
-(*)sha1            SHA1 plugin
+sapg            SAP CODVN G passwords plugin
+sha1            SHA1 plugin
 sha1sha1        sha1(sha1(pass)) plugin
-(*)sha256          SHA-256 plugin
+sha256          SHA-256 plugin
 sha512          SHA-512 plugin
-(*)sl3             Nokia SL3 plugin
+sha512unix      SHA512(Unix) plugin (shadow files)
+sl3             Nokia SL3 plugin
 smf             SMF plugin
 vbulletin       md5(md5(pass).salt) plugin
 wordpress       Wordpress hashes plugin
+wpa             WPA-PSK plugin
 zip             ZIP passwords plugin
-
--------
-(*) - plugin supports GPU attacks
-
 
 
 For detailed info on a plugin, type:
@@ -131,8 +149,7 @@ hashkill -P<plugin> (e.g hashkill -Pmd5)
 5. TODO
 =======
 
-New plugins comming out soon :)
-More GPU algorithms
+More plugins
 
 
 6. Credits
