@@ -1,0 +1,141 @@
+!!! DISCLAIMER !!!
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+!!! /DISCLAIMER !!!
+
+
+
+
+
+hashkill-0.2.0
+==============
+
+1. What is hashkill?
+2. Installation
+3. Features
+4. Plugins
+5. TODO
+6. Credits
+
+
+
+
+1. What is hashkill?
+====================
+
+hashkill (stupid name I know) is an open-source password cracker that uses the OpenSSL library to 
+crack different types of password hashes.
+
+Basically, its purposes are:
+
+* allow cracking lots of different types of password hashes on linux
+* employ easy to use command-line interface
+* multithreaded
+* SSE2 accelerated
+* open-sourced, GPL-licensed
+
+Disadvantages at that moment are that it does not support GPU-based cracking. 
+
+
+
+2. Installation
+===============
+
+Everything boils down to installing the package prerequisites, ./configure && make && make install.
+
+Please check the INSTALL file.
+
+
+3. Features
+===========
+
+Currently (0.2.4) hashkill supports 4 attack modes:
+
+* Markov attack (default)
+* bruteforce
+* dictionary
+* hybrid (dictionary+bruteforce)
+
+hashkill supports sessions (e.g interrupted session can be restored)
+
+Currently there are 31 plugins that can crack 35 different hash types.
+
+And lots of bugs probably but it's still an early version :)
+
+
+4. Plugins
+==========
+
+The following plugins are currently available:
+
+
+apr1            Apache apr1 plugin
+cisco-pix       Cisco PIX password hashes plugin
+dcc             Domain cached credentials plugin
+desunix         DES(Unix) plugin (.htpasswd)
+hashunix        MD5(Unix)/SHA256(Unix)/SHA256(Unix) plugin (shadow files)
+ipb2            md5(md5(salt).md5(pass)) plugin (IPB > 2.x)
+(*)ldap-sha        LDAP SHA plugin
+ldap-ssha       LDAP SSHA (salted SHA) plugin
+lm              LM plugin
+(*)md4             MD4 plugin
+md5-passsalt    md5(password,salt) plugin (joomla)
+md5-saltpass    md5(salt,password) plugin (osCommerce)
+(*)md5             MD5 plugin
+(*)md5md5          md5(md5(pass)) plugin
+mediawiki       md5(salt.'-'.md5(password)) plugin (Wikimedia)
+mssql-2000      Microsoft SQL Server 2000 plugin
+mssql-2005      Microsoft SQL Server 2005 plugin
+(*)mysql-old       MySQL < 4.1 plugin
+(*)mysql5          MySQL > 4.1 plugin
+(*)ntlm            NTLM plugin
+oracle-old      Oracle 7 up to 10r2 plugin
+oracle11g       Oracle 11g plugin
+phpbb3          phpBB3 hashes plugin
+privkey         SSH/SSL private key passphrase plugin
+ripemd160       RIPEMD-160 plugin
+sap             SAP passwords plugin
+(*)sha1            SHA1 plugin
+sha1sha1        sha1(sha1(pass)) plugin
+(*)sha256          SHA-256 plugin
+sha512          SHA-512 plugin
+(*)sl3             Nokia SL3 plugin
+smf             SMF plugin
+vbulletin       md5(md5(pass).salt) plugin
+wordpress       Wordpress hashes plugin
+zip             ZIP passwords plugin
+
+-------
+(*) - plugin supports GPU attacks
+
+
+
+For detailed info on a plugin, type:
+
+hashkill -P<plugin> (e.g hashkill -Pmd5)
+
+
+
+
+5. TODO
+=======
+
+New plugins comming out soon :)
+More GPU algorithms
+
+
+6. Credits
+==========
+
+See the CREDITS file

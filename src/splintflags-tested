@@ -1,0 +1,3 @@
+-weak +formatconst -warnposix -unrecog -castfcnptr
+
+will not fix typecast problems unless reasonable.

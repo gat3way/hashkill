@@ -1,0 +1,87 @@
+# Adaptive attack 103 - 5 iterations, new candidates based on old cracked passwords' markov model
+# Inputs: dictionary and bruteforce parameters. Initial model based solely on dictionary
+# Can further train if you provide the final cracked list as input again
+#
+# 
+# Parameters:
+#
+# $1 - min. length
+# $2 - max. length
+# $3 - charset
+# $4 - additional charset elements
+# $5 - dictionary
+# $6 - min.markov len
+# $7 - max.markov len
+
+#
+# Example: hashkill ... -r adaptive103 -a '1:6:lalphanum:!@#$:mydict.txt:2:5'
+#
+
+$Generate initial candidates
+begin
+must add dict $5
+end
+
+genmarkov
+
+$Iteration 1
+begin
+must add markov $6:$7:cracked:0
+must add set $1:$2:$3:$4
+end
+begin
+must add set $1:$2:$3:$4
+must add markov $6:$7:cracked:0
+end
+
+genmarkov
+
+
+$Iteration 2
+begin
+must add markov $6:$7:cracked:0
+must add set $1:$2:$3:$4
+end
+begin
+must add set $1:$2:$3:$4
+must add markov $6:$7:cracked:0
+end
+
+genmarkov
+
+
+$Iteration 3
+begin
+must add markov $6:$7:cracked:0
+must add set $1:$2:$3:$4
+end
+begin
+must add set $1:$2:$3:$4
+must add markov $6:$7:cracked:0
+end
+
+genmarkov
+
+
+$Iteration 4
+begin
+must add markov $6:$7:cracked:0
+must add set $1:$2:$3:$4
+end
+begin
+must add set $1:$2:$3:$4
+must add markov $6:$7:cracked:0
+end
+
+genmarkov
+
+
+$Iteration 5
+begin
+must add markov $6:$7:cracked:0
+must add set $1:$2:$3:$4
+end
+begin
+must add set $1:$2:$3:$4
+must add markov $6:$7:cracked:0
+end

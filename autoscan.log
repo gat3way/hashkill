@@ -1,0 +1,167 @@
+autoscan: warning: missing AC_CHECK_FUNCS([memmove]) wanted by: 
+	src/unrargpu.c:248
+	src/unrargpu.c:2612
+	src/plugins/unrar.c:243
+	src/plugins/unrar.c:2584
+	src/plugins/desunix.c:70
+	src/lzma/XzDec.c:149
+	src/lzma/LzFind.c:94
+autoscan: warning: missing AC_CHECK_FUNCS([mkdir]) wanted by: 
+	src/sessions.c:93
+	src/sessions.c:103
+	src/hashgen.c:288
+	src/hashgen.c:298
+	src/ocl_bitcoin.c:505
+	src/ocl_bitcoin.c:515
+autoscan: warning: missing AC_CHECK_FUNCS([munmap]) wanted by: 
+	src/hashgen-mangle.c:420
+autoscan: warning: missing AC_CHECK_FUNCS([setenv]) wanted by: 
+	src/main.c:339
+	src/main.c:497
+autoscan: warning: missing AC_CHECK_HEADERS([stddef.h]) wanted by: 
+	src/lzma/Types.h:10
+	src/lzma/XzCrc64.h:7
+	src/lzma/Alloc.h:7
+autoscan: warning: missing AC_CHECK_TYPES([ptrdiff_t]) wanted by: 
+	src/lzma/7zCrcOpt.c:13
+	src/lzma/LzmaDec.c:391
+	src/lzma/LzmaDec.c:391
+	src/lzma/LzmaDec.c:391
+	src/lzma/LzFind.c:525
+	src/lzma/LzFind.c:572
+	src/lzma/LzFind.c:619
+	src/lzma/LzFindMt.c:569
+	src/lzma/LzFindMt.c:592
+	src/lzma/LzFindMt.c:595
+	src/lzma/LzFindMt.c:603
+autoscan: warning: missing AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK wanted by: 
+	src/hashgen-mangle.c:358
+	src/hashgen-mangle.c:388
+autoscan: warning: missing AC_FUNC_MMAP wanted by: 
+	src/hashgen-mangle.c:374
+autoscan: warning: missing AC_FUNC_REALLOC wanted by: 
+	src/unrargpu.c:1397
+	src/plugins/unrar.c:1370
+autoscan: warning: missing AC_PROG_CXX wanted by: 
+	ltmain.sh:960
+	ltmain.sh:1380
+	ltmain.sh:1383
+	ltmain.sh:1388
+	ltmain.sh:1388
+	ltmain.sh:1398
+	ltmain.sh:1402
+	ltmain.sh:1405
+	ltmain.sh:1405
+	ltmain.sh:2442
+autoscan: warning: missing AC_PROG_RANLIB wanted by: 
+	ltmain.sh:2455
+autoscan: warning: missing AC_TYPE_INT16_T wanted by: 
+	src/opencl-types.h:42
+	src/unrargpu.h:314
+	src/plugins/unrar.h:314
+autoscan: warning: missing AC_TYPE_INT32_T wanted by: 
+	src/opencl-types.h:44
+	src/unrargpu.c:2661
+	src/plugins/unrar.c:2633
+autoscan: warning: missing AC_TYPE_INT64_T wanted by: 
+	src/opencl-types.h:46
+	src/unrargpu.h:407
+	src/unrargpu.h:408
+	src/plugins/unrar.h:407
+	src/plugins/unrar.h:408
+autoscan: warning: missing AC_TYPE_INT8_T wanted by: 
+	src/opencl-types.h:40
+autoscan: warning: missing AC_TYPE_UINT8_T wanted by: 
+	src/opencl-types.h:41
+	src/unrargpu.c:45
+	src/unrargpu.c:305
+	src/unrargpu.c:358
+	src/unrargpu.c:534
+	src/unrargpu.c:570
+	src/unrargpu.c:573
+	src/unrargpu.c:994
+	src/unrargpu.c:1085
+	src/unrargpu.c:1088
+	src/unrargpu.c:1127
+	src/unrargpu.c:1453
+	src/unrargpu.c:1456
+	src/unrargpu.c:1493
+	src/unrargpu.c:1976
+	src/unrargpu.c:1977
+	src/unrargpu.c:1979
+	src/unrargpu.c:2047
+	src/unrargpu.c:2173
+	src/unrargpu.c:2354
+	src/unrargpu.c:2355
+	src/unrargpu.c:2359
+	src/unrargpu.c:2360
+	src/unrargpu.c:2377
+	src/unrargpu.c:2378
+	src/unrargpu.c:2390
+	src/unrargpu.c:2417
+	src/unrargpu.c:2417
+	src/unrargpu.c:2417
+	src/unrargpu.c:2417
+	src/unrargpu.c:2504
+	src/unrargpu.c:2609
+	src/unrargpu.h:196
+	src/unrargpu.h:208
+	src/unrargpu.h:315
+	src/unrargpu.h:318
+	src/unrargpu.h:332
+	src/unrargpu.h:337
+	src/unrargpu.h:338
+	src/unrargpu.h:364
+	src/unrargpu.h:365
+	src/unrargpu.h:379
+	src/unrargpu.h:440
+	src/ocl_dmg.c:86
+	src/ocl_dmg.c:91
+	src/ocl_dmg.c:93
+	src/ocl_dmg.c:99
+	src/plugins/unrar.h:196
+	src/plugins/unrar.h:208
+	src/plugins/unrar.h:315
+	src/plugins/unrar.h:318
+	src/plugins/unrar.h:332
+	src/plugins/unrar.h:337
+	src/plugins/unrar.h:338
+	src/plugins/unrar.h:364
+	src/plugins/unrar.h:365
+	src/plugins/unrar.h:379
+	src/plugins/unrar.h:440
+	src/plugins/unrar.c:44
+	src/plugins/unrar.c:294
+	src/plugins/unrar.c:347
+	src/plugins/unrar.c:522
+	src/plugins/unrar.c:558
+	src/plugins/unrar.c:561
+	src/plugins/unrar.c:981
+	src/plugins/unrar.c:1069
+	src/plugins/unrar.c:1072
+	src/plugins/unrar.c:1103
+	src/plugins/unrar.c:1426
+	src/plugins/unrar.c:1429
+	src/plugins/unrar.c:1466
+	src/plugins/unrar.c:1949
+	src/plugins/unrar.c:1950
+	src/plugins/unrar.c:1952
+	src/plugins/unrar.c:2020
+	src/plugins/unrar.c:2146
+	src/plugins/unrar.c:2326
+	src/plugins/unrar.c:2327
+	src/plugins/unrar.c:2331
+	src/plugins/unrar.c:2332
+	src/plugins/unrar.c:2349
+	src/plugins/unrar.c:2350
+	src/plugins/unrar.c:2362
+	src/plugins/unrar.c:2389
+	src/plugins/unrar.c:2389
+	src/plugins/unrar.c:2389
+	src/plugins/unrar.c:2389
+	src/plugins/unrar.c:2476
+	src/plugins/unrar.c:2581
+	src/plugins/dmg.c:74
+	src/plugins/dmg.c:79
+	src/plugins/dmg.c:81
+	src/plugins/dmg.c:87

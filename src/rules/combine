@@ -1,0 +1,14 @@
+# Simple dictionary rule
+# 
+# Parameters:
+#
+# $1 - dictionary file 1
+# $2 - dictionary file 2
+#
+# Example: hashkill ... -r dictionary -a mydict.txt:mydict2.txt
+#
+
+begin
+must add dict $1
+must add dict $2 
+end

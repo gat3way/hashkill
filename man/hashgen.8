@@ -1,0 +1,1063 @@
+.\" Process this file with
+.\" groff -man -Tascii hashgen.8
+.\"
+.TH HASHKILL 8 "September 2012" Linux "User Manual"
+
+.SH NAME
+hashgen \- hashkill's rule engine
+
+
+.SH SYNOPSIS
+.B hashkill -r <rule>
+
+.SH DESCRIPTION
+.B hashkill
+This manual page documents briefly the hashkill's rule engine language (hashgen). The 
+.B hashkill
+program is a multi-threaded password cracker.  It currently supports four cracking modes and has more than 30 
+different plugins to crack about 35 different types of password hashes. GPU-based attacks are supported on 
+NVidia and AMD cards.
+.SH LANGUAGE
+Hashgen's language provides a simple way to generate candidates for cracking or generate wordlists 
+based on certain simple logic. The basic hashgen unit is the rule and each rule can contain one or more statements.
+A rule file may contain one or more rules and may include other external rule files.
+
+Each rule starts with the begin keyword and ends with the end  keyword. All the statements are strictrly lowercase. Only one statement per line is acceptable and parsed.
+
+
+Statements can be divided in to several categories:
+
+.BR "Preprocessor directives"
+
+.BR "Prerequisite directives"
+
+.BR "Add statements"
+
+.BR "Enhancer statements"
+
+.BR "Delete statements"
+
+.BR "Remove statements"
+
+.BR "Insert statements"
+
+.BR "Replace statements"
+
+Additionally, there are several modifiers regarding stack usage and mode of operation.
+
+In essence, each rule generates candidates based on the cumulative result of the statements. This means that
+the order of statements is important. 
+
+
+
+.SH Statement modifiers
+
+Each statement starts with either the must or the may keyword.
+
+.TP
+.BR must 
+This indicates that the statement is always applied to the previous result.
+
+.TP
+.BR may 
+This indicates that the statement will be applied to the previous result, but alternatively, it may not be applied.
+
+
+Example:
+
+begin 
+.br
+must add str hello 
+.br
+may add str world 
+.br
+end 
+.br
+
+This rule will generate the candidates "hello" and "helloworld"
+
+
+
+
+.SH Preprocessor directives
+
+
+Currently there are a few preprocessor directives:
+
+.TP
+.BR "include <rulefile>"
+Includes the rulefile. Not that the include directive is allowed in the top-level rulefile only, otherwise it is ignored.
+
+.TP
+.BR begin
+Marks the start of a rule
+
+.TP
+.BR end
+Marks the end of a rule
+
+
+
+.SH Prerequisite directives
+
+
+Currently there are three prerequisite directives:
+
+.TP
+.BR "table <char> <set>"
+Adds an entry to the character replacement table. <char> is the character to be replaced, <set> is a string that
+consists of all the characters that we are going to replace it with. This should only be used in conjunction with
+the replace table command
+
+Example:
+
+table a @4
+.br
+table e 3
+.br
+
+.TP
+.BR "table clear"
+Clears all entries from the character replacement table.
+
+.TP
+.BR genmarkov
+Generates a markov statfile based on the currently cracked hashes. This generates a new statfile, named "cracked".
+It can be then used for markov-generated candidates
+
+
+
+.SH Add statements
+
+
+Those add certain strings or patterns.
+
+.TP
+.BR "add str <string>"
+Adds a string
+
+Example:
+
+must add str mypassword
+
+
+.TP
+.BR "add numrange <min>:<max>"
+Adds all the numbers from a numeric range
+
+Example:
+
+begin
+.br
+must add str hello
+.br
+must add numrange 1000:2000
+.br
+end
+.br
+
+This will generate all the candidates from "hello1000" up to "hello2000"
+
+
+.TP
+.BR "add set <min>:<max>:<specifier>:<extras>"
+Adds all permutations of a set of a given length range. The arguments are specified the same way as hashkill's bruteforce parameters.
+
+Specifier can be either:
+.TP
+.IR none 
+Empty set
+.TP
+.IR lalpha 
+Lower-alpha set (a..z)
+.TP
+.IR ualpha 
+Upper-alpha set (A..Z)
+.TP
+.IR lalphanum
+Lower-alpha-numeric set (a..z,0..9)
+.TP
+.IR ualphanum
+Upper-alpha-numeric set (A..Z,0..9)
+.TP
+.IR alphanum
+alpha-numeric set (A..Z,a..z,0..9)
+.TP
+.IR cons
+Consonants, upper/lower case
+.TP
+.IR vowels
+Vowels, upper/lower case
+.TP
+.IR ucons
+Consonants, upper case
+.TP
+.IR uvowels
+Vowels, upper case
+.TP
+.IR lcons
+Consonants, lower case
+.TP
+.IR lvowels
+Vowels, lower case
+.TP
+.IR num
+Numbers 0..9
+.TP
+.IR ascii
+All printable characters
+
+.TP
+Extras is a string comprising all additional characters you want to be added
+.TP
+Example:
+
+must add set 2:4:lalpha:$%
+
+This will generate all candidates (len 2..4) containing lower alpha and $%. Example would be "a$", "bhf" and "b$%z"
+
+
+
+.TP
+.BR "add cset <min>:<max>:<specifier>:<extras>"
+This follows the same syntax as the previous command, however instead all the permutations being generated, cset generates all combinations (meaning that repetition of characters is not allowed).
+
+In the example above, abac is a valid candidate for "set", but not for "cset". 
+
+
+.TP
+.BR "add markov <min>:<max>:<statfile>:<threshold>"
+
+This generates all markov candidates length <min> to <max> using statfile <statfile> and threshold <threshold> (0 being the default one)
+
+
+
+.TP
+.BR "add dict <dictfile>"
+This adds all the words from a dictionary file named <dictfile>
+
+.TP
+.BR "add phrases <dictfile>:<separator>:<min>:<max>"
+This adds all the phrases from dictionary named <dictfile>, separated by <separator> of length <min> to <max> words.
+
+
+.TP
+.BR "add usernames"
+This adds all the usernames from the hashlist (if any)
+
+.TP
+.BR "add passwords"
+This adds all the currently cracked passwords
+
+.TP
+.BR "add binstrings <binary_file>"
+This statement works much like Unix "strings" command. It carves strings from the binary file. This is useful for forensic purposes where passwords from memory or swap images are extracted
+
+.TP
+.BR "add phrases <wordlist>:<delimiter>:<min>:<max>"
+This rule generates passphrases out of a text file. Individual words are separated by <delimiter> and each passphrase can be <min> to <max> words long.
+
+Delimiter can be a single letter or one of:
+
+"none"  : no delimiter
+"space" : whitespace as delimiter
+
+Example: imagine the wordlist "test.txt" contains:
+
+Hello, how are you doing?
+
+the rule:
+.br
+must add phrases test.txt:none:1:2
+
+would generate the following:
+
+hello
+hellohow
+how
+howare
+are
+areyou
+you
+youdoing
+
+
+
+.TP
+.BR "add pipe <command>"
+This executes <command> and pipes the result to the engine.
+
+Example:
+
+begin
+.br
+must add pipe ls
+.br
+end
+
+This will generate candidates based on the filenames in the current directory (stupid). This command allows hashkill to use external wordlist generators/expanders.
+
+
+.TP
+.BR "add revstr"
+Adds the reverse of the current candidate
+
+Example:
+
+begin
+.br
+must add str hello
+.br
+may add revstr
+.br
+end
+
+This rule will generate candidates "hello" and "helloolleh"
+
+
+.TP
+.BR "add lastchar"
+Adds the last character of a candidate again
+
+Example:
+
+begin
+.br
+must add str hello
+.br
+may add lastchar
+.br
+end
+
+This rule will generate candidates "hello" and "helloo"
+
+
+.TP
+.BR "add samestr"
+Adds the candidate again
+
+Example:
+
+begin
+.br
+must add str hello
+.br
+may add samestr
+.br
+end
+
+This rule will generate candidates "hello" and "hellohello"
+
+
+.SH Enhance statements
+
+
+Those apply certain filters to the current candidates
+
+.TP
+.BR "leetify"
+Generates leetified combinations (following some hardcoded rules).
+
+Example:
+
+begin
+.br
+must add str hello
+.br
+must leetify
+.br
+end
+
+This will generate "h3llo", "h3ll0", "hell0", "he11o", "he1l0", etc
+
+
+.TP
+.BR "togglecase"
+Generates all togglecase combinations
+
+Example:
+
+begin
+.br
+must add str hello
+.br
+must togglecase
+.br
+end
+
+This will generate "hellO", "hEllo", "HEllo", "HELlI", "HeLlO", etc
+
+
+.TP
+.BR "pasttense"
+Generates the "past-tense" versions.
+
+Example:
+
+begin
+.br
+must add str welcome
+.br
+may pasttense
+.br
+end
+
+This will generate "welcome" and "welcomed"
+
+WARNING: irregular verbs are not handled as well as some specific cases.
+
+
+.TP
+.BR "conttense"
+Generates the "present continuous tense" versions.
+
+Example:
+
+begin
+.br
+must add str welcome
+.br
+may conttense
+.br
+end
+
+This will generate "welcome" and "welcoming"
+
+WARNING: some specific cases are not handled correctly
+
+
+.TP
+.BR "rot13"
+Generates the "rot13"-encoded version
+
+.TP
+.BR "genham <distance>:<charset>"
+Generates all combinations that have Hamming distance <distance> using charset <charset>
+
+.TP
+.BR "genlev <distance>:<charset>"
+Generates all combinations that have Levenshtein distance <distance> using charset <charset>
+
+.TP
+.BR "genlevdam <distance>:<charset>"
+Generates all combinations that have Levenshtein-Damerau distance <distance> using charset <charset>
+
+
+.TP
+.BR "trunc <maxlen>"
+Truncates the candidate to length <maxlen>
+
+
+.TP
+.BR "insertp str <string>"
+Inserts string <string> at all possible positions.
+
+Example:
+
+begin
+.br
+must add str abc
+.br
+must insertp str !
+.br
+end
+
+This rule will generate candidates "!abc", "a!bc", "ab!c" and "abc!"
+
+
+.TP
+.BR "insertp numrange <start>:<end>"
+Same as before but insert all numbers from a numeric range
+
+Example:
+
+begin
+.br
+must add str abc
+.br
+must insertp numrange 1:5
+.br
+end
+
+This rule will generate candidates such as "3abc", "a1bc", "ab2c" and "abc5"
+
+
+.TP
+.BR "permute"
+This will generate all string combinations of the current candidate
+
+Example:
+
+begin
+.br
+must add str abc
+.br
+must permute
+.br
+end
+
+This rule will generate candidates such as "abc", "acb", "bac" and "bca"
+
+
+
+.TP
+.BR "insertp dict <dictfile>"
+Same as before but insert all entries from a dictionary
+
+.TP
+.BR "deletep"
+Generate all combinations where one of the characters is "deleted"
+
+Example:
+
+begin
+.br
+must add str abc
+.br
+must deletep
+.br
+end
+
+This rule will generate candidates "ac", "ab" and "bc"
+
+
+.SH Delete statements
+
+
+Those delete certain parts the current candidates
+
+.TP
+.BR "delete char <number> <pos>"
+Deletes <number> characters starting from <pos>. Negative <pos> can be used to indicate offset from the end of the candidate.
+
+Example:
+
+begin
+.br
+must add str hello
+.br
+must delete 2 -1
+.br
+end
+
+This rule will generate "hel"
+
+
+.TP
+.BR "delete match <string>"
+Deletes <string>
+
+.TP
+.BR "delete match <dictmatch>"
+Deletes all matches from a dictionary named <dictmatch>
+
+.TP
+.BR "delete repeating"
+Deletes all repeating characters from candidate
+
+Example:
+
+begin
+.br
+must add str hello
+.br
+must delete repeating
+.br
+end
+
+This rule will generate "helo"
+
+
+.SH Remove statements
+
+
+Those eliminate certain candidates based on statement
+
+.TP
+.BR "eliminate match <string>"
+Eliminates all candidates containing <string>
+
+Example:
+
+begin
+.br
+must add dict english
+.br
+must remove ee
+.br
+end
+
+This rule will try all the candidates from "english" dictionary except those that contain "ee" (such as "feel" or "speed")
+
+
+.TP
+.BR "eliminate dictmatch <dictionary>"
+Eliminates all candidates that contain a match from a <dictionary> file
+
+
+
+
+.SH Insert statements
+
+
+Those insert certain string at certain position
+
+.TP
+.BR "insert str <pos> <string>"
+Inserts a <string> at <pos>. Negative <pos> indicates offset from end of the candidate
+
+Example:
+
+begin
+.br
+must add str hello
+.br
+must insert 123 1
+.br
+end
+
+This rule will generate "h123ello"
+
+
+.TP
+.BR "insert dict <pos> <dictionary>"
+Inserts all <dictionary> entries at <pos>. Negative <pos> indicates offset from end of the candidate
+
+.TP
+.BR "insert usernames <pos>"
+Inserts all usernames at <pos>. Negative <pos> indicates offset from end of the candidate
+
+.TP
+.BR "insert passwords <pos>"
+Inserts all cracked passwords at <pos>. Negative <pos> indicates offset from end of the candidate
+
+
+.SH Replace statements
+
+
+Those replace certain patterns in candidates based on statement
+
+.TP
+.BR "replace table"
+Does a table replacement
+
+Example:
+
+table a @4
+.br
+begin
+.br
+must add base
+.br
+must replace table
+.br
+end
+
+This rule will generate "base", "b@se" and "b4se"
+
+
+.TP
+.BR "replace str <haystack> <needle>"
+Replaces all occurences of <haystack> with <needle>
+
+Example:
+
+begin
+.br
+must add base
+.br
+may replace str as AS
+.br
+end
+
+This rule will generate "base" and "bASe"
+
+
+.TP
+.BR "replace dict <string> <dictionary> "
+Replaces all occurences of <string> with all entries from <dictionary> file
+
+
+
+
+.SH Stack modifier
+
+Add statements may be forced to push new strings into stack instead (later on they can be pop'd). To do this, use the push keyword.
+
+
+Example:
+
+begin
+.br
+push must add str hello
+.br
+push may add str 123
+.br
+pop
+.br
+must add .
+.br
+pop
+.br
+end
+
+This will generate the following candidates: "hello.hello", "hello123.hello"
+
+The pop command may be used multiple times even when the stack is "emptied" - it returns the same string.
+
+
+.SH Variables
+9 variables can be used ($1..$9) passed from the commandline using the 
+.br -a 
+option. The argument to -a contains a list of arguments separated by ':'
+
+Example:
+
+hashkill -r example -a 1:2:lalpha
+
+
+
+
+.SH Comments
+
+Two types of comments are available.
+
+Each line starting with # is a "silent" comment and each line starting with $ is a "noisy" comment.
+
+Difference is that hashkill will print to stderr the "noisy" comments but will supress the "silent" ones.
+
+
+.SH Rule/wordlist paths
+
+By default if no explicit path is provided, hashkill would look for them in the rule directory (/usr/share/hashkill/dict or /usr/share/hashkill/rule by default) then in the current directory.
+
+
+
+.SH Advanced examples
+
+.br
+.B Advanced additive rule example
+
+The following rule will generate all the dates starting from 1/1/1980 to 31/12/2010 (according to the dd/mm/yyyy convention):
+
+begin
+.br
+must add numrange 1:31
+.br
+must add str /
+.br
+must add numrange 1:12
+.br
+must add str /
+.br
+must add numrange 1980:2010
+.br
+end
+
+.br
+.B Table attack example
+
+The built-in leetify enhance statement may not be adequate for leetify attack. A better leetify rule may be written. 
+This leetifies all the entries from a dictionary using advanced custom table rules. Additionally, it togglecases (so that we become independant on upper/lowercase) and applies certain multi-char leetify rules (like d=|), etc)
+
+table a @4.
+.br
+table b 86
+.br
+table c (
+.br
+table e 3
+.br
+table g 6
+.br
+table i 1|!
+.br
+table l 1|!
+.br
+table o 0@
+.br
+table s $5
+.br
+table r 2
+.br
+begin
+.br
+must add dict dictionary.txt
+.br
+may togglecase
+.br
+must replace table
+.br
+may replace str d |)
+.br
+may replace str n |\\|
+.br
+end
+
+
+.br
+.B Permutation attack example
+
+
+Permutation attack is simple - we just need to use the permute statement. The following rule permutes all words from a dictionary concatenated with all numbers from numrange 1:99 applied
+
+begin
+.br
+must add dict dictionary.txt
+.br
+must add numrange 1:99
+.br
+must permute
+.br
+end
+.br
+
+
+.B Combinator attack example
+
+Hashkill's rule engine (hashgen) gives a lot of freedom to combine different dictionaries. In the following example, we combine 2 dictionaries in the following pattern:
+.br
+<word1>_<word2>_<word1>
+.br
+Where <word1> is any word from the first dictionary, <word2> is any word from the second one, <word1> is the same <word1> from the first dictionary:
+
+
+
+begin
+.br
+must push add dict dictionary1.txt
+.br
+must pop
+.br
+must add str _
+.br
+must add dict dictionary2.txt
+.br
+must add str _
+.br
+must pop
+.br
+end
+.br
+
+
+.B Advanced fingerprint attack example
+
+Fingerprint attacks are made possible via using add/insert passwords or genmarkov and add markov keywords
+
+An example for that is the following iterative attack: first we apply a rule to generate candidates from big_dictionary.txt wordlist.
+
+Then we do 3 iterations, generating markov statfiles from the cracked files and trying candidates based on them:
+
+
+begin
+.br
+must add dict big_dictionary.txt
+.br
+end
+.br
+genmarkov
+.br
+$Iteration 1:
+.br
+begin
+.br
+must add markov 1:10:cracked:0
+.br
+end
+.br
+genmarkov
+.br
+$teration 2
+.br
+begin
+.br
+must add markov 1:10:cracked:0
+.br
+end
+.br
+genmarkov
+.br
+$teration 3
+.br
+begin
+.br
+must add markov 1:10:cracked:0
+.br
+end
+
+
+Another approach would be using the add passwords statement and a set of subsequent rule statements. Rather than generating markov models, we can directly use cracked passwords and apply filters/add. E.g:
+
+begin
+.br
+must add dict big_dictionary.txt
+.br
+end
+.br
+$Iteration 1:
+.br
+begin
+.br
+must add passwords
+.br
+may togglecase
+.br
+may leetify
+.br
+may add cset 1:5:num
+.br
+end
+.br
+$Iteration 2:
+.br
+begin
+.br
+must add passwords
+.br
+may togglecase
+.br
+may leetify
+.br
+may add cset 1:5:num
+.br
+end
+.br
+$Iteration 3:
+.br
+begin
+.br
+must add passwords
+.br
+may togglecase
+.br
+may leetify
+.br
+may add cset 1:5:num
+.br
+end
+
+
+Yet another approach would be using the add passwords statement and generating candidates of Levenshtein-Damerau distance X:
+
+begin
+.br
+must add dict big_dictionary.txt
+.br
+end
+.br
+$Iteration 1:
+.br
+begin
+.br
+must add passwords
+.br
+must genlevdam 2:lalphanum
+end
+...
+
+
+.SH GPU offload
+ hashkill's rule engine is CPU based which is a bottleneck with some fast hash algos like md5 or sha1. 
+To address that, several rule patterns are currently recognized and offloaded to GPU for better speed.
+Generally, rules ending with "add set", "add cset" and "add markov" are likely to get optimized on GPU.
+More patterns will be added in future.
+
+
+.SH Progress indicator and save/restore
+On some occasions, progress indicator won't be available for rule attacks, that is if there is no 
+deterministic way to calculate the number of candidates generated. Generally those are rules that involve
+"add pipe" rules or candidate generation based on already passwords (adaptive attacks). 
+Save/restore is not disabled for such attacks, but it is HIGHLY recommended that you avoid restoring such sessions.
+
+.SH Preinstalled rules
+
+Several rules come preinstalled. They are all based on -a variables and provide easy means to perform dictionary, hybrid, adaptive, etc attacks
+
+Those are:
+
+.br dictionary
+Simple dictionary attack using the rule engine (not very useful).
+
+Parameters are: -a <dictionary>
+
+.br brute
+Simple bruteforce attack using the rule engine (not very useful).
+
+Parameters are: -a <min_length>:<max_length>:<charset>:<additional_charset>
+
+.br brutestr
+Simple hybrid attack that appends suffix to bruteforce candidates
+
+Parameters are: -a <min_length>:<max_length>:<charset>:<additional_charset>:<suffix>
+
+.br combine
+Combine two dictionaries
+
+Parameters are: -a <dictionary1>:<dictionary2>
+
+.br dictmarkov
+Prepends dictionary to markov candidates
+
+Parameters are: -a <min_length>:<max_length>:<markov_model>:<threshold>:<dictionary>
+
+default threshold is 0
+
+.br dictnum
+Combine numeric range to dictionary
+
+Parameters are: -a <dictionary>:<range_from>:<range_to>
+
+
+.br hybrid
+Simple hybrid attack that appends prefix and suffix to bruteforce candidates
+
+Parameters are: -a <min_length>:<max_length>:<charset>:<additional_charset>:<prefix>:<suffix>
+
+.br leetifydict
+Leetifies a dictionary
+
+Parameters are: -a <dictionary>
+
+.br markovdict
+Combine markov candidates to dictionary
+
+Parameters are: -a <min_length>:<max_length>:<markov_model>:<threshold>:<dictionary>
+
+default threshold is 0
+
+.br markovstr
+Append string to markov candidates
+
+Parameters are: -a <min_length>:<max_length>:<markov_model>:<threshold>:<string>
+
+default threshold is 0
+
+.br numdict
+Prepend numeric range to dictionary
+
+Parameters are: -a <dictionary>:<range_from>:<range_to>
+
+.br permutedict
+Permute a dictionary
+
+Parameters are: -a <dictionary>
+
+.br toggledict
+Togglecases a dictionary (all combinations of lower/upper)
+
+Parameters are: -a <dictionary>
+
+Several more complex preinstalled rules exist for illustrating adaptive attacks, please check their source.
+
+
+.SH BUGS
+ As of 0.3.0, there are still probably lots of bugs
+
+.SH AUTHOR
+ Milen Rangelov <gat3way@gat3way.eu>
+
+
+.SH "SEE ALSO"
+.BR hashkill (8),
+.BR pcap2hcap (8)

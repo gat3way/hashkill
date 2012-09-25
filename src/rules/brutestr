@@ -1,0 +1,17 @@
+# Simple hybrid rule - append to bruteforce
+# 
+# Parameters:
+#
+# $1 - min. length
+# $2 - max. length
+# $3 - charset
+# $4 - additional charset elements
+# $5 - prefix string
+#
+# Example: hashkill ... -r appendbf -a '1:6:lalphanum:!@#$:John'
+#
+
+begin
+must add set $1:$2:$3:$4
+must add str $5
+end

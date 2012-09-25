@@ -1,0 +1,116 @@
+# Adaptive attack 104 - 5 iterations, new candidates based on old cracked passwords' 
+# by means of generating all candidates with Levenshtein-Damerau distance X from them
+# Inputs: dictionary and bruteforce. Initial model based solely on dictionary
+# Can further train if you provide the final cracked list as input again
+#
+# This time, passwords generated just by markov trained with passes/bf
+#
+# Parameters:
+#
+# $1 - min. length
+# $2 - max. length
+# $3 - charset
+# $4 - additional charset elements
+# $5 - dictionary
+# $6 - min.markov len
+# $7 - max.markov len
+# $8 - Levenshtein-Damerau distance
+# $9 - Levenshtein-Damerau charset
+
+
+#
+# Example: hashkill ... -r adaptive103 -a '1:6:lalphanum:!@#$:mydict.txt:2:5'
+#
+
+$Generate initial candidates based on dictionary
+begin
+must add dict $5
+end
+
+genmarkov
+
+$Iteration 1 - Markov
+begin
+must add markov $6:$7:cracked:0
+end
+$Iteration 1 - new candidates
+begin
+must add passwords
+must add set $1:$2:$3:$4
+end
+begin
+must add set $1:$2:$3:$4
+must add passwords
+end
+
+
+genmarkov
+
+$Iteration 2 - Markov
+begin
+must add markov $6:$7:cracked:1
+end
+$Iteration 2 - Bruteforce
+begin
+must add passwords
+must add set $1:$2:$3:$4
+end
+$Iteration 2 - Levenshtein-Damerau
+begin
+must add passwords
+must genlevdam $8:$9
+end
+
+
+genmarkov
+
+$Iteration 3 - Markov
+begin
+must add markov $6:$7:cracked:1
+end
+$Iteration 3 - Bruteforce
+begin
+must add passwords
+must add set $1:$2:$3:$4
+end
+$Iteration 3 - Levenshtein-Damerau
+begin
+must add passwords
+must genlevdam $8:$9
+end
+
+
+genmarkov
+
+$Iteration 4 - Markov
+begin
+must add markov $6:$7:cracked:1
+end
+$Iteration 4 - Bruteforce
+begin
+must add passwords
+must add set $1:$2:$3:$4
+end
+$Iteration 4 - Levenshtein-Damerau
+begin
+must add passwords
+must genlevdam $8:$9
+end
+
+genmarkov
+
+$Iteration 5 - Markov
+begin
+must add markov $6:$7:cracked:1
+end
+$Iteration 5 - Bruteforce
+begin
+must add passwords
+must add set $1:$2:$3:$4
+end
+$Iteration 5 - Levenshtein-Damerau
+begin
+must add passwords
+must genlevdam $8:$9
+end
+

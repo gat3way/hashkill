@@ -1,0 +1,15 @@
+# Simple hybrid rule - append numrange to dictionary
+# 
+# Parameters:
+#
+# $1 - dictionary
+# $2 - starting number
+# $3 - ending number
+#
+# Example: hashkill ... -r dictnum -a mydict.txt:1000:2000
+#
+
+begin
+must add dict $1
+must add numrange $2:$3
+end

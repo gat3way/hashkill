@@ -1,0 +1,306 @@
+.\" Process this file with
+.\" groff -man -Tascii hashkill.8
+.\"
+.TH HASHKILL 8 "September 2012" Linux "User Manual"
+.SH NAME
+hashkill \- a multi-threaded linux password cracker
+.SH SYNOPSIS
+.B hashkill
+[options] [hash]
+.SH DESCRIPTION
+.B hashkill
+This manual page documents briefly the
+.B hashkill
+command. The 
+.B hashkill
+program is a multi-threaded password cracker.  It currently supports four cracking modes and has more than 30 
+different plugins to crack about 35 different types of password hashes. GPU-based attacks are supported on 
+NVidia and AMD cards.
+.SH OPTIONS
+.TP
+.B  -P[plugin_name]  --plugin-info[=plugin_name]
+Displays plugins summary if 'plugin_name' was omitted or detailed information about 'plugin_name' module.
+
+.TP
+.B  -p <plugin_name>  --plugin <plugin_name>
+Loads 'plugin_name' plugin. Default plugin is 'md5'.
+
+.TP
+.B -S[sessionid]  --session-info[=sessionid]
+Shows sessions summary if 'sessionid' was omitted or detailed information about 'sessionid' session.
+
+.TP
+.B -s <sessionid>  --session <sessionid>
+Loads 'sessionid' session
+
+.TP
+.B -f <hashlist>  --hashfile <hashlist>
+Loads 'hashlist' file (a file containing password hashes, one per line)
+
+
+
+.TP
+.B -o <filename>  --outfile <filename>
+Upon completion (or user interrupt), write the list of cracked hashes to <filename>
+
+
+.TP
+.B -O <filename>  --uncrackedfile <filename>
+Upon completion (or user interrupt), write the list of not cracked hashes to <filename>
+
+.TP
+.B -b[ruleset] --brute[=ruleset]
+Enables bruteforce attack mode. Bruteforce rulesets are described in the 
+.B RULESET
+section.
+
+.TP
+.B -r [ruleset] --rule=ruleset
+Enables rule attack mode. For more information on rule attacks see the
+.B hashgen(8)
+manpage.
+
+
+
+.TP
+.B -m <statfile>  --markov <statfile>
+Use 'statfile' for Markov attack 
+
+.TP
+.B -M[statfile]  --markov-info[=statfile]
+Show available Markov stats files (or detailed info about a markov statfile)
+
+.TP
+.B -n <threshold>  --markov-threshold <threshold>
+Override statfile's threshold. Lower value means more plaintexts to test/slower attack
+
+.TP
+.B -N <limit>  --markov-limit <limit>
+The maximum length of Markov attack generated strings.
+
+
+.TP
+.B -c --cpu
+Use CPU even if GPU acceleration is enabled
+
+.TP
+.B -F --fast-markov
+Faster markov attack (when using GPU). This means threshold is increased by 50% and non-alphanumeric chars are 
+stripped.
+
+.TP
+.B -G --gpu-threads
+Number of GPU threads (up to 4). Increases load/memory utilization, but may improve speeds.
+Note that older NVidia drivers are not thread-safe and values >=2 may lead to crash.
+
+Default: 2 on AMD and 1 on Nvidia.
+
+.TP
+.B -C --cpu-threads
+Number of CPU threads (up to 4). Due to the consumer-producer model of hashkill, the optimal value is 
+2*(number of cores). Usually 3*(number of cores) gives out best performance and (number of cores) is more responsive.
+
+.TP
+.B -D --gpu-double
+This increases the GPU worksize. It may give you better speed at the cost of the reduced desktop responsiveness.
+
+.TP
+.B -i --interactive-mode
+This reduces the GPU worksize. It may give you better responsiveness but generally slower attacks.
+
+
+
+.SH Attack types
+
+
+.TP
+.B Markov attack 
+This is the default attack as of hashkill 0.2.4. The attack exploits the hidden Markov model behind the way
+people choose passwords. It is a statistical time-space tradeoff attack. The Markov attack uses the
+so-called "statfiles" that contain letter frequency statistics gathered from different wordlists.
+Hashkill exploits a Markov model of order 1. There are several statfiles provided based on English,
+German, Bulgarian, etc dictionaries, as well as the rockyou/phpbb/myspace statfiles based on  password lists
+leaked on the internet. The rockyou statfile is perhaps best suited to cracking webapp passwords. 
+
+Two parameters control the attack - 
+.B markov-limit 
+and 
+.B markov-threshold.
+
+markov-limit is the maximum size of generated plaintexts (10 by default) while markov-threshold is the
+probability threshold below which, no new string combinations will be generated. Each statfile has
+its own hard-coded default threshold that can be overriden by using the --markov-threshold option.
+Lower values mean more plaintexts to generate which increase the probability of successful attack as well
+as the overall attack time.
+
+
+.TP
+.B Bruteforce attack
+hashkill uses a tweakable implementation of the bruteforce attack - a number of parameters can be specified, 
+e.g the maximum/minimum length, the charset and a prefix. It's not as powerful as a true mask
+attack, yet for most purposes, that does the job.
+
+.TP
+.B Rule attack
+Rule attacks are based on a powerful rule engine able to simulate both markov and bruteforce attacks. 
+Rules are described by means of a simple language. Please check the
+.B hashgen
+manpage for syntax rules and more information
+
+
+
+
+.SH RULESET
+Bruteforce mode can be customized by specifying a ruleset to the
+.B -b 
+option. The ruleset format is as follows:
+.B start:end:predefined_set:additional_set
+Where:
+.TP
+.B start
+Defines the minimum length of the string permutations being generated
+
+.TP
+.B end
+Defines the maximum length of the string permutations being generated
+
+.TP
+.B predefined_set
+A couple of predefined character sets exist:
+.I ascii 
+(all printable ascii characters),
+.I alpha
+(lower/uppercase latin letters),
+.I lalpha
+(lowercase latin letters),
+.I ualpha
+(uppercase latin letters),
+.I num
+(numbers 0..9),
+.I lalphanum
+(lowercase letters and numbers)
+.I ualphanum
+(uppercase letters and numbers)
+.I alphanum
+(latin letters and numbers)
+.I none
+(this is self-explanatory).
+
+.TP
+.B additional_set
+a string consisting of user-specified charset can be provided together with the predefined set. May be omitted.
+
+.TP 
+.B Default ruleset is '1:8:lalphanum'. Note that this is not optimal for GPU-based attacks.
+
+.TP
+For bruteforce examples, check out the next section
+
+
+.SH EXAMPLES
+.TP
+.B hashkill -psha1 -b 1f8ac10f23c5b5bc1167bda84b833e5c057a77de
+Launch bruteforce attack against SHA-1 hash '1f8ac10f23c5b5bc1167bda84b833e5c057a77de'. The default 
+ruleset is used (up to 8-characters long strings containing lowercase latin letters).
+
+.TP
+.B hashkill -pmd5md5 -b1:4:num:abc -f hashlist.txt 
+Launch bruteforce attack, generate strings of length 1-4, containing 0..9, a..c. Get password hashes from hashlist.txt.
+Password hashes are md5(md5(password)) ones
+
+
+.TP
+.B hashkill -r myrule -f hashlist.txt
+Launch rule-based attack against default(md5) hashes from hashlist.txt using the rulesets specified in myrule file.
+
+.TP
+.B hashkill -r dictionary -f hashlist.txt -a rockyou
+Launch rule-based dictionary attack against default(md5) hashes from hashlist.txt using rockyou as dictionary. 
+'dictionary' is one of the preinstalled rules, for more information on preinstalled rulesets, see the 
+.B hashgen
+manpage
+
+
+
+
+.SH MISCELLANEOUS
+While 
+.B hashkill
+is cracking your hashes, you may get more detailed progress by pressing the
+.B enter 
+key. A list of cracked hashes and the estimated time left till the keyspace is exhausted will be displayed.
+Note that hashkill needs some time to adapt and calculate it correctly, in the beginning of the attack you might get 
+wrong values.
+
+When running a GPU attack, you can press the 
+.B 't'
+button to display the GPU temps/loads.
+
+
+.B hashkill
+automatically saves your 'cracking session' each 3 seconds so that in case of power failure or incidental kill/crash
+of the program, you may continue from the last checkpoint. Type hashkill -S to see all recorded sessions summary.
+Sessions are named 'username-PID'. More detailed info on a session can be obtained by typing hashkill -Ssessionid. 
+Sessions created using gpu attacks are incompatible with those created using cpu attacks. GPU sessions have the "-gpu" suffix.
+
+
+.SH GPU ATTACKS
+.B hashkill
+supports both NVidia and AMD cards, though older models may not be supported.
+For a list of supported NVidia cards, check out:
+http://www.nvidia.com/object/cuda_gpus.html
+
+For a list of supported AMD cards, check out the release notes of the latest AMD APP SDK.
+
+
+hashkill is highly optimized to deliver top speeds on those GPUs. Separate codepaths are implemented for:
+AMD 4xxx models
+AMD 5xxx and 6xxx GPUs
+NVidia compute capability 2.1 models
+Other NVidia cards (sm_10-sm_20 and sm_30)
+
+Proprietary video drivers are required as currently the opensource ones do not support the needed GPGPU features.
+
+Multi-GPU configurations are supported.
+
+Mixed-vendor configurations (e.g Nvidia and AMD on a single system) are supported.
+
+GPU bruteforce attacks generally depend on the charset size. Larger charsets are faster.
+
+Markov attacks on GPUs are limited: plains of length 4-12 are supported
+Bruteforce attacks on GPUs support plains of length 4-15
+Rule attacks on both GPUs and CPUs support longer candidates, generally max length is 31 though it might be lower for some plugins like md5unix, sha512unix and rar
+
+
+
+.SH FILES
+.TP
+.B
+~/.hashkill/sessions
+The directory containing sessions files
+.TP
+.B
+/usr/share/hashkill/plugins
+The directory containing plugins
+.TP
+.B
+/usr/share/hashkill/kernels
+The directory containing GPU OpenCL kernels
+.TP
+.B
+/usr/share/hashkill/markov
+The directory containing Markov attack statfiles
+
+
+
+
+.SH BUGS
+ As of 0.3.0, there are still probably lots of bugs
+
+.SH AUTHOR
+ Milen Rangelov <gat3way@gat3way.eu>
+
+
+.SH "SEE ALSO"
+.BR pcap2hcap (8),
+.BR hashgen (8)

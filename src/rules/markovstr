@@ -1,0 +1,17 @@
+# Simple hybrid rule - append string to markov
+# 
+# Parameters:
+#
+# $1 - min. length
+# $2 - max. length
+# $3 - markov model
+# $4 - threshold (0 for default)
+# $5 - suffix string
+#
+# Example: hashkill ... -r markovstr -a '1:6:rockyou:0:John'
+#
+
+begin
+must add markov $1:$2:$3:$4
+must add str $5
+end

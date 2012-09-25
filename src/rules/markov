@@ -1,0 +1,15 @@
+# Simple markov rule
+# 
+# Parameters:
+#
+# $1 - min. length
+# $2 - max. length
+# $3 - model
+# $4 - threshold (0 is the default)
+#
+# Example: hashkill ... -r markov -a 1:6:rockyou:0
+#
+
+begin
+must add markov $1:$2:$3:$4
+end

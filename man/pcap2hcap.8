@@ -1,0 +1,42 @@
+.\" Process this file with
+.\" groff -man -Tascii hashkill.8
+.\"
+.TH HASHKILL 8 "September 2012" Linux "User Manual"
+.SH NAME
+pcap2hcap \- a pcap to hccap conversion tool
+.SH SYNOPSIS
+.B pcap2hcap
+[options] <file.pcap>
+.SH DESCRIPTION
+.B pcap2hcap
+This manual page documents briefly the
+.B pcap2hcap
+command. The 
+.B pcap2hcap
+program is a program that converts pcap dumps to the hccap format used by hashkill to attack WPA/WPA2.
+.SH OPTIONS
+.TP
+.B  -b
+Be less strict when parsing pcap dumps. This could allow bad or incomplete handshakes to be attacked which might be uncrackable. Avoid that option unless you really know what you are doing.
+
+.TP
+.B  -g
+Automatically chooses the 'best' (highest quality) handshake to attack from the pcap dump.
+
+
+.SH Implementation notes
+.B pcap2hcap
+is a stateful pcap parser. It is able to correctly distinguish overlapping handshakes, retransmits and bad packets. The hcap output is compatible with oclhashcat.
+
+
+
+.SH BUGS
+ As of 0.3.0, there are still probably some bugs
+
+.SH AUTHOR
+ Milen Rangelov <gat3way@gat3way.eu>
+
+
+.SH "SEE ALSO"
+.BR hashkill (8),
+.BR hashgen (8)

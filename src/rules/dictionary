@@ -1,0 +1,12 @@
+# Simple dictionary rule
+# 
+# Parameters:
+#
+# $1 - dictionary file
+#
+# Example: hashkill ... -r dictionary -a mydict.txt
+#
+
+begin
+must add dict $1
+end

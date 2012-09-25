@@ -1,0 +1,15 @@
+# Simple bruteforce rule
+# 
+# Parameters:
+#
+# $1 - min. length
+# $2 - max. length
+# $3 - charset
+# $4 - additional charset elements
+#
+# Example: hashkill ... -r brute -a '1:6:lalphanum:!@#$'
+#
+
+begin
+must add set $1:$2:$3:$4
+end

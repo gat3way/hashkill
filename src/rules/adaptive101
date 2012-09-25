@@ -1,0 +1,72 @@
+# Adaptive attack 101 - 5 iterations, new candidates based on old cracked passwords
+# Inputs: dictionary and bruteforce parameters. Initial model based solely on dictionary
+# Can further train if you provide the final cracked list as input again
+# 
+# Parameters:
+#
+# $1 - min. length
+# $2 - max. length
+# $3 - charset
+# $4 - additional charset elements
+# $5 - dictionary
+#
+# Example: hashkill ... -r adaptive101 -a '1:6:lalphanum:!@#$:mydict.txt'
+#
+
+$Generate initial candidates
+begin
+must add dict $5
+end
+
+
+
+$Iteration 1
+begin
+must add passwords
+must add set $1:$2:$3:$4
+end
+begin
+must add set $1:$2:$3:$4
+must add passwords
+end
+
+$Iteration 2
+begin
+must add passwords
+must add set $1:$2:$3:$4
+end
+begin
+must add set $1:$2:$3:$4
+must add passwords
+end
+
+$Iteration 3
+begin
+must add passwords
+must add set $1:$2:$3:$4
+end
+begin
+must add set $1:$2:$3:$4
+must add passwords
+end
+
+$Iteration 4
+begin
+must add passwords
+must add set $1:$2:$3:$4
+end
+begin
+must add set $1:$2:$3:$4
+must add passwords
+end
+
+
+$Iteration 5
+begin
+must add passwords
+must add set $1:$2:$3:$4
+end
+begin
+must add set $1:$2:$3:$4
+must add passwords
+end

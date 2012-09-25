@@ -1,0 +1,1 @@
+man_MANS = hashkill.8 hashgen.8 pcap2hcap.8
