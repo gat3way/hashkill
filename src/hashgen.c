@@ -1282,7 +1282,7 @@ static void parse(char *line,int self, int precalc,int mode)
     	    exit(1);
     	}
     	update_start(atoi(tok3),mode);
-    	tok4=strtok(NULL," ");
+    	tok4=strtok(NULL,":");
     	if (tok4)
     	{
     	    fix_line(tok4);
@@ -1305,20 +1305,20 @@ static void parse(char *line,int self, int precalc,int mode)
 
     	    ltok4=strtok(NULL,":");
     	    if (ltok4) update_charset_plus(ltok4,mode);
-    	    update_parsefn(node_genham,mode);
     	}
+    	update_parsefn(node_genham,mode);
     }
     // genlev
     else if (strcmp(tok2,"genlev")==0)
     {
-    	tok3=strtok(NULL," ");
+    	tok3=strtok(NULL,":");
     	if (!tok3)
     	{
     	    hg_elog("Missing Levenshtein distance! (line:%s) \n",currentline);
     	    exit(1);
     	}
     	update_start(atoi(tok3),mode);
-    	tok4=strtok(NULL," ");
+    	tok4=strtok(NULL,":");
     	if (tok4)
     	{
     	    fix_line(tok4);
@@ -1341,20 +1341,20 @@ static void parse(char *line,int self, int precalc,int mode)
 
     	    ltok4=strtok(NULL,":");
     	    if (ltok4) update_charset_plus(ltok4,mode);
-    	    update_parsefn(node_genlev,mode);
     	}
+    	update_parsefn(node_genlev,mode);
     }
     // genlevdam
     else if (strcmp(tok2,"genlevdam")==0)
     {
-    	tok3=strtok(NULL," ");
+    	tok3=strtok(NULL,":");
     	if (!tok3)
     	{
     	    hg_elog("Missing Levenshtein-Damerau distance! (line:%s) \n",currentline);
     	    exit(1);
     	}
     	update_start(atoi(tok3),mode);
-    	tok4=strtok(NULL," ");
+    	tok4=strtok(NULL,":");
     	if (tok4)
     	{
     	    fix_line(tok4);
@@ -1377,10 +1377,9 @@ static void parse(char *line,int self, int precalc,int mode)
 
     	    ltok4=strtok(NULL,":");
     	    if (ltok4) update_charset_plus(ltok4,mode);
-    	    update_parsefn(node_genlevdam,mode);
     	}
+    	update_parsefn(node_genlevdam,mode);
     }
-
     // Badline
     else 
     {
