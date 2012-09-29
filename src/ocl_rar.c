@@ -454,7 +454,6 @@ static void ocl_rar_crack_callback(char *line, int self)
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel16[cc1][self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
     _clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, hash_ret_len1*wthreads[self].vectorsize*ocl_rule_workset[self], rule_ptr[self], 0, NULL, NULL);
 
-
     for (a=0;a<=rule_counts[self][cc];a++)
     {
         for (c=0;c<wthreads[self].vectorsize;c++)
@@ -500,7 +499,7 @@ static void ocl_rar_callback(char *line, int self)
     {
         self_kernel16[self]=cc;
         _clEnqueueWriteBuffer(rule_oclqueue[self], rule_images162_buf[cc][self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*16, rule_images162[cc][self], 0, NULL, NULL);
-        rule_offload_perform(ocl_rar_crack_callback,self);
+        if (rule_counts[self][cc]!=-1) rule_offload_perform(ocl_rar_crack_callback,self);
         bzero(&rule_images162[cc][self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*16);
         rule_counts[self][cc]=-1;
     }

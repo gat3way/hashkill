@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <dlfcn.h>
+#include <stdlib.h>
 #include "err.h"
 #include "ocl-base.h"
 #include "hashinterface.h"

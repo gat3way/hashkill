@@ -1,14 +1,6 @@
 #define GGI (get_global_id(0))
 #define GLI (get_local_id(0))
 
-/*
-#define SET_AB(ai1,ai2,ii1,ii2) { \
-    elem=ii1>>2; \
-    tmp1=(ii1&3)<<3; \
-    ai1[elem] = ai1[elem]|(ai2<<(tmp1)); \
-    ai1[elem+1] = (tmp1==0) ? 0 : ai2>>(32-tmp1);\
-    }
-*/
 #define SET_AB(ai1,ai2,ii1,ii2) { \
     elem=ii1>>2; \
     tmp1=(ii1&3)<<3; \
@@ -16,6 +8,12 @@
     ai1[elem+1] = select(ai2>>(32-tmp1),0U,(tmp1==0));\
     }
 
+#define SET_ABR(ai1,ai2,ii1,ii2) { \
+    elem=ii1>>2; \
+    tmp1=(ii1&3)<<3; \
+    ai1[elem] = ai1[elem]|(ai2>>(tmp1)); \
+    ai1[elem+1] = select(ai2<<(32-tmp1),0U,(tmp1==0));\
+    }
 
 
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
@@ -49,31 +47,6 @@ dst[GGI*8+5] = (((inpc[GLI][2]>>16)&255))|(((inpc[GLI][2]>>24)&255)<<16);
 dst[GGI*8+6] = (inpc[GLI][3]&255)|(((inpc[GLI][3]>>8)&255)<<16);
 dst[GGI*8+7] = (((inpc[GLI][3]>>16)&255))|(((inpc[GLI][3]>>24)&255)<<16);
 }
-
-
-
-#ifndef GCN
-
-#ifndef OLD_ATI
-#pragma OPENCL EXTENSION cl_amd_media_ops : enable
-#define Endian_Reverse32(aa) { l=(aa);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (aa)=bitselect(tmp2,tmp1,m); } 
-#define F_00_19(bb,cc,dd) (bitselect((dd),(cc),(bb)))
-#define F_20_39(bb,cc,dd)  ((bb) ^ (cc) ^ (dd))  
-#define F_40_59(bb,cc,dd) (bitselect((cc), (bb), ((dd)^(cc))))
-#define F_60_79(bb,cc,dd)  F_20_39((bb),(cc),(dd)) 
-#else
-#define Endian_Reverse32(aa) { l=(aa);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (aa)=bitselect(tmp2,tmp1,m); } 
-#define F_00_19(bb,cc,dd)  ((((cc) ^ (dd)) & (bb)) ^ (dd))
-#define F_20_39(bb,cc,dd)  ((cc) ^ (bb) ^ (dd))  
-#define F_40_59(bb,cc,dd)  (((bb) & (cc)) | (((bb)|(cc)) & (dd)))  
-#define F_60_79(bb,cc,dd)  F_20_39(bb,cc,dd) 
-#endif
-
-#define ROTATE1(aa, bb, cc, dd, ee, x) (ee) = (ee) + rotate((aa),S2) + F_00_19((bb),(cc),(dd)) + (x); (ee) = (ee) + K; (bb) = rotate((bb),S3) 
-#define ROTATE1_NULL(aa, bb, cc, dd, ee)  (ee) = (ee) + rotate((aa),S2) + F_00_19((bb),(cc),(dd)) + K; (bb) = rotate((bb),S3)
-#define ROTATE2_F(aa, bb, cc, dd, ee, x) (ee) = (ee) + rotate((aa),S2) + F_20_39((bb),(cc),(dd)) + (x) + K; (bb) = rotate((bb),S3) 
-#define ROTATE3_F(aa, bb, cc, dd, ee, x) (ee) = (ee) + rotate((aa),S2) + F_40_59((bb),(cc),(dd)) + (x) + K; (bb) = rotate((bb),S3)
-#define ROTATE4_F(aa, bb, cc, dd, ee, x) (ee) = (ee) + rotate((aa),S2) + F_60_79((bb),(cc),(dd)) + (x) + K; (bb) = rotate((bb),S3)
 
 #define GLI get_local_id(0)
 
@@ -124,22 +97,6 @@ w12=w[12]; \
 w13=w[13]; \
 w14=w[14]; \
 SIZE=w[15]; \
-Endian_Reverse32(w0); \
-Endian_Reverse32(w1); \
-Endian_Reverse32(w2); \
-Endian_Reverse32(w3); \
-Endian_Reverse32(w4); \
-Endian_Reverse32(w5); \
-Endian_Reverse32(w6); \
-Endian_Reverse32(w7); \
-Endian_Reverse32(w8); \
-Endian_Reverse32(w9); \
-Endian_Reverse32(w10); \
-Endian_Reverse32(w11); \
-Endian_Reverse32(w12); \
-Endian_Reverse32(w13); \
-Endian_Reverse32(w14); \
-Endian_Reverse32(SIZE); \
 OA=A;OB=B;OC=C;OD=D;OE=E; \
 K = K0; \
 ROTATE1(A, B, C, D, E, w0); \
@@ -247,21 +204,6 @@ w12=w[12]; \
 w13=w[13]; \
 w14=w[14]; \
 SIZE=w[15]; \
-Endian_Reverse32(w0); \
-Endian_Reverse32(w1); \
-Endian_Reverse32(w2); \
-Endian_Reverse32(w3); \
-Endian_Reverse32(w4); \
-Endian_Reverse32(w5); \
-Endian_Reverse32(w6); \
-Endian_Reverse32(w7); \
-Endian_Reverse32(w8); \
-Endian_Reverse32(w9); \
-Endian_Reverse32(w10); \
-Endian_Reverse32(w11); \
-Endian_Reverse32(w12); \
-Endian_Reverse32(w13); \
-Endian_Reverse32(w14); \
 OA=A;OB=B;OC=C;OD=D;OE=E; \
 K = K0; \
 ROTATE1(A, B, C, D, E, w0); \
@@ -354,8 +296,8 @@ A=A+OA;B=B+OB;C=C+OC;D=D+OD;E=E+OE; \
 
 
 #define SHA1_BLOCK_FINAL(size) { \
-w0=(uint2)0x80000000; \
-w1=w2=w3=w4=w5=w6=w7=w8=w9=w10=w11=w12=w13=w14=(uint2)0;\
+w0=0x80000000; \
+w1=w2=w3=w4=w5=w6=w7=w8=w9=w10=w11=w12=w13=w14=0;\
 SIZE=((size)<<3); \
 OA=A;OB=B;OC=C;OD=D;OE=E; \
 K = K0; \
@@ -446,6 +388,31 @@ A=A+OA;B=B+OB;C=C+OC;D=D+OD;E=E+OE; \
 }
 
 
+#ifndef GCN
+
+#ifndef OLD_ATI
+#pragma OPENCL EXTENSION cl_amd_media_ops : enable
+#define Endian_Reverse32(aa) { l=(aa);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (aa)=bitselect(tmp2,tmp1,m); } 
+#define F_00_19(bb,cc,dd) (bitselect((dd),(cc),(bb)))
+#define F_20_39(bb,cc,dd)  ((bb) ^ (cc) ^ (dd))  
+#define F_40_59(bb,cc,dd) (bitselect((cc), (bb), ((dd)^(cc))))
+#define F_60_79(bb,cc,dd)  F_20_39((bb),(cc),(dd)) 
+#else
+#define Endian_Reverse32(aa) { l=(aa);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (aa)=bitselect(tmp2,tmp1,m); } 
+#define F_00_19(bb,cc,dd)  ((((cc) ^ (dd)) & (bb)) ^ (dd))
+#define F_20_39(bb,cc,dd)  ((cc) ^ (bb) ^ (dd))  
+#define F_40_59(bb,cc,dd)  (((bb) & (cc)) | (((bb)|(cc)) & (dd)))  
+#define F_60_79(bb,cc,dd)  F_20_39(bb,cc,dd) 
+#endif
+
+#define ROTATE1(aa, bb, cc, dd, ee, x) (ee) = (ee) + rotate((aa),S2) + F_00_19((bb),(cc),(dd)) + (x); (ee) = (ee) + K; (bb) = rotate((bb),S3) 
+#define ROTATE1_NULL(aa, bb, cc, dd, ee)  (ee) = (ee) + rotate((aa),S2) + F_00_19((bb),(cc),(dd)) + K; (bb) = rotate((bb),S3)
+#define ROTATE2_F(aa, bb, cc, dd, ee, x) (ee) = (ee) + rotate((aa),S2) + F_20_39((bb),(cc),(dd)) + (x) + K; (bb) = rotate((bb),S3) 
+#define ROTATE3_F(aa, bb, cc, dd, ee, x) (ee) = (ee) + rotate((aa),S2) + F_40_59((bb),(cc),(dd)) + (x) + K; (bb) = rotate((bb),S3)
+#define ROTATE4_F(aa, bb, cc, dd, ee, x) (ee) = (ee) + rotate((aa),S2) + F_60_79((bb),(cc),(dd)) + (x) + K; (bb) = rotate((bb),S3)
+
+
+
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))
 void rar15( __global uint4 *dst,  __global uint *input, uint4 salt)
@@ -507,23 +474,33 @@ d7.s1=input[get_global_id(0)*2*8+15];
 
 d8=(uint2)salt.s0;
 d9=(uint2)salt.s1;
-
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
+Endian_Reverse32(d5);
+Endian_Reverse32(d6);
+Endian_Reverse32(d7);
+Endian_Reverse32(d8);
+Endian_Reverse32(d9);
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
 d10 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=4; \
-SET_AB(w,d7,count,0);count+=2; \
-SET_AB(w,d8,count,0);count+=4; \
-SET_AB(w,d9,count,0);count+=4; \
-SET_AB(w,d10,count,0);count+=3; \
+Endian_Reverse32(d10); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=4; \
+SET_ABR(w,d7,count,0);count+=2; \
+SET_ABR(w,d8,count,0);count+=4; \
+SET_ABR(w,d9,count,0);count+=4; \
+SET_ABR(w,d10,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -548,17 +525,18 @@ count-=64; \
 #define SHA1_BLOCK_IV(turn,size) { \
 count=0; \
 d10=(uint2)(turn|(0x80<<24)); \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=4; \
-SET_AB(w,d7,count,0);count+=2; \
-SET_AB(w,d8,count,0);count+=4; \
-SET_AB(w,d9,count,0);count+=4; \
-SET_AB(w,d10,count,0);count+=3; \
+Endian_Reverse32(d10); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=4; \
+SET_ABR(w,d7,count,0);count+=2; \
+SET_ABR(w,d8,count,0);count+=4; \
+SET_ABR(w,d9,count,0);count+=4; \
+SET_ABR(w,d10,count,0);count+=3; \
 count=0;\
 w[11]=w[12]=w[13]=w[14]=w[15]=(uint2)0; \
 t1=(size<<3); \
@@ -658,22 +636,32 @@ d6.s1=input[get_global_id(0)*2*8+14];
 
 d7=(uint2)salt.s0;
 d8=(uint2)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
+Endian_Reverse32(d5);
+Endian_Reverse32(d6);
+Endian_Reverse32(d7);
+Endian_Reverse32(d8);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
 d9 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=4; \
-SET_AB(w,d7,count,0);count+=4; \
-SET_AB(w,d8,count,0);count+=4; \
-SET_AB(w,d9,count,0);count+=3; \
+Endian_Reverse32(d9); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=4; \
+SET_ABR(w,d7,count,0);count+=4; \
+SET_ABR(w,d8,count,0);count+=4; \
+SET_ABR(w,d9,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -702,9 +690,10 @@ w[3]=d3; \
 w[4]=d4; \
 w[5]=d5; \
 w[6]=d6; \
-w[7]=(uint2)salt.s0; \
-w[8]=(uint2)salt.s1; \
+w[7]=(uint2)d7; \
+w[8]=(uint2)d8; \
 w[9]=(uint2)(turn|(0x80<<24)); \
+Endian_Reverse32(w[9]); \
 w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint2)0; \
 t1=(size<<3); \
 w[15]=t1; \
@@ -804,22 +793,32 @@ d6.s1=input[get_global_id(0)*2*8+14];
 
 d7=(uint2)salt.s0;
 d8=(uint2)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
+Endian_Reverse32(d5);
+Endian_Reverse32(d6);
+Endian_Reverse32(d7);
+Endian_Reverse32(d8);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
 d9 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=2; \
-SET_AB(w,d7,count,0);count+=4; \
-SET_AB(w,d8,count,0);count+=4; \
-SET_AB(w,d9,count,0);count+=3; \
+Endian_Reverse32(d9); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=2; \
+SET_ABR(w,d7,count,0);count+=4; \
+SET_ABR(w,d8,count,0);count+=4; \
+SET_ABR(w,d9,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -843,16 +842,17 @@ count-=64; \
 #define SHA1_BLOCK_IV(turn,size) { \
 count=0; \
 d9=(uint2)(turn|(0x80<<24)); \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=2; \
-SET_AB(w,d7,count,0);count+=4; \
-SET_AB(w,d8,count,0);count+=4; \
-SET_AB(w,d9,count,0);count+=3; \
+Endian_Reverse32(d9); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=2; \
+SET_ABR(w,d7,count,0);count+=4; \
+SET_ABR(w,d8,count,0);count+=4; \
+SET_ABR(w,d9,count,0);count+=3; \
 count=0;\
 w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint2)0; \
 t1=(size<<3); \
@@ -953,21 +953,30 @@ d5.s1=input[get_global_id(0)*2*8+13];
 
 d6=(uint2)salt.s0;
 d7=(uint2)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
+Endian_Reverse32(d5);
+Endian_Reverse32(d6);
+Endian_Reverse32(d7);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
 d8 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=4; \
-SET_AB(w,d7,count,0);count+=4; \
-SET_AB(w,d8,count,0);count+=3; \
+Endian_Reverse32(d8); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=4; \
+SET_ABR(w,d7,count,0);count+=4; \
+SET_ABR(w,d8,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -994,9 +1003,10 @@ w[2]=d2; \
 w[3]=d3; \
 w[4]=d4; \
 w[5]=d5; \
-w[6]=(uint2)salt.s0; \
-w[7]=(uint2)salt.s1; \
+w[6]=(uint2)d6; \
+w[7]=(uint2)d7; \
 w[8]=(uint2)(turn|(0x80<<24)); \
+Endian_Reverse32(w[8]); \
 w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint2)0; \
 t1=(size<<3); \
 w[15]=t1; \
@@ -1096,21 +1106,30 @@ d5.s1=input[get_global_id(0)*2*8+13];
 
 d6=(uint2)salt.s0;
 d7=(uint2)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
+Endian_Reverse32(d5);
+Endian_Reverse32(d6);
+Endian_Reverse32(d7);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
 d8 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=2; \
-SET_AB(w,d6,count,0);count+=4; \
-SET_AB(w,d7,count,0);count+=4; \
-SET_AB(w,d8,count,0);count+=3; \
+Endian_Reverse32(d8); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=2; \
+SET_ABR(w,d6,count,0);count+=4; \
+SET_ABR(w,d7,count,0);count+=4; \
+SET_ABR(w,d8,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -1133,15 +1152,16 @@ count-=64; \
 #define SHA1_BLOCK_IV(turn,size) { \
 count=0; \
 d8=(uint2)(turn|(0x80<<24)); \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=2; \
-SET_AB(w,d6,count,0);count+=4; \
-SET_AB(w,d7,count,0);count+=4; \
-SET_AB(w,d8,count,0);count+=3; \
+Endian_Reverse32(d8); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=2; \
+SET_ABR(w,d6,count,0);count+=4; \
+SET_ABR(w,d7,count,0);count+=4; \
+SET_ABR(w,d8,count,0);count+=3; \
 count=0;\
 w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint2)0; \
 t1=(size<<3); \
@@ -1241,20 +1261,28 @@ d4.s1=input[get_global_id(0)*2*8+12];
 
 d5=(uint2)salt.s0;
 d6=(uint2)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
+Endian_Reverse32(d5);
+Endian_Reverse32(d6);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
 d7 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=4; \
-SET_AB(w,d7,count,0);count+=3; \
+Endian_Reverse32(d7); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=4; \
+SET_ABR(w,d7,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -1279,9 +1307,10 @@ w[1]=d1; \
 w[2]=d2; \
 w[3]=d3; \
 w[4]=d4; \
-w[5]=(uint2)salt.s0; \
-w[6]=(uint2)salt.s1; \
+w[5]=(uint2)d5; \
+w[6]=(uint2)d6; \
 w[7]=(uint2)(turn|(0x80<<24)); \
+Endian_Reverse32(w[7]); \
 w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint2)0; \
 t1=(size<<3); \
 w[15]=t1; \
@@ -1379,20 +1408,28 @@ d4.s1=input[get_global_id(0)*2*8+12];
 
 d5=(uint2)salt.s0;
 d6=(uint2)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
+Endian_Reverse32(d5);
+Endian_Reverse32(d6);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
-d7 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=2; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=4; \
-SET_AB(w,d7,count,0);count+=3; \
+d7 = ib&0xFFFFFF; \
+Endian_Reverse32(d7); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=2; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=4; \
+SET_ABR(w,d7,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -1414,14 +1451,15 @@ count-=64; \
 #define SHA1_BLOCK_IV(turn,size) { \
 count=0; \
 d7=(uint2)(turn|(0x80<<24)); \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=2; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=4; \
-SET_AB(w,d7,count,0);count+=3; \
+Endian_Reverse32(d7); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=2; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=4; \
+SET_ABR(w,d7,count,0);count+=3; \
 count=0;\
 w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint2)0; \
 t1=(size<<3); \
@@ -1522,19 +1560,26 @@ d3.s1=input[get_global_id(0)*2*8+11];
 
 d4=(uint2)salt.s0;
 d5=(uint2)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
+Endian_Reverse32(d5);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
 d6 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=3; \
+Endian_Reverse32(d6); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -1557,9 +1602,10 @@ w[0]=d0; \
 w[1]=d1; \
 w[2]=d2; \
 w[3]=d3; \
-w[4]=(uint2)salt.s0; \
-w[5]=(uint2)salt.s1; \
+w[4]=(uint2)d4; \
+w[5]=(uint2)d5; \
 w[6]=(uint2)(turn|(0x80<<24)); \
+Endian_Reverse32(w[6]); \
 w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint2)0; \
 t1=(size<<3); \
 w[15]=t1; \
@@ -1659,19 +1705,26 @@ d3.s1=input[get_global_id(0)*2*8+11];
 
 d4=(uint2)salt.s0;
 d5=(uint2)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
+Endian_Reverse32(d5);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
 d6 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=2; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=3; \
+Endian_Reverse32(d6); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=2; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -1692,13 +1745,14 @@ count-=64; \
 #define SHA1_BLOCK_IV(turn,size) { \
 count=0; \
 d6=(uint2)(turn|(0x80<<24)); \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=2; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=3; \
+Endian_Reverse32(d6); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=2; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=3; \
 count=0;\
 w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint2)0; \
 t1=(size<<3); \
@@ -1755,7 +1809,6 @@ uint2 tmp1, tmp2,l,t1;
 uint2 w0, w1, w2, w3, w4, w5, w6, w7,w8,w9,w10,w11,w12,w13,w14,w16;
 uint yl,yr,zl,zr,wl,wr;
 
-// change to uint2
 uint2 K;
 uint2 K0 = (uint2)0x5A827999;
 uint2 K1 = (uint2)0x6ED9EBA1;
@@ -1799,18 +1852,23 @@ d2.s1=input[get_global_id(0)*2*8+10];
 
 d3=(uint2)salt.s0;
 d4=(uint2)salt.s1;
-
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
-d5 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=3; \
+d5=ib; \
+Endian_Reverse32(d5); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -1831,11 +1889,12 @@ count-=64; \
 w[0]=d0; \
 w[1]=d1; \
 w[2]=d2; \
-w[3]=(uint2)salt.s0; \
-w[4]=(uint2)salt.s1; \
-w[5]=(uint2)(turn|(0x80<<24)); \
+w[3]=(uint2)d3; \
+w[4]=(uint2)d4; \
+w[5]=(uint2)((turn)|(0x80<<24)); \
+Endian_Reverse32(w[5]); \
 w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint2)0; \
-t1=(size<<3); \
+t1=(uint2)(size<<3); \
 w[15]=t1; \
 SHA1_BLOCK_SIZE(); \
 }
@@ -1859,7 +1918,7 @@ int iter;
 for (iter=0;iter<16;iter++)
 {
 SHA1_BLOCK_IV(iter*16384,23+16384*iter*23);
-IV[GLI][iter>>2] |= ((E&255)<<((iter&3)*8));
+IV[GLI][iter>>2] |= (uint2)((E&255)<<(uint2)((iter&3)*8));
 A=OA;B=OB;C=OC;D=OD;E=OE;
 w[0]=w[1]=w[2]=w[3]=w[4]=w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=0; 
 LOOP_BODY(16384*iter);
@@ -1932,18 +1991,24 @@ d2.s1=input[get_global_id(0)*2*8+10];
 
 d3=(uint2)salt.s0;
 d4=(uint2)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
 d5 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=2; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=3; \
+Endian_Reverse32(d5); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=2; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -1963,12 +2028,13 @@ count-=64; \
 #define SHA1_BLOCK_IV(turn,size) { \
 count=0; \
 d5=(uint2)(turn|(0x80<<24)); \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=2; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=3; \
+Endian_Reverse32(d5); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=2; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=3; \
 count=0;\
 w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint2)0; \
 t1=(size<<3); \
@@ -2067,17 +2133,22 @@ d1.s1=input[get_global_id(0)*2*8+9];
 
 d2=(uint2)salt.s0;
 d3=(uint2)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
 d4 = ib&0xFFFFFF; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=3; \
+Endian_Reverse32(d4); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -2096,9 +2167,10 @@ count-=64; \
 #define SHA1_BLOCK_IV(turn,size) { \
 w[0]=d0; \
 w[1]=d1; \
-w[2]=(uint2)salt.s0; \
-w[3]=(uint2)salt.s1; \
+w[2]=(uint2)d2; \
+w[3]=(uint2)d3; \
 w[4]=(uint2)(turn|(0x80<<24)); \
+Endian_Reverse32(w[4]); \
 w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint2)0; \
 t1=(size<<3); \
 w[15]=t1; \
@@ -2196,17 +2268,22 @@ d1.s1=input[get_global_id(0)*2*8+9];
 
 d2=(uint2)salt.s0;
 d3=(uint2)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
-d4 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=2; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=3; \
+d4 = ib&0xFFFFFF; \
+Endian_Reverse32(d4); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=2; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -2226,11 +2303,12 @@ count-=64; \
 #define SHA1_BLOCK_IV(turn,size) { \
 count=0; \
 d4=(uint2)(turn|(0x80<<24)); \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=2; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=3; \
+Endian_Reverse32(d4); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=2; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=3; \
 count=0;\
 w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint2)0; \
 t1=(size<<3); \
@@ -2329,16 +2407,20 @@ d0.s1=input[get_global_id(0)*2*8+8];
 
 d1=(uint2)salt.s0;
 d2=(uint2)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
 d3 = ib&0xFFFFFF; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=3; \
+Endian_Reverse32(d3); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -2355,9 +2437,10 @@ count-=64; \
 
 #define SHA1_BLOCK_IV(turn,size) { \
 w[0]=d0; \
-w[1]=(uint2)salt.s0; \
-w[2]=(uint2)salt.s1; \
+w[1]=(uint2)d1; \
+w[2]=(uint2)d2; \
 w[3]=(uint2)(turn|(0x80<<24)); \
+Endian_Reverse32(w[3]); \
 w[4]=w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint2)0; \
 t1=(size<<3); \
 w[15]=t1; \
@@ -2456,16 +2539,20 @@ d0.s1=input[get_global_id(0)*2*8+8];
 
 d1=(uint2)salt.s0;
 d2=(uint2)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
-d3 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=2; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=3; \
+d3 = ib&0xFFFFFF; \
+Endian_Reverse32(d3); \
+SET_ABR(w,d0,count,0);count+=2; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -2485,10 +2572,11 @@ count-=64; \
 #define SHA1_BLOCK_IV(turn,size) { \
 count=0; \
 d3=(uint2)(turn|(0x80<<24)); \
-SET_AB(w,d0,count,0);count+=2; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=3; \
+Endian_Reverse32(d3); \
+SET_ABR(w,d0,count,0);count+=2; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=3; \
 count=0;\
 w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint2)0; \
 t1=(size<<3); \
@@ -2604,344 +2692,6 @@ dst[(get_global_id(0)<<2)+3] = (uint4) (IV[GLI][0].s1,IV[GLI][1].s1,IV[GLI][2].s
 
 
 
-#define SHA1_BLOCK() { \
-w0=w[0]; \
-w1=w[1]; \
-w2=w[2]; \
-w3=w[3]; \
-w4=w[4]; \
-w5=w[5]; \
-w6=w[6]; \
-w7=w[7]; \
-w8=w[8]; \
-w9=w[9]; \
-w10=w[10]; \
-w11=w[11]; \
-w12=w[12]; \
-w13=w[13]; \
-w14=w[14]; \
-SIZE=w[15]; \
-Endian_Reverse32(w0); \
-Endian_Reverse32(w1); \
-Endian_Reverse32(w2); \
-Endian_Reverse32(w3); \
-Endian_Reverse32(w4); \
-Endian_Reverse32(w5); \
-Endian_Reverse32(w6); \
-Endian_Reverse32(w7); \
-Endian_Reverse32(w8); \
-Endian_Reverse32(w9); \
-Endian_Reverse32(w10); \
-Endian_Reverse32(w11); \
-Endian_Reverse32(w12); \
-Endian_Reverse32(w13); \
-Endian_Reverse32(w14); \
-Endian_Reverse32(SIZE); \
-OA=A;OB=B;OC=C;OD=D;OE=E; \
-K = K0; \
-ROTATE1(A, B, C, D, E, w0); \
-ROTATE1(E, A, B, C, D, w1); \
-ROTATE1(D, E, A, B, C, w2); \
-ROTATE1(C, D, E, A, B, w3); \
-ROTATE1(B, C, D, E, A, w4); \
-ROTATE1(A, B, C, D, E, w5); \
-ROTATE1(E, A, B, C, D, w6); \
-ROTATE1(D, E, A, B, C, w7); \
-ROTATE1(C, D, E, A, B, w8); \
-ROTATE1(B, C, D, E, A, w9); \
-ROTATE1(A, B, C, D, E, w10); \
-ROTATE1(E, A, B, C, D, w11); \
-ROTATE1(D, E, A, B, C, w12); \
-ROTATE1(C, D, E, A, B, w13); \
-ROTATE1(B, C, D, E, A, w14); \
-ROTATE1(A, B, C, D, E, SIZE); \
-w16 = rotate((w13 ^ w8 ^ w2 ^ w0),S1);ROTATE1(E,A,B,C,D,w16); \
-w0 = rotate((w14 ^ w9 ^ w3 ^ w1),S1);ROTATE1(D,E,A,B,C,w0);  \
-w1 = rotate((SIZE ^ w10 ^ w4 ^ w2),S1); ROTATE1(C,D,E,A,B,w1);  \
-w2 = rotate((w16 ^ w11 ^ w5 ^ w3),S1);  ROTATE1(B,C,D,E,A,w2);  \
-K = K1; \
-w3 = rotate((w0 ^ w12 ^ w6 ^ w4),S1); ROTATE2_F(A, B, C, D, E, w3); \
-w4 = rotate((w1 ^ w13 ^ w7 ^ w5),S1); ROTATE2_F(E, A, B, C, D, w4); \
-w5 = rotate((w2 ^ w14 ^ w8 ^ w6),S1); ROTATE2_F(D, E, A, B, C, w5); \
-w6 = rotate((w3 ^ SIZE ^ w9 ^ w7),S1);ROTATE2_F(C, D, E, A, B, w6); \
-w7 = rotate((w4 ^ w16 ^ w10 ^ w8),S1); ROTATE2_F(B, C, D, E, A, w7); \
-w8 = rotate((w5 ^ w0 ^ w11 ^ w9),S1); ROTATE2_F(A, B, C, D, E, w8); \
-w9 = rotate((w6 ^ w1 ^ w12 ^ w10),S1); ROTATE2_F(E, A, B, C, D, w9); \
-w10 = rotate((w7 ^ w2 ^ w13 ^ w11),S1); ROTATE2_F(D, E, A, B, C, w10); \
-w11 = rotate((w8 ^ w3 ^ w14 ^ w12),S1); ROTATE2_F(C, D, E, A, B, w11);  \
-w12 = rotate((w9 ^ w4 ^ SIZE ^ w13),S1); ROTATE2_F(B, C, D, E, A, w12); \
-w13 = rotate((w10 ^ w5 ^ w16 ^ w14),S1); ROTATE2_F(A, B, C, D, E, w13); \
-w14 = rotate((w11 ^ w6 ^ w0 ^ SIZE),S1); ROTATE2_F(E, A, B, C, D, w14); \
-SIZE = rotate((w12 ^ w7 ^ w1 ^ w16),S1); ROTATE2_F(D, E, A, B, C, SIZE); \
-w16 = rotate((w13 ^ w8 ^ w2 ^ w0),S1); ROTATE2_F(C, D, E, A, B, w16); \
-w0 = rotate(w14 ^ w9 ^ w3 ^ w1,S1); ROTATE2_F(B, C, D, E, A, w0);   \
-w1 = rotate(SIZE ^ w10 ^ w4 ^ w2,S1); ROTATE2_F(A, B, C, D, E, w1); \
-w2 = rotate(w16 ^ w11 ^ w5 ^ w3,S1); ROTATE2_F(E, A, B, C, D, w2);  \
-w3 = rotate(w0 ^ w12 ^ w6 ^ w4,S1); ROTATE2_F(D, E, A, B, C, w3);   \
-w4 = rotate(w1 ^ w13 ^ w7 ^ w5,S1);ROTATE2_F(C, D, E, A, B, w4); \
-w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE2_F(B, C, D, E, A, w5);   \
-K = K2; \
-w6 = rotate(w3 ^ SIZE ^ w9 ^ w7, S1); ROTATE3_F(A, B, C, D, E, w6); \
-w7 = rotate(w4 ^ w16 ^ w10 ^ w8, S1); ROTATE3_F(E, A, B, C, D, w7); \
-w8 = rotate(w5 ^ w0 ^ w11 ^ w9, S1); ROTATE3_F(D, E, A, B, C, w8);  \
-w9 = rotate(w6 ^ w1 ^ w12 ^ w10, S1); ROTATE3_F(C, D, E, A, B, w9); \
-w10 = rotate(w7 ^ w2 ^ w13 ^ w11, S1); ROTATE3_F(B, C, D, E, A, w10);   \
-w11 = rotate(w8 ^ w3 ^ w14 ^ w12, S1); ROTATE3_F(A, B, C, D, E, w11);   \
-w12 = rotate(w9 ^ w4 ^ SIZE ^ w13, S1); ROTATE3_F(E, A, B, C, D, w12);  \
-w13 = rotate(w10 ^ w5 ^ w16 ^ w14, S1); ROTATE3_F(D, E, A, B, C, w13);  \
-w14 = rotate(w11 ^ w6 ^ w0 ^ SIZE, S1); ROTATE3_F(C, D, E, A, B, w14);  \
-SIZE = rotate(w12 ^ w7 ^ w1 ^ w16, S1); ROTATE3_F(B, C, D, E, A, SIZE); \
-w16 = rotate(w13 ^ w8 ^ w2 ^ w0, S1); ROTATE3_F(A, B, C, D, E, w16); \
-w0 = rotate(w14 ^ w9 ^ w3 ^ w1, S1); ROTATE3_F(E, A, B, C, D, w0);  \
-w1 = rotate(SIZE ^ w10 ^ w4 ^ w2, S1); ROTATE3_F(D, E, A, B, C, w1); \
-w2 = rotate(w16 ^ w11 ^ w5 ^ w3, S1); ROTATE3_F(C, D, E, A, B, w2); \
-w3 = rotate(w0 ^ w12 ^ w6 ^ w4, S1); ROTATE3_F(B, C, D, E, A, w3);  \
-w4 = rotate(w1 ^ w13 ^ w7 ^ w5, S1); ROTATE3_F(A, B, C, D, E, w4);  \
-w5 = rotate(w2 ^ w14 ^ w8 ^ w6, S1); ROTATE3_F(E, A, B, C, D, w5);  \
-w6 = rotate(w3 ^ SIZE ^ w9 ^ w7, S1); ROTATE3_F(D, E, A, B, C, w6); \
-w7 = rotate(w4 ^ w16 ^ w10 ^ w8, S1); ROTATE3_F(C, D, E, A, B, w7); \
-w8 = rotate(w5 ^ w0 ^ w11 ^ w9, S1); ROTATE3_F(B, C, D, E, A, w8);  \
-K = K3; \
-w9 = rotate(w6 ^ w1 ^ w12 ^ w10, S1); ROTATE4_F(A, B, C, D, E, w9); \
-w10 = rotate(w7 ^ w2 ^ w13 ^ w11, S1); ROTATE4_F(E, A, B, C, D, w10); \
-w11 = rotate(w8 ^ w3 ^ w14 ^ w12, S1); ROTATE4_F(D, E, A, B, C, w11);   \
-w12 = rotate(w9 ^ w4 ^ SIZE ^ w13, S1); ROTATE4_F(C, D, E, A, B, w12);  \
-w13 = rotate(w10 ^ w5 ^ w16 ^ w14, S1); ROTATE4_F(B, C, D, E, A, w13);  \
-w14 = rotate(w11 ^ w6 ^ w0 ^ SIZE, S1); ROTATE4_F(A, B, C, D, E, w14);  \
-SIZE = rotate(w12 ^ w7 ^ w1 ^ w16, S1); ROTATE4_F(E, A, B, C, D, SIZE); \
-w16 = rotate(w13 ^ w8 ^ w2 ^ w0, S1); ROTATE4_F(D, E, A, B, C, w16); \
-w0 = rotate(w14 ^ w9 ^ w3 ^ w1, S1); ROTATE4_F(C, D, E, A, B, w0);  \
-w1 = rotate(SIZE ^ w10 ^ w4 ^ w2, S1); ROTATE4_F(B, C, D, E, A, w1); \
-w2 = rotate(w16 ^ w11 ^ w5 ^ w3,S1); ROTATE4_F(A, B, C, D, E, w2);  \
-w3 = rotate(w0 ^ w12 ^ w6 ^ w4,S1); ROTATE4_F(E, A, B, C, D, w3);   \
-w4 = rotate(w1 ^ w13 ^ w7 ^ w5,S1); ROTATE4_F(D, E, A, B, C, w4);   \
-w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE4_F(C, D, E, A, B, w5);   \
-w6 = rotate(w3 ^ SIZE ^ w9 ^ w7,S1); ROTATE4_F(B, C, D, E, A, w6);  \
-w7 = rotate(w4 ^ w16 ^ w10 ^ w8,S1); ROTATE4_F(A, B, C, D, E, w7);  \
-w8 = rotate(w5 ^ w0 ^ w11 ^ w9,S1); ROTATE4_F(E, A, B, C, D, w8);   \
-w9 = rotate(w6 ^ w1 ^ w12 ^ w10,S1); ROTATE4_F(D, E, A, B, C, w9);  \
-w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10); \
-w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11); \
-A=A+OA;B=B+OB;C=C+OC;D=D+OD;E=E+OE; \
-}
-
-
-
-#define SHA1_BLOCK_SIZE() { \
-w0=w[0]; \
-w1=w[1]; \
-w2=w[2]; \
-w3=w[3]; \
-w4=w[4]; \
-w5=w[5]; \
-w6=w[6]; \
-w7=w[7]; \
-w8=w[8]; \
-w9=w[9]; \
-w10=w[10]; \
-w11=w[11]; \
-w12=w[12]; \
-w13=w[13]; \
-w14=w[14]; \
-SIZE=w[15]; \
-Endian_Reverse32(w0); \
-Endian_Reverse32(w1); \
-Endian_Reverse32(w2); \
-Endian_Reverse32(w3); \
-Endian_Reverse32(w4); \
-Endian_Reverse32(w5); \
-Endian_Reverse32(w6); \
-Endian_Reverse32(w7); \
-Endian_Reverse32(w8); \
-Endian_Reverse32(w9); \
-Endian_Reverse32(w10); \
-Endian_Reverse32(w11); \
-Endian_Reverse32(w12); \
-Endian_Reverse32(w13); \
-Endian_Reverse32(w14); \
-OA=A;OB=B;OC=C;OD=D;OE=E; \
-K = K0; \
-ROTATE1(A, B, C, D, E, w0); \
-ROTATE1(E, A, B, C, D, w1); \
-ROTATE1(D, E, A, B, C, w2); \
-ROTATE1(C, D, E, A, B, w3); \
-ROTATE1(B, C, D, E, A, w4); \
-ROTATE1(A, B, C, D, E, w5); \
-ROTATE1(E, A, B, C, D, w6); \
-ROTATE1(D, E, A, B, C, w7); \
-ROTATE1(C, D, E, A, B, w8); \
-ROTATE1(B, C, D, E, A, w9); \
-ROTATE1(A, B, C, D, E, w10); \
-ROTATE1(E, A, B, C, D, w11); \
-ROTATE1(D, E, A, B, C, w12); \
-ROTATE1(C, D, E, A, B, w13); \
-ROTATE1(B, C, D, E, A, w14); \
-ROTATE1(A, B, C, D, E, SIZE); \
-w16 = rotate((w13 ^ w8 ^ w2 ^ w0),S1);ROTATE1(E,A,B,C,D,w16); \
-w0 = rotate((w14 ^ w9 ^ w3 ^ w1),S1);ROTATE1(D,E,A,B,C,w0);  \
-w1 = rotate((SIZE ^ w10 ^ w4 ^ w2),S1); ROTATE1(C,D,E,A,B,w1);  \
-w2 = rotate((w16 ^ w11 ^ w5 ^ w3),S1);  ROTATE1(B,C,D,E,A,w2);  \
-K = K1; \
-w3 = rotate((w0 ^ w12 ^ w6 ^ w4),S1); ROTATE2_F(A, B, C, D, E, w3); \
-w4 = rotate((w1 ^ w13 ^ w7 ^ w5),S1); ROTATE2_F(E, A, B, C, D, w4); \
-w5 = rotate((w2 ^ w14 ^ w8 ^ w6),S1); ROTATE2_F(D, E, A, B, C, w5); \
-w6 = rotate((w3 ^ SIZE ^ w9 ^ w7),S1);ROTATE2_F(C, D, E, A, B, w6); \
-w7 = rotate((w4 ^ w16 ^ w10 ^ w8),S1); ROTATE2_F(B, C, D, E, A, w7); \
-w8 = rotate((w5 ^ w0 ^ w11 ^ w9),S1); ROTATE2_F(A, B, C, D, E, w8); \
-w9 = rotate((w6 ^ w1 ^ w12 ^ w10),S1); ROTATE2_F(E, A, B, C, D, w9); \
-w10 = rotate((w7 ^ w2 ^ w13 ^ w11),S1); ROTATE2_F(D, E, A, B, C, w10); \
-w11 = rotate((w8 ^ w3 ^ w14 ^ w12),S1); ROTATE2_F(C, D, E, A, B, w11);  \
-w12 = rotate((w9 ^ w4 ^ SIZE ^ w13),S1); ROTATE2_F(B, C, D, E, A, w12); \
-w13 = rotate((w10 ^ w5 ^ w16 ^ w14),S1); ROTATE2_F(A, B, C, D, E, w13); \
-w14 = rotate((w11 ^ w6 ^ w0 ^ SIZE),S1); ROTATE2_F(E, A, B, C, D, w14); \
-SIZE = rotate((w12 ^ w7 ^ w1 ^ w16),S1); ROTATE2_F(D, E, A, B, C, SIZE); \
-w16 = rotate((w13 ^ w8 ^ w2 ^ w0),S1); ROTATE2_F(C, D, E, A, B, w16); \
-w0 = rotate(w14 ^ w9 ^ w3 ^ w1,S1); ROTATE2_F(B, C, D, E, A, w0);   \
-w1 = rotate(SIZE ^ w10 ^ w4 ^ w2,S1); ROTATE2_F(A, B, C, D, E, w1); \
-w2 = rotate(w16 ^ w11 ^ w5 ^ w3,S1); ROTATE2_F(E, A, B, C, D, w2);  \
-w3 = rotate(w0 ^ w12 ^ w6 ^ w4,S1); ROTATE2_F(D, E, A, B, C, w3);   \
-w4 = rotate(w1 ^ w13 ^ w7 ^ w5,S1);ROTATE2_F(C, D, E, A, B, w4); \
-w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE2_F(B, C, D, E, A, w5);   \
-K = K2; \
-w6 = rotate(w3 ^ SIZE ^ w9 ^ w7, S1); ROTATE3_F(A, B, C, D, E, w6); \
-w7 = rotate(w4 ^ w16 ^ w10 ^ w8, S1); ROTATE3_F(E, A, B, C, D, w7); \
-w8 = rotate(w5 ^ w0 ^ w11 ^ w9, S1); ROTATE3_F(D, E, A, B, C, w8);  \
-w9 = rotate(w6 ^ w1 ^ w12 ^ w10, S1); ROTATE3_F(C, D, E, A, B, w9); \
-w10 = rotate(w7 ^ w2 ^ w13 ^ w11, S1); ROTATE3_F(B, C, D, E, A, w10);   \
-w11 = rotate(w8 ^ w3 ^ w14 ^ w12, S1); ROTATE3_F(A, B, C, D, E, w11);   \
-w12 = rotate(w9 ^ w4 ^ SIZE ^ w13, S1); ROTATE3_F(E, A, B, C, D, w12);  \
-w13 = rotate(w10 ^ w5 ^ w16 ^ w14, S1); ROTATE3_F(D, E, A, B, C, w13);  \
-w14 = rotate(w11 ^ w6 ^ w0 ^ SIZE, S1); ROTATE3_F(C, D, E, A, B, w14);  \
-SIZE = rotate(w12 ^ w7 ^ w1 ^ w16, S1); ROTATE3_F(B, C, D, E, A, SIZE); \
-w16 = rotate(w13 ^ w8 ^ w2 ^ w0, S1); ROTATE3_F(A, B, C, D, E, w16); \
-w0 = rotate(w14 ^ w9 ^ w3 ^ w1, S1); ROTATE3_F(E, A, B, C, D, w0);  \
-w1 = rotate(SIZE ^ w10 ^ w4 ^ w2, S1); ROTATE3_F(D, E, A, B, C, w1); \
-w2 = rotate(w16 ^ w11 ^ w5 ^ w3, S1); ROTATE3_F(C, D, E, A, B, w2); \
-w3 = rotate(w0 ^ w12 ^ w6 ^ w4, S1); ROTATE3_F(B, C, D, E, A, w3);  \
-w4 = rotate(w1 ^ w13 ^ w7 ^ w5, S1); ROTATE3_F(A, B, C, D, E, w4);  \
-w5 = rotate(w2 ^ w14 ^ w8 ^ w6, S1); ROTATE3_F(E, A, B, C, D, w5);  \
-w6 = rotate(w3 ^ SIZE ^ w9 ^ w7, S1); ROTATE3_F(D, E, A, B, C, w6); \
-w7 = rotate(w4 ^ w16 ^ w10 ^ w8, S1); ROTATE3_F(C, D, E, A, B, w7); \
-w8 = rotate(w5 ^ w0 ^ w11 ^ w9, S1); ROTATE3_F(B, C, D, E, A, w8);  \
-K = K3; \
-w9 = rotate(w6 ^ w1 ^ w12 ^ w10, S1); ROTATE4_F(A, B, C, D, E, w9); \
-w10 = rotate(w7 ^ w2 ^ w13 ^ w11, S1); ROTATE4_F(E, A, B, C, D, w10); \
-w11 = rotate(w8 ^ w3 ^ w14 ^ w12, S1); ROTATE4_F(D, E, A, B, C, w11);   \
-w12 = rotate(w9 ^ w4 ^ SIZE ^ w13, S1); ROTATE4_F(C, D, E, A, B, w12);  \
-w13 = rotate(w10 ^ w5 ^ w16 ^ w14, S1); ROTATE4_F(B, C, D, E, A, w13);  \
-w14 = rotate(w11 ^ w6 ^ w0 ^ SIZE, S1); ROTATE4_F(A, B, C, D, E, w14);  \
-SIZE = rotate(w12 ^ w7 ^ w1 ^ w16, S1); ROTATE4_F(E, A, B, C, D, SIZE); \
-w16 = rotate(w13 ^ w8 ^ w2 ^ w0, S1); ROTATE4_F(D, E, A, B, C, w16); \
-w0 = rotate(w14 ^ w9 ^ w3 ^ w1, S1); ROTATE4_F(C, D, E, A, B, w0);  \
-w1 = rotate(SIZE ^ w10 ^ w4 ^ w2, S1); ROTATE4_F(B, C, D, E, A, w1); \
-w2 = rotate(w16 ^ w11 ^ w5 ^ w3,S1); ROTATE4_F(A, B, C, D, E, w2);  \
-w3 = rotate(w0 ^ w12 ^ w6 ^ w4,S1); ROTATE4_F(E, A, B, C, D, w3);   \
-w4 = rotate(w1 ^ w13 ^ w7 ^ w5,S1); ROTATE4_F(D, E, A, B, C, w4);   \
-w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE4_F(C, D, E, A, B, w5);   \
-w6 = rotate(w3 ^ SIZE ^ w9 ^ w7,S1); ROTATE4_F(B, C, D, E, A, w6);  \
-w7 = rotate(w4 ^ w16 ^ w10 ^ w8,S1); ROTATE4_F(A, B, C, D, E, w7);  \
-w8 = rotate(w5 ^ w0 ^ w11 ^ w9,S1); ROTATE4_F(E, A, B, C, D, w8);   \
-w9 = rotate(w6 ^ w1 ^ w12 ^ w10,S1); ROTATE4_F(D, E, A, B, C, w9);  \
-w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10); \
-w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11); \
-A=A+OA;B=B+OB;C=C+OC;D=D+OD;E=E+OE; \
-}
-
-
-
-
-#define SHA1_BLOCK_FINAL(size) { \
-w0=(uint)0x80000000; \
-w1=w2=w3=w4=w5=w6=w7=w8=w9=w10=w11=w12=w13=w14=(uint)0;\
-SIZE=((size)<<3); \
-OA=A;OB=B;OC=C;OD=D;OE=E; \
-K = K0; \
-ROTATE1(A, B, C, D, E, w0); \
-ROTATE1_NULL(E, A, B, C, D); \
-ROTATE1_NULL(D, E, A, B, C); \
-ROTATE1_NULL(C, D, E, A, B); \
-ROTATE1_NULL(B, C, D, E, A); \
-ROTATE1_NULL(A, B, C, D, E); \
-ROTATE1_NULL(E, A, B, C, D); \
-ROTATE1_NULL(D, E, A, B, C); \
-ROTATE1_NULL(C, D, E, A, B); \
-ROTATE1_NULL(B, C, D, E, A); \
-ROTATE1_NULL(A, B, C, D, E); \
-ROTATE1_NULL(E, A, B, C, D); \
-ROTATE1_NULL(D, E, A, B, C); \
-ROTATE1_NULL(C, D, E, A, B); \
-ROTATE1_NULL(B, C, D, E, A); \
-ROTATE1(A, B, C, D, E, SIZE); \
-w16 = rotate((w13 ^ w8 ^ w2 ^ w0),S1);ROTATE1(E,A,B,C,D,w16); \
-w0 = rotate((w14 ^ w9 ^ w3 ^ w1),S1);ROTATE1(D,E,A,B,C,w0);  \
-w1 = rotate((SIZE ^ w10 ^ w4 ^ w2),S1); ROTATE1(C,D,E,A,B,w1);  \
-w2 = rotate((w16 ^ w11 ^ w5 ^ w3),S1);  ROTATE1(B,C,D,E,A,w2);  \
-K = K1; \
-w3 = rotate((w0 ^ w12 ^ w6 ^ w4),S1); ROTATE2_F(A, B, C, D, E, w3); \
-w4 = rotate((w1 ^ w13 ^ w7 ^ w5),S1); ROTATE2_F(E, A, B, C, D, w4); \
-w5 = rotate((w2 ^ w14 ^ w8 ^ w6),S1); ROTATE2_F(D, E, A, B, C, w5); \
-w6 = rotate((w3 ^ SIZE ^ w9 ^ w7),S1);ROTATE2_F(C, D, E, A, B, w6); \
-w7 = rotate((w4 ^ w16 ^ w10 ^ w8),S1); ROTATE2_F(B, C, D, E, A, w7); \
-w8 = rotate((w5 ^ w0 ^ w11 ^ w9),S1); ROTATE2_F(A, B, C, D, E, w8); \
-w9 = rotate((w6 ^ w1 ^ w12 ^ w10),S1); ROTATE2_F(E, A, B, C, D, w9); \
-w10 = rotate((w7 ^ w2 ^ w13 ^ w11),S1); ROTATE2_F(D, E, A, B, C, w10);  \
-w11 = rotate((w8 ^ w3 ^ w14 ^ w12),S1); ROTATE2_F(C, D, E, A, B, w11);  \
-w12 = rotate((w9 ^ w4 ^ SIZE ^ w13),S1); ROTATE2_F(B, C, D, E, A, w12); \
-w13 = rotate((w10 ^ w5 ^ w16 ^ w14),S1); ROTATE2_F(A, B, C, D, E, w13); \
-w14 = rotate((w11 ^ w6 ^ w0 ^ SIZE),S1); ROTATE2_F(E, A, B, C, D, w14); \
-SIZE = rotate((w12 ^ w7 ^ w1 ^ w16),S1); ROTATE2_F(D, E, A, B, C, SIZE); \
-w16 = rotate((w13 ^ w8 ^ w2 ^ w0),S1); ROTATE2_F(C, D, E, A, B, w16);   \
-w0 = rotate(w14 ^ w9 ^ w3 ^ w1,S1); ROTATE2_F(B, C, D, E, A, w0);   \
-w1 = rotate(SIZE ^ w10 ^ w4 ^ w2,S1); ROTATE2_F(A, B, C, D, E, w1); \
-w2 = rotate(w16 ^ w11 ^ w5 ^ w3,S1); ROTATE2_F(E, A, B, C, D, w2);  \
-w3 = rotate(w0 ^ w12 ^ w6 ^ w4,S1); ROTATE2_F(D, E, A, B, C, w3);   \
-w4 = rotate(w1 ^ w13 ^ w7 ^ w5,S1);ROTATE2_F(C, D, E, A, B, w4); \
-w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE2_F(B, C, D, E, A, w5);   \
-K = K2; \
-w6 = rotate(w3 ^ SIZE ^ w9 ^ w7, S1); ROTATE3_F(A, B, C, D, E, w6); \
-w7 = rotate(w4 ^ w16 ^ w10 ^ w8, S1); ROTATE3_F(E, A, B, C, D, w7); \
-w8 = rotate(w5 ^ w0 ^ w11 ^ w9, S1); ROTATE3_F(D, E, A, B, C, w8);  \
-w9 = rotate(w6 ^ w1 ^ w12 ^ w10, S1); ROTATE3_F(C, D, E, A, B, w9); \
-w10 = rotate(w7 ^ w2 ^ w13 ^ w11, S1); ROTATE3_F(B, C, D, E, A, w10);   \
-w11 = rotate(w8 ^ w3 ^ w14 ^ w12, S1); ROTATE3_F(A, B, C, D, E, w11);   \
-w12 = rotate(w9 ^ w4 ^ SIZE ^ w13, S1); ROTATE3_F(E, A, B, C, D, w12);  \
-w13 = rotate(w10 ^ w5 ^ w16 ^ w14, S1); ROTATE3_F(D, E, A, B, C, w13);  \
-w14 = rotate(w11 ^ w6 ^ w0 ^ SIZE, S1); ROTATE3_F(C, D, E, A, B, w14);  \
-SIZE = rotate(w12 ^ w7 ^ w1 ^ w16, S1); ROTATE3_F(B, C, D, E, A, SIZE); \
-w16 = rotate(w13 ^ w8 ^ w2 ^ w0, S1); ROTATE3_F(A, B, C, D, E, w16); \
-w0 = rotate(w14 ^ w9 ^ w3 ^ w1, S1); ROTATE3_F(E, A, B, C, D, w0);  \
-w1 = rotate(SIZE ^ w10 ^ w4 ^ w2, S1); ROTATE3_F(D, E, A, B, C, w1); \
-w2 = rotate(w16 ^ w11 ^ w5 ^ w3, S1); ROTATE3_F(C, D, E, A, B, w2); \
-w3 = rotate(w0 ^ w12 ^ w6 ^ w4, S1); ROTATE3_F(B, C, D, E, A, w3);  \
-w4 = rotate(w1 ^ w13 ^ w7 ^ w5, S1); ROTATE3_F(A, B, C, D, E, w4);  \
-w5 = rotate(w2 ^ w14 ^ w8 ^ w6, S1); ROTATE3_F(E, A, B, C, D, w5);  \
-w6 = rotate(w3 ^ SIZE ^ w9 ^ w7, S1); ROTATE3_F(D, E, A, B, C, w6); \
-w7 = rotate(w4 ^ w16 ^ w10 ^ w8, S1); ROTATE3_F(C, D, E, A, B, w7); \
-w8 = rotate(w5 ^ w0 ^ w11 ^ w9, S1); ROTATE3_F(B, C, D, E, A, w8);  \
-K = K3; \
-w9 = rotate(w6 ^ w1 ^ w12 ^ w10, S1); ROTATE4_F(A, B, C, D, E, w9); \
-w10 = rotate(w7 ^ w2 ^ w13 ^ w11, S1); ROTATE4_F(E, A, B, C, D, w10);   \
-w11 = rotate(w8 ^ w3 ^ w14 ^ w12, S1); ROTATE4_F(D, E, A, B, C, w11);   \
-w12 = rotate(w9 ^ w4 ^ SIZE ^ w13, S1); ROTATE4_F(C, D, E, A, B, w12);  \
-w13 = rotate(w10 ^ w5 ^ w16 ^ w14, S1); ROTATE4_F(B, C, D, E, A, w13);  \
-w14 = rotate(w11 ^ w6 ^ w0 ^ SIZE, S1); ROTATE4_F(A, B, C, D, E, w14);  \
-SIZE = rotate(w12 ^ w7 ^ w1 ^ w16, S1); ROTATE4_F(E, A, B, C, D, SIZE); \
-w16 = rotate(w13 ^ w8 ^ w2 ^ w0, S1); ROTATE4_F(D, E, A, B, C, w16); \
-w0 = rotate(w14 ^ w9 ^ w3 ^ w1, S1); ROTATE4_F(C, D, E, A, B, w0);  \
-w1 = rotate(SIZE ^ w10 ^ w4 ^ w2, S1); ROTATE4_F(B, C, D, E, A, w1); \
-w2 = rotate(w16 ^ w11 ^ w5 ^ w3,S1); ROTATE4_F(A, B, C, D, E, w2);  \
-w3 = rotate(w0 ^ w12 ^ w6 ^ w4,S1); ROTATE4_F(E, A, B, C, D, w3);   \
-w4 = rotate(w1 ^ w13 ^ w7 ^ w5,S1); ROTATE4_F(D, E, A, B, C, w4);   \
-w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE4_F(C, D, E, A, B, w5);   \
-w6 = rotate(w3 ^ SIZE ^ w9 ^ w7,S1); ROTATE4_F(B, C, D, E, A, w6);  \
-w7 = rotate(w4 ^ w16 ^ w10 ^ w8,S1); ROTATE4_F(A, B, C, D, E, w7);  \
-w8 = rotate(w5 ^ w0 ^ w11 ^ w9,S1); ROTATE4_F(E, A, B, C, D, w8);   \
-w9 = rotate(w6 ^ w1 ^ w12 ^ w10,S1); ROTATE4_F(D, E, A, B, C, w9);  \
-w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10); \
-w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11); \
-A=A+OA;B=B+OB;C=C+OC;D=D+OD;E=E+OE; \
-}
-
 
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))
@@ -2996,23 +2746,33 @@ d7=input[get_global_id(0)*8+7];
 
 d8=(uint)salt.s0;
 d9=(uint)salt.s1;
-
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
+Endian_Reverse32(d5);
+Endian_Reverse32(d6);
+Endian_Reverse32(d7);
+Endian_Reverse32(d8);
+Endian_Reverse32(d9);
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
 d10 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=4; \
-SET_AB(w,d7,count,0);count+=2; \
-SET_AB(w,d8,count,0);count+=4; \
-SET_AB(w,d9,count,0);count+=4; \
-SET_AB(w,d10,count,0);count+=3; \
+Endian_Reverse32(d10); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=4; \
+SET_ABR(w,d7,count,0);count+=2; \
+SET_ABR(w,d8,count,0);count+=4; \
+SET_ABR(w,d9,count,0);count+=4; \
+SET_ABR(w,d10,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -3037,17 +2797,18 @@ count-=64; \
 #define SHA1_BLOCK_IV(turn,size) { \
 count=0; \
 d10=(uint)(turn|(0x80<<24)); \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=4; \
-SET_AB(w,d7,count,0);count+=2; \
-SET_AB(w,d8,count,0);count+=4; \
-SET_AB(w,d9,count,0);count+=4; \
-SET_AB(w,d10,count,0);count+=3; \
+Endian_Reverse32(d10); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=4; \
+SET_ABR(w,d7,count,0);count+=2; \
+SET_ABR(w,d8,count,0);count+=4; \
+SET_ABR(w,d9,count,0);count+=4; \
+SET_ABR(w,d10,count,0);count+=3; \
 count=0;\
 w[11]=w[12]=w[13]=w[14]=w[15]=(uint)0; \
 t1=(size<<3); \
@@ -3139,22 +2900,32 @@ d6=input[get_global_id(0)*8+6];
 
 d7=(uint)salt.s0;
 d8=(uint)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
+Endian_Reverse32(d5);
+Endian_Reverse32(d6);
+Endian_Reverse32(d7);
+Endian_Reverse32(d8);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
-d9 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=4; \
-SET_AB(w,d7,count,0);count+=4; \
-SET_AB(w,d8,count,0);count+=4; \
-SET_AB(w,d9,count,0);count+=3; \
+d9 = ib&0xFFFFFF; \
+Endian_Reverse32(d9); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=4; \
+SET_ABR(w,d7,count,0);count+=4; \
+SET_ABR(w,d8,count,0);count+=4; \
+SET_ABR(w,d9,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -3183,9 +2954,10 @@ w[3]=d3; \
 w[4]=d4; \
 w[5]=d5; \
 w[6]=d6; \
-w[7]=(uint)salt.s0; \
-w[8]=(uint)salt.s1; \
+w[7]=(uint)d7; \
+w[8]=(uint)d8; \
 w[9]=(uint)(turn|(0x80<<24)); \
+Endian_Reverse32(w[9]); \
 w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint)0; \
 t1=(size<<3); \
 w[15]=t1; \
@@ -3276,22 +3048,32 @@ d6=input[get_global_id(0)*8+6];
 
 d7=(uint)salt.s0;
 d8=(uint)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
+Endian_Reverse32(d5);
+Endian_Reverse32(d6);
+Endian_Reverse32(d7);
+Endian_Reverse32(d8);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
-d9 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=2; \
-SET_AB(w,d7,count,0);count+=4; \
-SET_AB(w,d8,count,0);count+=4; \
-SET_AB(w,d9,count,0);count+=3; \
+d9 = ib&0xFFFFFF; \
+Endian_Reverse32(d9); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=2; \
+SET_ABR(w,d7,count,0);count+=4; \
+SET_ABR(w,d8,count,0);count+=4; \
+SET_ABR(w,d9,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -3315,16 +3097,17 @@ count-=64; \
 #define SHA1_BLOCK_IV(turn,size) { \
 count=0; \
 d9=(uint)(turn|(0x80<<24)); \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=2; \
-SET_AB(w,d7,count,0);count+=4; \
-SET_AB(w,d8,count,0);count+=4; \
-SET_AB(w,d9,count,0);count+=3; \
+Endian_Reverse32(d9); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=2; \
+SET_ABR(w,d7,count,0);count+=4; \
+SET_ABR(w,d8,count,0);count+=4; \
+SET_ABR(w,d9,count,0);count+=3; \
 count=0;\
 w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint)0; \
 t1=(size<<3); \
@@ -3415,21 +3198,30 @@ d5=input[get_global_id(0)*8+5];
 
 d6=(uint)salt.s0;
 d7=(uint)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
+Endian_Reverse32(d5);
+Endian_Reverse32(d6);
+Endian_Reverse32(d7);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
 d8 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=4; \
-SET_AB(w,d7,count,0);count+=4; \
-SET_AB(w,d8,count,0);count+=3; \
+Endian_Reverse32(d8); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=4; \
+SET_ABR(w,d7,count,0);count+=4; \
+SET_ABR(w,d8,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -3456,9 +3248,10 @@ w[2]=d2; \
 w[3]=d3; \
 w[4]=d4; \
 w[5]=d5; \
-w[6]=(uint)salt.s0; \
-w[7]=(uint)salt.s1; \
+w[6]=(uint)d6; \
+w[7]=(uint)d7; \
 w[8]=(uint)(turn|(0x80<<24)); \
+Endian_Reverse32(w[8]); \
 w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint)0; \
 t1=(size<<3); \
 w[15]=t1; \
@@ -3548,21 +3341,30 @@ d5=input[get_global_id(0)*8+5];
 
 d6=(uint)salt.s0;
 d7=(uint)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
+Endian_Reverse32(d5);
+Endian_Reverse32(d6);
+Endian_Reverse32(d7);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
-d8 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=2; \
-SET_AB(w,d6,count,0);count+=4; \
-SET_AB(w,d7,count,0);count+=4; \
-SET_AB(w,d8,count,0);count+=3; \
+d8 = ib&0xFFFFFF; \
+Endian_Reverse32(d8); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=2; \
+SET_ABR(w,d6,count,0);count+=4; \
+SET_ABR(w,d7,count,0);count+=4; \
+SET_ABR(w,d8,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -3585,15 +3387,16 @@ count-=64; \
 #define SHA1_BLOCK_IV(turn,size) { \
 count=0; \
 d8=(uint)(turn|(0x80<<24)); \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=2; \
-SET_AB(w,d6,count,0);count+=4; \
-SET_AB(w,d7,count,0);count+=4; \
-SET_AB(w,d8,count,0);count+=3; \
+Endian_Reverse32(d8); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=2; \
+SET_ABR(w,d6,count,0);count+=4; \
+SET_ABR(w,d7,count,0);count+=4; \
+SET_ABR(w,d8,count,0);count+=3; \
 count=0;\
 w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint)0; \
 t1=(size<<3); \
@@ -3683,20 +3486,28 @@ d4=input[get_global_id(0)*8+4];
 
 d5=(uint)salt.s0;
 d6=(uint)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
+Endian_Reverse32(d5);
+Endian_Reverse32(d6);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
 d7 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=4; \
-SET_AB(w,d7,count,0);count+=3; \
+Endian_Reverse32(d7); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=4; \
+SET_ABR(w,d7,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -3721,9 +3532,10 @@ w[1]=d1; \
 w[2]=d2; \
 w[3]=d3; \
 w[4]=d4; \
-w[5]=(uint)salt.s0; \
-w[6]=(uint)salt.s1; \
+w[5]=(uint)d5; \
+w[6]=(uint)d6; \
 w[7]=(uint)(turn|(0x80<<24)); \
+Endian_Reverse32(w[7]); \
 w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint)0; \
 t1=(size<<3); \
 w[15]=t1; \
@@ -3812,20 +3624,28 @@ d4=input[get_global_id(0)*8+4];
 
 d5=(uint)salt.s0;
 d6=(uint)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
+Endian_Reverse32(d5);
+Endian_Reverse32(d6);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
 d7 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=2; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=4; \
-SET_AB(w,d7,count,0);count+=3; \
+Endian_Reverse32(d7); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=2; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=4; \
+SET_ABR(w,d7,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -3847,14 +3667,15 @@ count-=64; \
 #define SHA1_BLOCK_IV(turn,size) { \
 count=0; \
 d7=(uint)(turn|(0x80<<24)); \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=2; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=4; \
-SET_AB(w,d7,count,0);count+=3; \
+Endian_Reverse32(d7); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=2; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=4; \
+SET_ABR(w,d7,count,0);count+=3; \
 count=0;\
 w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint)0; \
 t1=(size<<3); \
@@ -3946,19 +3767,26 @@ d3=input[get_global_id(0)*8+3];
 
 d4=(uint)salt.s0;
 d5=(uint)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
+Endian_Reverse32(d5);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
 d6 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=3; \
+Endian_Reverse32(d6); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -3981,9 +3809,10 @@ w[0]=d0; \
 w[1]=d1; \
 w[2]=d2; \
 w[3]=d3; \
-w[4]=(uint)salt.s0; \
-w[5]=(uint)salt.s1; \
+w[4]=(uint)d4; \
+w[5]=(uint)d5; \
 w[6]=(uint)(turn|(0x80<<24)); \
+Endian_Reverse32(w[6]); \
 w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint)0; \
 t1=(size<<3); \
 w[15]=t1; \
@@ -4073,19 +3902,26 @@ d3=input[get_global_id(0)*8+3];
 
 d4=(uint)salt.s0;
 d5=(uint)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
+Endian_Reverse32(d5);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
-d6 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=2; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=3; \
+d6 = ib&0xFFFFFF; \
+Endian_Reverse32(d6); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=2; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -4106,13 +3942,14 @@ count-=64; \
 #define SHA1_BLOCK_IV(turn,size) { \
 count=0; \
 d6=(uint)(turn|(0x80<<24)); \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=2; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=4; \
-SET_AB(w,d6,count,0);count+=3; \
+Endian_Reverse32(d6); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=2; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=4; \
+SET_ABR(w,d6,count,0);count+=3; \
 count=0;\
 w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint)0; \
 t1=(size<<3); \
@@ -4202,18 +4039,24 @@ d2=input[get_global_id(0)*8+2];
 
 d3=(uint)salt.s0;
 d4=(uint)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
-d5 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=3; \
+d5 = ib; \
+Endian_Reverse32(d5); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -4234,9 +4077,10 @@ count-=64; \
 w[0]=d0; \
 w[1]=d1; \
 w[2]=d2; \
-w[3]=(uint)salt.s0; \
-w[4]=(uint)salt.s1; \
+w[3]=(uint)d3; \
+w[4]=(uint)d4; \
 w[5]=(uint)(turn|(0x80<<24)); \
+Endian_Reverse32(w[5]); \
 w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint)0; \
 t1=(size<<3); \
 w[15]=t1; \
@@ -4324,18 +4168,24 @@ d2=input[get_global_id(0)*8+2];
 
 d3=(uint)salt.s0;
 d4=(uint)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
+Endian_Reverse32(d4);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
-d5 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=2; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=3; \
+d5 = ib&0xFFFFFF; \
+Endian_Reverse32(d5); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=2; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -4355,12 +4205,13 @@ count-=64; \
 #define SHA1_BLOCK_IV(turn,size) { \
 count=0; \
 d5=(uint)(turn|(0x80<<24)); \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=2; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=4; \
-SET_AB(w,d5,count,0);count+=3; \
+Endian_Reverse32(d5); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=2; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=4; \
+SET_ABR(w,d5,count,0);count+=3; \
 count=0;\
 w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint)0; \
 t1=(size<<3); \
@@ -4449,17 +4300,22 @@ d1=input[get_global_id(0)*8+1];
 
 d2=(uint)salt.s0;
 d3=(uint)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
 d4 = ib&0xFFFFFF; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=3; \
+Endian_Reverse32(d4); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -4478,9 +4334,10 @@ count-=64; \
 #define SHA1_BLOCK_IV(turn,size) { \
 w[0]=d0; \
 w[1]=d1; \
-w[2]=(uint)salt.s0; \
-w[3]=(uint)salt.s1; \
+w[2]=(uint)d2; \
+w[3]=(uint)d3; \
 w[4]=(uint)(turn|(0x80<<24)); \
+Endian_Reverse32(w[4]); \
 w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint)0; \
 t1=(size<<3); \
 w[15]=t1; \
@@ -4567,17 +4424,22 @@ d1=input[get_global_id(0)*8+1];
 
 d2=(uint)salt.s0;
 d3=(uint)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
+Endian_Reverse32(d3);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
-d4 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=2; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=3; \
+d4 = ib&0xFFFFFF; \
+Endian_Reverse32(d4); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=2; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -4597,11 +4459,12 @@ count-=64; \
 #define SHA1_BLOCK_IV(turn,size) { \
 count=0; \
 d4=(uint)(turn|(0x80<<24)); \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=2; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=4; \
-SET_AB(w,d4,count,0);count+=3; \
+Endian_Reverse32(d4); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=2; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=4; \
+SET_ABR(w,d4,count,0);count+=3; \
 count=0;\
 w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint)0; \
 t1=(size<<3); \
@@ -4690,16 +4553,20 @@ d0=input[get_global_id(0)*8];
 
 d1=(uint)salt.s0;
 d2=(uint)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
 d3 = ib&0xFFFFFF; \
-SET_AB(w,d0,count,0);count+=4; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=3; \
+Endian_Reverse32(d3); \
+SET_ABR(w,d0,count,0);count+=4; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -4716,9 +4583,10 @@ count-=64; \
 
 #define SHA1_BLOCK_IV(turn,size) { \
 w[0]=d0; \
-w[1]=(uint)salt.s0; \
-w[2]=(uint)salt.s1; \
+w[1]=(uint)d1; \
+w[2]=(uint)d2; \
 w[3]=(uint)(turn|(0x80<<24)); \
+Endian_Reverse32(w[3]); \
 w[4]=w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint)0; \
 t1=(size<<3); \
 w[15]=t1; \
@@ -4806,16 +4674,20 @@ d0=input[get_global_id(0)*8];
 
 d1=(uint)salt.s0;
 d2=(uint)salt.s1;
+Endian_Reverse32(d0);
+Endian_Reverse32(d1);
+Endian_Reverse32(d2);
 
 
 #define LOOP_BODY(start) { \
 for (ib=start;ib<(start+16384);ib++) \
 { \
-d3 = ib&0xFFFFFF;; \
-SET_AB(w,d0,count,0);count+=2; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=3; \
+d3 = ib&0xFFFFFF; \
+Endian_Reverse32(d3); \
+SET_ABR(w,d0,count,0);count+=2; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=3; \
 if (count>=64)  \
 {  \
 SHA1_BLOCK(); \
@@ -4835,10 +4707,11 @@ count-=64; \
 #define SHA1_BLOCK_IV(turn,size) { \
 count=0; \
 d3=(uint)(turn|(0x80<<24)); \
-SET_AB(w,d0,count,0);count+=2; \
-SET_AB(w,d1,count,0);count+=4; \
-SET_AB(w,d2,count,0);count+=4; \
-SET_AB(w,d3,count,0);count+=3; \
+Endian_Reverse32(d3); \
+SET_ABR(w,d0,count,0);count+=2; \
+SET_ABR(w,d1,count,0);count+=4; \
+SET_ABR(w,d2,count,0);count+=4; \
+SET_ABR(w,d3,count,0);count+=3; \
 count=0;\
 w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[15]=(uint)0; \
 t1=(size<<3); \
