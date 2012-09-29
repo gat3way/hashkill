@@ -648,9 +648,12 @@ static void parse(char *line,int self, int precalc,int mode)
     		if (ltok4) update_charset_plus(ltok4,mode);
     		update_params(tok4,mode);
     		update_parsefn(node_add_cset,mode);
-    		if (ops[0][currentlinenum[0]].mode==1) update_optimize_type(optimize_add_set,mode);
-    		else update_optimize_type(optimize_may_add_cset,mode);
-    		update_optimize_charset(ops[SELF_THREAD][currentlinenum[SELF_THREAD]].charset,mode);
+    		if (currentlinenum[self]>0)
+    		{
+    		    if (ops[0][currentlinenum[0]].mode==1) update_optimize_type(optimize_add_set,mode);
+    		    else update_optimize_type(optimize_may_add_cset,mode);
+    		    update_optimize_charset(ops[SELF_THREAD][currentlinenum[SELF_THREAD]].charset,mode);
+    		}
     	    }
     	    else
     	    {
@@ -692,9 +695,12 @@ static void parse(char *line,int self, int precalc,int mode)
     		if (ltok4) update_charset_plus(ltok4,mode);
     		update_params(tok4,mode);
     		update_parsefn(node_add_set,mode);
-    		if (ops[0][currentlinenum[0]].mode==1) update_optimize_type(optimize_add_set,mode);
-    		else update_optimize_type(optimize_may_add_set,mode);
-    		update_optimize_charset(ops[SELF_THREAD][currentlinenum[SELF_THREAD]].charset,mode);
+    		if (currentlinenum[self]>0)
+    		{
+    		    if (ops[0][currentlinenum[0]].mode==1) update_optimize_type(optimize_add_set,mode);
+    		    else update_optimize_type(optimize_may_add_set,mode);
+    		    update_optimize_charset(ops[SELF_THREAD][currentlinenum[SELF_THREAD]].charset,mode);
+    		}
     	    }
 	    else
     	    {
@@ -742,8 +748,11 @@ static void parse(char *line,int self, int precalc,int mode)
 		}
 		else update_optimize_threshold(0,mode);
 		update_parsefn(node_add_markov,mode);
-    		if (ops[0][currentlinenum[0]].mode==1) update_optimize_type(optimize_add_markov,mode);
-    		else update_optimize_type(optimize_may_add_markov,mode);
+		if (currentlinenum[self]>0)
+    		{
+    		    if (ops[0][currentlinenum[0]].mode==1) update_optimize_type(optimize_add_markov,mode);
+    		    else update_optimize_type(optimize_may_add_markov,mode);
+    		}
     	    }
 	}
 
@@ -769,8 +778,11 @@ static void parse(char *line,int self, int precalc,int mode)
 		update_end(atoi(ltok2),mode);
 		update_optimize_end(atoi(ltok2),mode);
     		update_parsefn(node_add_numrange,mode);
-    		if (ops[0][currentlinenum[0]].mode==1) update_optimize_type(optimize_add_numrange,mode);
-    		else update_optimize_type(optimize_may_add_numrange,mode);
+    		if (currentlinenum[self]>0)
+    		{
+    		    if (ops[0][currentlinenum[0]].mode==1) update_optimize_type(optimize_add_numrange,mode);
+    		    else update_optimize_type(optimize_may_add_numrange,mode);
+    		}
     	    }
 	}
 
@@ -1677,7 +1689,11 @@ hash_stat rule_preprocess(char *rulename)
     rule_stats_available=1;
 
     /* Initial pass - includes */
-    create_preprocess_file();
+    if (create_preprocess_file()==hash_err)
+    {
+	elog("Cannot create temporary preprocessor file%s\n","");
+	exit(1);
+    }
     fp = fopen(rulename,"r");
     if (!fp)
     {
@@ -1692,7 +1708,7 @@ hash_stat rule_preprocess(char *rulename)
     while (!feof(fp))
     {
 	bzero(line,MAXCAND*8);
-	fgets(line,MAXCAND*8-1,fp);
+	if (NULL==fgets(line,MAXCAND*8-1,fp)) break;
 	if (strncmp(line,"include",7)==0)
 	{
 	    if (line[strlen(line)-1]=='\n') line[strlen(line)-1]=0;
@@ -1725,7 +1741,6 @@ hash_stat rule_preprocess(char *rulename)
 	}
     }
     fclose(prefile);
-
 
 
     /* Trivial check: begins == ends? */
@@ -1763,6 +1778,7 @@ hash_stat rule_preprocess(char *rulename)
 	hg_elog("The number of begin statements does not match the number of end ones!%s\n","");
 	return hash_err;
     }
+
 
 
     fp=fopen(prename,"r");

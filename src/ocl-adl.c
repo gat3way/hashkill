@@ -372,6 +372,12 @@ void do_adl(void)
     pthread_mutex_unlock(&adlmutex);
 
     nvidia:
+    if (!nvmlInit) return;
+    if (!nvmlDeviceGetCount) return;
+    if (!nvmlDeviceGetHandleByIndex) return;
+    if (!nvmlDeviceGetTemperature) return;
+    if (!nvmlShutdown) return;
+
     if (nvmlInit()!=0) return;
     unsigned int devnum;
     unsigned int nvtemp;
