@@ -545,10 +545,10 @@ void* ocl_rule_rar_thread(void *arg)
     {
         rule_images16_buf[a][self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*16*2+8, NULL, &err );
         rule_images162_buf[a][self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*16+8, NULL, &err );
-        rule_images16[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*16*2);
-        rule_images162[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*16);
-        bzero(rule_images162[a][self],ocl_rule_workset[self]*wthreads[self].vectorsize*16);
-        bzero(rule_images16[a][self],ocl_rule_workset[self]*wthreads[self].vectorsize*16*2);
+        rule_images16[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*16*2+8);
+        rule_images162[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*16+8);
+        bzero(rule_images162[a][self],ocl_rule_workset[self]*wthreads[self].vectorsize*16+8);
+        bzero(rule_images16[a][self],ocl_rule_workset[self]*wthreads[self].vectorsize*16*2+8);
 	_clSetKernelArg(rule_kernel16[a][self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
 	_clSetKernelArg(rule_kernel16[a][self], 1, sizeof(cl_mem), (void*) &rule_images16_buf[a][self]);
         _clSetKernelArg(rule_kernel162[a][self], 0, sizeof(cl_mem), (void*) &rule_images16_buf[a][self]);
