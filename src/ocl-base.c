@@ -500,7 +500,7 @@ cl_int _clGetPlatformIDs(cl_uint num_entries,cl_platform_id *platforms,cl_uint *
     cl_int err;
 
     err = clGetPlatformIDs(num_entries,platforms,num_platforms);
-    checkErr("clGetPlatfromIDs",err);
+    checkErr("clGetPlatformIDs",err);
     return err;
 }
 
