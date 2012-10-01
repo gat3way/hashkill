@@ -1,6 +1,7 @@
 
 
-all: install
+all:
+	@true
 
 
 install:
@@ -9,6 +10,8 @@ install:
 	#cp -f *.cl $(IDATADIR)/hashkill/kernels
 
 clean:
+	@true
 
 
 distclean:
+	@true

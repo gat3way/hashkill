@@ -1,4 +1,5 @@
-all: install
+all:
+	@true
 
 install: 
 	mkdir -p $(IDATADIR)/hashkill/dict/
