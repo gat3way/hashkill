@@ -53,7 +53,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 {
     char username[128];
     char *hash = alloca(128);
-    char line[128];
+    char line[HASHFILE_MAX_LINE_LENGTH];
     char *line2 = alloca(128);
     char *temp_str;
     int len;

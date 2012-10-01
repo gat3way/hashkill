@@ -402,7 +402,7 @@ static void ocl_sha512unix_crack_callback(char *line, int self)
     cl_uint16 addline;
     cl_uint16 salt;
     cl_ulong8 singlehash;
-    unsigned char base64[64];
+    unsigned char base64[89];
     int cc,cc1;
     size_t gws,gws1;
 
@@ -420,7 +420,7 @@ static void ocl_sha512unix_crack_callback(char *line, int self)
 	_clSetKernelArg(rule_kernel162[cc][self], 5, sizeof(cl_uint16), (void*) &salt);
 	_clSetKernelArg(rule_kernel16[cc1][self], 5, sizeof(cl_uint16), (void*) &salt);
 
-        unsigned char mhash[88];
+        unsigned char mhash[89];
         memcpy(base64,mylist->hash,88);
         b64_pton_crypt(base64,mhash);
         uint64_t A1,A2,A3,A4,A5,A6,A7,A8;
@@ -482,7 +482,7 @@ static void ocl_sha512unix_crack_callback(char *line, int self)
 		for (c=0;c<wthreads[self].vectorsize;c++)
 		{
 	    	    e=(a)*wthreads[self].vectorsize+c;
-                    unsigned char mhash[90];
+                    unsigned char mhash[89];
                     memcpy(base64,mylist->hash,88);
                     b64_pton_crypt(base64,mhash);
     		    if (memcmp(mhash, (char *)rule_ptr[self]+(e)*hash_ret_len1, hash_ret_len1-2) == 0)

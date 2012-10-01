@@ -50,7 +50,7 @@ hashkill_LDFLAGS =  -static-libtool-libs -ldl -static -Bstatic -lcrypto  -L/lib 
 #hashkill_LDFLAGS =  -ldl -lcrypto  -L/lib  -lrt -lz -lm $(JS_LIBS)
 
 hashkill_LDADD = libtargets.la 
-hashkill_CFLAGS = -fPIC -s -O3  -fomit-frame-pointer -momit-leaf-frame-pointer -Wall -Wno-format -ftree-vectorize -DBINDIR=\"$(BINDIR)\" -DDATADIR=\"$(IDATADIR)\" -pthread -Wno-unused-value -Wno-switch -D_7ZIP_ST  -flto -fwhole-program -Wno-psabi 
+hashkill_CFLAGS = -fPIC -s -O3  -fomit-frame-pointer -momit-leaf-frame-pointer -Wall -Wno-format -ftree-vectorize -DBINDIR=\"$(BINDIR)\" -DDATADIR=\"$(IDATADIR)\" -pthread -Wno-unused-value -Wno-unused-result -Wno-switch -D_7ZIP_ST  -flto -fwhole-program -Wno-psabi 
 
 
 SUBDIRS = kernels/compiler plugins markov kernels dict tools rules
