@@ -53,19 +53,15 @@ __constant uint c_crctable[256] =
 
 
 #ifdef GCN
-
+#pragma OPENCL EXTENSION cl_amd_media_ops : enable
 #define getglobalid(a) (mad24(get_group_id(0), 64U, get_local_id(0)))
 
 #define kCrcPoly 0xEDB88320
 
 
-#define CRC_UPDATE_BYTE(crc, b) \
-((uint) ( \
-          ((crctable[((crc) ^ (b)) & 0xFF] ^ ((crc) >> 8))) \
-          ))
+#define CRC_UPDATE_BYTE(crc, b) ((uint) ( ((crctable[((crc) ^ (b)) & 0xFF] ^ ((crc) >> 8))) ))
 
-#define GETBYTE(arr,bt)  \
-((uint) ((((arr[bt>>2]) >> ((bt&3)<<3) )&255)))
+#define GETBYTE(arr,bt)  ((((arr[bt>>2]) >> ((bt&3)<<3) )&255))
 
 
 void zip_long1( __global uint4 *hashes, const uint4 input, const uint size,  __global uint4 *plains, __global uint *found,  uint4 singlehash,uint x0,uint16 salt,__local uint crctable[256]) 
@@ -98,7 +94,7 @@ for (ic=0; ic<SIZE; ic++)
 bt = GETBYTE(password,ic);
 key0=CRC_UPDATE_BYTE(key0, bt);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 }
@@ -112,7 +108,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = salt.s0&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -122,7 +118,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s0>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -132,7 +128,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s0>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -142,7 +138,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s0>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -152,7 +148,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s1>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -162,7 +158,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s1>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -172,7 +168,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s1>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -182,7 +178,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s1>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -192,7 +188,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s2>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -202,7 +198,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s2>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -212,7 +208,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s2>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -223,7 +219,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s2>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -245,7 +241,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = salt.s3&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -255,7 +251,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s3>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -265,7 +261,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s3>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -275,7 +271,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s3>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -285,7 +281,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s4>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -295,7 +291,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s4>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -305,7 +301,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s4>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -315,7 +311,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s4>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -325,7 +321,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s5>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -335,7 +331,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s5>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -345,7 +341,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s5>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -356,7 +352,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s5>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -375,7 +371,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = salt.s6&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -385,7 +381,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s6>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -395,7 +391,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s6>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -405,7 +401,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s6>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -415,7 +411,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s7>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -425,7 +421,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s7>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -435,7 +431,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s7>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -445,7 +441,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s7>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -455,7 +451,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s8>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -465,7 +461,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s8>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -475,7 +471,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s8>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -486,7 +482,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s8>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -505,7 +501,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = singlehash.x&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -515,7 +511,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.x>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -525,7 +521,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.x>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -535,7 +531,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.x>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -545,7 +541,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.y>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -555,7 +551,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.y>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -565,7 +561,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.y>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -575,7 +571,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.y>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -585,7 +581,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.z>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -595,7 +591,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.z>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -605,7 +601,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.z>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -616,7 +612,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.z>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -639,12 +635,12 @@ plains[res] = (uint4)(x0,xx1,xx2,xx3);
 
 
 
-
 __kernel void  __attribute__((reqd_work_group_size(64, 1, 1))) 
-zip_long_double( __global uint4 *hashes,  const uint size,  __global uint4 *plains, __global uint *found, __global const  uint * table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4,uint16 chbase5) 
+zip_long_double( __global uint4 *hashes,  const uint size,  __global uint4 *plains, __global uint *found, __global const  uint *table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4,uint16 chbase5) 
 {
 uint i;
-uint j,k;
+uint j;
+uint k;
 uint c0,x0;
 uint d0,d1,d2;
 uint t1,t2,t3;
@@ -663,10 +659,10 @@ crctable[get_local_id(0)+192]=c_crctable[get_local_id(0)+192];
 barrier(CLK_LOCAL_MEM_FENCE);
 
 
-
 SIZE = (uint)(size); 
-i=table[get_global_id(0)]<<16;
-j=table[get_global_id(1)];
+i=table[get_global_id(1)];
+j=table[get_global_id(0)]<<16;
+
 k=(i|j);
 
 
@@ -674,21 +670,17 @@ input=(uint4)(chbase1.s0,chbase1.s1,chbase1.s2,chbase1.s3);
 singlehash=(uint4)(chbase2.s0,chbase2.s1,chbase2.s2,chbase2.s3);
 zip_long1(hashes,input, size, plains, found, singlehash,k,chbase5,crctable);
 
-
 input=(uint4)(chbase1.s4,chbase1.s5,chbase1.s6,chbase1.s7);
 singlehash=(uint4)(chbase2.s4,chbase2.s5,chbase2.s6,chbase2.s7);
 zip_long1(hashes,input, size, plains, found, singlehash,k,chbase5,crctable);
-
 
 input=(uint4)(chbase1.s8,chbase1.s9,chbase1.sA,chbase1.sB);
 singlehash=(uint4)(chbase2.s8,chbase2.s9,chbase2.sA,chbase2.sB);
 zip_long1(hashes,input, size, plains, found, singlehash,k,chbase5,crctable);
 
-
 input=(uint4)(chbase1.sC,chbase1.sD,chbase1.sE,chbase1.sF);
 singlehash=(uint4)(chbase2.sC,chbase2.sD,chbase2.sE,chbase2.sF);
 zip_long1(hashes,input, size, plains, found, singlehash,k,chbase5,crctable);
-
 
 input=(uint4)(chbase3.s0,chbase3.s1,chbase3.s2,chbase3.s3);
 singlehash=(uint4)(chbase4.s0,chbase4.s1,chbase4.s2,chbase4.s3);
@@ -699,25 +691,26 @@ input=(uint4)(chbase3.s4,chbase3.s5,chbase3.s6,chbase3.s7);
 singlehash=(uint4)(chbase4.s4,chbase4.s5,chbase4.s6,chbase4.s7);
 zip_long1(hashes,input, size, plains, found, singlehash,k,chbase5,crctable);
 
-
 input=(uint4)(chbase3.s8,chbase3.s9,chbase3.sA,chbase3.sB);
 singlehash=(uint4)(chbase4.s8,chbase4.s9,chbase4.sA,chbase4.sB);
 zip_long1(hashes,input, size, plains, found, singlehash,k,chbase5,crctable);
-
 
 input=(uint4)(chbase3.sC,chbase3.sD,chbase3.sE,chbase3.sF);
 singlehash=(uint4)(chbase4.sC,chbase4.sD,chbase4.sE,chbase4.sF);
 zip_long1(hashes,input, size, plains, found, singlehash,k,chbase5,crctable);
 
+
+
 }
+
 
 
 
 __kernel void  __attribute__((reqd_work_group_size(64, 1, 1))) 
 zip_long_normal( __global uint4 *hashes,  const uint size,  __global uint4 *plains, __global uint *found, __global const  uint * table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4,uint16 chbase5) 
 {
-uint i;
-uint j,k;
+uint i,k;
+uint j;
 uint c0,x0;
 uint d0,d1,d2;
 uint t1,t2,t3;
@@ -736,34 +729,29 @@ crctable[get_local_id(0)+192]=c_crctable[get_local_id(0)+192];
 barrier(CLK_LOCAL_MEM_FENCE);
 
 
-
 SIZE = (uint)(size); 
-i=table[get_global_id(0)]<<16;
-j=table[get_global_id(1)];
-k=(i|j);
+i=table[get_global_id(1)];
+j=table[get_global_id(0)]<<16;
 
+k=(i|j);
 
 input=(uint4)(chbase1.s0,chbase1.s1,chbase1.s2,chbase1.s3);
 singlehash=(uint4)(chbase2.s0,chbase2.s1,chbase2.s2,chbase2.s3);
 zip_long1(hashes,input, size, plains, found, singlehash,k,chbase5,crctable);
 
-
-
 input=(uint4)(chbase1.s4,chbase1.s5,chbase1.s6,chbase1.s7);
 singlehash=(uint4)(chbase2.s4,chbase2.s5,chbase2.s6,chbase2.s7);
 zip_long1(hashes,input, size, plains, found, singlehash,k,chbase5,crctable);
-
 
 input=(uint4)(chbase1.s8,chbase1.s9,chbase1.sA,chbase1.sB);
 singlehash=(uint4)(chbase2.s8,chbase2.s9,chbase2.sA,chbase2.sB);
 zip_long1(hashes,input, size, plains, found, singlehash,k,chbase5,crctable);
 
-
 input=(uint4)(chbase1.sC,chbase1.sD,chbase1.sE,chbase1.sF);
 singlehash=(uint4)(chbase2.sC,chbase2.sD,chbase2.sE,chbase2.sF);
 zip_long1(hashes,input, size, plains, found, singlehash,k,chbase5,crctable);
-}
 
+}
 
 
 #endif
@@ -791,9 +779,9 @@ void zip_long1( __global uint4 *hashes, const uint4 input, const uint size,  __g
 {
 
 uint ic,i,ia,ib;
-uint4 key0 = 305419896L;
-uint4 key1 = 591751049L;
-uint4 key2 = 878082192L;
+uint4 key0 = 305419896;
+uint4 key1 = 591751049;
+uint4 key2 = 878082192;
 uint4 k0,k1,k2,c;
 uint4 kk0,kk1,kk2;
 uint4 temp,temp1,temp2;
@@ -817,7 +805,7 @@ for (ic=0; ic<SIZE; ic++)
 bt = GETBYTE(password,ic);
 key0=CRC_UPDATE_BYTE(key0, bt);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 }
@@ -831,7 +819,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = salt.s0&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -841,7 +829,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s0>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -851,7 +839,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s0>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -861,7 +849,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s0>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -871,7 +859,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s1>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -881,7 +869,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s1>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -891,7 +879,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s1>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -901,7 +889,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s1>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -911,7 +899,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s2>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -921,7 +909,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s2>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -931,7 +919,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s2>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -942,7 +930,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s2>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -964,7 +952,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = salt.s3&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -974,7 +962,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s3>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -984,7 +972,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s3>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -994,7 +982,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s3>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1004,7 +992,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s4>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1014,7 +1002,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s4>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1024,7 +1012,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s4>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1034,7 +1022,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s4>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1044,7 +1032,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s5>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1054,7 +1042,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s5>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1064,7 +1052,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s5>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1075,7 +1063,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s5>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1094,7 +1082,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = salt.s6&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1104,7 +1092,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s6>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1114,7 +1102,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s6>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1124,7 +1112,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s6>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1134,7 +1122,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s7>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1144,7 +1132,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s7>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1154,7 +1142,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s7>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1164,7 +1152,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s7>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1174,7 +1162,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s8>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1184,7 +1172,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s8>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1194,7 +1182,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s8>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1205,7 +1193,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s8>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1224,7 +1212,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = singlehash.x&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1234,7 +1222,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.x>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1244,7 +1232,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.x>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1254,7 +1242,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.x>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1264,7 +1252,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.y>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1274,7 +1262,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.y>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1284,7 +1272,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.y>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1294,7 +1282,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.y>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1304,7 +1292,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.z>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1314,7 +1302,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.z>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1324,7 +1312,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.z>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1335,7 +1323,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.z>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1474,9 +1462,9 @@ void zip_long1( __global uint4 *hashes, const uint4 input, const uint size,  __g
 {
 
 uint ic,i,ia,ib;
-uint4 key0 = 305419896L;
-uint4 key1 = 591751049L;
-uint4 key2 = 878082192L;
+uint4 key0 = 305419896;
+uint4 key1 = 591751049;
+uint4 key2 = 878082192;
 uint4 k0,k1,k2,c;
 uint4 kk0,kk1,kk2;
 uint4 temp,temp1,temp2;
@@ -1500,7 +1488,7 @@ for (ic=0; ic<SIZE; ic++)
 bt = GETBYTE(password,ic);
 key0=CRC_UPDATE_BYTE(key0, bt);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 }
@@ -1514,7 +1502,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = salt.s0&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1524,7 +1512,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s0>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1534,7 +1522,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s0>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1544,7 +1532,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s0>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1554,7 +1542,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s1>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1564,7 +1552,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s1>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1574,7 +1562,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s1>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1584,7 +1572,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s1>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1594,7 +1582,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s2>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1604,7 +1592,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s2>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1614,7 +1602,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s2>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1625,7 +1613,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s2>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1647,7 +1635,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = salt.s3&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1657,7 +1645,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s3>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1667,7 +1655,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s3>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1677,7 +1665,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s3>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1687,7 +1675,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s4>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1697,7 +1685,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s4>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1707,7 +1695,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s4>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1717,7 +1705,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s4>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1727,7 +1715,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s5>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1737,7 +1725,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s5>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1747,7 +1735,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s5>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1758,7 +1746,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s5>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1777,7 +1765,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = salt.s6&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1787,7 +1775,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s6>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1797,7 +1785,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s6>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1807,7 +1795,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s6>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1817,7 +1805,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s7>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1827,7 +1815,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s7>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1837,7 +1825,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s7>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1847,7 +1835,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s7>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1857,7 +1845,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s8>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1867,7 +1855,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s8>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1877,7 +1865,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s8>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1888,7 +1876,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (salt.s8>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1907,7 +1895,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = singlehash.x&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1917,7 +1905,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.x>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1927,7 +1915,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.x>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1937,7 +1925,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.x>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1947,7 +1935,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.y>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1957,7 +1945,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.y>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1967,7 +1955,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.y>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1977,7 +1965,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.y>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1987,7 +1975,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.z>>0)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -1997,7 +1985,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.z>>8)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -2007,7 +1995,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.z>>16)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 
@@ -2018,7 +2006,7 @@ temp1 = (((temp * (temp ^1)) >> 8))&255;
 c = (singlehash.z>>24)&255 ^ temp1;
 key0 = CRC_UPDATE_BYTE(key0,c);
 key1 += key0 & 0xff;
-key1 = key1 * 134775813L + 1;
+key1 = key1 * 134775813 + 1;
 t=(key1>>24)&255;
 key2 = CRC_UPDATE_BYTE(key2,t);
 

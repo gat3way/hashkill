@@ -199,8 +199,6 @@ static hash_stat load_zip(char *filename)
     fileoffset=0;
     fd = open(filename, O_RDONLY);
 
-    
-
     while (!parsed)
     {
         has_winzip_encryption=0;
@@ -547,7 +545,9 @@ static hash_stat check_zip(const char *password,unsigned int key0,unsigned int k
     unsigned char authcode[10];
     unsigned char authresult[10];
     int iter=0;
-    
+
+
+    if (attack_over>0) return hash_err;
     if (has_winzip_encryption==1) 
     {
         hash_proto_pbkdf2(password, winzip_salt, winzip_salt_size, 1000, 2*(winzip_key_size/8)+2, key);
@@ -556,7 +556,6 @@ static hash_stat check_zip(const char *password,unsigned int key0,unsigned int k
 
         // As mentioned in WinZIP documentation, this gives out 1/65535 error probability. Calculate auth codes 
         if (memcmp(winzip_check, check, 2)!=0) return hash_err;
-
         //memcpy(&key[winzip_key_size/8],password,winzip_key_size/8);
         {
             fd = open(myfilename, O_RDONLY);
@@ -678,6 +677,7 @@ static hash_stat check_zip(const char *password,unsigned int key0,unsigned int k
                 if (ret == Z_STREAM_END) rsize = comprsize+1;
                 if (iter==1)
                 {
+                    close(fd);
                     fd = open(myfilename,O_RDONLY);
                     lseek(fd, fileoffset + strm.total_in,SEEK_SET);
                 }
@@ -900,7 +900,7 @@ static void ocl_get_cracked(cl_command_queue queuein,cl_mem plains_buf, char *pl
     int a,b=0;
     char plain[16];
 
-    if (numfound>MAXFOUND) 
+    if (numfound>MAXFOUND*16) 
     {
 	printf("error found=%d\n",numfound);
 	return;
@@ -1069,14 +1069,13 @@ static void ocl_execute(cl_command_queue queue, cl_kernel kernel, size_t *global
     int try;
     size_t lglobal_work_size[3];
     size_t offset[3];
-
     _clSetKernelArg(kernel, 5, sizeof(cl_uint16), (void*) p1);
     _clSetKernelArg(kernel, 6, sizeof(cl_uint16), (void*) p2);
     _clSetKernelArg(kernel, 7, sizeof(cl_uint16), (void*) p3);
     _clSetKernelArg(kernel, 8, sizeof(cl_uint16), (void*) p4);
     _clSetKernelArg(kernel, 9, sizeof(cl_uint16), (void*) p5);
 
-    if (interactive_mode==1)
+    if ((interactive_mode==1)||(cur<2))
     {
 	for (try=0;try<8;try++)
 	{
@@ -1090,11 +1089,11 @@ static void ocl_execute(cl_command_queue queue, cl_kernel kernel, size_t *global
 	    if (*found>0) 
 	    {
     		ocl_get_cracked(queue,plains_buf,plains, hashes_buf,hashes, *found, wthreads[self].vectorsize, hash_ret_len);
-    		bzero(plains,16*8*MAXFOUND);
-    		_clEnqueueWriteBuffer(queue, plains_buf, CL_FALSE, 0, 16*8*MAXFOUND, plains, 0, NULL, NULL);
+    		bzero(plains,16*8*MAXFOUND*16);
+    		_clEnqueueWriteBuffer(queue, plains_buf, CL_FALSE, 0, 16*8*MAXFOUND*16, plains, 0, NULL, NULL);
     		// Change for other types
-    		bzero(hashes,hash_ret_len*8*MAXFOUND);
-    		_clEnqueueWriteBuffer(queue, hashes_buf, CL_FALSE, 0, hash_ret_len*8*MAXFOUND, hashes, 0, NULL, NULL);
+    		bzero(hashes,hash_ret_len*8*MAXFOUND*16);
+    		_clEnqueueWriteBuffer(queue, hashes_buf, CL_FALSE, 0, hash_ret_len*8*MAXFOUND*16, hashes, 0, NULL, NULL);
     		*found = 0;
     		_clEnqueueWriteBuffer(queue, found_buf, CL_TRUE, 0, 4, found, 0, NULL, NULL);
 	    }
@@ -1108,11 +1107,11 @@ static void ocl_execute(cl_command_queue queue, cl_kernel kernel, size_t *global
 	if (*found>0) 
 	{
     	    ocl_get_cracked(queue,plains_buf,plains, hashes_buf,hashes, *found, wthreads[self].vectorsize, hash_ret_len);
-    	    bzero(plains,16*8*MAXFOUND);
-    	    _clEnqueueWriteBuffer(queue, plains_buf, CL_FALSE, 0, 16*8*MAXFOUND, plains, 0, NULL, NULL);
+    	    bzero(plains,16*8*MAXFOUND*16);
+    	    _clEnqueueWriteBuffer(queue, plains_buf, CL_FALSE, 0, 16*8*MAXFOUND*16, plains, 0, NULL, NULL);
     	    // Change for other types
-    	    bzero(hashes,hash_ret_len*8*MAXFOUND);
-    	    _clEnqueueWriteBuffer(queue, hashes_buf, CL_FALSE, 0, hash_ret_len*8*MAXFOUND, hashes, 0, NULL, NULL);
+    	    bzero(hashes,hash_ret_len*8*MAXFOUND*16);
+    	    _clEnqueueWriteBuffer(queue, hashes_buf, CL_FALSE, 0, hash_ret_len*8*MAXFOUND*16, hashes, 0, NULL, NULL);
     	    *found = 0;
     	    _clEnqueueWriteBuffer(queue, found_buf, CL_TRUE, 0, 4, found, 0, NULL, NULL);
 	}
@@ -1177,15 +1176,15 @@ void* ocl_bruteforce_zip_thread(void *arg)
     singlehash=zip_getsalt2(4);
 
     // Change for other lens
-    hashes  = malloc(hash_ret_len*8*MAXFOUND); 
-    hashes_buf = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, hash_ret_len*8*MAXFOUND, NULL, &err );
-    plains=malloc(16*8*MAXFOUND);
-    bzero(plains,16*8*MAXFOUND);
-    plains_buf = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, 16*8*MAXFOUND, NULL, &err );
-    _clEnqueueWriteBuffer(queue, plains_buf, CL_TRUE, 0, 16*8*MAXFOUND, plains, 0, NULL, NULL);
+    hashes  = malloc(hash_ret_len*8*MAXFOUND*16); 
+    hashes_buf = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, hash_ret_len*8*MAXFOUND*16, NULL, &err );
+    plains=malloc(16*8*MAXFOUND*16);
+    bzero(plains,16*8*MAXFOUND*16);
+    plains_buf = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, 16*8*MAXFOUND*16, NULL, &err );
+    _clEnqueueWriteBuffer(queue, plains_buf, CL_TRUE, 0, 16*8*MAXFOUND*16, plains, 0, NULL, NULL);
     // Change for other types
-    bzero(hashes,16*8*MAXFOUND);
-    _clEnqueueWriteBuffer(queue, hashes_buf, CL_TRUE, 0, hash_ret_len*8*MAXFOUND, hashes, 0, NULL, NULL);
+    bzero(hashes,16*8*MAXFOUND*16);
+    _clEnqueueWriteBuffer(queue, hashes_buf, CL_TRUE, 0, hash_ret_len*8*MAXFOUND*16, hashes, 0, NULL, NULL);
 
 
     found_buf = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, 4, NULL, &err );
@@ -1210,7 +1209,6 @@ void* ocl_bruteforce_zip_thread(void *arg)
     pthread_mutex_unlock(&biglock); 
 
 
-
     /* Bruteforce, len=4 */
 
     csize=4<<3;
@@ -1228,6 +1226,7 @@ void* ocl_bruteforce_zip_thread(void *arg)
     _clSetKernelArg(kernel, 7, sizeof(cl_uint16), (void*) &p3);
     _clSetKernelArg(kernel, 8, sizeof(cl_uint16), (void*) &p4);
     _clSetKernelArg(kernel, 9, sizeof(cl_uint16), (void*) &p5);
+
     try=0;
     ocl_execute(queue, kernel, global_work_size, local_work_size, charset_size, found_buf, hashes_buf, plains_buf, plains, hashes, self, &p1,&p2,&p3,&p4,&p5);
     if (bruteforce_end==4) goto out;
@@ -1677,15 +1676,15 @@ void* ocl_markov_zip_thread(void *arg)
 
 
     // Change for other lens
-    hashes  = malloc(hash_ret_len*8*MAXFOUND); 
-    hashes_buf = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, hash_ret_len*8*MAXFOUND, NULL, &err );
-    plains=malloc(16*8*MAXFOUND);
-    bzero(plains,16*8*MAXFOUND);
-    plains_buf = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, 16*8*MAXFOUND, NULL, &err );
-    _clEnqueueWriteBuffer(queue, plains_buf, CL_TRUE, 0, 16*8*MAXFOUND, plains, 0, NULL, NULL);
+    hashes  = malloc(hash_ret_len*8*MAXFOUND*16); 
+    hashes_buf = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, hash_ret_len*8*MAXFOUND*16, NULL, &err );
+    plains=malloc(16*8*MAXFOUND*16);
+    bzero(plains,16*8*MAXFOUND*16);
+    plains_buf = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, 16*8*MAXFOUND*16, NULL, &err );
+    _clEnqueueWriteBuffer(queue, plains_buf, CL_TRUE, 0, 16*8*MAXFOUND*16, plains, 0, NULL, NULL);
     // Change for other types
-    bzero(hashes,hash_ret_len*8*MAXFOUND);
-    _clEnqueueWriteBuffer(queue, hashes_buf, CL_TRUE, 0, hash_ret_len*8*MAXFOUND, hashes, 0, NULL, NULL);
+    bzero(hashes,hash_ret_len*8*MAXFOUND*16);
+    _clEnqueueWriteBuffer(queue, hashes_buf, CL_TRUE, 0, hash_ret_len*8*MAXFOUND*16, hashes, 0, NULL, NULL);
     found_buf = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, 4, NULL, &err );
     table_buf = _clCreateBuffer(context[self], CL_MEM_READ_ONLY|CL_MEM_USE_HOST_PTR, 128*128*4,table , &err );
     found = 0;

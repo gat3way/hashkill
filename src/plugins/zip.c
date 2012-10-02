@@ -267,7 +267,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
         parsed=1;
     }
 
-    hlog("Found >= %d password-protected files in archive!\n",cur);
+    if (has_winzip_encryption==0) hlog("Found >= %d password-protected files in archive!\n",cur);
 
     if ((cur==0)&&(has_winzip_encryption==0))
     {

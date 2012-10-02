@@ -213,11 +213,11 @@ hash_stat ocl_get_device()
 			break;
 		    }
 	    }
+	    loops=1;
 	    if (ocl_have_old_ati==1) 
 	    {
     		ocl_vector=4;
 	    }
-	    loops=1;
 	    if (ocl_have_sm21==1) 
 	    {
     		ocl_vector=4;
@@ -345,6 +345,8 @@ hash_stat ocl_get_device()
 	    if ((ocl_dev_nvidia==1) && (strcmp(get_current_plugin(),"oracle-old")==0)) loops=1;
 	    if ((ocl_dev_nvidia==1) && (strcmp(get_current_plugin(),"rar")==0)) ocl_vector=1;
 	    if ((ocl_dev_nvidia==1) && (strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=4;
+	    if ((ocl_have_sm21==1) && (strcmp(get_current_plugin(),"zip")==0)) loops=1;
+	    else if ((ocl_dev_nvidia==1) && (strcmp(get_current_plugin(),"zip")==0)) loops=4;
 
 	    if ((ocl_dev_nvidia)&&(attack_method==attack_method_rule))
 	    {
