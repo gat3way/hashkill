@@ -1,3 +1,8 @@
+ifneq ($(DESTDIR),"")
+    IDESTDIR=$(DESTDIR)/
+endif
+
+
 LIBS  = 
 CFLAGS = -O2 -fpic  -fomit-frame-pointer -minline-all-stringops  -Wall
 
@@ -9,9 +14,9 @@ all:
 
 
 install:
-	mkdir -p $(IDATADIR)/hashkill/markov
-	chmod ugo+r $(IDATADIR)/hashkill/markov
-	cp -f *.stat $(IDATADIR)/hashkill/markov
+	mkdir -p $(IDESTDIR)$(IDATADIR)/hashkill/markov
+	chmod ugo+r $(IDESTDIR)$(IDATADIR)/hashkill/markov
+	cp -f *.stat $(IDESTDIR)$(IDATADIR)/hashkill/markov
 
 clean:
 
