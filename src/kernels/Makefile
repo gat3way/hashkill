@@ -1,3 +1,6 @@
+ifneq ($(DESTDIR),"")
+    IDESTDIR=$(DESTDIR)/
+endif
 
 
 all:
@@ -5,9 +8,9 @@ all:
 
 
 install:
-	mkdir -p $(IDATADIR)/hashkill/kernels
-	chmod ugo+r $(IDATADIR)/hashkill/kernels
-	#cp -f *.cl $(IDATADIR)/hashkill/kernels
+	mkdir -p $(IDESTDIR)$(IDATADIR)/hashkill/kernels
+	chmod ugo+r $(IDESTDIR)$(IDATADIR)/hashkill/kernels
+	#cp -f *.cl $(IDESTDIR)$(IDATADIR)/hashkill/kernels
 
 clean:
 	@true

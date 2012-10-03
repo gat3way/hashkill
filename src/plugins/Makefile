@@ -1,3 +1,8 @@
+ifneq ($(DESTDIR),"")
+    IDESTDIR=$(DESTDIR)/
+endif
+
+
 #LIBS  = -lcrypto
 CFLAGS = -Wall -I../ -shared  -O3 -g -fpic  -fomit-frame-pointer -funroll-loops -minline-all-stringops  -momit-leaf-frame-pointer 
 #CFLAGS = -Wall -I../ -shared  -O2 -fpic  -fomit-frame-pointer -minline-all-stringops  -Wall -funroll-loops -m32
@@ -157,8 +162,8 @@ plugin_osx-old:
 
 install:
 	@echo Copying plugins...
-	@mkdir -p $(IDATADIR)/hashkill/plugins
-	@cp -vf *.so $(IDATADIR)/hashkill/plugins 
+	@mkdir -p $(IDESTDIR)$(IDATADIR)/hashkill/plugins
+	@cp -vf *.so $(IDESTDIR)$(IDATADIR)/hashkill/plugins 
 	@echo Done
 
 clean:

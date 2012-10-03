@@ -1,12 +1,17 @@
+ifneq ($(DESTDIR),"")
+    IDESTDIR=$(DESTDIR)/
+endif
+
+
 all:
 	@true
 
 install: 
-	mkdir -p $(IDATADIR)/hashkill/dict/
-	cp * $(IDATADIR)/hashkill/dict
+	mkdir -p $(IDESTDIR)$(IDATADIR)/hashkill/dict/
+	cp * $(IDESTDIR)$(IDATADIR)/hashkill/dict
 
 clean:
-	@rm $(IDATADIR)/hashkill/dict/* 2>/dev/null || echo "Nothing to delete"
+	@rm $(IDESTDIR)$(IDATADIR)/hashkill/dict/* 2>/dev/null || echo "Nothing to delete"
 
 distclean: clean
 

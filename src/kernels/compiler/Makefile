@@ -1,3 +1,8 @@
+ifneq ($(DESTDIR),"")
+    IDESTDIR=$(DESTDIR)/
+endif
+
+
 LZMA_SRC = ../../lzma/7zFile.c ../../lzma/7zStream.c ../../lzma/LzmaDec.c ../../lzma/LzmaEnc.c ../../lzma/Alloc.c ../../lzma/LzFind.c ../../lzma/lzma.c -I../..
 OPENCL_SRC = ../../ocl-base.c
 
@@ -145,9 +150,9 @@ build:
 
 install: 
 	@echo "Copying kernels..."
-	@mkdir -p $(IDATADIR)/hashkill/kernels
+	@mkdir -p $(IDESTDIR)$(IDATADIR)/hashkill/kernels
 	@touch placeholder_kernel.dummy
-	@cp  *_*.* $(IDATADIR)/hashkill/kernels;
+	@cp  *_*.* $(IDESTDIR)$(IDATADIR)/hashkill/kernels;
 	@echo Done.
 
 clean:

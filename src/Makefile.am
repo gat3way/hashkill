@@ -1,6 +1,4 @@
-
 INCLUDES = $(DEPS_CFLAGS) $(JS_CFLAGS) $(Z_CFLAGS)
-
 BINDIR = $(bindir)
 IDATADIR = $(datadir)
 DATADIR = "$(datadir)"
@@ -8,7 +6,6 @@ MAN = $(mandir)
 export BINDIR
 export DATADIR
 export IDATADIR
-
 
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
 # the previous manual Makefile
