@@ -119,7 +119,7 @@ plugin_mssql-2005:
 	@if [ ! -e mssql-2005.so ]; then  $(CC)  plugin.c mssql-2005.c  -o mssql-2005.so $(CFLAGS) $(LDFLAGS) ;fi
 
 plugin_rar:
-	@if [ ! -e rar.so ]; then  $(CC) -fPIC -shared plugin.c rar.c unrar.c  -o rar.so $(CFLAGS) $(LDFLAGS) -lcrypto -Wno-unused-value -Wno-unused-function -Wno-switch -O2;fi
+	@if [ ! -e rar.so ]; then  $(CC) -fPIC -shared plugin.c rar.c unrar.c  -o rar.so $(CFLAGS) $(LDFLAGS) -lcrypto -Wno-unused-value -Wno-unused-function -Wno-switch -O3;fi
 
 plugin_null:
 	@if [ ! -e null.so ]; then  $(CC)  plugin.c null.c -o null.so $(CFLAGS) $(LDFLAGS)  -O0 ;fi

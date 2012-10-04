@@ -23,10 +23,10 @@ libtargets_la_LIBADD = \
 
 noinst_LTLIBRARIES = libxop.la libaesni.la 
 libxop_la_SOURCES = md5_xop.c sha1_xop.c md4_xop.c des_xop.c des_nonstd_xop.c
-libxop_la_CFLAGS = -s -O3 -mxop -ftree-vectorize -static -fPIC -Bstatic
+libxop_la_CFLAGS =  -O3 -mxop -ftree-vectorize -static -fPIC -Bstatic
 
 libaesni_la_SOURCES = aesni.c
-libaesni_la_CFLAGS = -s -O3 -maes -static -fPIC -Bstatic
+libaesni_la_CFLAGS =  -O3 -maes -static -fPIC -Bstatic
 
 
 
@@ -47,7 +47,7 @@ hashkill_LDFLAGS =  -static-libtool-libs -ldl -static -Bstatic -lcrypto  -L/lib 
 #hashkill_LDFLAGS =  -ldl -lcrypto  -L/lib  -lrt -lz -lm $(JS_LIBS)
 
 hashkill_LDADD = libtargets.la 
-hashkill_CFLAGS = -fPIC -s -O3  -fomit-frame-pointer -momit-leaf-frame-pointer -Wall -Wno-format -ftree-vectorize -DBINDIR=\"$(BINDIR)\" -DDATADIR=\"$(IDATADIR)\" -pthread -Wno-unused-value -Wno-unused-result -Wno-switch -D_7ZIP_ST  -flto -fwhole-program -Wno-psabi 
+hashkill_CFLAGS = -fPIC -O3  -fomit-frame-pointer -momit-leaf-frame-pointer -Wall -Wno-format -ftree-vectorize -DBINDIR=\"$(BINDIR)\" -DDATADIR=\"$(IDATADIR)\" -pthread -Wno-unused-value -Wno-unused-result -Wno-switch -D_7ZIP_ST  -flto -fwhole-program -Wno-psabi 
 
 
 SUBDIRS = kernels/compiler plugins markov kernels dict tools rules
