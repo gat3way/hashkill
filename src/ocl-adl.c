@@ -384,8 +384,8 @@ void do_adl(void)
     nvmlDevice_t device;
 
 
-    /* Locked AMD threads? Unlock them... */
-    for (a=0;a<nwthreads;a++) if ((wthreads[a].templocked)&&(wthreads[a].type==amd_thread))
+    /* Locked NVidia threads? Unlock them... */
+    for (a=0;a<nwthreads;a++) if ((wthreads[a].templocked)&&(wthreads[a].type==nv_thread))
     {
 	pthread_mutex_unlock(&wthreads[a].tempmutex);
 	wthreads[a].templocked=0;
