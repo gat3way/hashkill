@@ -18,3 +18,6 @@ clean:
 
 distclean:
 	@true
+
+maintainer-clean:
+	@true

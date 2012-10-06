@@ -15,5 +15,6 @@ clean:
 
 distclean: clean
 
+maintainer-clean: clean
 
 #cc -o compile compile.c -I/opt/AMDAPP/include/ -L/opt/AMDAPP/lib/x86_64 -lOpenCL -g 

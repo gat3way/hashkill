@@ -70,6 +70,7 @@ build:
 	@if [ ! -e amd_dmg__Juniper.bin ]; then ./amd-compiler amd_dmg n ;fi
 	@if [ ! -e amd_osx_old_long__Juniper.bin ]; then ./amd-compiler amd_osx_old_long n ;fi
 	@if [ ! -e amd_osx_old__Juniper.bin ]; then ./amd-compiler amd_osx_old n ;fi
+	@if [ ! -e amd_test__Juniper.bin ]; then ./amd-compiler amd_test n ;fi
 	# NVidia
 	@if [ ! -e nvidia_md5_long__sm10.ptx ]; then ./nvidia-compiler nvidia_md5_long ns ;fi
 	@if [ ! -e nvidia_md5__sm10.ptx ]; then ./nvidia-compiler nvidia_md5 ns ;fi
@@ -163,6 +164,8 @@ distclean:
 	rm *.ptx
 
 distclean: clean
+
+maintainer-clean: clean
 
 
 #cc -o compile compile.c -I/opt/AMDAPP/include/ -L/opt/AMDAPP/lib/x86_64 -lOpenCL -g 

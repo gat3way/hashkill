@@ -173,3 +173,5 @@ uninstall:
 	rm -rf /usr/share/hashkill
 
 distclean: clean
+
+maintainer-clean: clean
