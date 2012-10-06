@@ -424,22 +424,6 @@ static void ocl_rar_crack_callback(char *line, int self)
     cc1 = self_kernel16[self]+strlen(line);
     if (cc1>15) cc1=15;
 
-    /* setup addline */
-    addline.s0=addline.s1=addline.s2=addline.s3=addline.s4=addline.s5=addline.s6=addline.s7=addline.sF=0;
-    addline.sF=strlen(line);
-    addline.s0=line[0]|(line[1]<<8)|(line[2]<<16)|(line[3]<<24);
-    addline.s1=line[4]|(line[5]<<8)|(line[6]<<16)|(line[7]<<24);
-    addline.s2=line[8]|(line[9]<<8)|(line[10]<<16)|(line[11]<<24);
-    addline.s3=line[12]|(line[13]<<8)|(line[14]<<16)|(line[15]<<24);
-    _clSetKernelArg(rule_kernel162[cc][self], 2, sizeof(cl_uint16), (void*) &addline);
-
-    /* setup salt */
-    salt=ocl_get_salt(rarsalt,cc1);
-    saltdummy.s0=cc;
-    _clSetKernelArg(rule_kernel162[cc][self], 3, sizeof(cl_uint16), (void*) &saltdummy);
-    _clSetKernelArg(rule_kernel16[cc1][self], 2, sizeof(cl_uint4), (void*) &salt);
-    _clSetKernelArg(rule_kernel162[cc][self], 0, sizeof(cl_mem), (void*) &rule_images16_buf[cc1][self]);
-
 
     if (attack_over!=0) pthread_exit(NULL);
     pthread_mutex_lock(&wthreads[self].tempmutex);
@@ -450,6 +434,25 @@ static void ocl_rar_crack_callback(char *line, int self)
     gws1 = gws*wthreads[self].vectorsize;
     if (gws1==0) gws1=64;
     if (gws==0) gws=64;
+
+    /* setup addline */
+    addline.s0=addline.s1=addline.s2=addline.s3=addline.s4=addline.s5=addline.s6=addline.s7=addline.sF=0;
+    addline.sF=strlen(line);
+    addline.s0=line[0]|(line[1]<<8)|(line[2]<<16)|(line[3]<<24);
+    addline.s1=line[4]|(line[5]<<8)|(line[6]<<16)|(line[7]<<24);
+    addline.s2=line[8]|(line[9]<<8)|(line[10]<<16)|(line[11]<<24);
+    addline.s3=line[12]|(line[13]<<8)|(line[14]<<16)|(line[15]<<24);
+    _clSetKernelArg(rule_kernel162[cc][self], 2, sizeof(cl_uint16), (void*) &addline);
+
+
+    /* setup salt */
+    salt=ocl_get_salt(rarsalt,cc1);
+    saltdummy.s0=cc;
+    _clSetKernelArg(rule_kernel162[cc][self], 3, sizeof(cl_uint16), (void*) &saltdummy);
+    _clSetKernelArg(rule_kernel16[cc1][self], 2, sizeof(cl_uint4), (void*) &salt);
+    _clSetKernelArg(rule_kernel162[cc][self], 0, sizeof(cl_mem), (void*) &rule_images16_buf[cc1][self]);
+
+
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel162[cc][self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel16[cc1][self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
     _clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, hash_ret_len1*wthreads[self].vectorsize*ocl_rule_workset[self], rule_ptr[self], 0, NULL, NULL);

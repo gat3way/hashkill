@@ -1,12 +1,7 @@
-// Dummy one
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str, uint16 salt)
-{
-}
 
 
 #define SET_AB(ai1,ii1,bb) { \
-	ai1[(ii1)>>3] |= (((ulong)(bb)) << (((ii1)&7)<<3)); \
+	ai1[(ii1)>>3] |= (((ulong)(bb)) << (((7-ii1)&7)<<3)); \
 	}
 
 
@@ -14,35 +9,27 @@ strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __globa
 	ai1[(ii1)>>3] = (ai2); \
 	}
 
-
 #define SET_AIS(ai1,ai2,ii1,ii2) { \
-        tmp1=(ulong)(((ii1)&7)<<3); \
-        elem=(ulong)((ii1)>>3); \
+        tmp1=(uint)(((ii1)&7)<<3); \
+        elem=(uint)((ii1)>>3); \
         tmp2 = (ulong)ai1[elem]; \
-        ai1[elem] = (ulong)(tmp2 |((ai2)<<tmp1)); \
-        ai1[elem+1] = (tmp1==(ulong)0) ? (ulong)0 : (ulong)((ai2)>>(64-tmp1));\
+        ai1[elem] = (ulong)(tmp2 |((ai2)>>tmp1)); \
+        ai1[elem+1] = select(ai2<<(64-tmp1),(ulong)0,(ulong)(tmp1==0));\
         }
-
-
-
-
-
 
 #define gli get_local_id(0)
 
 
 
-#define ROTATE(b,x)     (((x) >> (b)) | ((x) << (64 - (b))))
+#define ROTATE(b,x)     (((x) >> (b)) | ((x) << (64U - (b))))
 #define R(b,x)          ((x) >> (b))
-//#define Ch(x,y,z)       (((x) & (y)) ^ ((~(x)) & (z)))
-//#define Maj(x,y,z)      (((x) & (y)) ^ ((x) & (z)) ^ ((y) & (z)))
 #define Ch(x,y,z)       ((z)^((x)&((y)^(z))))
 #define Maj(x,y,z)      (((x) & (y)) | ((z)&((x)|(y))))
 
-#define Sigma0_512(x)   (ROTATE(28, (x)) ^ ROTATE(34, (x)) ^ ROTATE(39, (x)))
-#define Sigma1_512(x)   (ROTATE(14, (x)) ^ ROTATE(18, (x)) ^ ROTATE(41, (x)))
-#define sigma0_512(x)   (ROTATE(1, (x)) ^ ROTATE(8, (x)) ^ R( 7,   (x)))
-#define sigma1_512(x)   (ROTATE(19, (x)) ^ ROTATE(61, (x)) ^ R( 6,   (x)))
+#define Sigma0_512(x)   (ROTATE(28U, (x)) ^ ROTATE(34U, (x)) ^ ROTATE(39U, (x)))
+#define Sigma1_512(x)   (ROTATE(14U, (x)) ^ ROTATE(18U, (x)) ^ ROTATE(41U, (x)))
+#define sigma0_512(x)   (ROTATE(1U, (x)) ^ ROTATE(8U, (x)) ^ R(7U,   (x)))
+#define sigma1_512(x)   (ROTATE(19U, (x)) ^ ROTATE(61U, (x)) ^ R(6U,   (x)))
 
 
 #define ROUND512_0_TO_15(a,b,c,d,e,f,g,h,AC,x) T1 = (h) + Sigma1_512(e) + Ch((e), (f), (g)) + AC + x; \
@@ -50,7 +37,6 @@ strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __globa
 
 #define ROUND512_0_TO_15_NL(a,b,c,d,e,f,g,h,AC) T1 = (h) + Sigma1_512(e) + Ch((e), (f), (g)) + AC; \
                                                 (d) += T1; (h) = T1 + Sigma0_512(a) + Maj((a), (b), (c))
-
 
 #define ROUND512(a,b,c,d,e,f,g,h,AC,x)  T1 = (h) + Sigma1_512(e) + Ch((e), (f), (g)) + AC + x;\
                                         (d) += T1; (h) = T1 + Sigma0_512(a) + Maj((a), (b), (c)); 
@@ -162,11 +148,12 @@ __kernel void __attribute__((reqd_work_group_size(64, 1, 1)))
 sha512unix15( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
 
-ulong A,B,C,D,E,F,G,H,ii,jj,T1,tmp1,elem,tmp2;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
+uint ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
-__local ulong w[64][17]; 
+__private ulong w[17]; 
 ulong alt[8]; 
 ulong SIZE;
 
@@ -182,10 +169,22 @@ H=input[(get_global_id(0)*11)+8];
 pbytes[gli][0]=input[(get_global_id(0)*11)+9];
 pbytes[gli][1]=input[(get_global_id(0)*11)+10];
 
+A=Endian_Reverse64(A);
+B=Endian_Reverse64(B);
+C=Endian_Reverse64(C);
+D=Endian_Reverse64(D);
+E=Endian_Reverse64(E);
+F=Endian_Reverse64(F);
+G=Endian_Reverse64(G);
+H=Endian_Reverse64(H);
+pbytes[gli][0]=Endian_Reverse64(pbytes[gli][0]);
+pbytes[gli][1]=Endian_Reverse64(pbytes[gli][1]);
+sbytes[gli][0]=Endian_Reverse64(sbytes[gli][0]);
+
 
 for (ic=0;ic<5000;ic++)
 {
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
+w[0]=w[1]=w[2]=w[3]=w[4]=w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[16]=(ulong)0;
 
 if ((ic&1)==0)
 {
@@ -197,17 +196,17 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)0;
+ii=(uint)0;
 
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(ulong)64;
+w[0]=A;
+w[1]=B;
+w[2]=C;
+w[3]=D;
+w[4]=E;
+w[5]=F;
+w[6]=G;
+w[7]=H;
+ii=(uint)64;
 }
 
 else
@@ -220,49 +219,49 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)15;
+ii=(uint)15;
 
-w[gli][0]=pbytes[gli][0];
-w[gli][1]=pbytes[gli][1];
+w[0]=pbytes[gli][0];
+w[1]=pbytes[gli][1];
 }
 
 
 if (ic % 3 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],sbytes[gli][0],ii,0);ii+=(ulong)8;
+SET_AIS(w,sbytes[gli][0],ii,0);ii+=(uint)8;
 //ii=jj+8;
 }
 
 if (ic % 7 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=(ulong)7;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)8;
+SET_AIS(w,pbytes[gli][1],ii,8);ii+=(uint)7;
 //ii=jj+9;
 }
 
 if ((ic&1)==0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=(ulong)7;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)8;
+SET_AIS(w,pbytes[gli][1],ii,8);ii+=(uint)7;
 //ii=jj+9;
 }
 else
 {
-SET_AIS(w[gli],alt[0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],alt[1],ii,8);ii+=(ulong)8;
-SET_AIS(w[gli],alt[2],ii,16);ii+=(ulong)8;
-SET_AIS(w[gli],alt[3],ii,24);ii+=(ulong)8;
-SET_AIS(w[gli],alt[4],ii,32);ii+=(ulong)8;
-SET_AIS(w[gli],alt[5],ii,40);ii+=(ulong)8;
-SET_AIS(w[gli],alt[6],ii,48);ii+=(ulong)8;
-SET_AIS(w[gli],alt[7],ii,56);ii+=(ulong)8;
+SET_AIS(w,alt[0],ii,0);ii+=(uint)8;
+SET_AIS(w,alt[1],ii,8);ii+=(uint)8;
+SET_AIS(w,alt[2],ii,16);ii+=(uint)8;
+SET_AIS(w,alt[3],ii,24);ii+=(uint)8;
+SET_AIS(w,alt[4],ii,32);ii+=(uint)8;
+SET_AIS(w,alt[5],ii,40);ii+=(uint)8;
+SET_AIS(w,alt[6],ii,48);ii+=(uint)8;
+SET_AIS(w,alt[7],ii,56);ii+=(uint)8;
 }
 
 
-SET_AB(w[gli],ii,0x80);
+SET_AB(w,ii,0x80);
 
 SIZE=(ulong)(ii<<3);
 
@@ -275,101 +274,88 @@ F=(ulong)H5;
 G=(ulong)H6;
 H=(ulong)H7;
 
-w[gli][0]=Endian_Reverse64(w[gli][0]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[gli][0]);
-w[gli][1]=Endian_Reverse64(w[gli][1]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[gli][1]);
-w[gli][2]=Endian_Reverse64(w[gli][2]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[gli][2]);
-w[gli][3]=Endian_Reverse64(w[gli][3]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[gli][3]);
-w[gli][4]=Endian_Reverse64(w[gli][4]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[gli][4]);
-w[gli][5]=Endian_Reverse64(w[gli][5]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[gli][5]);
-w[gli][6]=Endian_Reverse64(w[gli][6]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[gli][6]);
-w[gli][7]=Endian_Reverse64(w[gli][7]);
-ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[gli][7]);
-w[gli][8]=Endian_Reverse64(w[gli][8]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[gli][8]);
-w[gli][9]=Endian_Reverse64(w[gli][9]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[gli][9]);
-w[gli][10]=Endian_Reverse64(w[gli][10]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[gli][10]);
-w[gli][11]=Endian_Reverse64(w[gli][11]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[gli][11]);
-w[gli][12]=Endian_Reverse64(w[gli][12]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[gli][12]);
-w[gli][13]=Endian_Reverse64(w[gli][13]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[gli][13]);
-w[gli][14]=Endian_Reverse64(w[gli][14]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[gli][14]);
+
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[0]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[1]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[2]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[3]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[4]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[5]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[6]);
+ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[7]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[8]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[9]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[10]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[11]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[12]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[13]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[14]);
 ROUND512_0_TO_15(B,C,D,E,F,G,H,A,SIZE,AC16);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(A,B,C,D,E,F,G,H,w[gli][16],AC17);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(H,A,B,C,D,E,F,G,w[gli][0],AC18);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(G,H,A,B,C,D,E,F,w[gli][1],AC19);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(F,G,H,A,B,C,D,E,w[gli][2],AC20);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(E,F,G,H,A,B,C,D,w[gli][3],AC21);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(D,E,F,G,H,A,B,C,w[gli][4],AC22);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(C,D,E,F,G,H,A,B,w[gli][5],AC23);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(B,C,D,E,F,G,H,A,w[gli][6],AC24);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(A,B,C,D,E,F,G,H,w[gli][7],AC25);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(H,A,B,C,D,E,F,G,w[gli][8],AC26);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(G,H,A,B,C,D,E,F,w[gli][9],AC27);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(F,G,H,A,B,C,D,E,w[gli][10],AC28);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(E,F,G,H,A,B,C,D,w[gli][11],AC29);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(D,E,F,G,H,A,B,C,w[gli][12],AC30);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(C,D,E,F,G,H,A,B,w[gli][13],AC31);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[gli][14],AC32);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(H,A,B,C,D,E,F,G,w[gli][16],AC34);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(G,H,A,B,C,D,E,F,w[gli][0],AC35);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(F,G,H,A,B,C,D,E,w[gli][1],AC36);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(E,F,G,H,A,B,C,D,w[gli][2],AC37);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(D,E,F,G,H,A,B,C,w[gli][3],AC38);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(C,D,E,F,G,H,A,B,w[gli][4],AC39);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(B,C,D,E,F,G,H,A,w[gli][5],AC40);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(A,B,C,D,E,F,G,H,w[gli][6],AC41);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(H,A,B,C,D,E,F,G,w[gli][7],AC42);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(G,H,A,B,C,D,E,F,w[gli][8],AC43);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(F,G,H,A,B,C,D,E,w[gli][9],AC44);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(E,F,G,H,A,B,C,D,w[gli][10],AC45);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(D,E,F,G,H,A,B,C,w[gli][11],AC46);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(C,D,E,F,G,H,A,B,w[gli][12],AC47);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(B,C,D,E,F,G,H,A,w[gli][13],AC48);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[gli][14],AC49);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(G,H,A,B,C,D,E,F,w[gli][16],AC51);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(F,G,H,A,B,C,D,E,w[gli][0],AC52);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(E,F,G,H,A,B,C,D,w[gli][1],AC53);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(D,E,F,G,H,A,B,C,w[gli][2],AC54);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(C,D,E,F,G,H,A,B,w[gli][3],AC55);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(B,C,D,E,F,G,H,A,w[gli][4],AC56);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(A,B,C,D,E,F,G,H,w[gli][5],AC57);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(H,A,B,C,D,E,F,G,w[gli][6],AC58);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(G,H,A,B,C,D,E,F,w[gli][7],AC59);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(F,G,H,A,B,C,D,E,w[gli][8],AC60);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(E,F,G,H,A,B,C,D,w[gli][9],AC61);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(D,E,F,G,H,A,B,C,w[gli][10],AC62);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(C,D,E,F,G,H,A,B,w[gli][11],AC63);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(B,C,D,E,F,G,H,A,w[gli][12],AC64);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(A,B,C,D,E,F,G,H,w[gli][13],AC65);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[gli][14],AC66);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(F,G,H,A,B,C,D,E,w[gli][16],AC68);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(E,F,G,H,A,B,C,D,w[gli][0],AC69);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(D,E,F,G,H,A,B,C,w[gli][1],AC70);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(C,D,E,F,G,H,A,B,w[gli][2],AC71);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(B,C,D,E,F,G,H,A,w[gli][3],AC72);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(A,B,C,D,E,F,G,H,w[gli][4],AC73);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(H,A,B,C,D,E,F,G,w[gli][5],AC74);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(G,H,A,B,C,D,E,F,w[gli][6],AC75);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(F,G,H,A,B,C,D,E,w[gli][7],AC76);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(E,F,G,H,A,B,C,D,w[gli][8],AC77);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(D,E,F,G,H,A,B,C,w[gli][9],AC78);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(C,D,E,F,G,H,A,B,w[gli][10],AC79);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(B,C,D,E,F,G,H,A,w[gli][11],AC80);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(A,B,C,D,E,F,G,H,w[16],AC17);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(H,A,B,C,D,E,F,G,w[0],AC18);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(G,H,A,B,C,D,E,F,w[1],AC19);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(F,G,H,A,B,C,D,E,w[2],AC20);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(E,F,G,H,A,B,C,D,w[3],AC21);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(D,E,F,G,H,A,B,C,w[4],AC22);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(C,D,E,F,G,H,A,B,w[5],AC23);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(B,C,D,E,F,G,H,A,w[6],AC24);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(A,B,C,D,E,F,G,H,w[7],AC25);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(H,A,B,C,D,E,F,G,w[8],AC26);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(G,H,A,B,C,D,E,F,w[9],AC27);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(F,G,H,A,B,C,D,E,w[10],AC28);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(E,F,G,H,A,B,C,D,w[11],AC29);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(D,E,F,G,H,A,B,C,w[12],AC30);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(C,D,E,F,G,H,A,B,w[13],AC31);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[14],AC32);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(H,A,B,C,D,E,F,G,w[16],AC34);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(G,H,A,B,C,D,E,F,w[0],AC35);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(F,G,H,A,B,C,D,E,w[1],AC36);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(E,F,G,H,A,B,C,D,w[2],AC37);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(D,E,F,G,H,A,B,C,w[3],AC38);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(C,D,E,F,G,H,A,B,w[4],AC39);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(B,C,D,E,F,G,H,A,w[5],AC40);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(A,B,C,D,E,F,G,H,w[6],AC41);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(H,A,B,C,D,E,F,G,w[7],AC42);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(G,H,A,B,C,D,E,F,w[8],AC43);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(F,G,H,A,B,C,D,E,w[9],AC44);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(E,F,G,H,A,B,C,D,w[10],AC45);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(D,E,F,G,H,A,B,C,w[11],AC46);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(C,D,E,F,G,H,A,B,w[12],AC47);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(B,C,D,E,F,G,H,A,w[13],AC48);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[14],AC49);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(G,H,A,B,C,D,E,F,w[16],AC51);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(F,G,H,A,B,C,D,E,w[0],AC52);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(E,F,G,H,A,B,C,D,w[1],AC53);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(D,E,F,G,H,A,B,C,w[2],AC54);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(C,D,E,F,G,H,A,B,w[3],AC55);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(B,C,D,E,F,G,H,A,w[4],AC56);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(A,B,C,D,E,F,G,H,w[5],AC57);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(H,A,B,C,D,E,F,G,w[6],AC58);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(G,H,A,B,C,D,E,F,w[7],AC59);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(F,G,H,A,B,C,D,E,w[8],AC60);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(E,F,G,H,A,B,C,D,w[9],AC61);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(D,E,F,G,H,A,B,C,w[10],AC62);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(C,D,E,F,G,H,A,B,w[11],AC63);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(B,C,D,E,F,G,H,A,w[12],AC64);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(A,B,C,D,E,F,G,H,w[13],AC65);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[14],AC66);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(F,G,H,A,B,C,D,E,w[16],AC68);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(E,F,G,H,A,B,C,D,w[0],AC69);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(D,E,F,G,H,A,B,C,w[1],AC70);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(C,D,E,F,G,H,A,B,w[2],AC71);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(B,C,D,E,F,G,H,A,w[3],AC72);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(A,B,C,D,E,F,G,H,w[4],AC73);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(H,A,B,C,D,E,F,G,w[5],AC74);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(G,H,A,B,C,D,E,F,w[6],AC75);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(F,G,H,A,B,C,D,E,w[7],AC76);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(E,F,G,H,A,B,C,D,w[8],AC77);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(D,E,F,G,H,A,B,C,w[9],AC78);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(C,D,E,F,G,H,A,B,w[10],AC79);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(B,C,D,E,F,G,H,A,w[11],AC80);
+
 A+=(ulong)H0;
 B+=(ulong)H1;
 C+=(ulong)H2;
@@ -378,6 +364,9 @@ E+=(ulong)H4;
 F+=(ulong)H5;
 G+=(ulong)H6;
 H+=(ulong)H7;
+}
+
+
 A=Endian_Reverse64(A);
 B=Endian_Reverse64(B);
 C=Endian_Reverse64(C);
@@ -387,10 +376,7 @@ F=Endian_Reverse64(F);
 G=Endian_Reverse64(G);
 H=Endian_Reverse64(H);
 
-}
 
-
-//found_ind[get_global_id(0)] = 0;
 
 if ((ulong)singlehash.s0!=A) return;
 if ((ulong)singlehash.s1!=B) return;
@@ -409,11 +395,12 @@ __kernel void __attribute__((reqd_work_group_size(64, 1, 1)))
 sha512unix14( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
 
-ulong A,B,C,D,E,F,G,H,ii,jj,T1,tmp1,elem,tmp2;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
+uint ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
-__local ulong w[64][17]; 
+__private ulong w[17]; 
 ulong alt[8]; 
 ulong SIZE;
 
@@ -428,11 +415,22 @@ G=input[(get_global_id(0)*11)+7];
 H=input[(get_global_id(0)*11)+8];
 pbytes[gli][0]=input[(get_global_id(0)*11)+9];
 pbytes[gli][1]=input[(get_global_id(0)*11)+10];
+A=Endian_Reverse64(A);
+B=Endian_Reverse64(B);
+C=Endian_Reverse64(C);
+D=Endian_Reverse64(D);
+E=Endian_Reverse64(E);
+F=Endian_Reverse64(F);
+G=Endian_Reverse64(G);
+H=Endian_Reverse64(H);
+pbytes[gli][0]=Endian_Reverse64(pbytes[gli][0]);
+pbytes[gli][1]=Endian_Reverse64(pbytes[gli][1]);
+sbytes[gli][0]=Endian_Reverse64(sbytes[gli][0]);
 
 
 for (ic=0;ic<5000;ic++)
 {
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
+w[0]=w[1]=w[2]=w[3]=w[4]=w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[16]=(ulong)0;
 
 if ((ic&1)==0)
 {
@@ -444,17 +442,17 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)0;
+ii=(uint)0;
 
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(ulong)64;
+w[0]=A;
+w[1]=B;
+w[2]=C;
+w[3]=D;
+w[4]=E;
+w[5]=F;
+w[6]=G;
+w[7]=H;
+ii=(uint)64;
 }
 
 else
@@ -467,49 +465,49 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)14;
+ii=(uint)14;
 
-w[gli][0]=pbytes[gli][0];
-w[gli][1]=pbytes[gli][1];
+w[0]=pbytes[gli][0];
+w[1]=pbytes[gli][1];
 }
 
 
 if (ic % 3 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],sbytes[gli][0],ii,0);ii+=(ulong)8;
+SET_AIS(w,sbytes[gli][0],ii,0);ii+=(uint)8;
 //ii=jj+8;
 }
 
 if (ic % 7 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=(ulong)6;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)8;
+SET_AIS(w,pbytes[gli][1],ii,8);ii+=(uint)6;
 //ii=jj+9;
 }
 
 if ((ic&1)==0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=(ulong)6;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)8;
+SET_AIS(w,pbytes[gli][1],ii,8);ii+=(uint)6;
 //ii=jj+9;
 }
 else
 {
-SET_AIS(w[gli],alt[0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],alt[1],ii,8);ii+=(ulong)8;
-SET_AIS(w[gli],alt[2],ii,16);ii+=(ulong)8;
-SET_AIS(w[gli],alt[3],ii,24);ii+=(ulong)8;
-SET_AIS(w[gli],alt[4],ii,32);ii+=(ulong)8;
-SET_AIS(w[gli],alt[5],ii,40);ii+=(ulong)8;
-SET_AIS(w[gli],alt[6],ii,48);ii+=(ulong)8;
-SET_AIS(w[gli],alt[7],ii,56);ii+=(ulong)8;
+SET_AIS(w,alt[0],ii,0);ii+=(uint)8;
+SET_AIS(w,alt[1],ii,8);ii+=(uint)8;
+SET_AIS(w,alt[2],ii,16);ii+=(uint)8;
+SET_AIS(w,alt[3],ii,24);ii+=(uint)8;
+SET_AIS(w,alt[4],ii,32);ii+=(uint)8;
+SET_AIS(w,alt[5],ii,40);ii+=(uint)8;
+SET_AIS(w,alt[6],ii,48);ii+=(uint)8;
+SET_AIS(w,alt[7],ii,56);ii+=(uint)8;
 }
 
 
-SET_AB(w[gli],ii,0x80);
+SET_AB(w,ii,0x80);
 
 SIZE=(ulong)(ii<<3);
 
@@ -522,101 +520,86 @@ F=(ulong)H5;
 G=(ulong)H6;
 H=(ulong)H7;
 
-w[gli][0]=Endian_Reverse64(w[gli][0]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[gli][0]);
-w[gli][1]=Endian_Reverse64(w[gli][1]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[gli][1]);
-w[gli][2]=Endian_Reverse64(w[gli][2]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[gli][2]);
-w[gli][3]=Endian_Reverse64(w[gli][3]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[gli][3]);
-w[gli][4]=Endian_Reverse64(w[gli][4]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[gli][4]);
-w[gli][5]=Endian_Reverse64(w[gli][5]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[gli][5]);
-w[gli][6]=Endian_Reverse64(w[gli][6]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[gli][6]);
-w[gli][7]=Endian_Reverse64(w[gli][7]);
-ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[gli][7]);
-w[gli][8]=Endian_Reverse64(w[gli][8]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[gli][8]);
-w[gli][9]=Endian_Reverse64(w[gli][9]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[gli][9]);
-w[gli][10]=Endian_Reverse64(w[gli][10]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[gli][10]);
-w[gli][11]=Endian_Reverse64(w[gli][11]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[gli][11]);
-w[gli][12]=Endian_Reverse64(w[gli][12]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[gli][12]);
-w[gli][13]=Endian_Reverse64(w[gli][13]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[gli][13]);
-w[gli][14]=Endian_Reverse64(w[gli][14]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[gli][14]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[0]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[1]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[2]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[3]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[4]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[5]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[6]);
+ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[7]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[8]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[9]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[10]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[11]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[12]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[13]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[14]);
 ROUND512_0_TO_15(B,C,D,E,F,G,H,A,SIZE,AC16);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(A,B,C,D,E,F,G,H,w[gli][16],AC17);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(H,A,B,C,D,E,F,G,w[gli][0],AC18);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(G,H,A,B,C,D,E,F,w[gli][1],AC19);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(F,G,H,A,B,C,D,E,w[gli][2],AC20);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(E,F,G,H,A,B,C,D,w[gli][3],AC21);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(D,E,F,G,H,A,B,C,w[gli][4],AC22);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(C,D,E,F,G,H,A,B,w[gli][5],AC23);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(B,C,D,E,F,G,H,A,w[gli][6],AC24);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(A,B,C,D,E,F,G,H,w[gli][7],AC25);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(H,A,B,C,D,E,F,G,w[gli][8],AC26);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(G,H,A,B,C,D,E,F,w[gli][9],AC27);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(F,G,H,A,B,C,D,E,w[gli][10],AC28);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(E,F,G,H,A,B,C,D,w[gli][11],AC29);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(D,E,F,G,H,A,B,C,w[gli][12],AC30);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(C,D,E,F,G,H,A,B,w[gli][13],AC31);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[gli][14],AC32);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(H,A,B,C,D,E,F,G,w[gli][16],AC34);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(G,H,A,B,C,D,E,F,w[gli][0],AC35);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(F,G,H,A,B,C,D,E,w[gli][1],AC36);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(E,F,G,H,A,B,C,D,w[gli][2],AC37);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(D,E,F,G,H,A,B,C,w[gli][3],AC38);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(C,D,E,F,G,H,A,B,w[gli][4],AC39);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(B,C,D,E,F,G,H,A,w[gli][5],AC40);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(A,B,C,D,E,F,G,H,w[gli][6],AC41);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(H,A,B,C,D,E,F,G,w[gli][7],AC42);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(G,H,A,B,C,D,E,F,w[gli][8],AC43);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(F,G,H,A,B,C,D,E,w[gli][9],AC44);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(E,F,G,H,A,B,C,D,w[gli][10],AC45);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(D,E,F,G,H,A,B,C,w[gli][11],AC46);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(C,D,E,F,G,H,A,B,w[gli][12],AC47);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(B,C,D,E,F,G,H,A,w[gli][13],AC48);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[gli][14],AC49);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(G,H,A,B,C,D,E,F,w[gli][16],AC51);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(F,G,H,A,B,C,D,E,w[gli][0],AC52);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(E,F,G,H,A,B,C,D,w[gli][1],AC53);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(D,E,F,G,H,A,B,C,w[gli][2],AC54);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(C,D,E,F,G,H,A,B,w[gli][3],AC55);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(B,C,D,E,F,G,H,A,w[gli][4],AC56);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(A,B,C,D,E,F,G,H,w[gli][5],AC57);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(H,A,B,C,D,E,F,G,w[gli][6],AC58);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(G,H,A,B,C,D,E,F,w[gli][7],AC59);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(F,G,H,A,B,C,D,E,w[gli][8],AC60);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(E,F,G,H,A,B,C,D,w[gli][9],AC61);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(D,E,F,G,H,A,B,C,w[gli][10],AC62);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(C,D,E,F,G,H,A,B,w[gli][11],AC63);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(B,C,D,E,F,G,H,A,w[gli][12],AC64);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(A,B,C,D,E,F,G,H,w[gli][13],AC65);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[gli][14],AC66);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(F,G,H,A,B,C,D,E,w[gli][16],AC68);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(E,F,G,H,A,B,C,D,w[gli][0],AC69);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(D,E,F,G,H,A,B,C,w[gli][1],AC70);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(C,D,E,F,G,H,A,B,w[gli][2],AC71);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(B,C,D,E,F,G,H,A,w[gli][3],AC72);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(A,B,C,D,E,F,G,H,w[gli][4],AC73);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(H,A,B,C,D,E,F,G,w[gli][5],AC74);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(G,H,A,B,C,D,E,F,w[gli][6],AC75);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(F,G,H,A,B,C,D,E,w[gli][7],AC76);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(E,F,G,H,A,B,C,D,w[gli][8],AC77);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(D,E,F,G,H,A,B,C,w[gli][9],AC78);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(C,D,E,F,G,H,A,B,w[gli][10],AC79);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(B,C,D,E,F,G,H,A,w[gli][11],AC80);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(A,B,C,D,E,F,G,H,w[16],AC17);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(H,A,B,C,D,E,F,G,w[0],AC18);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(G,H,A,B,C,D,E,F,w[1],AC19);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(F,G,H,A,B,C,D,E,w[2],AC20);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(E,F,G,H,A,B,C,D,w[3],AC21);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(D,E,F,G,H,A,B,C,w[4],AC22);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(C,D,E,F,G,H,A,B,w[5],AC23);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(B,C,D,E,F,G,H,A,w[6],AC24);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(A,B,C,D,E,F,G,H,w[7],AC25);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(H,A,B,C,D,E,F,G,w[8],AC26);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(G,H,A,B,C,D,E,F,w[9],AC27);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(F,G,H,A,B,C,D,E,w[10],AC28);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(E,F,G,H,A,B,C,D,w[11],AC29);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(D,E,F,G,H,A,B,C,w[12],AC30);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(C,D,E,F,G,H,A,B,w[13],AC31);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[14],AC32);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(H,A,B,C,D,E,F,G,w[16],AC34);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(G,H,A,B,C,D,E,F,w[0],AC35);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(F,G,H,A,B,C,D,E,w[1],AC36);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(E,F,G,H,A,B,C,D,w[2],AC37);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(D,E,F,G,H,A,B,C,w[3],AC38);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(C,D,E,F,G,H,A,B,w[4],AC39);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(B,C,D,E,F,G,H,A,w[5],AC40);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(A,B,C,D,E,F,G,H,w[6],AC41);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(H,A,B,C,D,E,F,G,w[7],AC42);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(G,H,A,B,C,D,E,F,w[8],AC43);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(F,G,H,A,B,C,D,E,w[9],AC44);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(E,F,G,H,A,B,C,D,w[10],AC45);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(D,E,F,G,H,A,B,C,w[11],AC46);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(C,D,E,F,G,H,A,B,w[12],AC47);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(B,C,D,E,F,G,H,A,w[13],AC48);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[14],AC49);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(G,H,A,B,C,D,E,F,w[16],AC51);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(F,G,H,A,B,C,D,E,w[0],AC52);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(E,F,G,H,A,B,C,D,w[1],AC53);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(D,E,F,G,H,A,B,C,w[2],AC54);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(C,D,E,F,G,H,A,B,w[3],AC55);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(B,C,D,E,F,G,H,A,w[4],AC56);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(A,B,C,D,E,F,G,H,w[5],AC57);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(H,A,B,C,D,E,F,G,w[6],AC58);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(G,H,A,B,C,D,E,F,w[7],AC59);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(F,G,H,A,B,C,D,E,w[8],AC60);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(E,F,G,H,A,B,C,D,w[9],AC61);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(D,E,F,G,H,A,B,C,w[10],AC62);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(C,D,E,F,G,H,A,B,w[11],AC63);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(B,C,D,E,F,G,H,A,w[12],AC64);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(A,B,C,D,E,F,G,H,w[13],AC65);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[14],AC66);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(F,G,H,A,B,C,D,E,w[16],AC68);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(E,F,G,H,A,B,C,D,w[0],AC69);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(D,E,F,G,H,A,B,C,w[1],AC70);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(C,D,E,F,G,H,A,B,w[2],AC71);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(B,C,D,E,F,G,H,A,w[3],AC72);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(A,B,C,D,E,F,G,H,w[4],AC73);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(H,A,B,C,D,E,F,G,w[5],AC74);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(G,H,A,B,C,D,E,F,w[6],AC75);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(F,G,H,A,B,C,D,E,w[7],AC76);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(E,F,G,H,A,B,C,D,w[8],AC77);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(D,E,F,G,H,A,B,C,w[9],AC78);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(C,D,E,F,G,H,A,B,w[10],AC79);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(B,C,D,E,F,G,H,A,w[11],AC80);
 A+=(ulong)H0;
 B+=(ulong)H1;
 C+=(ulong)H2;
@@ -625,6 +608,7 @@ E+=(ulong)H4;
 F+=(ulong)H5;
 G+=(ulong)H6;
 H+=(ulong)H7;
+}
 A=Endian_Reverse64(A);
 B=Endian_Reverse64(B);
 C=Endian_Reverse64(C);
@@ -633,8 +617,6 @@ E=Endian_Reverse64(E);
 F=Endian_Reverse64(F);
 G=Endian_Reverse64(G);
 H=Endian_Reverse64(H);
-
-}
 
 
 //found_ind[get_global_id(0)] = 0;
@@ -658,11 +640,12 @@ __kernel void __attribute__((reqd_work_group_size(64, 1, 1)))
 sha512unix13( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
 
-ulong A,B,C,D,E,F,G,H,ii,jj,T1,tmp1,elem,tmp2;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
+uint ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
-__local ulong w[64][17]; 
+__private ulong w[17]; 
 ulong alt[8]; 
 ulong SIZE;
 
@@ -677,11 +660,22 @@ G=input[(get_global_id(0)*11)+7];
 H=input[(get_global_id(0)*11)+8];
 pbytes[gli][0]=input[(get_global_id(0)*11)+9];
 pbytes[gli][1]=input[(get_global_id(0)*11)+10];
+A=Endian_Reverse64(A);
+B=Endian_Reverse64(B);
+C=Endian_Reverse64(C);
+D=Endian_Reverse64(D);
+E=Endian_Reverse64(E);
+F=Endian_Reverse64(F);
+G=Endian_Reverse64(G);
+H=Endian_Reverse64(H);
+pbytes[gli][0]=Endian_Reverse64(pbytes[gli][0]);
+pbytes[gli][1]=Endian_Reverse64(pbytes[gli][1]);
+sbytes[gli][0]=Endian_Reverse64(sbytes[gli][0]);
 
 
 for (ic=0;ic<5000;ic++)
 {
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
+w[0]=w[1]=w[2]=w[3]=w[4]=w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[16]=(ulong)0;
 
 if ((ic&1)==0)
 {
@@ -693,17 +687,17 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)0;
+ii=(uint)0;
 
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(ulong)64;
+w[0]=A;
+w[1]=B;
+w[2]=C;
+w[3]=D;
+w[4]=E;
+w[5]=F;
+w[6]=G;
+w[7]=H;
+ii=(uint)64;
 }
 
 else
@@ -716,49 +710,49 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)13;
+ii=(uint)13;
 
-w[gli][0]=pbytes[gli][0];
-w[gli][1]=pbytes[gli][1];
+w[0]=pbytes[gli][0];
+w[1]=pbytes[gli][1];
 }
 
 
 if (ic % 3 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],sbytes[gli][0],ii,0);ii+=(ulong)8;
+SET_AIS(w,sbytes[gli][0],ii,0);ii+=(uint)8;
 //ii=jj+8;
 }
 
 if (ic % 7 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=(ulong)5;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)8;
+SET_AIS(w,pbytes[gli][1],ii,8);ii+=(uint)5;
 //ii=jj+9;
 }
 
 if ((ic&1)==0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=(ulong)5;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)8;
+SET_AIS(w,pbytes[gli][1],ii,8);ii+=(uint)5;
 //ii=jj+9;
 }
 else
 {
-SET_AIS(w[gli],alt[0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],alt[1],ii,8);ii+=(ulong)8;
-SET_AIS(w[gli],alt[2],ii,16);ii+=(ulong)8;
-SET_AIS(w[gli],alt[3],ii,24);ii+=(ulong)8;
-SET_AIS(w[gli],alt[4],ii,32);ii+=(ulong)8;
-SET_AIS(w[gli],alt[5],ii,40);ii+=(ulong)8;
-SET_AIS(w[gli],alt[6],ii,48);ii+=(ulong)8;
-SET_AIS(w[gli],alt[7],ii,56);ii+=(ulong)8;
+SET_AIS(w,alt[0],ii,0);ii+=(uint)8;
+SET_AIS(w,alt[1],ii,8);ii+=(uint)8;
+SET_AIS(w,alt[2],ii,16);ii+=(uint)8;
+SET_AIS(w,alt[3],ii,24);ii+=(uint)8;
+SET_AIS(w,alt[4],ii,32);ii+=(uint)8;
+SET_AIS(w,alt[5],ii,40);ii+=(uint)8;
+SET_AIS(w,alt[6],ii,48);ii+=(uint)8;
+SET_AIS(w,alt[7],ii,56);ii+=(uint)8;
 }
 
 
-SET_AB(w[gli],ii,0x80);
+SET_AB(w,ii,0x80);
 
 SIZE=(ulong)(ii<<3);
 
@@ -771,101 +765,86 @@ F=(ulong)H5;
 G=(ulong)H6;
 H=(ulong)H7;
 
-w[gli][0]=Endian_Reverse64(w[gli][0]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[gli][0]);
-w[gli][1]=Endian_Reverse64(w[gli][1]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[gli][1]);
-w[gli][2]=Endian_Reverse64(w[gli][2]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[gli][2]);
-w[gli][3]=Endian_Reverse64(w[gli][3]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[gli][3]);
-w[gli][4]=Endian_Reverse64(w[gli][4]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[gli][4]);
-w[gli][5]=Endian_Reverse64(w[gli][5]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[gli][5]);
-w[gli][6]=Endian_Reverse64(w[gli][6]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[gli][6]);
-w[gli][7]=Endian_Reverse64(w[gli][7]);
-ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[gli][7]);
-w[gli][8]=Endian_Reverse64(w[gli][8]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[gli][8]);
-w[gli][9]=Endian_Reverse64(w[gli][9]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[gli][9]);
-w[gli][10]=Endian_Reverse64(w[gli][10]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[gli][10]);
-w[gli][11]=Endian_Reverse64(w[gli][11]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[gli][11]);
-w[gli][12]=Endian_Reverse64(w[gli][12]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[gli][12]);
-w[gli][13]=Endian_Reverse64(w[gli][13]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[gli][13]);
-w[gli][14]=Endian_Reverse64(w[gli][14]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[gli][14]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[0]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[1]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[2]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[3]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[4]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[5]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[6]);
+ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[7]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[8]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[9]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[10]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[11]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[12]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[13]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[14]);
 ROUND512_0_TO_15(B,C,D,E,F,G,H,A,SIZE,AC16);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(A,B,C,D,E,F,G,H,w[gli][16],AC17);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(H,A,B,C,D,E,F,G,w[gli][0],AC18);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(G,H,A,B,C,D,E,F,w[gli][1],AC19);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(F,G,H,A,B,C,D,E,w[gli][2],AC20);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(E,F,G,H,A,B,C,D,w[gli][3],AC21);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(D,E,F,G,H,A,B,C,w[gli][4],AC22);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(C,D,E,F,G,H,A,B,w[gli][5],AC23);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(B,C,D,E,F,G,H,A,w[gli][6],AC24);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(A,B,C,D,E,F,G,H,w[gli][7],AC25);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(H,A,B,C,D,E,F,G,w[gli][8],AC26);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(G,H,A,B,C,D,E,F,w[gli][9],AC27);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(F,G,H,A,B,C,D,E,w[gli][10],AC28);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(E,F,G,H,A,B,C,D,w[gli][11],AC29);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(D,E,F,G,H,A,B,C,w[gli][12],AC30);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(C,D,E,F,G,H,A,B,w[gli][13],AC31);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[gli][14],AC32);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(H,A,B,C,D,E,F,G,w[gli][16],AC34);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(G,H,A,B,C,D,E,F,w[gli][0],AC35);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(F,G,H,A,B,C,D,E,w[gli][1],AC36);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(E,F,G,H,A,B,C,D,w[gli][2],AC37);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(D,E,F,G,H,A,B,C,w[gli][3],AC38);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(C,D,E,F,G,H,A,B,w[gli][4],AC39);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(B,C,D,E,F,G,H,A,w[gli][5],AC40);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(A,B,C,D,E,F,G,H,w[gli][6],AC41);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(H,A,B,C,D,E,F,G,w[gli][7],AC42);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(G,H,A,B,C,D,E,F,w[gli][8],AC43);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(F,G,H,A,B,C,D,E,w[gli][9],AC44);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(E,F,G,H,A,B,C,D,w[gli][10],AC45);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(D,E,F,G,H,A,B,C,w[gli][11],AC46);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(C,D,E,F,G,H,A,B,w[gli][12],AC47);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(B,C,D,E,F,G,H,A,w[gli][13],AC48);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[gli][14],AC49);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(G,H,A,B,C,D,E,F,w[gli][16],AC51);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(F,G,H,A,B,C,D,E,w[gli][0],AC52);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(E,F,G,H,A,B,C,D,w[gli][1],AC53);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(D,E,F,G,H,A,B,C,w[gli][2],AC54);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(C,D,E,F,G,H,A,B,w[gli][3],AC55);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(B,C,D,E,F,G,H,A,w[gli][4],AC56);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(A,B,C,D,E,F,G,H,w[gli][5],AC57);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(H,A,B,C,D,E,F,G,w[gli][6],AC58);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(G,H,A,B,C,D,E,F,w[gli][7],AC59);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(F,G,H,A,B,C,D,E,w[gli][8],AC60);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(E,F,G,H,A,B,C,D,w[gli][9],AC61);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(D,E,F,G,H,A,B,C,w[gli][10],AC62);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(C,D,E,F,G,H,A,B,w[gli][11],AC63);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(B,C,D,E,F,G,H,A,w[gli][12],AC64);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(A,B,C,D,E,F,G,H,w[gli][13],AC65);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[gli][14],AC66);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(F,G,H,A,B,C,D,E,w[gli][16],AC68);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(E,F,G,H,A,B,C,D,w[gli][0],AC69);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(D,E,F,G,H,A,B,C,w[gli][1],AC70);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(C,D,E,F,G,H,A,B,w[gli][2],AC71);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(B,C,D,E,F,G,H,A,w[gli][3],AC72);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(A,B,C,D,E,F,G,H,w[gli][4],AC73);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(H,A,B,C,D,E,F,G,w[gli][5],AC74);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(G,H,A,B,C,D,E,F,w[gli][6],AC75);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(F,G,H,A,B,C,D,E,w[gli][7],AC76);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(E,F,G,H,A,B,C,D,w[gli][8],AC77);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(D,E,F,G,H,A,B,C,w[gli][9],AC78);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(C,D,E,F,G,H,A,B,w[gli][10],AC79);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(B,C,D,E,F,G,H,A,w[gli][11],AC80);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(A,B,C,D,E,F,G,H,w[16],AC17);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(H,A,B,C,D,E,F,G,w[0],AC18);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(G,H,A,B,C,D,E,F,w[1],AC19);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(F,G,H,A,B,C,D,E,w[2],AC20);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(E,F,G,H,A,B,C,D,w[3],AC21);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(D,E,F,G,H,A,B,C,w[4],AC22);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(C,D,E,F,G,H,A,B,w[5],AC23);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(B,C,D,E,F,G,H,A,w[6],AC24);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(A,B,C,D,E,F,G,H,w[7],AC25);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(H,A,B,C,D,E,F,G,w[8],AC26);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(G,H,A,B,C,D,E,F,w[9],AC27);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(F,G,H,A,B,C,D,E,w[10],AC28);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(E,F,G,H,A,B,C,D,w[11],AC29);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(D,E,F,G,H,A,B,C,w[12],AC30);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(C,D,E,F,G,H,A,B,w[13],AC31);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[14],AC32);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(H,A,B,C,D,E,F,G,w[16],AC34);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(G,H,A,B,C,D,E,F,w[0],AC35);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(F,G,H,A,B,C,D,E,w[1],AC36);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(E,F,G,H,A,B,C,D,w[2],AC37);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(D,E,F,G,H,A,B,C,w[3],AC38);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(C,D,E,F,G,H,A,B,w[4],AC39);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(B,C,D,E,F,G,H,A,w[5],AC40);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(A,B,C,D,E,F,G,H,w[6],AC41);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(H,A,B,C,D,E,F,G,w[7],AC42);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(G,H,A,B,C,D,E,F,w[8],AC43);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(F,G,H,A,B,C,D,E,w[9],AC44);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(E,F,G,H,A,B,C,D,w[10],AC45);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(D,E,F,G,H,A,B,C,w[11],AC46);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(C,D,E,F,G,H,A,B,w[12],AC47);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(B,C,D,E,F,G,H,A,w[13],AC48);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[14],AC49);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(G,H,A,B,C,D,E,F,w[16],AC51);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(F,G,H,A,B,C,D,E,w[0],AC52);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(E,F,G,H,A,B,C,D,w[1],AC53);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(D,E,F,G,H,A,B,C,w[2],AC54);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(C,D,E,F,G,H,A,B,w[3],AC55);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(B,C,D,E,F,G,H,A,w[4],AC56);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(A,B,C,D,E,F,G,H,w[5],AC57);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(H,A,B,C,D,E,F,G,w[6],AC58);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(G,H,A,B,C,D,E,F,w[7],AC59);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(F,G,H,A,B,C,D,E,w[8],AC60);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(E,F,G,H,A,B,C,D,w[9],AC61);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(D,E,F,G,H,A,B,C,w[10],AC62);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(C,D,E,F,G,H,A,B,w[11],AC63);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(B,C,D,E,F,G,H,A,w[12],AC64);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(A,B,C,D,E,F,G,H,w[13],AC65);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[14],AC66);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(F,G,H,A,B,C,D,E,w[16],AC68);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(E,F,G,H,A,B,C,D,w[0],AC69);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(D,E,F,G,H,A,B,C,w[1],AC70);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(C,D,E,F,G,H,A,B,w[2],AC71);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(B,C,D,E,F,G,H,A,w[3],AC72);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(A,B,C,D,E,F,G,H,w[4],AC73);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(H,A,B,C,D,E,F,G,w[5],AC74);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(G,H,A,B,C,D,E,F,w[6],AC75);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(F,G,H,A,B,C,D,E,w[7],AC76);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(E,F,G,H,A,B,C,D,w[8],AC77);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(D,E,F,G,H,A,B,C,w[9],AC78);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(C,D,E,F,G,H,A,B,w[10],AC79);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(B,C,D,E,F,G,H,A,w[11],AC80);
 A+=(ulong)H0;
 B+=(ulong)H1;
 C+=(ulong)H2;
@@ -874,6 +853,7 @@ E+=(ulong)H4;
 F+=(ulong)H5;
 G+=(ulong)H6;
 H+=(ulong)H7;
+}
 A=Endian_Reverse64(A);
 B=Endian_Reverse64(B);
 C=Endian_Reverse64(C);
@@ -882,8 +862,6 @@ E=Endian_Reverse64(E);
 F=Endian_Reverse64(F);
 G=Endian_Reverse64(G);
 H=Endian_Reverse64(H);
-
-}
 
 
 //found_ind[get_global_id(0)] = 0;
@@ -905,11 +883,12 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix12( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,ii,jj,T1,tmp1,elem,tmp2;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
+uint ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
-__local ulong w[64][17]; 
+__private ulong w[17]; 
 ulong alt[8]; 
 ulong SIZE;
 
@@ -924,11 +903,22 @@ G=input[(get_global_id(0)*11)+7];
 H=input[(get_global_id(0)*11)+8];
 pbytes[gli][0]=input[(get_global_id(0)*11)+9];
 pbytes[gli][1]=input[(get_global_id(0)*11)+10];
+A=Endian_Reverse64(A);
+B=Endian_Reverse64(B);
+C=Endian_Reverse64(C);
+D=Endian_Reverse64(D);
+E=Endian_Reverse64(E);
+F=Endian_Reverse64(F);
+G=Endian_Reverse64(G);
+H=Endian_Reverse64(H);
+pbytes[gli][0]=Endian_Reverse64(pbytes[gli][0]);
+pbytes[gli][1]=Endian_Reverse64(pbytes[gli][1]);
+sbytes[gli][0]=Endian_Reverse64(sbytes[gli][0]);
 
 
 for (ic=0;ic<5000;ic++)
 {
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
+w[0]=w[1]=w[2]=w[3]=w[4]=w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[16]=(ulong)0;
 
 if ((ic&1)==0)
 {
@@ -940,17 +930,17 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)0;
+ii=(uint)0;
 
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(ulong)64;
+w[0]=A;
+w[1]=B;
+w[2]=C;
+w[3]=D;
+w[4]=E;
+w[5]=F;
+w[6]=G;
+w[7]=H;
+ii=(uint)64;
 }
 
 else
@@ -963,49 +953,49 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)12;
+ii=(uint)12;
 
-w[gli][0]=pbytes[gli][0];
-w[gli][1]=pbytes[gli][1];
+w[0]=pbytes[gli][0];
+w[1]=pbytes[gli][1];
 }
 
 
 if (ic % 3 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],sbytes[gli][0],ii,0);ii+=(ulong)8;
+SET_AIS(w,sbytes[gli][0],ii,0);ii+=(uint)8;
 //ii=jj+8;
 }
 
 if (ic % 7 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=(ulong)4;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)8;
+SET_AIS(w,pbytes[gli][1],ii,8);ii+=(uint)4;
 //ii=jj+9;
 }
 
 if ((ic&1)==0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=(ulong)4;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)8;
+SET_AIS(w,pbytes[gli][1],ii,8);ii+=(uint)4;
 //ii=jj+9;
 }
 else
 {
-SET_AIS(w[gli],alt[0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],alt[1],ii,8);ii+=(ulong)8;
-SET_AIS(w[gli],alt[2],ii,16);ii+=(ulong)8;
-SET_AIS(w[gli],alt[3],ii,24);ii+=(ulong)8;
-SET_AIS(w[gli],alt[4],ii,32);ii+=(ulong)8;
-SET_AIS(w[gli],alt[5],ii,40);ii+=(ulong)8;
-SET_AIS(w[gli],alt[6],ii,48);ii+=(ulong)8;
-SET_AIS(w[gli],alt[7],ii,56);ii+=(ulong)8;
+SET_AIS(w,alt[0],ii,0);ii+=(uint)8;
+SET_AIS(w,alt[1],ii,8);ii+=(uint)8;
+SET_AIS(w,alt[2],ii,16);ii+=(uint)8;
+SET_AIS(w,alt[3],ii,24);ii+=(uint)8;
+SET_AIS(w,alt[4],ii,32);ii+=(uint)8;
+SET_AIS(w,alt[5],ii,40);ii+=(uint)8;
+SET_AIS(w,alt[6],ii,48);ii+=(uint)8;
+SET_AIS(w,alt[7],ii,56);ii+=(uint)8;
 }
 
 
-SET_AB(w[gli],ii,0x80);
+SET_AB(w,ii,0x80);
 
 SIZE=(ulong)(ii<<3);
 
@@ -1018,101 +1008,86 @@ F=(ulong)H5;
 G=(ulong)H6;
 H=(ulong)H7;
 
-w[gli][0]=Endian_Reverse64(w[gli][0]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[gli][0]);
-w[gli][1]=Endian_Reverse64(w[gli][1]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[gli][1]);
-w[gli][2]=Endian_Reverse64(w[gli][2]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[gli][2]);
-w[gli][3]=Endian_Reverse64(w[gli][3]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[gli][3]);
-w[gli][4]=Endian_Reverse64(w[gli][4]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[gli][4]);
-w[gli][5]=Endian_Reverse64(w[gli][5]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[gli][5]);
-w[gli][6]=Endian_Reverse64(w[gli][6]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[gli][6]);
-w[gli][7]=Endian_Reverse64(w[gli][7]);
-ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[gli][7]);
-w[gli][8]=Endian_Reverse64(w[gli][8]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[gli][8]);
-w[gli][9]=Endian_Reverse64(w[gli][9]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[gli][9]);
-w[gli][10]=Endian_Reverse64(w[gli][10]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[gli][10]);
-w[gli][11]=Endian_Reverse64(w[gli][11]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[gli][11]);
-w[gli][12]=Endian_Reverse64(w[gli][12]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[gli][12]);
-w[gli][13]=Endian_Reverse64(w[gli][13]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[gli][13]);
-w[gli][14]=Endian_Reverse64(w[gli][14]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[gli][14]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[0]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[1]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[2]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[3]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[4]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[5]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[6]);
+ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[7]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[8]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[9]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[10]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[11]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[12]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[13]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[14]);
 ROUND512_0_TO_15(B,C,D,E,F,G,H,A,SIZE,AC16);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(A,B,C,D,E,F,G,H,w[gli][16],AC17);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(H,A,B,C,D,E,F,G,w[gli][0],AC18);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(G,H,A,B,C,D,E,F,w[gli][1],AC19);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(F,G,H,A,B,C,D,E,w[gli][2],AC20);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(E,F,G,H,A,B,C,D,w[gli][3],AC21);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(D,E,F,G,H,A,B,C,w[gli][4],AC22);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(C,D,E,F,G,H,A,B,w[gli][5],AC23);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(B,C,D,E,F,G,H,A,w[gli][6],AC24);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(A,B,C,D,E,F,G,H,w[gli][7],AC25);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(H,A,B,C,D,E,F,G,w[gli][8],AC26);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(G,H,A,B,C,D,E,F,w[gli][9],AC27);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(F,G,H,A,B,C,D,E,w[gli][10],AC28);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(E,F,G,H,A,B,C,D,w[gli][11],AC29);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(D,E,F,G,H,A,B,C,w[gli][12],AC30);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(C,D,E,F,G,H,A,B,w[gli][13],AC31);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[gli][14],AC32);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(H,A,B,C,D,E,F,G,w[gli][16],AC34);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(G,H,A,B,C,D,E,F,w[gli][0],AC35);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(F,G,H,A,B,C,D,E,w[gli][1],AC36);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(E,F,G,H,A,B,C,D,w[gli][2],AC37);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(D,E,F,G,H,A,B,C,w[gli][3],AC38);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(C,D,E,F,G,H,A,B,w[gli][4],AC39);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(B,C,D,E,F,G,H,A,w[gli][5],AC40);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(A,B,C,D,E,F,G,H,w[gli][6],AC41);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(H,A,B,C,D,E,F,G,w[gli][7],AC42);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(G,H,A,B,C,D,E,F,w[gli][8],AC43);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(F,G,H,A,B,C,D,E,w[gli][9],AC44);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(E,F,G,H,A,B,C,D,w[gli][10],AC45);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(D,E,F,G,H,A,B,C,w[gli][11],AC46);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(C,D,E,F,G,H,A,B,w[gli][12],AC47);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(B,C,D,E,F,G,H,A,w[gli][13],AC48);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[gli][14],AC49);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(G,H,A,B,C,D,E,F,w[gli][16],AC51);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(F,G,H,A,B,C,D,E,w[gli][0],AC52);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(E,F,G,H,A,B,C,D,w[gli][1],AC53);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(D,E,F,G,H,A,B,C,w[gli][2],AC54);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(C,D,E,F,G,H,A,B,w[gli][3],AC55);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(B,C,D,E,F,G,H,A,w[gli][4],AC56);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(A,B,C,D,E,F,G,H,w[gli][5],AC57);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(H,A,B,C,D,E,F,G,w[gli][6],AC58);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(G,H,A,B,C,D,E,F,w[gli][7],AC59);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(F,G,H,A,B,C,D,E,w[gli][8],AC60);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(E,F,G,H,A,B,C,D,w[gli][9],AC61);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(D,E,F,G,H,A,B,C,w[gli][10],AC62);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(C,D,E,F,G,H,A,B,w[gli][11],AC63);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(B,C,D,E,F,G,H,A,w[gli][12],AC64);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(A,B,C,D,E,F,G,H,w[gli][13],AC65);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[gli][14],AC66);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(F,G,H,A,B,C,D,E,w[gli][16],AC68);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(E,F,G,H,A,B,C,D,w[gli][0],AC69);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(D,E,F,G,H,A,B,C,w[gli][1],AC70);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(C,D,E,F,G,H,A,B,w[gli][2],AC71);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(B,C,D,E,F,G,H,A,w[gli][3],AC72);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(A,B,C,D,E,F,G,H,w[gli][4],AC73);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(H,A,B,C,D,E,F,G,w[gli][5],AC74);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(G,H,A,B,C,D,E,F,w[gli][6],AC75);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(F,G,H,A,B,C,D,E,w[gli][7],AC76);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(E,F,G,H,A,B,C,D,w[gli][8],AC77);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(D,E,F,G,H,A,B,C,w[gli][9],AC78);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(C,D,E,F,G,H,A,B,w[gli][10],AC79);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(B,C,D,E,F,G,H,A,w[gli][11],AC80);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(A,B,C,D,E,F,G,H,w[16],AC17);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(H,A,B,C,D,E,F,G,w[0],AC18);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(G,H,A,B,C,D,E,F,w[1],AC19);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(F,G,H,A,B,C,D,E,w[2],AC20);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(E,F,G,H,A,B,C,D,w[3],AC21);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(D,E,F,G,H,A,B,C,w[4],AC22);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(C,D,E,F,G,H,A,B,w[5],AC23);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(B,C,D,E,F,G,H,A,w[6],AC24);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(A,B,C,D,E,F,G,H,w[7],AC25);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(H,A,B,C,D,E,F,G,w[8],AC26);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(G,H,A,B,C,D,E,F,w[9],AC27);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(F,G,H,A,B,C,D,E,w[10],AC28);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(E,F,G,H,A,B,C,D,w[11],AC29);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(D,E,F,G,H,A,B,C,w[12],AC30);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(C,D,E,F,G,H,A,B,w[13],AC31);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[14],AC32);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(H,A,B,C,D,E,F,G,w[16],AC34);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(G,H,A,B,C,D,E,F,w[0],AC35);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(F,G,H,A,B,C,D,E,w[1],AC36);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(E,F,G,H,A,B,C,D,w[2],AC37);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(D,E,F,G,H,A,B,C,w[3],AC38);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(C,D,E,F,G,H,A,B,w[4],AC39);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(B,C,D,E,F,G,H,A,w[5],AC40);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(A,B,C,D,E,F,G,H,w[6],AC41);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(H,A,B,C,D,E,F,G,w[7],AC42);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(G,H,A,B,C,D,E,F,w[8],AC43);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(F,G,H,A,B,C,D,E,w[9],AC44);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(E,F,G,H,A,B,C,D,w[10],AC45);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(D,E,F,G,H,A,B,C,w[11],AC46);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(C,D,E,F,G,H,A,B,w[12],AC47);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(B,C,D,E,F,G,H,A,w[13],AC48);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[14],AC49);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(G,H,A,B,C,D,E,F,w[16],AC51);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(F,G,H,A,B,C,D,E,w[0],AC52);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(E,F,G,H,A,B,C,D,w[1],AC53);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(D,E,F,G,H,A,B,C,w[2],AC54);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(C,D,E,F,G,H,A,B,w[3],AC55);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(B,C,D,E,F,G,H,A,w[4],AC56);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(A,B,C,D,E,F,G,H,w[5],AC57);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(H,A,B,C,D,E,F,G,w[6],AC58);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(G,H,A,B,C,D,E,F,w[7],AC59);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(F,G,H,A,B,C,D,E,w[8],AC60);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(E,F,G,H,A,B,C,D,w[9],AC61);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(D,E,F,G,H,A,B,C,w[10],AC62);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(C,D,E,F,G,H,A,B,w[11],AC63);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(B,C,D,E,F,G,H,A,w[12],AC64);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(A,B,C,D,E,F,G,H,w[13],AC65);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[14],AC66);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(F,G,H,A,B,C,D,E,w[16],AC68);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(E,F,G,H,A,B,C,D,w[0],AC69);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(D,E,F,G,H,A,B,C,w[1],AC70);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(C,D,E,F,G,H,A,B,w[2],AC71);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(B,C,D,E,F,G,H,A,w[3],AC72);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(A,B,C,D,E,F,G,H,w[4],AC73);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(H,A,B,C,D,E,F,G,w[5],AC74);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(G,H,A,B,C,D,E,F,w[6],AC75);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(F,G,H,A,B,C,D,E,w[7],AC76);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(E,F,G,H,A,B,C,D,w[8],AC77);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(D,E,F,G,H,A,B,C,w[9],AC78);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(C,D,E,F,G,H,A,B,w[10],AC79);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(B,C,D,E,F,G,H,A,w[11],AC80);
 A+=(ulong)H0;
 B+=(ulong)H1;
 C+=(ulong)H2;
@@ -1121,6 +1096,7 @@ E+=(ulong)H4;
 F+=(ulong)H5;
 G+=(ulong)H6;
 H+=(ulong)H7;
+}
 A=Endian_Reverse64(A);
 B=Endian_Reverse64(B);
 C=Endian_Reverse64(C);
@@ -1129,8 +1105,6 @@ E=Endian_Reverse64(E);
 F=Endian_Reverse64(F);
 G=Endian_Reverse64(G);
 H=Endian_Reverse64(H);
-
-}
 
 
 //found_ind[get_global_id(0)] = 0;
@@ -1152,11 +1126,12 @@ __kernel void __attribute__((reqd_work_group_size(64, 1, 1)))
 sha512unix11( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
 
-ulong A,B,C,D,E,F,G,H,ii,jj,T1,tmp1,elem,tmp2;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
+uint ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
-__local ulong w[64][17]; 
+__private ulong w[17]; 
 ulong alt[8]; 
 ulong SIZE;
 
@@ -1171,11 +1146,22 @@ G=input[(get_global_id(0)*11)+7];
 H=input[(get_global_id(0)*11)+8];
 pbytes[gli][0]=input[(get_global_id(0)*11)+9];
 pbytes[gli][1]=input[(get_global_id(0)*11)+10];
+A=Endian_Reverse64(A);
+B=Endian_Reverse64(B);
+C=Endian_Reverse64(C);
+D=Endian_Reverse64(D);
+E=Endian_Reverse64(E);
+F=Endian_Reverse64(F);
+G=Endian_Reverse64(G);
+H=Endian_Reverse64(H);
+pbytes[gli][0]=Endian_Reverse64(pbytes[gli][0]);
+pbytes[gli][1]=Endian_Reverse64(pbytes[gli][1]);
+sbytes[gli][0]=Endian_Reverse64(sbytes[gli][0]);
 
 
 for (ic=0;ic<5000;ic++)
 {
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
+w[0]=w[1]=w[2]=w[3]=w[4]=w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[16]=(ulong)0;
 
 if ((ic&1)==0)
 {
@@ -1187,17 +1173,17 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)0;
+ii=(uint)0;
 
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(ulong)64;
+w[0]=A;
+w[1]=B;
+w[2]=C;
+w[3]=D;
+w[4]=E;
+w[5]=F;
+w[6]=G;
+w[7]=H;
+ii=(uint)64;
 }
 
 else
@@ -1210,49 +1196,49 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)11;
+ii=(uint)11;
 
-w[gli][0]=pbytes[gli][0];
-w[gli][1]=pbytes[gli][1];
+w[0]=pbytes[gli][0];
+w[1]=pbytes[gli][1];
 }
 
 
 if (ic % 3 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],sbytes[gli][0],ii,0);ii+=(ulong)8;
+SET_AIS(w,sbytes[gli][0],ii,0);ii+=(uint)8;
 //ii=jj+8;
 }
 
 if (ic % 7 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=(ulong)3;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)8;
+SET_AIS(w,pbytes[gli][1],ii,8);ii+=(uint)3;
 //ii=jj+9;
 }
 
 if ((ic&1)==0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=(ulong)3;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)8;
+SET_AIS(w,pbytes[gli][1],ii,8);ii+=(uint)3;
 //ii=jj+9;
 }
 else
 {
-SET_AIS(w[gli],alt[0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],alt[1],ii,8);ii+=(ulong)8;
-SET_AIS(w[gli],alt[2],ii,16);ii+=(ulong)8;
-SET_AIS(w[gli],alt[3],ii,24);ii+=(ulong)8;
-SET_AIS(w[gli],alt[4],ii,32);ii+=(ulong)8;
-SET_AIS(w[gli],alt[5],ii,40);ii+=(ulong)8;
-SET_AIS(w[gli],alt[6],ii,48);ii+=(ulong)8;
-SET_AIS(w[gli],alt[7],ii,56);ii+=(ulong)8;
+SET_AIS(w,alt[0],ii,0);ii+=(uint)8;
+SET_AIS(w,alt[1],ii,8);ii+=(uint)8;
+SET_AIS(w,alt[2],ii,16);ii+=(uint)8;
+SET_AIS(w,alt[3],ii,24);ii+=(uint)8;
+SET_AIS(w,alt[4],ii,32);ii+=(uint)8;
+SET_AIS(w,alt[5],ii,40);ii+=(uint)8;
+SET_AIS(w,alt[6],ii,48);ii+=(uint)8;
+SET_AIS(w,alt[7],ii,56);ii+=(uint)8;
 }
 
 
-SET_AB(w[gli],ii,0x80);
+SET_AB(w,ii,0x80);
 
 SIZE=(ulong)(ii<<3);
 
@@ -1265,101 +1251,86 @@ F=(ulong)H5;
 G=(ulong)H6;
 H=(ulong)H7;
 
-w[gli][0]=Endian_Reverse64(w[gli][0]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[gli][0]);
-w[gli][1]=Endian_Reverse64(w[gli][1]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[gli][1]);
-w[gli][2]=Endian_Reverse64(w[gli][2]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[gli][2]);
-w[gli][3]=Endian_Reverse64(w[gli][3]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[gli][3]);
-w[gli][4]=Endian_Reverse64(w[gli][4]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[gli][4]);
-w[gli][5]=Endian_Reverse64(w[gli][5]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[gli][5]);
-w[gli][6]=Endian_Reverse64(w[gli][6]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[gli][6]);
-w[gli][7]=Endian_Reverse64(w[gli][7]);
-ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[gli][7]);
-w[gli][8]=Endian_Reverse64(w[gli][8]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[gli][8]);
-w[gli][9]=Endian_Reverse64(w[gli][9]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[gli][9]);
-w[gli][10]=Endian_Reverse64(w[gli][10]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[gli][10]);
-w[gli][11]=Endian_Reverse64(w[gli][11]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[gli][11]);
-w[gli][12]=Endian_Reverse64(w[gli][12]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[gli][12]);
-w[gli][13]=Endian_Reverse64(w[gli][13]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[gli][13]);
-w[gli][14]=Endian_Reverse64(w[gli][14]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[gli][14]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[0]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[1]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[2]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[3]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[4]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[5]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[6]);
+ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[7]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[8]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[9]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[10]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[11]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[12]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[13]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[14]);
 ROUND512_0_TO_15(B,C,D,E,F,G,H,A,SIZE,AC16);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(A,B,C,D,E,F,G,H,w[gli][16],AC17);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(H,A,B,C,D,E,F,G,w[gli][0],AC18);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(G,H,A,B,C,D,E,F,w[gli][1],AC19);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(F,G,H,A,B,C,D,E,w[gli][2],AC20);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(E,F,G,H,A,B,C,D,w[gli][3],AC21);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(D,E,F,G,H,A,B,C,w[gli][4],AC22);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(C,D,E,F,G,H,A,B,w[gli][5],AC23);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(B,C,D,E,F,G,H,A,w[gli][6],AC24);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(A,B,C,D,E,F,G,H,w[gli][7],AC25);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(H,A,B,C,D,E,F,G,w[gli][8],AC26);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(G,H,A,B,C,D,E,F,w[gli][9],AC27);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(F,G,H,A,B,C,D,E,w[gli][10],AC28);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(E,F,G,H,A,B,C,D,w[gli][11],AC29);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(D,E,F,G,H,A,B,C,w[gli][12],AC30);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(C,D,E,F,G,H,A,B,w[gli][13],AC31);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[gli][14],AC32);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(H,A,B,C,D,E,F,G,w[gli][16],AC34);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(G,H,A,B,C,D,E,F,w[gli][0],AC35);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(F,G,H,A,B,C,D,E,w[gli][1],AC36);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(E,F,G,H,A,B,C,D,w[gli][2],AC37);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(D,E,F,G,H,A,B,C,w[gli][3],AC38);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(C,D,E,F,G,H,A,B,w[gli][4],AC39);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(B,C,D,E,F,G,H,A,w[gli][5],AC40);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(A,B,C,D,E,F,G,H,w[gli][6],AC41);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(H,A,B,C,D,E,F,G,w[gli][7],AC42);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(G,H,A,B,C,D,E,F,w[gli][8],AC43);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(F,G,H,A,B,C,D,E,w[gli][9],AC44);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(E,F,G,H,A,B,C,D,w[gli][10],AC45);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(D,E,F,G,H,A,B,C,w[gli][11],AC46);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(C,D,E,F,G,H,A,B,w[gli][12],AC47);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(B,C,D,E,F,G,H,A,w[gli][13],AC48);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[gli][14],AC49);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(G,H,A,B,C,D,E,F,w[gli][16],AC51);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(F,G,H,A,B,C,D,E,w[gli][0],AC52);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(E,F,G,H,A,B,C,D,w[gli][1],AC53);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(D,E,F,G,H,A,B,C,w[gli][2],AC54);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(C,D,E,F,G,H,A,B,w[gli][3],AC55);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(B,C,D,E,F,G,H,A,w[gli][4],AC56);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(A,B,C,D,E,F,G,H,w[gli][5],AC57);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(H,A,B,C,D,E,F,G,w[gli][6],AC58);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(G,H,A,B,C,D,E,F,w[gli][7],AC59);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(F,G,H,A,B,C,D,E,w[gli][8],AC60);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(E,F,G,H,A,B,C,D,w[gli][9],AC61);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(D,E,F,G,H,A,B,C,w[gli][10],AC62);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(C,D,E,F,G,H,A,B,w[gli][11],AC63);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(B,C,D,E,F,G,H,A,w[gli][12],AC64);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(A,B,C,D,E,F,G,H,w[gli][13],AC65);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[gli][14],AC66);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(F,G,H,A,B,C,D,E,w[gli][16],AC68);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(E,F,G,H,A,B,C,D,w[gli][0],AC69);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(D,E,F,G,H,A,B,C,w[gli][1],AC70);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(C,D,E,F,G,H,A,B,w[gli][2],AC71);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(B,C,D,E,F,G,H,A,w[gli][3],AC72);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(A,B,C,D,E,F,G,H,w[gli][4],AC73);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(H,A,B,C,D,E,F,G,w[gli][5],AC74);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(G,H,A,B,C,D,E,F,w[gli][6],AC75);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(F,G,H,A,B,C,D,E,w[gli][7],AC76);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(E,F,G,H,A,B,C,D,w[gli][8],AC77);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(D,E,F,G,H,A,B,C,w[gli][9],AC78);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(C,D,E,F,G,H,A,B,w[gli][10],AC79);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(B,C,D,E,F,G,H,A,w[gli][11],AC80);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(A,B,C,D,E,F,G,H,w[16],AC17);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(H,A,B,C,D,E,F,G,w[0],AC18);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(G,H,A,B,C,D,E,F,w[1],AC19);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(F,G,H,A,B,C,D,E,w[2],AC20);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(E,F,G,H,A,B,C,D,w[3],AC21);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(D,E,F,G,H,A,B,C,w[4],AC22);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(C,D,E,F,G,H,A,B,w[5],AC23);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(B,C,D,E,F,G,H,A,w[6],AC24);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(A,B,C,D,E,F,G,H,w[7],AC25);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(H,A,B,C,D,E,F,G,w[8],AC26);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(G,H,A,B,C,D,E,F,w[9],AC27);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(F,G,H,A,B,C,D,E,w[10],AC28);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(E,F,G,H,A,B,C,D,w[11],AC29);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(D,E,F,G,H,A,B,C,w[12],AC30);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(C,D,E,F,G,H,A,B,w[13],AC31);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[14],AC32);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(H,A,B,C,D,E,F,G,w[16],AC34);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(G,H,A,B,C,D,E,F,w[0],AC35);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(F,G,H,A,B,C,D,E,w[1],AC36);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(E,F,G,H,A,B,C,D,w[2],AC37);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(D,E,F,G,H,A,B,C,w[3],AC38);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(C,D,E,F,G,H,A,B,w[4],AC39);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(B,C,D,E,F,G,H,A,w[5],AC40);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(A,B,C,D,E,F,G,H,w[6],AC41);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(H,A,B,C,D,E,F,G,w[7],AC42);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(G,H,A,B,C,D,E,F,w[8],AC43);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(F,G,H,A,B,C,D,E,w[9],AC44);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(E,F,G,H,A,B,C,D,w[10],AC45);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(D,E,F,G,H,A,B,C,w[11],AC46);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(C,D,E,F,G,H,A,B,w[12],AC47);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(B,C,D,E,F,G,H,A,w[13],AC48);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[14],AC49);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(G,H,A,B,C,D,E,F,w[16],AC51);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(F,G,H,A,B,C,D,E,w[0],AC52);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(E,F,G,H,A,B,C,D,w[1],AC53);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(D,E,F,G,H,A,B,C,w[2],AC54);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(C,D,E,F,G,H,A,B,w[3],AC55);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(B,C,D,E,F,G,H,A,w[4],AC56);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(A,B,C,D,E,F,G,H,w[5],AC57);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(H,A,B,C,D,E,F,G,w[6],AC58);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(G,H,A,B,C,D,E,F,w[7],AC59);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(F,G,H,A,B,C,D,E,w[8],AC60);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(E,F,G,H,A,B,C,D,w[9],AC61);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(D,E,F,G,H,A,B,C,w[10],AC62);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(C,D,E,F,G,H,A,B,w[11],AC63);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(B,C,D,E,F,G,H,A,w[12],AC64);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(A,B,C,D,E,F,G,H,w[13],AC65);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[14],AC66);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(F,G,H,A,B,C,D,E,w[16],AC68);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(E,F,G,H,A,B,C,D,w[0],AC69);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(D,E,F,G,H,A,B,C,w[1],AC70);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(C,D,E,F,G,H,A,B,w[2],AC71);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(B,C,D,E,F,G,H,A,w[3],AC72);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(A,B,C,D,E,F,G,H,w[4],AC73);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(H,A,B,C,D,E,F,G,w[5],AC74);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(G,H,A,B,C,D,E,F,w[6],AC75);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(F,G,H,A,B,C,D,E,w[7],AC76);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(E,F,G,H,A,B,C,D,w[8],AC77);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(D,E,F,G,H,A,B,C,w[9],AC78);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(C,D,E,F,G,H,A,B,w[10],AC79);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(B,C,D,E,F,G,H,A,w[11],AC80);
 A+=(ulong)H0;
 B+=(ulong)H1;
 C+=(ulong)H2;
@@ -1368,6 +1339,7 @@ E+=(ulong)H4;
 F+=(ulong)H5;
 G+=(ulong)H6;
 H+=(ulong)H7;
+}
 A=Endian_Reverse64(A);
 B=Endian_Reverse64(B);
 C=Endian_Reverse64(C);
@@ -1376,8 +1348,6 @@ E=Endian_Reverse64(E);
 F=Endian_Reverse64(F);
 G=Endian_Reverse64(G);
 H=Endian_Reverse64(H);
-
-}
 
 
 //found_ind[get_global_id(0)] = 0;
@@ -1398,11 +1368,12 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix10( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt)
 {
-ulong A,B,C,D,E,F,G,H,ii,jj,T1,tmp1,elem,tmp2;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
+uint ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
-__local ulong w[64][17]; 
+__private ulong w[17]; 
 ulong alt[8]; 
 ulong SIZE;
 
@@ -1417,11 +1388,22 @@ G=input[(get_global_id(0)*11)+7];
 H=input[(get_global_id(0)*11)+8];
 pbytes[gli][0]=input[(get_global_id(0)*11)+9];
 pbytes[gli][1]=input[(get_global_id(0)*11)+10];
+A=Endian_Reverse64(A);
+B=Endian_Reverse64(B);
+C=Endian_Reverse64(C);
+D=Endian_Reverse64(D);
+E=Endian_Reverse64(E);
+F=Endian_Reverse64(F);
+G=Endian_Reverse64(G);
+H=Endian_Reverse64(H);
+pbytes[gli][0]=Endian_Reverse64(pbytes[gli][0]);
+pbytes[gli][1]=Endian_Reverse64(pbytes[gli][1]);
+sbytes[gli][0]=Endian_Reverse64(sbytes[gli][0]);
 
 
 for (ic=0;ic<5000;ic++)
 {
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
+w[0]=w[1]=w[2]=w[3]=w[4]=w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[16]=(ulong)0;
 
 if ((ic&1)==0)
 {
@@ -1433,17 +1415,17 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)0;
+ii=(uint)0;
 
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(ulong)64;
+w[0]=A;
+w[1]=B;
+w[2]=C;
+w[3]=D;
+w[4]=E;
+w[5]=F;
+w[6]=G;
+w[7]=H;
+ii=(uint)64;
 }
 
 else
@@ -1456,49 +1438,49 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)10;
+ii=(uint)10;
 
-w[gli][0]=pbytes[gli][0];
-w[gli][1]=pbytes[gli][1];
+w[0]=pbytes[gli][0];
+w[1]=pbytes[gli][1];
 }
 
 
 if (ic % 3 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],sbytes[gli][0],ii,0);ii+=(ulong)8;
+SET_AIS(w,sbytes[gli][0],ii,0);ii+=(uint)8;
 //ii=jj+8;
 }
 
 if (ic % 7 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=(ulong)2;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)8;
+SET_AIS(w,pbytes[gli][1],ii,8);ii+=(uint)2;
 //ii=jj+9;
 }
 
 if ((ic&1)==0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=(ulong)2;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)8;
+SET_AIS(w,pbytes[gli][1],ii,8);ii+=(uint)2;
 //ii=jj+9;
 }
 else
 {
-SET_AIS(w[gli],alt[0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],alt[1],ii,8);ii+=(ulong)8;
-SET_AIS(w[gli],alt[2],ii,16);ii+=(ulong)8;
-SET_AIS(w[gli],alt[3],ii,24);ii+=(ulong)8;
-SET_AIS(w[gli],alt[4],ii,32);ii+=(ulong)8;
-SET_AIS(w[gli],alt[5],ii,40);ii+=(ulong)8;
-SET_AIS(w[gli],alt[6],ii,48);ii+=(ulong)8;
-SET_AIS(w[gli],alt[7],ii,56);ii+=(ulong)8;
+SET_AIS(w,alt[0],ii,0);ii+=(uint)8;
+SET_AIS(w,alt[1],ii,8);ii+=(uint)8;
+SET_AIS(w,alt[2],ii,16);ii+=(uint)8;
+SET_AIS(w,alt[3],ii,24);ii+=(uint)8;
+SET_AIS(w,alt[4],ii,32);ii+=(uint)8;
+SET_AIS(w,alt[5],ii,40);ii+=(uint)8;
+SET_AIS(w,alt[6],ii,48);ii+=(uint)8;
+SET_AIS(w,alt[7],ii,56);ii+=(uint)8;
 }
 
 
-SET_AB(w[gli],ii,0x80);
+SET_AB(w,ii,0x80);
 
 SIZE=(ulong)(ii<<3);
 
@@ -1511,101 +1493,86 @@ F=(ulong)H5;
 G=(ulong)H6;
 H=(ulong)H7;
 
-w[gli][0]=Endian_Reverse64(w[gli][0]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[gli][0]);
-w[gli][1]=Endian_Reverse64(w[gli][1]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[gli][1]);
-w[gli][2]=Endian_Reverse64(w[gli][2]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[gli][2]);
-w[gli][3]=Endian_Reverse64(w[gli][3]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[gli][3]);
-w[gli][4]=Endian_Reverse64(w[gli][4]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[gli][4]);
-w[gli][5]=Endian_Reverse64(w[gli][5]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[gli][5]);
-w[gli][6]=Endian_Reverse64(w[gli][6]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[gli][6]);
-w[gli][7]=Endian_Reverse64(w[gli][7]);
-ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[gli][7]);
-w[gli][8]=Endian_Reverse64(w[gli][8]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[gli][8]);
-w[gli][9]=Endian_Reverse64(w[gli][9]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[gli][9]);
-w[gli][10]=Endian_Reverse64(w[gli][10]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[gli][10]);
-w[gli][11]=Endian_Reverse64(w[gli][11]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[gli][11]);
-w[gli][12]=Endian_Reverse64(w[gli][12]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[gli][12]);
-w[gli][13]=Endian_Reverse64(w[gli][13]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[gli][13]);
-w[gli][14]=Endian_Reverse64(w[gli][14]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[gli][14]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[0]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[1]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[2]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[3]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[4]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[5]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[6]);
+ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[7]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[8]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[9]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[10]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[11]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[12]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[13]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[14]);
 ROUND512_0_TO_15(B,C,D,E,F,G,H,A,SIZE,AC16);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(A,B,C,D,E,F,G,H,w[gli][16],AC17);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(H,A,B,C,D,E,F,G,w[gli][0],AC18);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(G,H,A,B,C,D,E,F,w[gli][1],AC19);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(F,G,H,A,B,C,D,E,w[gli][2],AC20);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(E,F,G,H,A,B,C,D,w[gli][3],AC21);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(D,E,F,G,H,A,B,C,w[gli][4],AC22);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(C,D,E,F,G,H,A,B,w[gli][5],AC23);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(B,C,D,E,F,G,H,A,w[gli][6],AC24);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(A,B,C,D,E,F,G,H,w[gli][7],AC25);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(H,A,B,C,D,E,F,G,w[gli][8],AC26);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(G,H,A,B,C,D,E,F,w[gli][9],AC27);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(F,G,H,A,B,C,D,E,w[gli][10],AC28);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(E,F,G,H,A,B,C,D,w[gli][11],AC29);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(D,E,F,G,H,A,B,C,w[gli][12],AC30);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(C,D,E,F,G,H,A,B,w[gli][13],AC31);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[gli][14],AC32);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(H,A,B,C,D,E,F,G,w[gli][16],AC34);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(G,H,A,B,C,D,E,F,w[gli][0],AC35);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(F,G,H,A,B,C,D,E,w[gli][1],AC36);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(E,F,G,H,A,B,C,D,w[gli][2],AC37);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(D,E,F,G,H,A,B,C,w[gli][3],AC38);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(C,D,E,F,G,H,A,B,w[gli][4],AC39);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(B,C,D,E,F,G,H,A,w[gli][5],AC40);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(A,B,C,D,E,F,G,H,w[gli][6],AC41);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(H,A,B,C,D,E,F,G,w[gli][7],AC42);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(G,H,A,B,C,D,E,F,w[gli][8],AC43);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(F,G,H,A,B,C,D,E,w[gli][9],AC44);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(E,F,G,H,A,B,C,D,w[gli][10],AC45);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(D,E,F,G,H,A,B,C,w[gli][11],AC46);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(C,D,E,F,G,H,A,B,w[gli][12],AC47);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(B,C,D,E,F,G,H,A,w[gli][13],AC48);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[gli][14],AC49);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(G,H,A,B,C,D,E,F,w[gli][16],AC51);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(F,G,H,A,B,C,D,E,w[gli][0],AC52);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(E,F,G,H,A,B,C,D,w[gli][1],AC53);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(D,E,F,G,H,A,B,C,w[gli][2],AC54);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(C,D,E,F,G,H,A,B,w[gli][3],AC55);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(B,C,D,E,F,G,H,A,w[gli][4],AC56);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(A,B,C,D,E,F,G,H,w[gli][5],AC57);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(H,A,B,C,D,E,F,G,w[gli][6],AC58);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(G,H,A,B,C,D,E,F,w[gli][7],AC59);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(F,G,H,A,B,C,D,E,w[gli][8],AC60);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(E,F,G,H,A,B,C,D,w[gli][9],AC61);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(D,E,F,G,H,A,B,C,w[gli][10],AC62);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(C,D,E,F,G,H,A,B,w[gli][11],AC63);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(B,C,D,E,F,G,H,A,w[gli][12],AC64);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(A,B,C,D,E,F,G,H,w[gli][13],AC65);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[gli][14],AC66);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(F,G,H,A,B,C,D,E,w[gli][16],AC68);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(E,F,G,H,A,B,C,D,w[gli][0],AC69);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(D,E,F,G,H,A,B,C,w[gli][1],AC70);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(C,D,E,F,G,H,A,B,w[gli][2],AC71);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(B,C,D,E,F,G,H,A,w[gli][3],AC72);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(A,B,C,D,E,F,G,H,w[gli][4],AC73);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(H,A,B,C,D,E,F,G,w[gli][5],AC74);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(G,H,A,B,C,D,E,F,w[gli][6],AC75);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(F,G,H,A,B,C,D,E,w[gli][7],AC76);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(E,F,G,H,A,B,C,D,w[gli][8],AC77);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(D,E,F,G,H,A,B,C,w[gli][9],AC78);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(C,D,E,F,G,H,A,B,w[gli][10],AC79);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(B,C,D,E,F,G,H,A,w[gli][11],AC80);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(A,B,C,D,E,F,G,H,w[16],AC17);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(H,A,B,C,D,E,F,G,w[0],AC18);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(G,H,A,B,C,D,E,F,w[1],AC19);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(F,G,H,A,B,C,D,E,w[2],AC20);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(E,F,G,H,A,B,C,D,w[3],AC21);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(D,E,F,G,H,A,B,C,w[4],AC22);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(C,D,E,F,G,H,A,B,w[5],AC23);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(B,C,D,E,F,G,H,A,w[6],AC24);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(A,B,C,D,E,F,G,H,w[7],AC25);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(H,A,B,C,D,E,F,G,w[8],AC26);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(G,H,A,B,C,D,E,F,w[9],AC27);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(F,G,H,A,B,C,D,E,w[10],AC28);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(E,F,G,H,A,B,C,D,w[11],AC29);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(D,E,F,G,H,A,B,C,w[12],AC30);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(C,D,E,F,G,H,A,B,w[13],AC31);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[14],AC32);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(H,A,B,C,D,E,F,G,w[16],AC34);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(G,H,A,B,C,D,E,F,w[0],AC35);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(F,G,H,A,B,C,D,E,w[1],AC36);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(E,F,G,H,A,B,C,D,w[2],AC37);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(D,E,F,G,H,A,B,C,w[3],AC38);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(C,D,E,F,G,H,A,B,w[4],AC39);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(B,C,D,E,F,G,H,A,w[5],AC40);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(A,B,C,D,E,F,G,H,w[6],AC41);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(H,A,B,C,D,E,F,G,w[7],AC42);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(G,H,A,B,C,D,E,F,w[8],AC43);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(F,G,H,A,B,C,D,E,w[9],AC44);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(E,F,G,H,A,B,C,D,w[10],AC45);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(D,E,F,G,H,A,B,C,w[11],AC46);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(C,D,E,F,G,H,A,B,w[12],AC47);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(B,C,D,E,F,G,H,A,w[13],AC48);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[14],AC49);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(G,H,A,B,C,D,E,F,w[16],AC51);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(F,G,H,A,B,C,D,E,w[0],AC52);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(E,F,G,H,A,B,C,D,w[1],AC53);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(D,E,F,G,H,A,B,C,w[2],AC54);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(C,D,E,F,G,H,A,B,w[3],AC55);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(B,C,D,E,F,G,H,A,w[4],AC56);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(A,B,C,D,E,F,G,H,w[5],AC57);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(H,A,B,C,D,E,F,G,w[6],AC58);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(G,H,A,B,C,D,E,F,w[7],AC59);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(F,G,H,A,B,C,D,E,w[8],AC60);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(E,F,G,H,A,B,C,D,w[9],AC61);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(D,E,F,G,H,A,B,C,w[10],AC62);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(C,D,E,F,G,H,A,B,w[11],AC63);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(B,C,D,E,F,G,H,A,w[12],AC64);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(A,B,C,D,E,F,G,H,w[13],AC65);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[14],AC66);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(F,G,H,A,B,C,D,E,w[16],AC68);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(E,F,G,H,A,B,C,D,w[0],AC69);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(D,E,F,G,H,A,B,C,w[1],AC70);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(C,D,E,F,G,H,A,B,w[2],AC71);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(B,C,D,E,F,G,H,A,w[3],AC72);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(A,B,C,D,E,F,G,H,w[4],AC73);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(H,A,B,C,D,E,F,G,w[5],AC74);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(G,H,A,B,C,D,E,F,w[6],AC75);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(F,G,H,A,B,C,D,E,w[7],AC76);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(E,F,G,H,A,B,C,D,w[8],AC77);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(D,E,F,G,H,A,B,C,w[9],AC78);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(C,D,E,F,G,H,A,B,w[10],AC79);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(B,C,D,E,F,G,H,A,w[11],AC80);
 A+=(ulong)H0;
 B+=(ulong)H1;
 C+=(ulong)H2;
@@ -1614,6 +1581,7 @@ E+=(ulong)H4;
 F+=(ulong)H5;
 G+=(ulong)H6;
 H+=(ulong)H7;
+}
 A=Endian_Reverse64(A);
 B=Endian_Reverse64(B);
 C=Endian_Reverse64(C);
@@ -1622,8 +1590,6 @@ E=Endian_Reverse64(E);
 F=Endian_Reverse64(F);
 G=Endian_Reverse64(G);
 H=Endian_Reverse64(H);
-
-}
 
 
 //found_ind[get_global_id(0)] = 0;
@@ -1646,11 +1612,12 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix9( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,ii,jj,T1,tmp1,elem,tmp2;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
+uint ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
-__local ulong w[64][17]; 
+__private ulong w[17]; 
 ulong alt[8]; 
 ulong SIZE;
 
@@ -1665,11 +1632,22 @@ G=input[(get_global_id(0)*11)+7];
 H=input[(get_global_id(0)*11)+8];
 pbytes[gli][0]=input[(get_global_id(0)*11)+9];
 pbytes[gli][1]=input[(get_global_id(0)*11)+10];
+A=Endian_Reverse64(A);
+B=Endian_Reverse64(B);
+C=Endian_Reverse64(C);
+D=Endian_Reverse64(D);
+E=Endian_Reverse64(E);
+F=Endian_Reverse64(F);
+G=Endian_Reverse64(G);
+H=Endian_Reverse64(H);
+pbytes[gli][0]=Endian_Reverse64(pbytes[gli][0]);
+pbytes[gli][1]=Endian_Reverse64(pbytes[gli][1]);
+sbytes[gli][0]=Endian_Reverse64(sbytes[gli][0]);
 
 
 for (ic=0;ic<5000;ic++)
 {
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
+w[0]=w[1]=w[2]=w[3]=w[4]=w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[16]=(ulong)0;
 
 if ((ic&1)==0)
 {
@@ -1681,17 +1659,17 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)0;
+ii=(uint)0;
 
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(ulong)64;
+w[0]=A;
+w[1]=B;
+w[2]=C;
+w[3]=D;
+w[4]=E;
+w[5]=F;
+w[6]=G;
+w[7]=H;
+ii=(uint)64;
 }
 
 else
@@ -1704,49 +1682,49 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)9;
+ii=(uint)9;
 
-w[gli][0]=pbytes[gli][0];
-w[gli][1]=pbytes[gli][1];
+w[0]=pbytes[gli][0];
+w[1]=pbytes[gli][1];
 }
 
 
 if (ic % 3 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],sbytes[gli][0],ii,0);ii+=(ulong)8;
+SET_AIS(w,sbytes[gli][0],ii,0);ii+=(uint)8;
 //ii=jj+8;
 }
 
 if (ic % 7 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=(ulong)1;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)8;
+SET_AIS(w,pbytes[gli][1],ii,8);ii+=(uint)1;
 //ii=jj+9;
 }
 
 if ((ic&1)==0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=(ulong)1;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)8;
+SET_AIS(w,pbytes[gli][1],ii,8);ii+=(uint)1;
 //ii=jj+9;
 }
 else
 {
-SET_AIS(w[gli],alt[0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],alt[1],ii,8);ii+=(ulong)8;
-SET_AIS(w[gli],alt[2],ii,16);ii+=(ulong)8;
-SET_AIS(w[gli],alt[3],ii,24);ii+=(ulong)8;
-SET_AIS(w[gli],alt[4],ii,32);ii+=(ulong)8;
-SET_AIS(w[gli],alt[5],ii,40);ii+=(ulong)8;
-SET_AIS(w[gli],alt[6],ii,48);ii+=(ulong)8;
-SET_AIS(w[gli],alt[7],ii,56);ii+=(ulong)8;
+SET_AIS(w,alt[0],ii,0);ii+=(uint)8;
+SET_AIS(w,alt[1],ii,8);ii+=(uint)8;
+SET_AIS(w,alt[2],ii,16);ii+=(uint)8;
+SET_AIS(w,alt[3],ii,24);ii+=(uint)8;
+SET_AIS(w,alt[4],ii,32);ii+=(uint)8;
+SET_AIS(w,alt[5],ii,40);ii+=(uint)8;
+SET_AIS(w,alt[6],ii,48);ii+=(uint)8;
+SET_AIS(w,alt[7],ii,56);ii+=(uint)8;
 }
 
 
-SET_AB(w[gli],ii,0x80);
+SET_AB(w,ii,0x80);
 
 SIZE=(ulong)(ii)<<3;
 
@@ -1759,101 +1737,86 @@ F=(ulong)H5;
 G=(ulong)H6;
 H=(ulong)H7;
 
-w[gli][0]=Endian_Reverse64(w[gli][0]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[gli][0]);
-w[gli][1]=Endian_Reverse64(w[gli][1]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[gli][1]);
-w[gli][2]=Endian_Reverse64(w[gli][2]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[gli][2]);
-w[gli][3]=Endian_Reverse64(w[gli][3]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[gli][3]);
-w[gli][4]=Endian_Reverse64(w[gli][4]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[gli][4]);
-w[gli][5]=Endian_Reverse64(w[gli][5]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[gli][5]);
-w[gli][6]=Endian_Reverse64(w[gli][6]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[gli][6]);
-w[gli][7]=Endian_Reverse64(w[gli][7]);
-ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[gli][7]);
-w[gli][8]=Endian_Reverse64(w[gli][8]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[gli][8]);
-w[gli][9]=Endian_Reverse64(w[gli][9]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[gli][9]);
-w[gli][10]=Endian_Reverse64(w[gli][10]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[gli][10]);
-w[gli][11]=Endian_Reverse64(w[gli][11]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[gli][11]);
-w[gli][12]=Endian_Reverse64(w[gli][12]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[gli][12]);
-w[gli][13]=Endian_Reverse64(w[gli][13]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[gli][13]);
-w[gli][14]=Endian_Reverse64(w[gli][14]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[gli][14]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[0]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[1]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[2]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[3]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[4]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[5]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[6]);
+ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[7]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[8]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[9]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[10]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[11]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[12]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[13]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[14]);
 ROUND512_0_TO_15(B,C,D,E,F,G,H,A,SIZE,AC16);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(A,B,C,D,E,F,G,H,w[gli][16],AC17);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(H,A,B,C,D,E,F,G,w[gli][0],AC18);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(G,H,A,B,C,D,E,F,w[gli][1],AC19);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(F,G,H,A,B,C,D,E,w[gli][2],AC20);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(E,F,G,H,A,B,C,D,w[gli][3],AC21);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(D,E,F,G,H,A,B,C,w[gli][4],AC22);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(C,D,E,F,G,H,A,B,w[gli][5],AC23);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(B,C,D,E,F,G,H,A,w[gli][6],AC24);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(A,B,C,D,E,F,G,H,w[gli][7],AC25);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(H,A,B,C,D,E,F,G,w[gli][8],AC26);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(G,H,A,B,C,D,E,F,w[gli][9],AC27);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(F,G,H,A,B,C,D,E,w[gli][10],AC28);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(E,F,G,H,A,B,C,D,w[gli][11],AC29);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(D,E,F,G,H,A,B,C,w[gli][12],AC30);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(C,D,E,F,G,H,A,B,w[gli][13],AC31);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[gli][14],AC32);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(H,A,B,C,D,E,F,G,w[gli][16],AC34);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(G,H,A,B,C,D,E,F,w[gli][0],AC35);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(F,G,H,A,B,C,D,E,w[gli][1],AC36);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(E,F,G,H,A,B,C,D,w[gli][2],AC37);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(D,E,F,G,H,A,B,C,w[gli][3],AC38);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(C,D,E,F,G,H,A,B,w[gli][4],AC39);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(B,C,D,E,F,G,H,A,w[gli][5],AC40);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(A,B,C,D,E,F,G,H,w[gli][6],AC41);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(H,A,B,C,D,E,F,G,w[gli][7],AC42);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(G,H,A,B,C,D,E,F,w[gli][8],AC43);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(F,G,H,A,B,C,D,E,w[gli][9],AC44);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(E,F,G,H,A,B,C,D,w[gli][10],AC45);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(D,E,F,G,H,A,B,C,w[gli][11],AC46);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(C,D,E,F,G,H,A,B,w[gli][12],AC47);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(B,C,D,E,F,G,H,A,w[gli][13],AC48);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[gli][14],AC49);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(G,H,A,B,C,D,E,F,w[gli][16],AC51);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(F,G,H,A,B,C,D,E,w[gli][0],AC52);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(E,F,G,H,A,B,C,D,w[gli][1],AC53);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(D,E,F,G,H,A,B,C,w[gli][2],AC54);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(C,D,E,F,G,H,A,B,w[gli][3],AC55);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(B,C,D,E,F,G,H,A,w[gli][4],AC56);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(A,B,C,D,E,F,G,H,w[gli][5],AC57);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(H,A,B,C,D,E,F,G,w[gli][6],AC58);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(G,H,A,B,C,D,E,F,w[gli][7],AC59);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(F,G,H,A,B,C,D,E,w[gli][8],AC60);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(E,F,G,H,A,B,C,D,w[gli][9],AC61);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(D,E,F,G,H,A,B,C,w[gli][10],AC62);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(C,D,E,F,G,H,A,B,w[gli][11],AC63);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(B,C,D,E,F,G,H,A,w[gli][12],AC64);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(A,B,C,D,E,F,G,H,w[gli][13],AC65);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[gli][14],AC66);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(F,G,H,A,B,C,D,E,w[gli][16],AC68);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(E,F,G,H,A,B,C,D,w[gli][0],AC69);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(D,E,F,G,H,A,B,C,w[gli][1],AC70);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(C,D,E,F,G,H,A,B,w[gli][2],AC71);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(B,C,D,E,F,G,H,A,w[gli][3],AC72);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(A,B,C,D,E,F,G,H,w[gli][4],AC73);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(H,A,B,C,D,E,F,G,w[gli][5],AC74);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(G,H,A,B,C,D,E,F,w[gli][6],AC75);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(F,G,H,A,B,C,D,E,w[gli][7],AC76);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(E,F,G,H,A,B,C,D,w[gli][8],AC77);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(D,E,F,G,H,A,B,C,w[gli][9],AC78);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(C,D,E,F,G,H,A,B,w[gli][10],AC79);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(B,C,D,E,F,G,H,A,w[gli][11],AC80);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(A,B,C,D,E,F,G,H,w[16],AC17);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(H,A,B,C,D,E,F,G,w[0],AC18);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(G,H,A,B,C,D,E,F,w[1],AC19);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(F,G,H,A,B,C,D,E,w[2],AC20);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(E,F,G,H,A,B,C,D,w[3],AC21);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(D,E,F,G,H,A,B,C,w[4],AC22);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(C,D,E,F,G,H,A,B,w[5],AC23);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(B,C,D,E,F,G,H,A,w[6],AC24);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(A,B,C,D,E,F,G,H,w[7],AC25);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(H,A,B,C,D,E,F,G,w[8],AC26);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(G,H,A,B,C,D,E,F,w[9],AC27);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(F,G,H,A,B,C,D,E,w[10],AC28);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(E,F,G,H,A,B,C,D,w[11],AC29);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(D,E,F,G,H,A,B,C,w[12],AC30);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(C,D,E,F,G,H,A,B,w[13],AC31);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[14],AC32);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(H,A,B,C,D,E,F,G,w[16],AC34);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(G,H,A,B,C,D,E,F,w[0],AC35);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(F,G,H,A,B,C,D,E,w[1],AC36);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(E,F,G,H,A,B,C,D,w[2],AC37);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(D,E,F,G,H,A,B,C,w[3],AC38);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(C,D,E,F,G,H,A,B,w[4],AC39);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(B,C,D,E,F,G,H,A,w[5],AC40);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(A,B,C,D,E,F,G,H,w[6],AC41);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(H,A,B,C,D,E,F,G,w[7],AC42);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(G,H,A,B,C,D,E,F,w[8],AC43);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(F,G,H,A,B,C,D,E,w[9],AC44);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(E,F,G,H,A,B,C,D,w[10],AC45);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(D,E,F,G,H,A,B,C,w[11],AC46);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(C,D,E,F,G,H,A,B,w[12],AC47);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(B,C,D,E,F,G,H,A,w[13],AC48);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[14],AC49);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(G,H,A,B,C,D,E,F,w[16],AC51);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(F,G,H,A,B,C,D,E,w[0],AC52);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(E,F,G,H,A,B,C,D,w[1],AC53);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(D,E,F,G,H,A,B,C,w[2],AC54);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(C,D,E,F,G,H,A,B,w[3],AC55);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(B,C,D,E,F,G,H,A,w[4],AC56);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(A,B,C,D,E,F,G,H,w[5],AC57);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(H,A,B,C,D,E,F,G,w[6],AC58);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(G,H,A,B,C,D,E,F,w[7],AC59);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(F,G,H,A,B,C,D,E,w[8],AC60);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(E,F,G,H,A,B,C,D,w[9],AC61);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(D,E,F,G,H,A,B,C,w[10],AC62);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(C,D,E,F,G,H,A,B,w[11],AC63);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(B,C,D,E,F,G,H,A,w[12],AC64);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(A,B,C,D,E,F,G,H,w[13],AC65);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[14],AC66);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(F,G,H,A,B,C,D,E,w[16],AC68);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(E,F,G,H,A,B,C,D,w[0],AC69);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(D,E,F,G,H,A,B,C,w[1],AC70);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(C,D,E,F,G,H,A,B,w[2],AC71);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(B,C,D,E,F,G,H,A,w[3],AC72);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(A,B,C,D,E,F,G,H,w[4],AC73);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(H,A,B,C,D,E,F,G,w[5],AC74);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(G,H,A,B,C,D,E,F,w[6],AC75);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(F,G,H,A,B,C,D,E,w[7],AC76);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(E,F,G,H,A,B,C,D,w[8],AC77);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(D,E,F,G,H,A,B,C,w[9],AC78);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(C,D,E,F,G,H,A,B,w[10],AC79);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(B,C,D,E,F,G,H,A,w[11],AC80);
 A+=(ulong)H0;
 B+=(ulong)H1;
 C+=(ulong)H2;
@@ -1862,6 +1825,7 @@ E+=(ulong)H4;
 F+=(ulong)H5;
 G+=(ulong)H6;
 H+=(ulong)H7;
+}
 A=Endian_Reverse64(A);
 B=Endian_Reverse64(B);
 C=Endian_Reverse64(C);
@@ -1870,8 +1834,6 @@ E=Endian_Reverse64(E);
 F=Endian_Reverse64(F);
 G=Endian_Reverse64(G);
 H=Endian_Reverse64(H);
-
-}
 
 
 
@@ -1895,11 +1857,12 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix8( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,ii,jj,T1,tmp1,tmp2;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
+uint ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
-__local ulong w[64][17]; 
+__private ulong w[17]; 
 ulong alt[8]; 
 ulong SIZE;
 
@@ -1915,11 +1878,22 @@ G=input[(get_global_id(0)*11)+7];
 H=input[(get_global_id(0)*11)+8];
 pbytes[gli][0]=input[(get_global_id(0)*11)+9];
 pbytes[gli][1]=input[(get_global_id(0)*11)+10];
+A=Endian_Reverse64(A);
+B=Endian_Reverse64(B);
+C=Endian_Reverse64(C);
+D=Endian_Reverse64(D);
+E=Endian_Reverse64(E);
+F=Endian_Reverse64(F);
+G=Endian_Reverse64(G);
+H=Endian_Reverse64(H);
+pbytes[gli][0]=Endian_Reverse64(pbytes[gli][0]);
+pbytes[gli][1]=Endian_Reverse64(pbytes[gli][1]);
+sbytes[gli][0]=Endian_Reverse64(sbytes[gli][0]);
 
 
 for (ic=0;ic<5000;ic++)
 {
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
+w[0]=w[1]=w[2]=w[3]=w[4]=w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[16]=(ulong)0;
 
 if ((ic&1)==0)
 {
@@ -1931,17 +1905,17 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)0;
+ii=(uint)0;
 
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(ulong)64;
+w[0]=A;
+w[1]=B;
+w[2]=C;
+w[3]=D;
+w[4]=E;
+w[5]=F;
+w[6]=G;
+w[7]=H;
+ii=(uint)64;
 }
 
 else
@@ -1954,16 +1928,16 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)8;
+ii=(uint)8;
 
-w[gli][0]=pbytes[gli][0];
-w[gli][1]=(ulong)0;
-w[gli][2]=(ulong)0;
-w[gli][3]=(ulong)0;
-w[gli][4]=(ulong)0;
-w[gli][5]=(ulong)0;
-w[gli][6]=(ulong)0;
-w[gli][7]=(ulong)0;
+w[0]=pbytes[gli][0];
+w[1]=(ulong)0;
+w[2]=(ulong)0;
+w[3]=(ulong)0;
+w[4]=(ulong)0;
+w[5]=(ulong)0;
+w[6]=(ulong)0;
+w[7]=(ulong)0;
 
 }
 
@@ -1971,37 +1945,37 @@ w[gli][7]=(ulong)0;
 if (ic % 3 != 0)
 {
 jj=ii;
-SET_AIF(w[gli],sbytes[gli][0],ii,0);ii+=(ulong)8;
+SET_AIF(w,sbytes[gli][0],ii,0);ii+=(uint)8;
 ii=jj+8;
 }
 
 if (ic % 7 != 0)
 {
 jj=ii;
-SET_AIF(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)8;
+SET_AIF(w,pbytes[gli][0],ii,0);ii+=(uint)8;
 ii=jj+8;//tsize
 }
 
 if ((ic&1)==0)
 {
 jj=ii;
-SET_AIF(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)8;
+SET_AIF(w,pbytes[gli][0],ii,0);ii+=(uint)8;
 ii=jj+8;//tsize
 }
 else
 {
-SET_AIF(w[gli],alt[0],ii,0);ii+=(ulong)8;
-SET_AIF(w[gli],alt[1],ii,8);ii+=(ulong)8;
-SET_AIF(w[gli],alt[2],ii,16);ii+=(ulong)8;
-SET_AIF(w[gli],alt[3],ii,24);ii+=(ulong)8;
-SET_AIF(w[gli],alt[4],ii,32);ii+=(ulong)8;
-SET_AIF(w[gli],alt[5],ii,40);ii+=(ulong)8;
-SET_AIF(w[gli],alt[6],ii,48);ii+=(ulong)8;
-SET_AIF(w[gli],alt[7],ii,56);ii+=(ulong)8;
+SET_AIF(w,alt[0],ii,0);ii+=(uint)8;
+SET_AIF(w,alt[1],ii,8);ii+=(uint)8;
+SET_AIF(w,alt[2],ii,16);ii+=(uint)8;
+SET_AIF(w,alt[3],ii,24);ii+=(uint)8;
+SET_AIF(w,alt[4],ii,32);ii+=(uint)8;
+SET_AIF(w,alt[5],ii,40);ii+=(uint)8;
+SET_AIF(w,alt[6],ii,48);ii+=(uint)8;
+SET_AIF(w,alt[7],ii,56);ii+=(uint)8;
 }
 
 
-SET_AB(w[gli],ii,0x80);
+SET_AB(w,ii,0x80);
 
 SIZE=(ulong)(ii)<<3;
 
@@ -2014,101 +1988,86 @@ F=(ulong)H5;
 G=(ulong)H6;
 H=(ulong)H7;
 
-w[gli][0]=Endian_Reverse64(w[gli][0]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[gli][0]);
-w[gli][1]=Endian_Reverse64(w[gli][1]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[gli][1]);
-w[gli][2]=Endian_Reverse64(w[gli][2]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[gli][2]);
-w[gli][3]=Endian_Reverse64(w[gli][3]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[gli][3]);
-w[gli][4]=Endian_Reverse64(w[gli][4]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[gli][4]);
-w[gli][5]=Endian_Reverse64(w[gli][5]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[gli][5]);
-w[gli][6]=Endian_Reverse64(w[gli][6]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[gli][6]);
-w[gli][7]=Endian_Reverse64(w[gli][7]);
-ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[gli][7]);
-w[gli][8]=Endian_Reverse64(w[gli][8]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[gli][8]);
-w[gli][9]=Endian_Reverse64(w[gli][9]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[gli][9]);
-w[gli][10]=Endian_Reverse64(w[gli][10]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[gli][10]);
-w[gli][11]=Endian_Reverse64(w[gli][11]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[gli][11]);
-w[gli][12]=Endian_Reverse64(w[gli][12]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[gli][12]);
-w[gli][13]=Endian_Reverse64(w[gli][13]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[gli][13]);
-w[gli][14]=Endian_Reverse64(w[gli][14]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[gli][14]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[0]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[1]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[2]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[3]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[4]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[5]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[6]);
+ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[7]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[8]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[9]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[10]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[11]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[12]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[13]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[14]);
 ROUND512_0_TO_15(B,C,D,E,F,G,H,A,SIZE,AC16);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(A,B,C,D,E,F,G,H,w[gli][16],AC17);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(H,A,B,C,D,E,F,G,w[gli][0],AC18);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(G,H,A,B,C,D,E,F,w[gli][1],AC19);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(F,G,H,A,B,C,D,E,w[gli][2],AC20);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(E,F,G,H,A,B,C,D,w[gli][3],AC21);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(D,E,F,G,H,A,B,C,w[gli][4],AC22);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(C,D,E,F,G,H,A,B,w[gli][5],AC23);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(B,C,D,E,F,G,H,A,w[gli][6],AC24);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(A,B,C,D,E,F,G,H,w[gli][7],AC25);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(H,A,B,C,D,E,F,G,w[gli][8],AC26);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(G,H,A,B,C,D,E,F,w[gli][9],AC27);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(F,G,H,A,B,C,D,E,w[gli][10],AC28);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(E,F,G,H,A,B,C,D,w[gli][11],AC29);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(D,E,F,G,H,A,B,C,w[gli][12],AC30);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(C,D,E,F,G,H,A,B,w[gli][13],AC31);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[gli][14],AC32);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(H,A,B,C,D,E,F,G,w[gli][16],AC34);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(G,H,A,B,C,D,E,F,w[gli][0],AC35);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(F,G,H,A,B,C,D,E,w[gli][1],AC36);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(E,F,G,H,A,B,C,D,w[gli][2],AC37);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(D,E,F,G,H,A,B,C,w[gli][3],AC38);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(C,D,E,F,G,H,A,B,w[gli][4],AC39);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(B,C,D,E,F,G,H,A,w[gli][5],AC40);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(A,B,C,D,E,F,G,H,w[gli][6],AC41);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(H,A,B,C,D,E,F,G,w[gli][7],AC42);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(G,H,A,B,C,D,E,F,w[gli][8],AC43);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(F,G,H,A,B,C,D,E,w[gli][9],AC44);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(E,F,G,H,A,B,C,D,w[gli][10],AC45);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(D,E,F,G,H,A,B,C,w[gli][11],AC46);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(C,D,E,F,G,H,A,B,w[gli][12],AC47);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(B,C,D,E,F,G,H,A,w[gli][13],AC48);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[gli][14],AC49);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(G,H,A,B,C,D,E,F,w[gli][16],AC51);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(F,G,H,A,B,C,D,E,w[gli][0],AC52);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(E,F,G,H,A,B,C,D,w[gli][1],AC53);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(D,E,F,G,H,A,B,C,w[gli][2],AC54);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(C,D,E,F,G,H,A,B,w[gli][3],AC55);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(B,C,D,E,F,G,H,A,w[gli][4],AC56);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(A,B,C,D,E,F,G,H,w[gli][5],AC57);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(H,A,B,C,D,E,F,G,w[gli][6],AC58);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(G,H,A,B,C,D,E,F,w[gli][7],AC59);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(F,G,H,A,B,C,D,E,w[gli][8],AC60);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(E,F,G,H,A,B,C,D,w[gli][9],AC61);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(D,E,F,G,H,A,B,C,w[gli][10],AC62);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(C,D,E,F,G,H,A,B,w[gli][11],AC63);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(B,C,D,E,F,G,H,A,w[gli][12],AC64);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(A,B,C,D,E,F,G,H,w[gli][13],AC65);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[gli][14],AC66);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(F,G,H,A,B,C,D,E,w[gli][16],AC68);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(E,F,G,H,A,B,C,D,w[gli][0],AC69);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(D,E,F,G,H,A,B,C,w[gli][1],AC70);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(C,D,E,F,G,H,A,B,w[gli][2],AC71);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(B,C,D,E,F,G,H,A,w[gli][3],AC72);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(A,B,C,D,E,F,G,H,w[gli][4],AC73);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(H,A,B,C,D,E,F,G,w[gli][5],AC74);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(G,H,A,B,C,D,E,F,w[gli][6],AC75);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(F,G,H,A,B,C,D,E,w[gli][7],AC76);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(E,F,G,H,A,B,C,D,w[gli][8],AC77);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(D,E,F,G,H,A,B,C,w[gli][9],AC78);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(C,D,E,F,G,H,A,B,w[gli][10],AC79);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(B,C,D,E,F,G,H,A,w[gli][11],AC80);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(A,B,C,D,E,F,G,H,w[16],AC17);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(H,A,B,C,D,E,F,G,w[0],AC18);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(G,H,A,B,C,D,E,F,w[1],AC19);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(F,G,H,A,B,C,D,E,w[2],AC20);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(E,F,G,H,A,B,C,D,w[3],AC21);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(D,E,F,G,H,A,B,C,w[4],AC22);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(C,D,E,F,G,H,A,B,w[5],AC23);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(B,C,D,E,F,G,H,A,w[6],AC24);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(A,B,C,D,E,F,G,H,w[7],AC25);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(H,A,B,C,D,E,F,G,w[8],AC26);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(G,H,A,B,C,D,E,F,w[9],AC27);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(F,G,H,A,B,C,D,E,w[10],AC28);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(E,F,G,H,A,B,C,D,w[11],AC29);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(D,E,F,G,H,A,B,C,w[12],AC30);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(C,D,E,F,G,H,A,B,w[13],AC31);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[14],AC32);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(H,A,B,C,D,E,F,G,w[16],AC34);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(G,H,A,B,C,D,E,F,w[0],AC35);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(F,G,H,A,B,C,D,E,w[1],AC36);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(E,F,G,H,A,B,C,D,w[2],AC37);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(D,E,F,G,H,A,B,C,w[3],AC38);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(C,D,E,F,G,H,A,B,w[4],AC39);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(B,C,D,E,F,G,H,A,w[5],AC40);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(A,B,C,D,E,F,G,H,w[6],AC41);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(H,A,B,C,D,E,F,G,w[7],AC42);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(G,H,A,B,C,D,E,F,w[8],AC43);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(F,G,H,A,B,C,D,E,w[9],AC44);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(E,F,G,H,A,B,C,D,w[10],AC45);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(D,E,F,G,H,A,B,C,w[11],AC46);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(C,D,E,F,G,H,A,B,w[12],AC47);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(B,C,D,E,F,G,H,A,w[13],AC48);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[14],AC49);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(G,H,A,B,C,D,E,F,w[16],AC51);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(F,G,H,A,B,C,D,E,w[0],AC52);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(E,F,G,H,A,B,C,D,w[1],AC53);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(D,E,F,G,H,A,B,C,w[2],AC54);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(C,D,E,F,G,H,A,B,w[3],AC55);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(B,C,D,E,F,G,H,A,w[4],AC56);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(A,B,C,D,E,F,G,H,w[5],AC57);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(H,A,B,C,D,E,F,G,w[6],AC58);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(G,H,A,B,C,D,E,F,w[7],AC59);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(F,G,H,A,B,C,D,E,w[8],AC60);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(E,F,G,H,A,B,C,D,w[9],AC61);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(D,E,F,G,H,A,B,C,w[10],AC62);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(C,D,E,F,G,H,A,B,w[11],AC63);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(B,C,D,E,F,G,H,A,w[12],AC64);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(A,B,C,D,E,F,G,H,w[13],AC65);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[14],AC66);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(F,G,H,A,B,C,D,E,w[16],AC68);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(E,F,G,H,A,B,C,D,w[0],AC69);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(D,E,F,G,H,A,B,C,w[1],AC70);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(C,D,E,F,G,H,A,B,w[2],AC71);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(B,C,D,E,F,G,H,A,w[3],AC72);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(A,B,C,D,E,F,G,H,w[4],AC73);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(H,A,B,C,D,E,F,G,w[5],AC74);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(G,H,A,B,C,D,E,F,w[6],AC75);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(F,G,H,A,B,C,D,E,w[7],AC76);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(E,F,G,H,A,B,C,D,w[8],AC77);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(D,E,F,G,H,A,B,C,w[9],AC78);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(C,D,E,F,G,H,A,B,w[10],AC79);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(B,C,D,E,F,G,H,A,w[11],AC80);
 A+=(ulong)H0;
 B+=(ulong)H1;
 C+=(ulong)H2;
@@ -2117,6 +2076,7 @@ E+=(ulong)H4;
 F+=(ulong)H5;
 G+=(ulong)H6;
 H+=(ulong)H7;
+}
 A=Endian_Reverse64(A);
 B=Endian_Reverse64(B);
 C=Endian_Reverse64(C);
@@ -2125,8 +2085,6 @@ E=Endian_Reverse64(E);
 F=Endian_Reverse64(F);
 G=Endian_Reverse64(G);
 H=Endian_Reverse64(H);
-
-}
 
 found_ind[get_global_id(0)] = 0;
 
@@ -2145,11 +2103,12 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix7( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,ii,jj,T1,tmp1,elem,tmp2;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
+uint ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
-__local ulong w[64][17]; 
+__private ulong w[17]; 
 ulong alt[8]; 
 ulong SIZE;
 
@@ -2164,11 +2123,22 @@ G=input[(get_global_id(0)*11)+7];
 H=input[(get_global_id(0)*11)+8];
 pbytes[gli][0]=input[(get_global_id(0)*11)+9];
 pbytes[gli][1]=input[(get_global_id(0)*11)+10];
+A=Endian_Reverse64(A);
+B=Endian_Reverse64(B);
+C=Endian_Reverse64(C);
+D=Endian_Reverse64(D);
+E=Endian_Reverse64(E);
+F=Endian_Reverse64(F);
+G=Endian_Reverse64(G);
+H=Endian_Reverse64(H);
+pbytes[gli][0]=Endian_Reverse64(pbytes[gli][0]);
+pbytes[gli][1]=Endian_Reverse64(pbytes[gli][1]);
+sbytes[gli][0]=Endian_Reverse64(sbytes[gli][0]);
 
 
 for (ic=0;ic<5000;ic++)
 {
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
+w[0]=w[1]=w[2]=w[3]=w[4]=w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[16]=(ulong)0;
 
 if ((ic&1)==0)
 {
@@ -2180,17 +2150,17 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)0;
+ii=(uint)0;
 
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(ulong)64;
+w[0]=A;
+w[1]=B;
+w[2]=C;
+w[3]=D;
+w[4]=E;
+w[5]=F;
+w[6]=G;
+w[7]=H;
+ii=(uint)64;
 }
 
 else
@@ -2203,46 +2173,46 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)7;
+ii=(uint)7;
 
-w[gli][0]=pbytes[gli][0];
+w[0]=pbytes[gli][0];
 }
 
 
 if (ic % 3 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],sbytes[gli][0],ii,0);ii+=(ulong)8;
+SET_AIS(w,sbytes[gli][0],ii,0);ii+=(uint)8;
 //ii=jj+8;
 }
 
 if (ic % 7 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)7;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)7;
 //ii=jj+9;
 }
 
 if ((ic&1)==0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)7;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)7;
 //ii=jj+9;
 }
 else
 {
-SET_AIS(w[gli],alt[0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],alt[1],ii,8);ii+=(ulong)8;
-SET_AIS(w[gli],alt[2],ii,16);ii+=(ulong)8;
-SET_AIS(w[gli],alt[3],ii,24);ii+=(ulong)8;
-SET_AIS(w[gli],alt[4],ii,32);ii+=(ulong)8;
-SET_AIS(w[gli],alt[5],ii,40);ii+=(ulong)8;
-SET_AIS(w[gli],alt[6],ii,48);ii+=(ulong)8;
-SET_AIS(w[gli],alt[7],ii,56);ii+=(ulong)8;
+SET_AIS(w,alt[0],ii,0);ii+=(uint)8;
+SET_AIS(w,alt[1],ii,8);ii+=(uint)8;
+SET_AIS(w,alt[2],ii,16);ii+=(uint)8;
+SET_AIS(w,alt[3],ii,24);ii+=(uint)8;
+SET_AIS(w,alt[4],ii,32);ii+=(uint)8;
+SET_AIS(w,alt[5],ii,40);ii+=(uint)8;
+SET_AIS(w,alt[6],ii,48);ii+=(uint)8;
+SET_AIS(w,alt[7],ii,56);ii+=(uint)8;
 }
 
 
-SET_AB(w[gli],ii,0x80);
+SET_AB(w,ii,0x80);
 
 SIZE=(ulong)(ii)<<3;
 
@@ -2255,101 +2225,86 @@ F=(ulong)H5;
 G=(ulong)H6;
 H=(ulong)H7;
 
-w[gli][0]=Endian_Reverse64(w[gli][0]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[gli][0]);
-w[gli][1]=Endian_Reverse64(w[gli][1]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[gli][1]);
-w[gli][2]=Endian_Reverse64(w[gli][2]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[gli][2]);
-w[gli][3]=Endian_Reverse64(w[gli][3]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[gli][3]);
-w[gli][4]=Endian_Reverse64(w[gli][4]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[gli][4]);
-w[gli][5]=Endian_Reverse64(w[gli][5]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[gli][5]);
-w[gli][6]=Endian_Reverse64(w[gli][6]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[gli][6]);
-w[gli][7]=Endian_Reverse64(w[gli][7]);
-ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[gli][7]);
-w[gli][8]=Endian_Reverse64(w[gli][8]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[gli][8]);
-w[gli][9]=Endian_Reverse64(w[gli][9]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[gli][9]);
-w[gli][10]=Endian_Reverse64(w[gli][10]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[gli][10]);
-w[gli][11]=Endian_Reverse64(w[gli][11]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[gli][11]);
-w[gli][12]=Endian_Reverse64(w[gli][12]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[gli][12]);
-w[gli][13]=Endian_Reverse64(w[gli][13]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[gli][13]);
-w[gli][14]=Endian_Reverse64(w[gli][14]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[gli][14]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[0]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[1]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[2]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[3]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[4]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[5]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[6]);
+ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[7]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[8]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[9]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[10]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[11]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[12]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[13]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[14]);
 ROUND512_0_TO_15(B,C,D,E,F,G,H,A,SIZE,AC16);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(A,B,C,D,E,F,G,H,w[gli][16],AC17);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(H,A,B,C,D,E,F,G,w[gli][0],AC18);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(G,H,A,B,C,D,E,F,w[gli][1],AC19);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(F,G,H,A,B,C,D,E,w[gli][2],AC20);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(E,F,G,H,A,B,C,D,w[gli][3],AC21);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(D,E,F,G,H,A,B,C,w[gli][4],AC22);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(C,D,E,F,G,H,A,B,w[gli][5],AC23);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(B,C,D,E,F,G,H,A,w[gli][6],AC24);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(A,B,C,D,E,F,G,H,w[gli][7],AC25);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(H,A,B,C,D,E,F,G,w[gli][8],AC26);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(G,H,A,B,C,D,E,F,w[gli][9],AC27);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(F,G,H,A,B,C,D,E,w[gli][10],AC28);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(E,F,G,H,A,B,C,D,w[gli][11],AC29);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(D,E,F,G,H,A,B,C,w[gli][12],AC30);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(C,D,E,F,G,H,A,B,w[gli][13],AC31);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[gli][14],AC32);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(H,A,B,C,D,E,F,G,w[gli][16],AC34);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(G,H,A,B,C,D,E,F,w[gli][0],AC35);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(F,G,H,A,B,C,D,E,w[gli][1],AC36);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(E,F,G,H,A,B,C,D,w[gli][2],AC37);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(D,E,F,G,H,A,B,C,w[gli][3],AC38);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(C,D,E,F,G,H,A,B,w[gli][4],AC39);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(B,C,D,E,F,G,H,A,w[gli][5],AC40);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(A,B,C,D,E,F,G,H,w[gli][6],AC41);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(H,A,B,C,D,E,F,G,w[gli][7],AC42);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(G,H,A,B,C,D,E,F,w[gli][8],AC43);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(F,G,H,A,B,C,D,E,w[gli][9],AC44);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(E,F,G,H,A,B,C,D,w[gli][10],AC45);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(D,E,F,G,H,A,B,C,w[gli][11],AC46);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(C,D,E,F,G,H,A,B,w[gli][12],AC47);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(B,C,D,E,F,G,H,A,w[gli][13],AC48);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[gli][14],AC49);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(G,H,A,B,C,D,E,F,w[gli][16],AC51);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(F,G,H,A,B,C,D,E,w[gli][0],AC52);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(E,F,G,H,A,B,C,D,w[gli][1],AC53);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(D,E,F,G,H,A,B,C,w[gli][2],AC54);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(C,D,E,F,G,H,A,B,w[gli][3],AC55);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(B,C,D,E,F,G,H,A,w[gli][4],AC56);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(A,B,C,D,E,F,G,H,w[gli][5],AC57);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(H,A,B,C,D,E,F,G,w[gli][6],AC58);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(G,H,A,B,C,D,E,F,w[gli][7],AC59);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(F,G,H,A,B,C,D,E,w[gli][8],AC60);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(E,F,G,H,A,B,C,D,w[gli][9],AC61);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(D,E,F,G,H,A,B,C,w[gli][10],AC62);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(C,D,E,F,G,H,A,B,w[gli][11],AC63);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(B,C,D,E,F,G,H,A,w[gli][12],AC64);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(A,B,C,D,E,F,G,H,w[gli][13],AC65);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[gli][14],AC66);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(F,G,H,A,B,C,D,E,w[gli][16],AC68);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(E,F,G,H,A,B,C,D,w[gli][0],AC69);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(D,E,F,G,H,A,B,C,w[gli][1],AC70);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(C,D,E,F,G,H,A,B,w[gli][2],AC71);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(B,C,D,E,F,G,H,A,w[gli][3],AC72);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(A,B,C,D,E,F,G,H,w[gli][4],AC73);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(H,A,B,C,D,E,F,G,w[gli][5],AC74);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(G,H,A,B,C,D,E,F,w[gli][6],AC75);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(F,G,H,A,B,C,D,E,w[gli][7],AC76);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(E,F,G,H,A,B,C,D,w[gli][8],AC77);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(D,E,F,G,H,A,B,C,w[gli][9],AC78);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(C,D,E,F,G,H,A,B,w[gli][10],AC79);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(B,C,D,E,F,G,H,A,w[gli][11],AC80);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(A,B,C,D,E,F,G,H,w[16],AC17);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(H,A,B,C,D,E,F,G,w[0],AC18);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(G,H,A,B,C,D,E,F,w[1],AC19);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(F,G,H,A,B,C,D,E,w[2],AC20);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(E,F,G,H,A,B,C,D,w[3],AC21);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(D,E,F,G,H,A,B,C,w[4],AC22);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(C,D,E,F,G,H,A,B,w[5],AC23);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(B,C,D,E,F,G,H,A,w[6],AC24);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(A,B,C,D,E,F,G,H,w[7],AC25);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(H,A,B,C,D,E,F,G,w[8],AC26);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(G,H,A,B,C,D,E,F,w[9],AC27);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(F,G,H,A,B,C,D,E,w[10],AC28);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(E,F,G,H,A,B,C,D,w[11],AC29);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(D,E,F,G,H,A,B,C,w[12],AC30);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(C,D,E,F,G,H,A,B,w[13],AC31);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[14],AC32);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(H,A,B,C,D,E,F,G,w[16],AC34);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(G,H,A,B,C,D,E,F,w[0],AC35);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(F,G,H,A,B,C,D,E,w[1],AC36);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(E,F,G,H,A,B,C,D,w[2],AC37);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(D,E,F,G,H,A,B,C,w[3],AC38);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(C,D,E,F,G,H,A,B,w[4],AC39);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(B,C,D,E,F,G,H,A,w[5],AC40);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(A,B,C,D,E,F,G,H,w[6],AC41);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(H,A,B,C,D,E,F,G,w[7],AC42);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(G,H,A,B,C,D,E,F,w[8],AC43);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(F,G,H,A,B,C,D,E,w[9],AC44);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(E,F,G,H,A,B,C,D,w[10],AC45);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(D,E,F,G,H,A,B,C,w[11],AC46);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(C,D,E,F,G,H,A,B,w[12],AC47);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(B,C,D,E,F,G,H,A,w[13],AC48);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[14],AC49);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(G,H,A,B,C,D,E,F,w[16],AC51);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(F,G,H,A,B,C,D,E,w[0],AC52);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(E,F,G,H,A,B,C,D,w[1],AC53);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(D,E,F,G,H,A,B,C,w[2],AC54);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(C,D,E,F,G,H,A,B,w[3],AC55);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(B,C,D,E,F,G,H,A,w[4],AC56);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(A,B,C,D,E,F,G,H,w[5],AC57);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(H,A,B,C,D,E,F,G,w[6],AC58);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(G,H,A,B,C,D,E,F,w[7],AC59);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(F,G,H,A,B,C,D,E,w[8],AC60);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(E,F,G,H,A,B,C,D,w[9],AC61);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(D,E,F,G,H,A,B,C,w[10],AC62);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(C,D,E,F,G,H,A,B,w[11],AC63);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(B,C,D,E,F,G,H,A,w[12],AC64);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(A,B,C,D,E,F,G,H,w[13],AC65);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[14],AC66);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(F,G,H,A,B,C,D,E,w[16],AC68);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(E,F,G,H,A,B,C,D,w[0],AC69);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(D,E,F,G,H,A,B,C,w[1],AC70);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(C,D,E,F,G,H,A,B,w[2],AC71);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(B,C,D,E,F,G,H,A,w[3],AC72);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(A,B,C,D,E,F,G,H,w[4],AC73);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(H,A,B,C,D,E,F,G,w[5],AC74);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(G,H,A,B,C,D,E,F,w[6],AC75);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(F,G,H,A,B,C,D,E,w[7],AC76);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(E,F,G,H,A,B,C,D,w[8],AC77);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(D,E,F,G,H,A,B,C,w[9],AC78);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(C,D,E,F,G,H,A,B,w[10],AC79);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(B,C,D,E,F,G,H,A,w[11],AC80);
 A+=(ulong)H0;
 B+=(ulong)H1;
 C+=(ulong)H2;
@@ -2358,6 +2313,7 @@ E+=(ulong)H4;
 F+=(ulong)H5;
 G+=(ulong)H6;
 H+=(ulong)H7;
+}
 A=Endian_Reverse64(A);
 B=Endian_Reverse64(B);
 C=Endian_Reverse64(C);
@@ -2367,7 +2323,6 @@ F=Endian_Reverse64(F);
 G=Endian_Reverse64(G);
 H=Endian_Reverse64(H);
 
-}
 found_ind[get_global_id(0)] = 0;
 
 if ((ulong)singlehash.s0!=A) return;
@@ -2385,11 +2340,12 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix6( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,ii,jj,T1,tmp1,elem,tmp2;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
+uint ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
-__local ulong w[64][17]; 
+__private ulong w[17]; 
 ulong alt[8]; 
 ulong SIZE;
 
@@ -2404,11 +2360,22 @@ G=input[(get_global_id(0)*11)+7];
 H=input[(get_global_id(0)*11)+8];
 pbytes[gli][0]=input[(get_global_id(0)*11)+9];
 pbytes[gli][1]=input[(get_global_id(0)*11)+10];
+A=Endian_Reverse64(A);
+B=Endian_Reverse64(B);
+C=Endian_Reverse64(C);
+D=Endian_Reverse64(D);
+E=Endian_Reverse64(E);
+F=Endian_Reverse64(F);
+G=Endian_Reverse64(G);
+H=Endian_Reverse64(H);
+pbytes[gli][0]=Endian_Reverse64(pbytes[gli][0]);
+pbytes[gli][1]=Endian_Reverse64(pbytes[gli][1]);
+sbytes[gli][0]=Endian_Reverse64(sbytes[gli][0]);
 
 
 for (ic=0;ic<5000;ic++)
 {
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
+w[0]=w[1]=w[2]=w[3]=w[4]=w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[16]=(ulong)0;
 
 if ((ic&1)==0)
 {
@@ -2420,17 +2387,17 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)0;
+ii=(uint)0;
 
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(ulong)64;
+w[0]=A;
+w[1]=B;
+w[2]=C;
+w[3]=D;
+w[4]=E;
+w[5]=F;
+w[6]=G;
+w[7]=H;
+ii=(uint)64;
 }
 
 else
@@ -2443,46 +2410,46 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)6;
+ii=(uint)6;
 
-w[gli][0]=pbytes[gli][0];
+w[0]=pbytes[gli][0];
 }
 
 
 if (ic % 3 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],sbytes[gli][0],ii,0);ii+=(ulong)8;
+SET_AIS(w,sbytes[gli][0],ii,0);ii+=(uint)8;
 //ii=jj+8;
 }
 
 if (ic % 7 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)6;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)6;
 //ii=jj+9;
 }
 
 if ((ic&1)==0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)6;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)6;
 //ii=jj+9;
 }
 else
 {
-SET_AIS(w[gli],alt[0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],alt[1],ii,8);ii+=(ulong)8;
-SET_AIS(w[gli],alt[2],ii,16);ii+=(ulong)8;
-SET_AIS(w[gli],alt[3],ii,24);ii+=(ulong)8;
-SET_AIS(w[gli],alt[4],ii,32);ii+=(ulong)8;
-SET_AIS(w[gli],alt[5],ii,40);ii+=(ulong)8;
-SET_AIS(w[gli],alt[6],ii,48);ii+=(ulong)8;
-SET_AIS(w[gli],alt[7],ii,56);ii+=(ulong)8;
+SET_AIS(w,alt[0],ii,0);ii+=(uint)8;
+SET_AIS(w,alt[1],ii,8);ii+=(uint)8;
+SET_AIS(w,alt[2],ii,16);ii+=(uint)8;
+SET_AIS(w,alt[3],ii,24);ii+=(uint)8;
+SET_AIS(w,alt[4],ii,32);ii+=(uint)8;
+SET_AIS(w,alt[5],ii,40);ii+=(uint)8;
+SET_AIS(w,alt[6],ii,48);ii+=(uint)8;
+SET_AIS(w,alt[7],ii,56);ii+=(uint)8;
 }
 
 
-SET_AB(w[gli],ii,0x80);
+SET_AB(w,ii,0x80);
 
 SIZE=(ulong)(ii)<<3;
 
@@ -2495,101 +2462,86 @@ F=(ulong)H5;
 G=(ulong)H6;
 H=(ulong)H7;
 
-w[gli][0]=Endian_Reverse64(w[gli][0]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[gli][0]);
-w[gli][1]=Endian_Reverse64(w[gli][1]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[gli][1]);
-w[gli][2]=Endian_Reverse64(w[gli][2]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[gli][2]);
-w[gli][3]=Endian_Reverse64(w[gli][3]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[gli][3]);
-w[gli][4]=Endian_Reverse64(w[gli][4]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[gli][4]);
-w[gli][5]=Endian_Reverse64(w[gli][5]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[gli][5]);
-w[gli][6]=Endian_Reverse64(w[gli][6]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[gli][6]);
-w[gli][7]=Endian_Reverse64(w[gli][7]);
-ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[gli][7]);
-w[gli][8]=Endian_Reverse64(w[gli][8]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[gli][8]);
-w[gli][9]=Endian_Reverse64(w[gli][9]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[gli][9]);
-w[gli][10]=Endian_Reverse64(w[gli][10]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[gli][10]);
-w[gli][11]=Endian_Reverse64(w[gli][11]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[gli][11]);
-w[gli][12]=Endian_Reverse64(w[gli][12]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[gli][12]);
-w[gli][13]=Endian_Reverse64(w[gli][13]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[gli][13]);
-w[gli][14]=Endian_Reverse64(w[gli][14]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[gli][14]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[0]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[1]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[2]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[3]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[4]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[5]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[6]);
+ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[7]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[8]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[9]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[10]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[11]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[12]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[13]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[14]);
 ROUND512_0_TO_15(B,C,D,E,F,G,H,A,SIZE,AC16);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(A,B,C,D,E,F,G,H,w[gli][16],AC17);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(H,A,B,C,D,E,F,G,w[gli][0],AC18);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(G,H,A,B,C,D,E,F,w[gli][1],AC19);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(F,G,H,A,B,C,D,E,w[gli][2],AC20);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(E,F,G,H,A,B,C,D,w[gli][3],AC21);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(D,E,F,G,H,A,B,C,w[gli][4],AC22);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(C,D,E,F,G,H,A,B,w[gli][5],AC23);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(B,C,D,E,F,G,H,A,w[gli][6],AC24);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(A,B,C,D,E,F,G,H,w[gli][7],AC25);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(H,A,B,C,D,E,F,G,w[gli][8],AC26);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(G,H,A,B,C,D,E,F,w[gli][9],AC27);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(F,G,H,A,B,C,D,E,w[gli][10],AC28);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(E,F,G,H,A,B,C,D,w[gli][11],AC29);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(D,E,F,G,H,A,B,C,w[gli][12],AC30);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(C,D,E,F,G,H,A,B,w[gli][13],AC31);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[gli][14],AC32);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(H,A,B,C,D,E,F,G,w[gli][16],AC34);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(G,H,A,B,C,D,E,F,w[gli][0],AC35);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(F,G,H,A,B,C,D,E,w[gli][1],AC36);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(E,F,G,H,A,B,C,D,w[gli][2],AC37);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(D,E,F,G,H,A,B,C,w[gli][3],AC38);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(C,D,E,F,G,H,A,B,w[gli][4],AC39);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(B,C,D,E,F,G,H,A,w[gli][5],AC40);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(A,B,C,D,E,F,G,H,w[gli][6],AC41);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(H,A,B,C,D,E,F,G,w[gli][7],AC42);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(G,H,A,B,C,D,E,F,w[gli][8],AC43);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(F,G,H,A,B,C,D,E,w[gli][9],AC44);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(E,F,G,H,A,B,C,D,w[gli][10],AC45);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(D,E,F,G,H,A,B,C,w[gli][11],AC46);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(C,D,E,F,G,H,A,B,w[gli][12],AC47);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(B,C,D,E,F,G,H,A,w[gli][13],AC48);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[gli][14],AC49);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(G,H,A,B,C,D,E,F,w[gli][16],AC51);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(F,G,H,A,B,C,D,E,w[gli][0],AC52);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(E,F,G,H,A,B,C,D,w[gli][1],AC53);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(D,E,F,G,H,A,B,C,w[gli][2],AC54);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(C,D,E,F,G,H,A,B,w[gli][3],AC55);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(B,C,D,E,F,G,H,A,w[gli][4],AC56);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(A,B,C,D,E,F,G,H,w[gli][5],AC57);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(H,A,B,C,D,E,F,G,w[gli][6],AC58);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(G,H,A,B,C,D,E,F,w[gli][7],AC59);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(F,G,H,A,B,C,D,E,w[gli][8],AC60);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(E,F,G,H,A,B,C,D,w[gli][9],AC61);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(D,E,F,G,H,A,B,C,w[gli][10],AC62);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(C,D,E,F,G,H,A,B,w[gli][11],AC63);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(B,C,D,E,F,G,H,A,w[gli][12],AC64);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(A,B,C,D,E,F,G,H,w[gli][13],AC65);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[gli][14],AC66);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(F,G,H,A,B,C,D,E,w[gli][16],AC68);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(E,F,G,H,A,B,C,D,w[gli][0],AC69);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(D,E,F,G,H,A,B,C,w[gli][1],AC70);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(C,D,E,F,G,H,A,B,w[gli][2],AC71);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(B,C,D,E,F,G,H,A,w[gli][3],AC72);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(A,B,C,D,E,F,G,H,w[gli][4],AC73);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(H,A,B,C,D,E,F,G,w[gli][5],AC74);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(G,H,A,B,C,D,E,F,w[gli][6],AC75);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(F,G,H,A,B,C,D,E,w[gli][7],AC76);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(E,F,G,H,A,B,C,D,w[gli][8],AC77);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(D,E,F,G,H,A,B,C,w[gli][9],AC78);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(C,D,E,F,G,H,A,B,w[gli][10],AC79);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(B,C,D,E,F,G,H,A,w[gli][11],AC80);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(A,B,C,D,E,F,G,H,w[16],AC17);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(H,A,B,C,D,E,F,G,w[0],AC18);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(G,H,A,B,C,D,E,F,w[1],AC19);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(F,G,H,A,B,C,D,E,w[2],AC20);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(E,F,G,H,A,B,C,D,w[3],AC21);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(D,E,F,G,H,A,B,C,w[4],AC22);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(C,D,E,F,G,H,A,B,w[5],AC23);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(B,C,D,E,F,G,H,A,w[6],AC24);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(A,B,C,D,E,F,G,H,w[7],AC25);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(H,A,B,C,D,E,F,G,w[8],AC26);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(G,H,A,B,C,D,E,F,w[9],AC27);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(F,G,H,A,B,C,D,E,w[10],AC28);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(E,F,G,H,A,B,C,D,w[11],AC29);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(D,E,F,G,H,A,B,C,w[12],AC30);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(C,D,E,F,G,H,A,B,w[13],AC31);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[14],AC32);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(H,A,B,C,D,E,F,G,w[16],AC34);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(G,H,A,B,C,D,E,F,w[0],AC35);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(F,G,H,A,B,C,D,E,w[1],AC36);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(E,F,G,H,A,B,C,D,w[2],AC37);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(D,E,F,G,H,A,B,C,w[3],AC38);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(C,D,E,F,G,H,A,B,w[4],AC39);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(B,C,D,E,F,G,H,A,w[5],AC40);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(A,B,C,D,E,F,G,H,w[6],AC41);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(H,A,B,C,D,E,F,G,w[7],AC42);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(G,H,A,B,C,D,E,F,w[8],AC43);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(F,G,H,A,B,C,D,E,w[9],AC44);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(E,F,G,H,A,B,C,D,w[10],AC45);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(D,E,F,G,H,A,B,C,w[11],AC46);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(C,D,E,F,G,H,A,B,w[12],AC47);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(B,C,D,E,F,G,H,A,w[13],AC48);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[14],AC49);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(G,H,A,B,C,D,E,F,w[16],AC51);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(F,G,H,A,B,C,D,E,w[0],AC52);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(E,F,G,H,A,B,C,D,w[1],AC53);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(D,E,F,G,H,A,B,C,w[2],AC54);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(C,D,E,F,G,H,A,B,w[3],AC55);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(B,C,D,E,F,G,H,A,w[4],AC56);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(A,B,C,D,E,F,G,H,w[5],AC57);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(H,A,B,C,D,E,F,G,w[6],AC58);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(G,H,A,B,C,D,E,F,w[7],AC59);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(F,G,H,A,B,C,D,E,w[8],AC60);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(E,F,G,H,A,B,C,D,w[9],AC61);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(D,E,F,G,H,A,B,C,w[10],AC62);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(C,D,E,F,G,H,A,B,w[11],AC63);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(B,C,D,E,F,G,H,A,w[12],AC64);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(A,B,C,D,E,F,G,H,w[13],AC65);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[14],AC66);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(F,G,H,A,B,C,D,E,w[16],AC68);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(E,F,G,H,A,B,C,D,w[0],AC69);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(D,E,F,G,H,A,B,C,w[1],AC70);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(C,D,E,F,G,H,A,B,w[2],AC71);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(B,C,D,E,F,G,H,A,w[3],AC72);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(A,B,C,D,E,F,G,H,w[4],AC73);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(H,A,B,C,D,E,F,G,w[5],AC74);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(G,H,A,B,C,D,E,F,w[6],AC75);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(F,G,H,A,B,C,D,E,w[7],AC76);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(E,F,G,H,A,B,C,D,w[8],AC77);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(D,E,F,G,H,A,B,C,w[9],AC78);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(C,D,E,F,G,H,A,B,w[10],AC79);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(B,C,D,E,F,G,H,A,w[11],AC80);
 A+=(ulong)H0;
 B+=(ulong)H1;
 C+=(ulong)H2;
@@ -2598,6 +2550,7 @@ E+=(ulong)H4;
 F+=(ulong)H5;
 G+=(ulong)H6;
 H+=(ulong)H7;
+}
 A=Endian_Reverse64(A);
 B=Endian_Reverse64(B);
 C=Endian_Reverse64(C);
@@ -2607,7 +2560,6 @@ F=Endian_Reverse64(F);
 G=Endian_Reverse64(G);
 H=Endian_Reverse64(H);
 
-}
 found_ind[get_global_id(0)] = 0;
 
 if ((ulong)singlehash.s0!=A) return;
@@ -2621,14 +2573,18 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 
 
 
+
+
+
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix5( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,ii,jj,T1,tmp1,elem,tmp2;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
+uint ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
-__local ulong w[64][17]; 
+__private ulong w[17]; 
 ulong alt[8]; 
 ulong SIZE;
 
@@ -2643,11 +2599,22 @@ G=input[(get_global_id(0)*11)+7];
 H=input[(get_global_id(0)*11)+8];
 pbytes[gli][0]=input[(get_global_id(0)*11)+9];
 pbytes[gli][1]=input[(get_global_id(0)*11)+10];
+A=Endian_Reverse64(A);
+B=Endian_Reverse64(B);
+C=Endian_Reverse64(C);
+D=Endian_Reverse64(D);
+E=Endian_Reverse64(E);
+F=Endian_Reverse64(F);
+G=Endian_Reverse64(G);
+H=Endian_Reverse64(H);
+pbytes[gli][0]=Endian_Reverse64(pbytes[gli][0]);
+pbytes[gli][1]=Endian_Reverse64(pbytes[gli][1]);
+sbytes[gli][0]=Endian_Reverse64(sbytes[gli][0]);
 
 
 for (ic=0;ic<5000;ic++)
 {
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
+w[0]=w[1]=w[2]=w[3]=w[4]=w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[16]=(ulong)0;
 
 if ((ic&1)==0)
 {
@@ -2659,17 +2626,17 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)0;
+ii=(uint)0;
 
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(ulong)64;
+w[0]=A;
+w[1]=B;
+w[2]=C;
+w[3]=D;
+w[4]=E;
+w[5]=F;
+w[6]=G;
+w[7]=H;
+ii=(uint)64;
 }
 
 else
@@ -2682,46 +2649,46 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)5;
+ii=(uint)5;
 
-w[gli][0]=pbytes[gli][0];
+w[0]=pbytes[gli][0];
 }
 
 
 if (ic % 3 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],sbytes[gli][0],ii,0);ii+=(ulong)8;
+SET_AIS(w,sbytes[gli][0],ii,0);ii+=(uint)8;
 //ii=jj+8;
 }
 
 if (ic % 7 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)5;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)5;
 //ii=jj+9;
 }
 
 if ((ic&1)==0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)5;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)5;
 //ii=jj+9;
 }
 else
 {
-SET_AIS(w[gli],alt[0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],alt[1],ii,8);ii+=(ulong)8;
-SET_AIS(w[gli],alt[2],ii,16);ii+=(ulong)8;
-SET_AIS(w[gli],alt[3],ii,24);ii+=(ulong)8;
-SET_AIS(w[gli],alt[4],ii,32);ii+=(ulong)8;
-SET_AIS(w[gli],alt[5],ii,40);ii+=(ulong)8;
-SET_AIS(w[gli],alt[6],ii,48);ii+=(ulong)8;
-SET_AIS(w[gli],alt[7],ii,56);ii+=(ulong)8;
+SET_AIS(w,alt[0],ii,0);ii+=(uint)8;
+SET_AIS(w,alt[1],ii,8);ii+=(uint)8;
+SET_AIS(w,alt[2],ii,16);ii+=(uint)8;
+SET_AIS(w,alt[3],ii,24);ii+=(uint)8;
+SET_AIS(w,alt[4],ii,32);ii+=(uint)8;
+SET_AIS(w,alt[5],ii,40);ii+=(uint)8;
+SET_AIS(w,alt[6],ii,48);ii+=(uint)8;
+SET_AIS(w,alt[7],ii,56);ii+=(uint)8;
 }
 
 
-SET_AB(w[gli],ii,0x80);
+SET_AB(w,ii,0x80);
 
 SIZE=(ulong)(ii)<<3;
 
@@ -2734,101 +2701,86 @@ F=(ulong)H5;
 G=(ulong)H6;
 H=(ulong)H7;
 
-w[gli][0]=Endian_Reverse64(w[gli][0]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[gli][0]);
-w[gli][1]=Endian_Reverse64(w[gli][1]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[gli][1]);
-w[gli][2]=Endian_Reverse64(w[gli][2]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[gli][2]);
-w[gli][3]=Endian_Reverse64(w[gli][3]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[gli][3]);
-w[gli][4]=Endian_Reverse64(w[gli][4]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[gli][4]);
-w[gli][5]=Endian_Reverse64(w[gli][5]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[gli][5]);
-w[gli][6]=Endian_Reverse64(w[gli][6]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[gli][6]);
-w[gli][7]=Endian_Reverse64(w[gli][7]);
-ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[gli][7]);
-w[gli][8]=Endian_Reverse64(w[gli][8]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[gli][8]);
-w[gli][9]=Endian_Reverse64(w[gli][9]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[gli][9]);
-w[gli][10]=Endian_Reverse64(w[gli][10]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[gli][10]);
-w[gli][11]=Endian_Reverse64(w[gli][11]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[gli][11]);
-w[gli][12]=Endian_Reverse64(w[gli][12]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[gli][12]);
-w[gli][13]=Endian_Reverse64(w[gli][13]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[gli][13]);
-w[gli][14]=Endian_Reverse64(w[gli][14]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[gli][14]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[0]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[1]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[2]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[3]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[4]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[5]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[6]);
+ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[7]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[8]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[9]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[10]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[11]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[12]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[13]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[14]);
 ROUND512_0_TO_15(B,C,D,E,F,G,H,A,SIZE,AC16);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(A,B,C,D,E,F,G,H,w[gli][16],AC17);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(H,A,B,C,D,E,F,G,w[gli][0],AC18);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(G,H,A,B,C,D,E,F,w[gli][1],AC19);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(F,G,H,A,B,C,D,E,w[gli][2],AC20);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(E,F,G,H,A,B,C,D,w[gli][3],AC21);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(D,E,F,G,H,A,B,C,w[gli][4],AC22);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(C,D,E,F,G,H,A,B,w[gli][5],AC23);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(B,C,D,E,F,G,H,A,w[gli][6],AC24);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(A,B,C,D,E,F,G,H,w[gli][7],AC25);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(H,A,B,C,D,E,F,G,w[gli][8],AC26);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(G,H,A,B,C,D,E,F,w[gli][9],AC27);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(F,G,H,A,B,C,D,E,w[gli][10],AC28);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(E,F,G,H,A,B,C,D,w[gli][11],AC29);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(D,E,F,G,H,A,B,C,w[gli][12],AC30);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(C,D,E,F,G,H,A,B,w[gli][13],AC31);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[gli][14],AC32);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(H,A,B,C,D,E,F,G,w[gli][16],AC34);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(G,H,A,B,C,D,E,F,w[gli][0],AC35);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(F,G,H,A,B,C,D,E,w[gli][1],AC36);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(E,F,G,H,A,B,C,D,w[gli][2],AC37);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(D,E,F,G,H,A,B,C,w[gli][3],AC38);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(C,D,E,F,G,H,A,B,w[gli][4],AC39);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(B,C,D,E,F,G,H,A,w[gli][5],AC40);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(A,B,C,D,E,F,G,H,w[gli][6],AC41);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(H,A,B,C,D,E,F,G,w[gli][7],AC42);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(G,H,A,B,C,D,E,F,w[gli][8],AC43);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(F,G,H,A,B,C,D,E,w[gli][9],AC44);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(E,F,G,H,A,B,C,D,w[gli][10],AC45);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(D,E,F,G,H,A,B,C,w[gli][11],AC46);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(C,D,E,F,G,H,A,B,w[gli][12],AC47);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(B,C,D,E,F,G,H,A,w[gli][13],AC48);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[gli][14],AC49);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(G,H,A,B,C,D,E,F,w[gli][16],AC51);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(F,G,H,A,B,C,D,E,w[gli][0],AC52);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(E,F,G,H,A,B,C,D,w[gli][1],AC53);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(D,E,F,G,H,A,B,C,w[gli][2],AC54);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(C,D,E,F,G,H,A,B,w[gli][3],AC55);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(B,C,D,E,F,G,H,A,w[gli][4],AC56);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(A,B,C,D,E,F,G,H,w[gli][5],AC57);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(H,A,B,C,D,E,F,G,w[gli][6],AC58);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(G,H,A,B,C,D,E,F,w[gli][7],AC59);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(F,G,H,A,B,C,D,E,w[gli][8],AC60);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(E,F,G,H,A,B,C,D,w[gli][9],AC61);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(D,E,F,G,H,A,B,C,w[gli][10],AC62);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(C,D,E,F,G,H,A,B,w[gli][11],AC63);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(B,C,D,E,F,G,H,A,w[gli][12],AC64);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(A,B,C,D,E,F,G,H,w[gli][13],AC65);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[gli][14],AC66);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(F,G,H,A,B,C,D,E,w[gli][16],AC68);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(E,F,G,H,A,B,C,D,w[gli][0],AC69);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(D,E,F,G,H,A,B,C,w[gli][1],AC70);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(C,D,E,F,G,H,A,B,w[gli][2],AC71);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(B,C,D,E,F,G,H,A,w[gli][3],AC72);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(A,B,C,D,E,F,G,H,w[gli][4],AC73);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(H,A,B,C,D,E,F,G,w[gli][5],AC74);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(G,H,A,B,C,D,E,F,w[gli][6],AC75);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(F,G,H,A,B,C,D,E,w[gli][7],AC76);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(E,F,G,H,A,B,C,D,w[gli][8],AC77);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(D,E,F,G,H,A,B,C,w[gli][9],AC78);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(C,D,E,F,G,H,A,B,w[gli][10],AC79);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(B,C,D,E,F,G,H,A,w[gli][11],AC80);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(A,B,C,D,E,F,G,H,w[16],AC17);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(H,A,B,C,D,E,F,G,w[0],AC18);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(G,H,A,B,C,D,E,F,w[1],AC19);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(F,G,H,A,B,C,D,E,w[2],AC20);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(E,F,G,H,A,B,C,D,w[3],AC21);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(D,E,F,G,H,A,B,C,w[4],AC22);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(C,D,E,F,G,H,A,B,w[5],AC23);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(B,C,D,E,F,G,H,A,w[6],AC24);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(A,B,C,D,E,F,G,H,w[7],AC25);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(H,A,B,C,D,E,F,G,w[8],AC26);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(G,H,A,B,C,D,E,F,w[9],AC27);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(F,G,H,A,B,C,D,E,w[10],AC28);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(E,F,G,H,A,B,C,D,w[11],AC29);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(D,E,F,G,H,A,B,C,w[12],AC30);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(C,D,E,F,G,H,A,B,w[13],AC31);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[14],AC32);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(H,A,B,C,D,E,F,G,w[16],AC34);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(G,H,A,B,C,D,E,F,w[0],AC35);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(F,G,H,A,B,C,D,E,w[1],AC36);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(E,F,G,H,A,B,C,D,w[2],AC37);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(D,E,F,G,H,A,B,C,w[3],AC38);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(C,D,E,F,G,H,A,B,w[4],AC39);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(B,C,D,E,F,G,H,A,w[5],AC40);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(A,B,C,D,E,F,G,H,w[6],AC41);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(H,A,B,C,D,E,F,G,w[7],AC42);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(G,H,A,B,C,D,E,F,w[8],AC43);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(F,G,H,A,B,C,D,E,w[9],AC44);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(E,F,G,H,A,B,C,D,w[10],AC45);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(D,E,F,G,H,A,B,C,w[11],AC46);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(C,D,E,F,G,H,A,B,w[12],AC47);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(B,C,D,E,F,G,H,A,w[13],AC48);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[14],AC49);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(G,H,A,B,C,D,E,F,w[16],AC51);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(F,G,H,A,B,C,D,E,w[0],AC52);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(E,F,G,H,A,B,C,D,w[1],AC53);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(D,E,F,G,H,A,B,C,w[2],AC54);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(C,D,E,F,G,H,A,B,w[3],AC55);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(B,C,D,E,F,G,H,A,w[4],AC56);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(A,B,C,D,E,F,G,H,w[5],AC57);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(H,A,B,C,D,E,F,G,w[6],AC58);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(G,H,A,B,C,D,E,F,w[7],AC59);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(F,G,H,A,B,C,D,E,w[8],AC60);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(E,F,G,H,A,B,C,D,w[9],AC61);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(D,E,F,G,H,A,B,C,w[10],AC62);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(C,D,E,F,G,H,A,B,w[11],AC63);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(B,C,D,E,F,G,H,A,w[12],AC64);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(A,B,C,D,E,F,G,H,w[13],AC65);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[14],AC66);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(F,G,H,A,B,C,D,E,w[16],AC68);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(E,F,G,H,A,B,C,D,w[0],AC69);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(D,E,F,G,H,A,B,C,w[1],AC70);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(C,D,E,F,G,H,A,B,w[2],AC71);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(B,C,D,E,F,G,H,A,w[3],AC72);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(A,B,C,D,E,F,G,H,w[4],AC73);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(H,A,B,C,D,E,F,G,w[5],AC74);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(G,H,A,B,C,D,E,F,w[6],AC75);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(F,G,H,A,B,C,D,E,w[7],AC76);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(E,F,G,H,A,B,C,D,w[8],AC77);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(D,E,F,G,H,A,B,C,w[9],AC78);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(C,D,E,F,G,H,A,B,w[10],AC79);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(B,C,D,E,F,G,H,A,w[11],AC80);
 A+=(ulong)H0;
 B+=(ulong)H1;
 C+=(ulong)H2;
@@ -2837,6 +2789,7 @@ E+=(ulong)H4;
 F+=(ulong)H5;
 G+=(ulong)H6;
 H+=(ulong)H7;
+}
 A=Endian_Reverse64(A);
 B=Endian_Reverse64(B);
 C=Endian_Reverse64(C);
@@ -2846,7 +2799,6 @@ F=Endian_Reverse64(F);
 G=Endian_Reverse64(G);
 H=Endian_Reverse64(H);
 
-}
 found_ind[get_global_id(0)] = 0;
 
 if ((ulong)singlehash.s0!=A) return;
@@ -2865,11 +2817,12 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix4( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,ii,jj,T1,tmp1,elem,tmp2;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
+uint ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
-__local ulong w[64][17]; 
+__private ulong w[17]; 
 ulong alt[8]; 
 ulong SIZE;
 
@@ -2884,11 +2837,22 @@ G=input[(get_global_id(0)*11)+7];
 H=input[(get_global_id(0)*11)+8];
 pbytes[gli][0]=input[(get_global_id(0)*11)+9];
 pbytes[gli][1]=input[(get_global_id(0)*11)+10];
+A=Endian_Reverse64(A);
+B=Endian_Reverse64(B);
+C=Endian_Reverse64(C);
+D=Endian_Reverse64(D);
+E=Endian_Reverse64(E);
+F=Endian_Reverse64(F);
+G=Endian_Reverse64(G);
+H=Endian_Reverse64(H);
+pbytes[gli][0]=Endian_Reverse64(pbytes[gli][0]);
+pbytes[gli][1]=Endian_Reverse64(pbytes[gli][1]);
+sbytes[gli][0]=Endian_Reverse64(sbytes[gli][0]);
 
 
 for (ic=0;ic<5000;ic++)
 {
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
+w[0]=w[1]=w[2]=w[3]=w[4]=w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[16]=(ulong)0;
 
 if ((ic&1)==0)
 {
@@ -2900,17 +2864,17 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)0;
+ii=(uint)0;
 
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(ulong)64;
+w[0]=A;
+w[1]=B;
+w[2]=C;
+w[3]=D;
+w[4]=E;
+w[5]=F;
+w[6]=G;
+w[7]=H;
+ii=(uint)64;
 }
 
 else
@@ -2923,46 +2887,46 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)4;
+ii=(uint)4;
 
-w[gli][0]=pbytes[gli][0];
+w[0]=pbytes[gli][0];
 }
 
 
 if (ic % 3 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],sbytes[gli][0],ii,0);ii+=(ulong)8;
+SET_AIS(w,sbytes[gli][0],ii,0);ii+=(uint)8;
 //ii=jj+8;
 }
 
 if (ic % 7 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)4;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)4;
 //ii=jj+9;
 }
 
 if ((ic&1)==0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)4;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)4;
 //ii=jj+9;
 }
 else
 {
-SET_AIS(w[gli],alt[0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],alt[1],ii,8);ii+=(ulong)8;
-SET_AIS(w[gli],alt[2],ii,16);ii+=(ulong)8;
-SET_AIS(w[gli],alt[3],ii,24);ii+=(ulong)8;
-SET_AIS(w[gli],alt[4],ii,32);ii+=(ulong)8;
-SET_AIS(w[gli],alt[5],ii,40);ii+=(ulong)8;
-SET_AIS(w[gli],alt[6],ii,48);ii+=(ulong)8;
-SET_AIS(w[gli],alt[7],ii,56);ii+=(ulong)8;
+SET_AIS(w,alt[0],ii,0);ii+=(uint)8;
+SET_AIS(w,alt[1],ii,8);ii+=(uint)8;
+SET_AIS(w,alt[2],ii,16);ii+=(uint)8;
+SET_AIS(w,alt[3],ii,24);ii+=(uint)8;
+SET_AIS(w,alt[4],ii,32);ii+=(uint)8;
+SET_AIS(w,alt[5],ii,40);ii+=(uint)8;
+SET_AIS(w,alt[6],ii,48);ii+=(uint)8;
+SET_AIS(w,alt[7],ii,56);ii+=(uint)8;
 }
 
 
-SET_AB(w[gli],ii,0x80);
+SET_AB(w,ii,0x80);
 
 SIZE=(ulong)(ii)<<3;
 
@@ -2975,101 +2939,86 @@ F=(ulong)H5;
 G=(ulong)H6;
 H=(ulong)H7;
 
-w[gli][0]=Endian_Reverse64(w[gli][0]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[gli][0]);
-w[gli][1]=Endian_Reverse64(w[gli][1]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[gli][1]);
-w[gli][2]=Endian_Reverse64(w[gli][2]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[gli][2]);
-w[gli][3]=Endian_Reverse64(w[gli][3]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[gli][3]);
-w[gli][4]=Endian_Reverse64(w[gli][4]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[gli][4]);
-w[gli][5]=Endian_Reverse64(w[gli][5]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[gli][5]);
-w[gli][6]=Endian_Reverse64(w[gli][6]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[gli][6]);
-w[gli][7]=Endian_Reverse64(w[gli][7]);
-ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[gli][7]);
-w[gli][8]=Endian_Reverse64(w[gli][8]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[gli][8]);
-w[gli][9]=Endian_Reverse64(w[gli][9]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[gli][9]);
-w[gli][10]=Endian_Reverse64(w[gli][10]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[gli][10]);
-w[gli][11]=Endian_Reverse64(w[gli][11]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[gli][11]);
-w[gli][12]=Endian_Reverse64(w[gli][12]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[gli][12]);
-w[gli][13]=Endian_Reverse64(w[gli][13]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[gli][13]);
-w[gli][14]=Endian_Reverse64(w[gli][14]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[gli][14]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[0]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[1]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[2]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[3]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[4]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[5]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[6]);
+ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[7]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[8]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[9]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[10]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[11]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[12]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[13]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[14]);
 ROUND512_0_TO_15(B,C,D,E,F,G,H,A,SIZE,AC16);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(A,B,C,D,E,F,G,H,w[gli][16],AC17);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(H,A,B,C,D,E,F,G,w[gli][0],AC18);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(G,H,A,B,C,D,E,F,w[gli][1],AC19);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(F,G,H,A,B,C,D,E,w[gli][2],AC20);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(E,F,G,H,A,B,C,D,w[gli][3],AC21);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(D,E,F,G,H,A,B,C,w[gli][4],AC22);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(C,D,E,F,G,H,A,B,w[gli][5],AC23);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(B,C,D,E,F,G,H,A,w[gli][6],AC24);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(A,B,C,D,E,F,G,H,w[gli][7],AC25);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(H,A,B,C,D,E,F,G,w[gli][8],AC26);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(G,H,A,B,C,D,E,F,w[gli][9],AC27);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(F,G,H,A,B,C,D,E,w[gli][10],AC28);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(E,F,G,H,A,B,C,D,w[gli][11],AC29);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(D,E,F,G,H,A,B,C,w[gli][12],AC30);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(C,D,E,F,G,H,A,B,w[gli][13],AC31);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[gli][14],AC32);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(H,A,B,C,D,E,F,G,w[gli][16],AC34);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(G,H,A,B,C,D,E,F,w[gli][0],AC35);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(F,G,H,A,B,C,D,E,w[gli][1],AC36);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(E,F,G,H,A,B,C,D,w[gli][2],AC37);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(D,E,F,G,H,A,B,C,w[gli][3],AC38);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(C,D,E,F,G,H,A,B,w[gli][4],AC39);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(B,C,D,E,F,G,H,A,w[gli][5],AC40);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(A,B,C,D,E,F,G,H,w[gli][6],AC41);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(H,A,B,C,D,E,F,G,w[gli][7],AC42);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(G,H,A,B,C,D,E,F,w[gli][8],AC43);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(F,G,H,A,B,C,D,E,w[gli][9],AC44);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(E,F,G,H,A,B,C,D,w[gli][10],AC45);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(D,E,F,G,H,A,B,C,w[gli][11],AC46);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(C,D,E,F,G,H,A,B,w[gli][12],AC47);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(B,C,D,E,F,G,H,A,w[gli][13],AC48);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[gli][14],AC49);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(G,H,A,B,C,D,E,F,w[gli][16],AC51);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(F,G,H,A,B,C,D,E,w[gli][0],AC52);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(E,F,G,H,A,B,C,D,w[gli][1],AC53);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(D,E,F,G,H,A,B,C,w[gli][2],AC54);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(C,D,E,F,G,H,A,B,w[gli][3],AC55);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(B,C,D,E,F,G,H,A,w[gli][4],AC56);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(A,B,C,D,E,F,G,H,w[gli][5],AC57);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(H,A,B,C,D,E,F,G,w[gli][6],AC58);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(G,H,A,B,C,D,E,F,w[gli][7],AC59);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(F,G,H,A,B,C,D,E,w[gli][8],AC60);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(E,F,G,H,A,B,C,D,w[gli][9],AC61);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(D,E,F,G,H,A,B,C,w[gli][10],AC62);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(C,D,E,F,G,H,A,B,w[gli][11],AC63);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(B,C,D,E,F,G,H,A,w[gli][12],AC64);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(A,B,C,D,E,F,G,H,w[gli][13],AC65);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[gli][14],AC66);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(F,G,H,A,B,C,D,E,w[gli][16],AC68);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(E,F,G,H,A,B,C,D,w[gli][0],AC69);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(D,E,F,G,H,A,B,C,w[gli][1],AC70);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(C,D,E,F,G,H,A,B,w[gli][2],AC71);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(B,C,D,E,F,G,H,A,w[gli][3],AC72);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(A,B,C,D,E,F,G,H,w[gli][4],AC73);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(H,A,B,C,D,E,F,G,w[gli][5],AC74);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(G,H,A,B,C,D,E,F,w[gli][6],AC75);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(F,G,H,A,B,C,D,E,w[gli][7],AC76);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(E,F,G,H,A,B,C,D,w[gli][8],AC77);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(D,E,F,G,H,A,B,C,w[gli][9],AC78);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(C,D,E,F,G,H,A,B,w[gli][10],AC79);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(B,C,D,E,F,G,H,A,w[gli][11],AC80);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(A,B,C,D,E,F,G,H,w[16],AC17);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(H,A,B,C,D,E,F,G,w[0],AC18);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(G,H,A,B,C,D,E,F,w[1],AC19);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(F,G,H,A,B,C,D,E,w[2],AC20);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(E,F,G,H,A,B,C,D,w[3],AC21);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(D,E,F,G,H,A,B,C,w[4],AC22);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(C,D,E,F,G,H,A,B,w[5],AC23);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(B,C,D,E,F,G,H,A,w[6],AC24);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(A,B,C,D,E,F,G,H,w[7],AC25);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(H,A,B,C,D,E,F,G,w[8],AC26);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(G,H,A,B,C,D,E,F,w[9],AC27);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(F,G,H,A,B,C,D,E,w[10],AC28);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(E,F,G,H,A,B,C,D,w[11],AC29);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(D,E,F,G,H,A,B,C,w[12],AC30);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(C,D,E,F,G,H,A,B,w[13],AC31);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[14],AC32);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(H,A,B,C,D,E,F,G,w[16],AC34);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(G,H,A,B,C,D,E,F,w[0],AC35);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(F,G,H,A,B,C,D,E,w[1],AC36);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(E,F,G,H,A,B,C,D,w[2],AC37);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(D,E,F,G,H,A,B,C,w[3],AC38);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(C,D,E,F,G,H,A,B,w[4],AC39);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(B,C,D,E,F,G,H,A,w[5],AC40);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(A,B,C,D,E,F,G,H,w[6],AC41);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(H,A,B,C,D,E,F,G,w[7],AC42);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(G,H,A,B,C,D,E,F,w[8],AC43);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(F,G,H,A,B,C,D,E,w[9],AC44);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(E,F,G,H,A,B,C,D,w[10],AC45);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(D,E,F,G,H,A,B,C,w[11],AC46);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(C,D,E,F,G,H,A,B,w[12],AC47);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(B,C,D,E,F,G,H,A,w[13],AC48);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[14],AC49);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(G,H,A,B,C,D,E,F,w[16],AC51);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(F,G,H,A,B,C,D,E,w[0],AC52);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(E,F,G,H,A,B,C,D,w[1],AC53);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(D,E,F,G,H,A,B,C,w[2],AC54);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(C,D,E,F,G,H,A,B,w[3],AC55);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(B,C,D,E,F,G,H,A,w[4],AC56);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(A,B,C,D,E,F,G,H,w[5],AC57);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(H,A,B,C,D,E,F,G,w[6],AC58);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(G,H,A,B,C,D,E,F,w[7],AC59);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(F,G,H,A,B,C,D,E,w[8],AC60);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(E,F,G,H,A,B,C,D,w[9],AC61);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(D,E,F,G,H,A,B,C,w[10],AC62);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(C,D,E,F,G,H,A,B,w[11],AC63);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(B,C,D,E,F,G,H,A,w[12],AC64);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(A,B,C,D,E,F,G,H,w[13],AC65);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[14],AC66);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(F,G,H,A,B,C,D,E,w[16],AC68);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(E,F,G,H,A,B,C,D,w[0],AC69);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(D,E,F,G,H,A,B,C,w[1],AC70);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(C,D,E,F,G,H,A,B,w[2],AC71);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(B,C,D,E,F,G,H,A,w[3],AC72);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(A,B,C,D,E,F,G,H,w[4],AC73);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(H,A,B,C,D,E,F,G,w[5],AC74);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(G,H,A,B,C,D,E,F,w[6],AC75);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(F,G,H,A,B,C,D,E,w[7],AC76);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(E,F,G,H,A,B,C,D,w[8],AC77);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(D,E,F,G,H,A,B,C,w[9],AC78);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(C,D,E,F,G,H,A,B,w[10],AC79);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(B,C,D,E,F,G,H,A,w[11],AC80);
 A+=(ulong)H0;
 B+=(ulong)H1;
 C+=(ulong)H2;
@@ -3078,6 +3027,7 @@ E+=(ulong)H4;
 F+=(ulong)H5;
 G+=(ulong)H6;
 H+=(ulong)H7;
+}
 A=Endian_Reverse64(A);
 B=Endian_Reverse64(B);
 C=Endian_Reverse64(C);
@@ -3087,7 +3037,6 @@ F=Endian_Reverse64(F);
 G=Endian_Reverse64(G);
 H=Endian_Reverse64(H);
 
-}
 found_ind[get_global_id(0)] = 0;
 
 if ((ulong)singlehash.s0!=A) return;
@@ -3105,11 +3054,12 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix3( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,ii,jj,T1,tmp1,elem,tmp2;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
+uint ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
-__local ulong w[64][17]; 
+__private ulong w[17]; 
 ulong alt[8]; 
 ulong SIZE;
 
@@ -3124,11 +3074,22 @@ G=input[(get_global_id(0)*11)+7];
 H=input[(get_global_id(0)*11)+8];
 pbytes[gli][0]=input[(get_global_id(0)*11)+9];
 pbytes[gli][1]=input[(get_global_id(0)*11)+10];
+A=Endian_Reverse64(A);
+B=Endian_Reverse64(B);
+C=Endian_Reverse64(C);
+D=Endian_Reverse64(D);
+E=Endian_Reverse64(E);
+F=Endian_Reverse64(F);
+G=Endian_Reverse64(G);
+H=Endian_Reverse64(H);
+pbytes[gli][0]=Endian_Reverse64(pbytes[gli][0]);
+pbytes[gli][1]=Endian_Reverse64(pbytes[gli][1]);
+sbytes[gli][0]=Endian_Reverse64(sbytes[gli][0]);
 
 
 for (ic=0;ic<5000;ic++)
 {
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
+w[0]=w[1]=w[2]=w[3]=w[4]=w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[16]=(ulong)0;
 
 if ((ic&1)==0)
 {
@@ -3140,17 +3101,17 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)0;
+ii=(uint)0;
 
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(ulong)64;
+w[0]=A;
+w[1]=B;
+w[2]=C;
+w[3]=D;
+w[4]=E;
+w[5]=F;
+w[6]=G;
+w[7]=H;
+ii=(uint)64;
 }
 
 else
@@ -3163,46 +3124,46 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)3;
+ii=(uint)3;
 
-w[gli][0]=pbytes[gli][0];
+w[0]=pbytes[gli][0];
 }
 
 
 if (ic % 3 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],sbytes[gli][0],ii,0);ii+=(ulong)8;
+SET_AIS(w,sbytes[gli][0],ii,0);ii+=(uint)8;
 //ii=jj+8;
 }
 
 if (ic % 7 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)3;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)3;
 //ii=jj+9;
 }
 
 if ((ic&1)==0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)3;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)3;
 //ii=jj+9;
 }
 else
 {
-SET_AIS(w[gli],alt[0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],alt[1],ii,8);ii+=(ulong)8;
-SET_AIS(w[gli],alt[2],ii,16);ii+=(ulong)8;
-SET_AIS(w[gli],alt[3],ii,24);ii+=(ulong)8;
-SET_AIS(w[gli],alt[4],ii,32);ii+=(ulong)8;
-SET_AIS(w[gli],alt[5],ii,40);ii+=(ulong)8;
-SET_AIS(w[gli],alt[6],ii,48);ii+=(ulong)8;
-SET_AIS(w[gli],alt[7],ii,56);ii+=(ulong)8;
+SET_AIS(w,alt[0],ii,0);ii+=(uint)8;
+SET_AIS(w,alt[1],ii,8);ii+=(uint)8;
+SET_AIS(w,alt[2],ii,16);ii+=(uint)8;
+SET_AIS(w,alt[3],ii,24);ii+=(uint)8;
+SET_AIS(w,alt[4],ii,32);ii+=(uint)8;
+SET_AIS(w,alt[5],ii,40);ii+=(uint)8;
+SET_AIS(w,alt[6],ii,48);ii+=(uint)8;
+SET_AIS(w,alt[7],ii,56);ii+=(uint)8;
 }
 
 
-SET_AB(w[gli],ii,0x80);
+SET_AB(w,ii,0x80);
 
 SIZE=(ulong)(ii)<<3;
 
@@ -3215,101 +3176,86 @@ F=(ulong)H5;
 G=(ulong)H6;
 H=(ulong)H7;
 
-w[gli][0]=Endian_Reverse64(w[gli][0]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[gli][0]);
-w[gli][1]=Endian_Reverse64(w[gli][1]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[gli][1]);
-w[gli][2]=Endian_Reverse64(w[gli][2]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[gli][2]);
-w[gli][3]=Endian_Reverse64(w[gli][3]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[gli][3]);
-w[gli][4]=Endian_Reverse64(w[gli][4]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[gli][4]);
-w[gli][5]=Endian_Reverse64(w[gli][5]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[gli][5]);
-w[gli][6]=Endian_Reverse64(w[gli][6]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[gli][6]);
-w[gli][7]=Endian_Reverse64(w[gli][7]);
-ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[gli][7]);
-w[gli][8]=Endian_Reverse64(w[gli][8]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[gli][8]);
-w[gli][9]=Endian_Reverse64(w[gli][9]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[gli][9]);
-w[gli][10]=Endian_Reverse64(w[gli][10]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[gli][10]);
-w[gli][11]=Endian_Reverse64(w[gli][11]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[gli][11]);
-w[gli][12]=Endian_Reverse64(w[gli][12]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[gli][12]);
-w[gli][13]=Endian_Reverse64(w[gli][13]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[gli][13]);
-w[gli][14]=Endian_Reverse64(w[gli][14]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[gli][14]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[0]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[1]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[2]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[3]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[4]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[5]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[6]);
+ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[7]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[8]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[9]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[10]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[11]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[12]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[13]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[14]);
 ROUND512_0_TO_15(B,C,D,E,F,G,H,A,SIZE,AC16);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(A,B,C,D,E,F,G,H,w[gli][16],AC17);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(H,A,B,C,D,E,F,G,w[gli][0],AC18);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(G,H,A,B,C,D,E,F,w[gli][1],AC19);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(F,G,H,A,B,C,D,E,w[gli][2],AC20);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(E,F,G,H,A,B,C,D,w[gli][3],AC21);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(D,E,F,G,H,A,B,C,w[gli][4],AC22);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(C,D,E,F,G,H,A,B,w[gli][5],AC23);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(B,C,D,E,F,G,H,A,w[gli][6],AC24);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(A,B,C,D,E,F,G,H,w[gli][7],AC25);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(H,A,B,C,D,E,F,G,w[gli][8],AC26);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(G,H,A,B,C,D,E,F,w[gli][9],AC27);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(F,G,H,A,B,C,D,E,w[gli][10],AC28);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(E,F,G,H,A,B,C,D,w[gli][11],AC29);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(D,E,F,G,H,A,B,C,w[gli][12],AC30);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(C,D,E,F,G,H,A,B,w[gli][13],AC31);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[gli][14],AC32);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(H,A,B,C,D,E,F,G,w[gli][16],AC34);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(G,H,A,B,C,D,E,F,w[gli][0],AC35);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(F,G,H,A,B,C,D,E,w[gli][1],AC36);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(E,F,G,H,A,B,C,D,w[gli][2],AC37);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(D,E,F,G,H,A,B,C,w[gli][3],AC38);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(C,D,E,F,G,H,A,B,w[gli][4],AC39);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(B,C,D,E,F,G,H,A,w[gli][5],AC40);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(A,B,C,D,E,F,G,H,w[gli][6],AC41);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(H,A,B,C,D,E,F,G,w[gli][7],AC42);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(G,H,A,B,C,D,E,F,w[gli][8],AC43);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(F,G,H,A,B,C,D,E,w[gli][9],AC44);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(E,F,G,H,A,B,C,D,w[gli][10],AC45);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(D,E,F,G,H,A,B,C,w[gli][11],AC46);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(C,D,E,F,G,H,A,B,w[gli][12],AC47);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(B,C,D,E,F,G,H,A,w[gli][13],AC48);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[gli][14],AC49);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(G,H,A,B,C,D,E,F,w[gli][16],AC51);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(F,G,H,A,B,C,D,E,w[gli][0],AC52);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(E,F,G,H,A,B,C,D,w[gli][1],AC53);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(D,E,F,G,H,A,B,C,w[gli][2],AC54);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(C,D,E,F,G,H,A,B,w[gli][3],AC55);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(B,C,D,E,F,G,H,A,w[gli][4],AC56);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(A,B,C,D,E,F,G,H,w[gli][5],AC57);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(H,A,B,C,D,E,F,G,w[gli][6],AC58);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(G,H,A,B,C,D,E,F,w[gli][7],AC59);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(F,G,H,A,B,C,D,E,w[gli][8],AC60);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(E,F,G,H,A,B,C,D,w[gli][9],AC61);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(D,E,F,G,H,A,B,C,w[gli][10],AC62);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(C,D,E,F,G,H,A,B,w[gli][11],AC63);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(B,C,D,E,F,G,H,A,w[gli][12],AC64);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(A,B,C,D,E,F,G,H,w[gli][13],AC65);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[gli][14],AC66);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(F,G,H,A,B,C,D,E,w[gli][16],AC68);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(E,F,G,H,A,B,C,D,w[gli][0],AC69);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(D,E,F,G,H,A,B,C,w[gli][1],AC70);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(C,D,E,F,G,H,A,B,w[gli][2],AC71);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(B,C,D,E,F,G,H,A,w[gli][3],AC72);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(A,B,C,D,E,F,G,H,w[gli][4],AC73);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(H,A,B,C,D,E,F,G,w[gli][5],AC74);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(G,H,A,B,C,D,E,F,w[gli][6],AC75);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(F,G,H,A,B,C,D,E,w[gli][7],AC76);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(E,F,G,H,A,B,C,D,w[gli][8],AC77);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(D,E,F,G,H,A,B,C,w[gli][9],AC78);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(C,D,E,F,G,H,A,B,w[gli][10],AC79);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(B,C,D,E,F,G,H,A,w[gli][11],AC80);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(A,B,C,D,E,F,G,H,w[16],AC17);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(H,A,B,C,D,E,F,G,w[0],AC18);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(G,H,A,B,C,D,E,F,w[1],AC19);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(F,G,H,A,B,C,D,E,w[2],AC20);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(E,F,G,H,A,B,C,D,w[3],AC21);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(D,E,F,G,H,A,B,C,w[4],AC22);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(C,D,E,F,G,H,A,B,w[5],AC23);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(B,C,D,E,F,G,H,A,w[6],AC24);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(A,B,C,D,E,F,G,H,w[7],AC25);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(H,A,B,C,D,E,F,G,w[8],AC26);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(G,H,A,B,C,D,E,F,w[9],AC27);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(F,G,H,A,B,C,D,E,w[10],AC28);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(E,F,G,H,A,B,C,D,w[11],AC29);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(D,E,F,G,H,A,B,C,w[12],AC30);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(C,D,E,F,G,H,A,B,w[13],AC31);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[14],AC32);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(H,A,B,C,D,E,F,G,w[16],AC34);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(G,H,A,B,C,D,E,F,w[0],AC35);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(F,G,H,A,B,C,D,E,w[1],AC36);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(E,F,G,H,A,B,C,D,w[2],AC37);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(D,E,F,G,H,A,B,C,w[3],AC38);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(C,D,E,F,G,H,A,B,w[4],AC39);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(B,C,D,E,F,G,H,A,w[5],AC40);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(A,B,C,D,E,F,G,H,w[6],AC41);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(H,A,B,C,D,E,F,G,w[7],AC42);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(G,H,A,B,C,D,E,F,w[8],AC43);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(F,G,H,A,B,C,D,E,w[9],AC44);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(E,F,G,H,A,B,C,D,w[10],AC45);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(D,E,F,G,H,A,B,C,w[11],AC46);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(C,D,E,F,G,H,A,B,w[12],AC47);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(B,C,D,E,F,G,H,A,w[13],AC48);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[14],AC49);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(G,H,A,B,C,D,E,F,w[16],AC51);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(F,G,H,A,B,C,D,E,w[0],AC52);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(E,F,G,H,A,B,C,D,w[1],AC53);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(D,E,F,G,H,A,B,C,w[2],AC54);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(C,D,E,F,G,H,A,B,w[3],AC55);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(B,C,D,E,F,G,H,A,w[4],AC56);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(A,B,C,D,E,F,G,H,w[5],AC57);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(H,A,B,C,D,E,F,G,w[6],AC58);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(G,H,A,B,C,D,E,F,w[7],AC59);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(F,G,H,A,B,C,D,E,w[8],AC60);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(E,F,G,H,A,B,C,D,w[9],AC61);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(D,E,F,G,H,A,B,C,w[10],AC62);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(C,D,E,F,G,H,A,B,w[11],AC63);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(B,C,D,E,F,G,H,A,w[12],AC64);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(A,B,C,D,E,F,G,H,w[13],AC65);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[14],AC66);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(F,G,H,A,B,C,D,E,w[16],AC68);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(E,F,G,H,A,B,C,D,w[0],AC69);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(D,E,F,G,H,A,B,C,w[1],AC70);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(C,D,E,F,G,H,A,B,w[2],AC71);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(B,C,D,E,F,G,H,A,w[3],AC72);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(A,B,C,D,E,F,G,H,w[4],AC73);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(H,A,B,C,D,E,F,G,w[5],AC74);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(G,H,A,B,C,D,E,F,w[6],AC75);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(F,G,H,A,B,C,D,E,w[7],AC76);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(E,F,G,H,A,B,C,D,w[8],AC77);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(D,E,F,G,H,A,B,C,w[9],AC78);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(C,D,E,F,G,H,A,B,w[10],AC79);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(B,C,D,E,F,G,H,A,w[11],AC80);
 A+=(ulong)H0;
 B+=(ulong)H1;
 C+=(ulong)H2;
@@ -3318,6 +3264,7 @@ E+=(ulong)H4;
 F+=(ulong)H5;
 G+=(ulong)H6;
 H+=(ulong)H7;
+}
 A=Endian_Reverse64(A);
 B=Endian_Reverse64(B);
 C=Endian_Reverse64(C);
@@ -3327,7 +3274,6 @@ F=Endian_Reverse64(F);
 G=Endian_Reverse64(G);
 H=Endian_Reverse64(H);
 
-}
 found_ind[get_global_id(0)] = 0;
 
 if ((ulong)singlehash.s0!=A) return;
@@ -3346,11 +3292,12 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix2( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,ii,jj,T1,tmp1,elem,tmp2;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
+uint ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
-__local ulong w[64][17]; 
+__private ulong w[17]; 
 ulong alt[8]; 
 ulong SIZE;
 
@@ -3365,11 +3312,22 @@ G=input[(get_global_id(0)*11)+7];
 H=input[(get_global_id(0)*11)+8];
 pbytes[gli][0]=input[(get_global_id(0)*11)+9];
 pbytes[gli][1]=input[(get_global_id(0)*11)+10];
+A=Endian_Reverse64(A);
+B=Endian_Reverse64(B);
+C=Endian_Reverse64(C);
+D=Endian_Reverse64(D);
+E=Endian_Reverse64(E);
+F=Endian_Reverse64(F);
+G=Endian_Reverse64(G);
+H=Endian_Reverse64(H);
+pbytes[gli][0]=Endian_Reverse64(pbytes[gli][0]);
+pbytes[gli][1]=Endian_Reverse64(pbytes[gli][1]);
+sbytes[gli][0]=Endian_Reverse64(sbytes[gli][0]);
 
 
 for (ic=0;ic<5000;ic++)
 {
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
+w[0]=w[1]=w[2]=w[3]=w[4]=w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[16]=(ulong)0;
 
 if ((ic&1)==0)
 {
@@ -3381,17 +3339,17 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)0;
+ii=(uint)0;
 
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(ulong)64;
+w[0]=A;
+w[1]=B;
+w[2]=C;
+w[3]=D;
+w[4]=E;
+w[5]=F;
+w[6]=G;
+w[7]=H;
+ii=(uint)64;
 }
 
 else
@@ -3404,46 +3362,46 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)2;
+ii=(uint)2;
 
-w[gli][0]=pbytes[gli][0];
+w[0]=pbytes[gli][0];
 }
 
 
 if (ic % 3 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],sbytes[gli][0],ii,0);ii+=(ulong)8;
+SET_AIS(w,sbytes[gli][0],ii,0);ii+=(uint)8;
 //ii=jj+8;
 }
 
 if (ic % 7 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)2;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)2;
 //ii=jj+9;
 }
 
 if ((ic&1)==0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)2;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)2;
 //ii=jj+9;
 }
 else
 {
-SET_AIS(w[gli],alt[0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],alt[1],ii,8);ii+=(ulong)8;
-SET_AIS(w[gli],alt[2],ii,16);ii+=(ulong)8;
-SET_AIS(w[gli],alt[3],ii,24);ii+=(ulong)8;
-SET_AIS(w[gli],alt[4],ii,32);ii+=(ulong)8;
-SET_AIS(w[gli],alt[5],ii,40);ii+=(ulong)8;
-SET_AIS(w[gli],alt[6],ii,48);ii+=(ulong)8;
-SET_AIS(w[gli],alt[7],ii,56);ii+=(ulong)8;
+SET_AIS(w,alt[0],ii,0);ii+=(uint)8;
+SET_AIS(w,alt[1],ii,8);ii+=(uint)8;
+SET_AIS(w,alt[2],ii,16);ii+=(uint)8;
+SET_AIS(w,alt[3],ii,24);ii+=(uint)8;
+SET_AIS(w,alt[4],ii,32);ii+=(uint)8;
+SET_AIS(w,alt[5],ii,40);ii+=(uint)8;
+SET_AIS(w,alt[6],ii,48);ii+=(uint)8;
+SET_AIS(w,alt[7],ii,56);ii+=(uint)8;
 }
 
 
-SET_AB(w[gli],ii,0x80);
+SET_AB(w,ii,0x80);
 
 SIZE=(ulong)(ii)<<3;
 
@@ -3456,101 +3414,86 @@ F=(ulong)H5;
 G=(ulong)H6;
 H=(ulong)H7;
 
-w[gli][0]=Endian_Reverse64(w[gli][0]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[gli][0]);
-w[gli][1]=Endian_Reverse64(w[gli][1]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[gli][1]);
-w[gli][2]=Endian_Reverse64(w[gli][2]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[gli][2]);
-w[gli][3]=Endian_Reverse64(w[gli][3]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[gli][3]);
-w[gli][4]=Endian_Reverse64(w[gli][4]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[gli][4]);
-w[gli][5]=Endian_Reverse64(w[gli][5]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[gli][5]);
-w[gli][6]=Endian_Reverse64(w[gli][6]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[gli][6]);
-w[gli][7]=Endian_Reverse64(w[gli][7]);
-ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[gli][7]);
-w[gli][8]=Endian_Reverse64(w[gli][8]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[gli][8]);
-w[gli][9]=Endian_Reverse64(w[gli][9]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[gli][9]);
-w[gli][10]=Endian_Reverse64(w[gli][10]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[gli][10]);
-w[gli][11]=Endian_Reverse64(w[gli][11]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[gli][11]);
-w[gli][12]=Endian_Reverse64(w[gli][12]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[gli][12]);
-w[gli][13]=Endian_Reverse64(w[gli][13]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[gli][13]);
-w[gli][14]=Endian_Reverse64(w[gli][14]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[gli][14]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[0]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[1]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[2]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[3]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[4]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[5]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[6]);
+ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[7]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[8]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[9]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[10]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[11]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[12]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[13]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[14]);
 ROUND512_0_TO_15(B,C,D,E,F,G,H,A,SIZE,AC16);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(A,B,C,D,E,F,G,H,w[gli][16],AC17);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(H,A,B,C,D,E,F,G,w[gli][0],AC18);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(G,H,A,B,C,D,E,F,w[gli][1],AC19);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(F,G,H,A,B,C,D,E,w[gli][2],AC20);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(E,F,G,H,A,B,C,D,w[gli][3],AC21);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(D,E,F,G,H,A,B,C,w[gli][4],AC22);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(C,D,E,F,G,H,A,B,w[gli][5],AC23);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(B,C,D,E,F,G,H,A,w[gli][6],AC24);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(A,B,C,D,E,F,G,H,w[gli][7],AC25);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(H,A,B,C,D,E,F,G,w[gli][8],AC26);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(G,H,A,B,C,D,E,F,w[gli][9],AC27);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(F,G,H,A,B,C,D,E,w[gli][10],AC28);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(E,F,G,H,A,B,C,D,w[gli][11],AC29);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(D,E,F,G,H,A,B,C,w[gli][12],AC30);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(C,D,E,F,G,H,A,B,w[gli][13],AC31);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[gli][14],AC32);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(H,A,B,C,D,E,F,G,w[gli][16],AC34);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(G,H,A,B,C,D,E,F,w[gli][0],AC35);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(F,G,H,A,B,C,D,E,w[gli][1],AC36);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(E,F,G,H,A,B,C,D,w[gli][2],AC37);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(D,E,F,G,H,A,B,C,w[gli][3],AC38);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(C,D,E,F,G,H,A,B,w[gli][4],AC39);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(B,C,D,E,F,G,H,A,w[gli][5],AC40);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(A,B,C,D,E,F,G,H,w[gli][6],AC41);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(H,A,B,C,D,E,F,G,w[gli][7],AC42);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(G,H,A,B,C,D,E,F,w[gli][8],AC43);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(F,G,H,A,B,C,D,E,w[gli][9],AC44);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(E,F,G,H,A,B,C,D,w[gli][10],AC45);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(D,E,F,G,H,A,B,C,w[gli][11],AC46);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(C,D,E,F,G,H,A,B,w[gli][12],AC47);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(B,C,D,E,F,G,H,A,w[gli][13],AC48);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[gli][14],AC49);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(G,H,A,B,C,D,E,F,w[gli][16],AC51);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(F,G,H,A,B,C,D,E,w[gli][0],AC52);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(E,F,G,H,A,B,C,D,w[gli][1],AC53);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(D,E,F,G,H,A,B,C,w[gli][2],AC54);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(C,D,E,F,G,H,A,B,w[gli][3],AC55);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(B,C,D,E,F,G,H,A,w[gli][4],AC56);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(A,B,C,D,E,F,G,H,w[gli][5],AC57);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(H,A,B,C,D,E,F,G,w[gli][6],AC58);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(G,H,A,B,C,D,E,F,w[gli][7],AC59);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(F,G,H,A,B,C,D,E,w[gli][8],AC60);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(E,F,G,H,A,B,C,D,w[gli][9],AC61);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(D,E,F,G,H,A,B,C,w[gli][10],AC62);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(C,D,E,F,G,H,A,B,w[gli][11],AC63);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(B,C,D,E,F,G,H,A,w[gli][12],AC64);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(A,B,C,D,E,F,G,H,w[gli][13],AC65);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[gli][14],AC66);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(F,G,H,A,B,C,D,E,w[gli][16],AC68);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(E,F,G,H,A,B,C,D,w[gli][0],AC69);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(D,E,F,G,H,A,B,C,w[gli][1],AC70);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(C,D,E,F,G,H,A,B,w[gli][2],AC71);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(B,C,D,E,F,G,H,A,w[gli][3],AC72);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(A,B,C,D,E,F,G,H,w[gli][4],AC73);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(H,A,B,C,D,E,F,G,w[gli][5],AC74);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(G,H,A,B,C,D,E,F,w[gli][6],AC75);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(F,G,H,A,B,C,D,E,w[gli][7],AC76);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(E,F,G,H,A,B,C,D,w[gli][8],AC77);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(D,E,F,G,H,A,B,C,w[gli][9],AC78);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(C,D,E,F,G,H,A,B,w[gli][10],AC79);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(B,C,D,E,F,G,H,A,w[gli][11],AC80);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(A,B,C,D,E,F,G,H,w[16],AC17);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(H,A,B,C,D,E,F,G,w[0],AC18);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(G,H,A,B,C,D,E,F,w[1],AC19);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(F,G,H,A,B,C,D,E,w[2],AC20);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(E,F,G,H,A,B,C,D,w[3],AC21);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(D,E,F,G,H,A,B,C,w[4],AC22);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(C,D,E,F,G,H,A,B,w[5],AC23);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(B,C,D,E,F,G,H,A,w[6],AC24);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(A,B,C,D,E,F,G,H,w[7],AC25);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(H,A,B,C,D,E,F,G,w[8],AC26);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(G,H,A,B,C,D,E,F,w[9],AC27);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(F,G,H,A,B,C,D,E,w[10],AC28);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(E,F,G,H,A,B,C,D,w[11],AC29);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(D,E,F,G,H,A,B,C,w[12],AC30);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(C,D,E,F,G,H,A,B,w[13],AC31);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[14],AC32);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(H,A,B,C,D,E,F,G,w[16],AC34);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(G,H,A,B,C,D,E,F,w[0],AC35);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(F,G,H,A,B,C,D,E,w[1],AC36);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(E,F,G,H,A,B,C,D,w[2],AC37);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(D,E,F,G,H,A,B,C,w[3],AC38);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(C,D,E,F,G,H,A,B,w[4],AC39);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(B,C,D,E,F,G,H,A,w[5],AC40);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(A,B,C,D,E,F,G,H,w[6],AC41);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(H,A,B,C,D,E,F,G,w[7],AC42);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(G,H,A,B,C,D,E,F,w[8],AC43);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(F,G,H,A,B,C,D,E,w[9],AC44);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(E,F,G,H,A,B,C,D,w[10],AC45);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(D,E,F,G,H,A,B,C,w[11],AC46);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(C,D,E,F,G,H,A,B,w[12],AC47);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(B,C,D,E,F,G,H,A,w[13],AC48);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[14],AC49);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(G,H,A,B,C,D,E,F,w[16],AC51);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(F,G,H,A,B,C,D,E,w[0],AC52);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(E,F,G,H,A,B,C,D,w[1],AC53);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(D,E,F,G,H,A,B,C,w[2],AC54);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(C,D,E,F,G,H,A,B,w[3],AC55);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(B,C,D,E,F,G,H,A,w[4],AC56);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(A,B,C,D,E,F,G,H,w[5],AC57);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(H,A,B,C,D,E,F,G,w[6],AC58);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(G,H,A,B,C,D,E,F,w[7],AC59);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(F,G,H,A,B,C,D,E,w[8],AC60);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(E,F,G,H,A,B,C,D,w[9],AC61);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(D,E,F,G,H,A,B,C,w[10],AC62);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(C,D,E,F,G,H,A,B,w[11],AC63);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(B,C,D,E,F,G,H,A,w[12],AC64);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(A,B,C,D,E,F,G,H,w[13],AC65);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[14],AC66);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(F,G,H,A,B,C,D,E,w[16],AC68);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(E,F,G,H,A,B,C,D,w[0],AC69);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(D,E,F,G,H,A,B,C,w[1],AC70);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(C,D,E,F,G,H,A,B,w[2],AC71);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(B,C,D,E,F,G,H,A,w[3],AC72);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(A,B,C,D,E,F,G,H,w[4],AC73);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(H,A,B,C,D,E,F,G,w[5],AC74);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(G,H,A,B,C,D,E,F,w[6],AC75);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(F,G,H,A,B,C,D,E,w[7],AC76);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(E,F,G,H,A,B,C,D,w[8],AC77);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(D,E,F,G,H,A,B,C,w[9],AC78);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(C,D,E,F,G,H,A,B,w[10],AC79);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(B,C,D,E,F,G,H,A,w[11],AC80);
 A+=(ulong)H0;
 B+=(ulong)H1;
 C+=(ulong)H2;
@@ -3559,6 +3502,7 @@ E+=(ulong)H4;
 F+=(ulong)H5;
 G+=(ulong)H6;
 H+=(ulong)H7;
+}
 A=Endian_Reverse64(A);
 B=Endian_Reverse64(B);
 C=Endian_Reverse64(C);
@@ -3568,7 +3512,6 @@ F=Endian_Reverse64(F);
 G=Endian_Reverse64(G);
 H=Endian_Reverse64(H);
 
-}
 found_ind[get_global_id(0)] = 0;
 
 if ((ulong)singlehash.s0!=A) return;
@@ -3588,11 +3531,12 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix1( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,ii,jj,T1,tmp1,elem,tmp2;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
+uint ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
-__local ulong w[64][17]; 
+__private ulong w[17]; 
 ulong alt[8]; 
 ulong SIZE;
 
@@ -3607,11 +3551,22 @@ G=input[(get_global_id(0)*11)+7];
 H=input[(get_global_id(0)*11)+8];
 pbytes[gli][0]=input[(get_global_id(0)*11)+9];
 pbytes[gli][1]=input[(get_global_id(0)*11)+10];
+A=Endian_Reverse64(A);
+B=Endian_Reverse64(B);
+C=Endian_Reverse64(C);
+D=Endian_Reverse64(D);
+E=Endian_Reverse64(E);
+F=Endian_Reverse64(F);
+G=Endian_Reverse64(G);
+H=Endian_Reverse64(H);
+pbytes[gli][0]=Endian_Reverse64(pbytes[gli][0]);
+pbytes[gli][1]=Endian_Reverse64(pbytes[gli][1]);
+sbytes[gli][0]=Endian_Reverse64(sbytes[gli][0]);
 
 
 for (ic=0;ic<5000;ic++)
 {
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
+w[0]=w[1]=w[2]=w[3]=w[4]=w[5]=w[6]=w[7]=w[8]=w[9]=w[10]=w[11]=w[12]=w[13]=w[14]=w[16]=(ulong)0;
 
 if ((ic&1)==0)
 {
@@ -3623,17 +3578,17 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)0;
+ii=(uint)0;
 
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(ulong)64;
+w[0]=A;
+w[1]=B;
+w[2]=C;
+w[3]=D;
+w[4]=E;
+w[5]=F;
+w[6]=G;
+w[7]=H;
+ii=(uint)64;
 }
 
 else
@@ -3646,46 +3601,46 @@ alt[4]=E;
 alt[5]=F;
 alt[6]=G;
 alt[7]=H;
-ii=(ulong)1;
+ii=(uint)1;
 
-w[gli][0]=pbytes[gli][0];
+w[0]=pbytes[gli][0];
 }
 
 
 if (ic % 3 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],sbytes[gli][0],ii,0);ii+=(ulong)8;
+SET_AIS(w,sbytes[gli][0],ii,0);ii+=(uint)8;
 //ii=jj+8;
 }
 
 if (ic % 7 != 0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)1;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)1;
 //ii=jj+9;
 }
 
 if ((ic&1)==0)
 {
 jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(ulong)1;
+SET_AIS(w,pbytes[gli][0],ii,0);ii+=(uint)1;
 //ii=jj+9;
 }
 else
 {
-SET_AIS(w[gli],alt[0],ii,0);ii+=(ulong)8;
-SET_AIS(w[gli],alt[1],ii,8);ii+=(ulong)8;
-SET_AIS(w[gli],alt[2],ii,16);ii+=(ulong)8;
-SET_AIS(w[gli],alt[3],ii,24);ii+=(ulong)8;
-SET_AIS(w[gli],alt[4],ii,32);ii+=(ulong)8;
-SET_AIS(w[gli],alt[5],ii,40);ii+=(ulong)8;
-SET_AIS(w[gli],alt[6],ii,48);ii+=(ulong)8;
-SET_AIS(w[gli],alt[7],ii,56);ii+=(ulong)8;
+SET_AIS(w,alt[0],ii,0);ii+=(uint)8;
+SET_AIS(w,alt[1],ii,8);ii+=(uint)8;
+SET_AIS(w,alt[2],ii,16);ii+=(uint)8;
+SET_AIS(w,alt[3],ii,24);ii+=(uint)8;
+SET_AIS(w,alt[4],ii,32);ii+=(uint)8;
+SET_AIS(w,alt[5],ii,40);ii+=(uint)8;
+SET_AIS(w,alt[6],ii,48);ii+=(uint)8;
+SET_AIS(w,alt[7],ii,56);ii+=(uint)8;
 }
 
 
-SET_AB(w[gli],ii,0x80);
+SET_AB(w,ii,0x80);
 
 SIZE=(ulong)(ii)<<3;
 
@@ -3698,101 +3653,86 @@ F=(ulong)H5;
 G=(ulong)H6;
 H=(ulong)H7;
 
-w[gli][0]=Endian_Reverse64(w[gli][0]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[gli][0]);
-w[gli][1]=Endian_Reverse64(w[gli][1]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[gli][1]);
-w[gli][2]=Endian_Reverse64(w[gli][2]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[gli][2]);
-w[gli][3]=Endian_Reverse64(w[gli][3]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[gli][3]);
-w[gli][4]=Endian_Reverse64(w[gli][4]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[gli][4]);
-w[gli][5]=Endian_Reverse64(w[gli][5]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[gli][5]);
-w[gli][6]=Endian_Reverse64(w[gli][6]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[gli][6]);
-w[gli][7]=Endian_Reverse64(w[gli][7]);
-ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[gli][7]);
-w[gli][8]=Endian_Reverse64(w[gli][8]);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[gli][8]);
-w[gli][9]=Endian_Reverse64(w[gli][9]);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[gli][9]);
-w[gli][10]=Endian_Reverse64(w[gli][10]);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[gli][10]);
-w[gli][11]=Endian_Reverse64(w[gli][11]);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[gli][11]);
-w[gli][12]=Endian_Reverse64(w[gli][12]);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[gli][12]);
-w[gli][13]=Endian_Reverse64(w[gli][13]);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[gli][13]);
-w[gli][14]=Endian_Reverse64(w[gli][14]);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[gli][14]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w[0]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w[1]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w[2]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w[3]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w[4]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w[5]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w[6]);
+ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w[7]);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w[8]);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w[9]);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w[10]);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w[11]);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w[12]);
+ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w[13]);
+ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w[14]);
 ROUND512_0_TO_15(B,C,D,E,F,G,H,A,SIZE,AC16);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(A,B,C,D,E,F,G,H,w[gli][16],AC17);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(H,A,B,C,D,E,F,G,w[gli][0],AC18);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(G,H,A,B,C,D,E,F,w[gli][1],AC19);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(F,G,H,A,B,C,D,E,w[gli][2],AC20);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(E,F,G,H,A,B,C,D,w[gli][3],AC21);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(D,E,F,G,H,A,B,C,w[gli][4],AC22);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(C,D,E,F,G,H,A,B,w[gli][5],AC23);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(B,C,D,E,F,G,H,A,w[gli][6],AC24);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(A,B,C,D,E,F,G,H,w[gli][7],AC25);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(H,A,B,C,D,E,F,G,w[gli][8],AC26);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(G,H,A,B,C,D,E,F,w[gli][9],AC27);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(F,G,H,A,B,C,D,E,w[gli][10],AC28);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(E,F,G,H,A,B,C,D,w[gli][11],AC29);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(D,E,F,G,H,A,B,C,w[gli][12],AC30);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(C,D,E,F,G,H,A,B,w[gli][13],AC31);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[gli][14],AC32);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(H,A,B,C,D,E,F,G,w[gli][16],AC34);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(G,H,A,B,C,D,E,F,w[gli][0],AC35);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(F,G,H,A,B,C,D,E,w[gli][1],AC36);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(E,F,G,H,A,B,C,D,w[gli][2],AC37);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(D,E,F,G,H,A,B,C,w[gli][3],AC38);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(C,D,E,F,G,H,A,B,w[gli][4],AC39);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(B,C,D,E,F,G,H,A,w[gli][5],AC40);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(A,B,C,D,E,F,G,H,w[gli][6],AC41);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(H,A,B,C,D,E,F,G,w[gli][7],AC42);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(G,H,A,B,C,D,E,F,w[gli][8],AC43);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(F,G,H,A,B,C,D,E,w[gli][9],AC44);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(E,F,G,H,A,B,C,D,w[gli][10],AC45);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(D,E,F,G,H,A,B,C,w[gli][11],AC46);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(C,D,E,F,G,H,A,B,w[gli][12],AC47);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(B,C,D,E,F,G,H,A,w[gli][13],AC48);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[gli][14],AC49);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(G,H,A,B,C,D,E,F,w[gli][16],AC51);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(F,G,H,A,B,C,D,E,w[gli][0],AC52);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(E,F,G,H,A,B,C,D,w[gli][1],AC53);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(D,E,F,G,H,A,B,C,w[gli][2],AC54);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(C,D,E,F,G,H,A,B,w[gli][3],AC55);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(B,C,D,E,F,G,H,A,w[gli][4],AC56);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(A,B,C,D,E,F,G,H,w[gli][5],AC57);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(H,A,B,C,D,E,F,G,w[gli][6],AC58);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(G,H,A,B,C,D,E,F,w[gli][7],AC59);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(F,G,H,A,B,C,D,E,w[gli][8],AC60);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(E,F,G,H,A,B,C,D,w[gli][9],AC61);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(D,E,F,G,H,A,B,C,w[gli][10],AC62);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(C,D,E,F,G,H,A,B,w[gli][11],AC63);
-w[gli][12] = sigma1_512(w[gli][10])+w[gli][5]+sigma0_512(w[gli][14])+w[gli][13]; ROUND512(B,C,D,E,F,G,H,A,w[gli][12],AC64);
-w[gli][13] = sigma1_512(w[gli][11])+w[gli][6]+sigma0_512(SIZE)+w[gli][14]; ROUND512(A,B,C,D,E,F,G,H,w[gli][13],AC65);
-w[gli][14] = sigma1_512(w[gli][12])+w[gli][7]+sigma0_512(w[gli][16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[gli][14],AC66);
-SIZE = sigma1_512(w[gli][13])+w[gli][8]+sigma0_512(w[gli][0])+w[gli][16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
-w[gli][16] = sigma1_512(w[gli][14])+w[gli][9]+sigma0_512(w[gli][1])+w[gli][0]; ROUND512(F,G,H,A,B,C,D,E,w[gli][16],AC68);
-w[gli][0] = sigma1_512(SIZE)+w[gli][10]+sigma0_512(w[gli][2])+w[gli][1]; ROUND512(E,F,G,H,A,B,C,D,w[gli][0],AC69);
-w[gli][1] = sigma1_512(w[gli][16])+w[gli][11]+sigma0_512(w[gli][3])+w[gli][2]; ROUND512(D,E,F,G,H,A,B,C,w[gli][1],AC70);
-w[gli][2] = sigma1_512(w[gli][0])+w[gli][12]+sigma0_512(w[gli][4])+w[gli][3]; ROUND512(C,D,E,F,G,H,A,B,w[gli][2],AC71);
-w[gli][3] = sigma1_512(w[gli][1])+w[gli][13]+sigma0_512(w[gli][5])+w[gli][4]; ROUND512(B,C,D,E,F,G,H,A,w[gli][3],AC72);
-w[gli][4] = sigma1_512(w[gli][2])+w[gli][14]+sigma0_512(w[gli][6])+w[gli][5]; ROUND512(A,B,C,D,E,F,G,H,w[gli][4],AC73);
-w[gli][5] = sigma1_512(w[gli][3])+SIZE+sigma0_512(w[gli][7])+w[gli][6]; ROUND512(H,A,B,C,D,E,F,G,w[gli][5],AC74);
-w[gli][6] = sigma1_512(w[gli][4])+w[gli][16]+sigma0_512(w[gli][8])+w[gli][7]; ROUND512(G,H,A,B,C,D,E,F,w[gli][6],AC75);
-w[gli][7] = sigma1_512(w[gli][5])+w[gli][0]+sigma0_512(w[gli][9])+w[gli][8]; ROUND512(F,G,H,A,B,C,D,E,w[gli][7],AC76);
-w[gli][8] = sigma1_512(w[gli][6])+w[gli][1]+sigma0_512(w[gli][10])+w[gli][9]; ROUND512(E,F,G,H,A,B,C,D,w[gli][8],AC77);
-w[gli][9] = sigma1_512(w[gli][7])+w[gli][2]+sigma0_512(w[gli][11])+w[gli][10]; ROUND512(D,E,F,G,H,A,B,C,w[gli][9],AC78);
-w[gli][10] = sigma1_512(w[gli][8])+w[gli][3]+sigma0_512(w[gli][12])+w[gli][11]; ROUND512(C,D,E,F,G,H,A,B,w[gli][10],AC79);
-w[gli][11] = sigma1_512(w[gli][9])+w[gli][4]+sigma0_512(w[gli][13])+w[gli][12]; ROUND512(B,C,D,E,F,G,H,A,w[gli][11],AC80);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(A,B,C,D,E,F,G,H,w[16],AC17);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(H,A,B,C,D,E,F,G,w[0],AC18);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(G,H,A,B,C,D,E,F,w[1],AC19);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(F,G,H,A,B,C,D,E,w[2],AC20);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(E,F,G,H,A,B,C,D,w[3],AC21);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(D,E,F,G,H,A,B,C,w[4],AC22);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(C,D,E,F,G,H,A,B,w[5],AC23);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(B,C,D,E,F,G,H,A,w[6],AC24);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(A,B,C,D,E,F,G,H,w[7],AC25);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(H,A,B,C,D,E,F,G,w[8],AC26);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(G,H,A,B,C,D,E,F,w[9],AC27);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(F,G,H,A,B,C,D,E,w[10],AC28);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(E,F,G,H,A,B,C,D,w[11],AC29);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(D,E,F,G,H,A,B,C,w[12],AC30);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(C,D,E,F,G,H,A,B,w[13],AC31);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(B,C,D,E,F,G,H,A,w[14],AC32);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(H,A,B,C,D,E,F,G,w[16],AC34);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(G,H,A,B,C,D,E,F,w[0],AC35);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(F,G,H,A,B,C,D,E,w[1],AC36);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(E,F,G,H,A,B,C,D,w[2],AC37);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(D,E,F,G,H,A,B,C,w[3],AC38);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(C,D,E,F,G,H,A,B,w[4],AC39);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(B,C,D,E,F,G,H,A,w[5],AC40);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(A,B,C,D,E,F,G,H,w[6],AC41);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(H,A,B,C,D,E,F,G,w[7],AC42);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(G,H,A,B,C,D,E,F,w[8],AC43);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(F,G,H,A,B,C,D,E,w[9],AC44);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(E,F,G,H,A,B,C,D,w[10],AC45);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(D,E,F,G,H,A,B,C,w[11],AC46);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(C,D,E,F,G,H,A,B,w[12],AC47);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(B,C,D,E,F,G,H,A,w[13],AC48);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(A,B,C,D,E,F,G,H,w[14],AC49);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(G,H,A,B,C,D,E,F,w[16],AC51);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(F,G,H,A,B,C,D,E,w[0],AC52);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(E,F,G,H,A,B,C,D,w[1],AC53);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(D,E,F,G,H,A,B,C,w[2],AC54);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(C,D,E,F,G,H,A,B,w[3],AC55);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(B,C,D,E,F,G,H,A,w[4],AC56);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(A,B,C,D,E,F,G,H,w[5],AC57);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(H,A,B,C,D,E,F,G,w[6],AC58);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(G,H,A,B,C,D,E,F,w[7],AC59);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(F,G,H,A,B,C,D,E,w[8],AC60);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(E,F,G,H,A,B,C,D,w[9],AC61);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(D,E,F,G,H,A,B,C,w[10],AC62);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(C,D,E,F,G,H,A,B,w[11],AC63);
+w[12] = sigma1_512(w[10])+w[5]+sigma0_512(w[14])+w[13]; ROUND512(B,C,D,E,F,G,H,A,w[12],AC64);
+w[13] = sigma1_512(w[11])+w[6]+sigma0_512(SIZE)+w[14]; ROUND512(A,B,C,D,E,F,G,H,w[13],AC65);
+w[14] = sigma1_512(w[12])+w[7]+sigma0_512(w[16])+SIZE; ROUND512(H,A,B,C,D,E,F,G,w[14],AC66);
+SIZE = sigma1_512(w[13])+w[8]+sigma0_512(w[0])+w[16]; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
+w[16] = sigma1_512(w[14])+w[9]+sigma0_512(w[1])+w[0]; ROUND512(F,G,H,A,B,C,D,E,w[16],AC68);
+w[0] = sigma1_512(SIZE)+w[10]+sigma0_512(w[2])+w[1]; ROUND512(E,F,G,H,A,B,C,D,w[0],AC69);
+w[1] = sigma1_512(w[16])+w[11]+sigma0_512(w[3])+w[2]; ROUND512(D,E,F,G,H,A,B,C,w[1],AC70);
+w[2] = sigma1_512(w[0])+w[12]+sigma0_512(w[4])+w[3]; ROUND512(C,D,E,F,G,H,A,B,w[2],AC71);
+w[3] = sigma1_512(w[1])+w[13]+sigma0_512(w[5])+w[4]; ROUND512(B,C,D,E,F,G,H,A,w[3],AC72);
+w[4] = sigma1_512(w[2])+w[14]+sigma0_512(w[6])+w[5]; ROUND512(A,B,C,D,E,F,G,H,w[4],AC73);
+w[5] = sigma1_512(w[3])+SIZE+sigma0_512(w[7])+w[6]; ROUND512(H,A,B,C,D,E,F,G,w[5],AC74);
+w[6] = sigma1_512(w[4])+w[16]+sigma0_512(w[8])+w[7]; ROUND512(G,H,A,B,C,D,E,F,w[6],AC75);
+w[7] = sigma1_512(w[5])+w[0]+sigma0_512(w[9])+w[8]; ROUND512(F,G,H,A,B,C,D,E,w[7],AC76);
+w[8] = sigma1_512(w[6])+w[1]+sigma0_512(w[10])+w[9]; ROUND512(E,F,G,H,A,B,C,D,w[8],AC77);
+w[9] = sigma1_512(w[7])+w[2]+sigma0_512(w[11])+w[10]; ROUND512(D,E,F,G,H,A,B,C,w[9],AC78);
+w[10] = sigma1_512(w[8])+w[3]+sigma0_512(w[12])+w[11]; ROUND512(C,D,E,F,G,H,A,B,w[10],AC79);
+w[11] = sigma1_512(w[9])+w[4]+sigma0_512(w[13])+w[12]; ROUND512(B,C,D,E,F,G,H,A,w[11],AC80);
 A+=(ulong)H0;
 B+=(ulong)H1;
 C+=(ulong)H2;
@@ -3801,6 +3741,7 @@ E+=(ulong)H4;
 F+=(ulong)H5;
 G+=(ulong)H6;
 H+=(ulong)H7;
+}
 A=Endian_Reverse64(A);
 B=Endian_Reverse64(B);
 C=Endian_Reverse64(C);
@@ -3810,7 +3751,6 @@ F=Endian_Reverse64(F);
 G=Endian_Reverse64(G);
 H=Endian_Reverse64(H);
 
-}
 found_ind[get_global_id(0)] = 0;
 
 if ((ulong)singlehash.s0!=A) return;

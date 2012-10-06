@@ -466,8 +466,8 @@ static void ocl_sha512unix_crack_callback(char *line, int self)
         gws1 = gws*wthreads[self].vectorsize;
         if (gws1==0) gws1=64;
         if (gws==0) gws=64;
-
         wthreads[self].tries+=(gws1)/get_hashes_num();
+
         _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel16[cc1][self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
         found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
         if (err!=CL_SUCCESS) continue;
@@ -574,7 +574,7 @@ void* ocl_rule_sha512unix_thread(void *arg)
 
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
-    ocl_rule_workset[self]=64*64;
+    ocl_rule_workset[self]=64*64*2;
     if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=4;
     if (ocl_gpu_double) ocl_rule_workset[self]*=2;
     if (interactive_mode==1) ocl_rule_workset[self]/=8;
