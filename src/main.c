@@ -354,7 +354,8 @@ int main(int argc, char *argv[])
     out_cracked_file=NULL;
     out_uncracked_file=NULL;
     markovstat = NULL;
-
+    attack_checkpoints=0;
+    attack_avgspeed=0;
 
     while ((argv[cnt])&&(cnt<MAXARGV))
     {
@@ -619,7 +620,6 @@ int main(int argc, char *argv[])
 	    }
 	}
     }
-
 
 
     if (strcmp(get_current_plugin(),"bitcoin")!=0)

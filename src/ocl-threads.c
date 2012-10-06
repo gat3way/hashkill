@@ -563,6 +563,7 @@ static void * ocl_start_monitor_thread(void *arg)
     while (attack_over != 2)
     {
         sleep(3);
+        attack_checkpoints++;
         if (installed == 0) 
         {
     	    signal(SIGINT, ocl_sigint_handler);
@@ -581,6 +582,8 @@ static void * ocl_start_monitor_thread(void *arg)
     	    	    wthreads[a].oldtries = wthreads[a].tries;
     	    	    wthreads[a].tries=0;
     	    	}
+    	    	if (attack_checkpoints==1) attack_avgspeed = sum;
+    	    	else attack_avgspeed=(attack_avgspeed*attack_checkpoints+(sum))/(attack_checkpoints+1);
     	    }
     	    if (attack_method==attack_method_markov)
     	    { 
@@ -590,6 +593,8 @@ static void * ocl_start_monitor_thread(void *arg)
     	    	    wthreads[a].oldtries = wthreads[a].tries;
     	    	    wthreads[a].tries=0;
     	    	}
+    	    	if (attack_checkpoints==1) attack_avgspeed = sum;
+    	    	else attack_avgspeed=(attack_avgspeed*attack_checkpoints+(sum))/(attack_checkpoints+1);
     	    }
     	    if (attack_method==attack_method_rule)
     	    {
@@ -599,32 +604,27 @@ static void * ocl_start_monitor_thread(void *arg)
     	    	    wthreads[a].oldtries = wthreads[a].tries;
     	    	    wthreads[a].tries=0;
     	    	}
-    		if (attack_overall_count == 1)
+    	    	if (attack_checkpoints==1) attack_avgspeed = sum;
+    	    	else attack_avgspeed=(attack_avgspeed*attack_checkpoints+(sum))/(attack_checkpoints+1);
+    		if (attack_overall_count <= 1)
     		{
-            	    if ((sum / 30000000) > 5) printf("\rSpeed: %lldM c/s   Cracked: %d passwords    \b\b\b", (sum / 3000000), cracked);
-            	    else if ((sum / 3000) > 5) printf("\rSpeed: %lldK c/s   Cracked: %d passwords    \b\b\b", (sum / 3000), cracked);
-            	    else printf("\rSpeed: %lld c/s   Cracked: %d passwords   ", (sum / 3), cracked);
+            	    if ((sum / 30000000) > 20) printf("\rSpeed: %lldM c/s (avg: %lldM c/s)  Cracked: %d passwords   ", (sum / 3000000),(attack_avgspeed/3000000), cracked);
+            	    else if ((sum / 3000) > 20) printf("\rSpeed: %lldK c/s (avg: %lldK c/s)   Cracked: %d passwords   ", (sum / 3000),(attack_avgspeed/3000) ,cracked);
+            	    else printf("\rSpeed: %lld c/s (avg: %lld c/s)  Cracked: %d passwords   ", (sum / 3),(attack_avgspeed/3), cracked);
     		}
-    		else if (((sum / 3000) > 5)&&(attack_overall_count!=0))
+    		else
     		{
             	    if ( ((attack_current_count*100) / attack_overall_count) > 100)
             	    {
-        		if (sum>30000000) printf("\rProgress: 100%%   Speed: %lldM c/s   Cracked: %d passwords  (please wait...)", (sum / 3000000), cracked);
-            		else printf("\rProgress: 100%%   Speed: %lldK c/s   Cracked: %d passwords  (please wait...)", (sum / 3000), cracked);
+        		if (sum>30000000) printf("\rProgress: 100%%   Speed: %lldM c/s (avg: %lldM c/s)  Cracked: %d passwords  (please wait...)   ", (sum / 3000000),(attack_avgspeed/3000000) ,cracked);
+            		else printf("\rProgress: 100%%   Speed: %lldK c/s (avg: %lldK c/s)  Cracked: %d passwords  (please wait...)   ", (sum / 3000),(attack_avgspeed/3000) ,cracked);
             	    }
             	    else  
             	    {
-            		if (sum>30000000) printf("\rProgress: %lld%%   Speed: %lldM c/s   Cracked: %d passwords  ", ((attack_current_count*100)/attack_overall_count) ,(sum / 3000000), cracked);
-            		else printf("\rProgress: %lld%%   Speed: %lldK c/s   Cracked: %d passwords  ", (uint64_t)((attack_current_count*100)/attack_overall_count) ,(sum / 3000), cracked);
+            		if (sum>30000000) printf("\rProgress: %lld%%   Speed: %lldM c/s (avg: %lldM c/s)  Cracked: %d passwords   ", ((attack_current_count*100)/attack_overall_count) ,(sum / 3000000),(attack_avgspeed/3000000) ,cracked);
+            		else if ((sum / 3000) > 20) printf("\rProgress: %lld%%   Speed: %lldK c/s (avg: %lldK c/s)  Cracked: %d passwords   ", (uint64_t)((attack_current_count*100)/attack_overall_count) ,(sum / 3000),(attack_avgspeed/3000) ,cracked);
+        		else printf("\rProgress: %lld%%   Speed: %lld c/s (avg: %lld c/s)  Cracked: %d passwords   ",(uint64_t)((attack_current_count*100)/attack_overall_count), (sum / 3),(attack_avgspeed/3), cracked);
         	    }
-    		}
-    		else if (attack_overall_count>0)
-    		{
-        	    if ( ((attack_current_count*100) / attack_overall_count) > 100)
-            	    {
-            		printf("\rProgress: 100%%   Speed: %lld c/s   Cracked: %d passwords   (please wait...)", (sum / 3), cracked);
-            	    }
-            	    else  printf("\rProgress: %lld%%   Speed: %lld c/s   Cracked: %d passwords   ", (uint64_t)((attack_current_count*100)/attack_overall_count) ,(sum / 3), cracked);
     		}
     		if (cracked >= hashes_count) attack_over = 2;
     		fflush(stdout);
@@ -634,32 +634,28 @@ static void * ocl_start_monitor_thread(void *arg)
 	    {
     		if (attack_overall_count == 1)
     		{
-            	    if ((sum / 30000000) > 5) printf("\rSpeed: %lldM c/s   Cracked: %d passwords    \b\b\b", (sum / 3000000), cracked);
-            	    else if ((sum / 3000) > 5) printf("\rSpeed: %lldK c/s   Cracked: %d passwords    \b\b\b", (sum / 3000), cracked);
-            	    else printf("\rSpeed: %lld c/s   Cracked: %d passwords   ", (sum / 3), cracked);
+            	    if ((sum / 30000000) > 20) 	printf("\rSpeed: %lldM c/s (avg: %lldM c/s)  Cracked: %d passwords   ", (sum / 3000000),(attack_avgspeed/3000000), cracked);
+            	    else if ((sum / 3000) > 20) printf("\rSpeed: %lldK c/s (avg: %lldK c/s)  Cracked: %d passwords   ", (sum / 3000),(attack_avgspeed/3000), cracked);
+            	    else printf("\rSpeed: %lld c/s   Cracked: %d passwords (avg: %lld c/s)                                                               ", (sum / 3),(attack_avgspeed/3), cracked);
     		}
-    		else if (((sum / 3000) > 5)&&(attack_overall_count!=0))
+    		else
     		{
             	    if ( ((attack_current_count*100) / attack_overall_count) > 100)
             	    {
-        		if (sum>30000000) printf("\rProgress: 100%%   Speed: %lldM c/s   Cracked: %d passwords  (please wait...)", (sum / 3000000), cracked);
-            		else printf("\rProgress: 100%%   Speed: %lldK c/s   Cracked: %d passwords  (please wait...)", (sum / 3000), cracked);
+        		if (sum>30000000) printf("\rProgress: 100%%   Speed: %lldM c/s (avg: %lldM c/s)  Cracked: %d passwords  (please wait...)   ", (sum / 3000000),(attack_avgspeed/3000000), cracked);
+            		else printf("\rProgress: 100%%   Speed: %lldK c/s (avg: %lldK c/s)  Cracked: %d passwords  (please wait...)   ", (sum / 3000),(attack_avgspeed/3000), cracked);
             	    }
             	    else  
             	    {
-            		if (sum>30000000) printf("\rProgress: %lld%%   Speed: %lldM c/s   Cracked: %d passwords  ", ((attack_current_count*100)/attack_overall_count) ,(sum / 3000000), cracked);
-            		else printf("\rProgress: %lld%%   Speed: %lldK c/s   Cracked: %d passwords  ", ((attack_current_count*100)/attack_overall_count) ,(sum / 3000), cracked);
+            		if (sum>30000000) 	printf("\rProgress: %lld%%   Speed: %lldM c/s (avg: %lldM c/s)  Cracked: %d passwords   ",((attack_current_count*100)/attack_overall_count) ,(sum / 3000000),(attack_avgspeed/3000000), cracked);
+            		else if ((sum / 3000) > 20) printf("\rProgress: %lld%%   Speed: %lldK c/s (avg: %lldK c/s)  Cracked: %d passwords   ",((attack_current_count*100)/attack_overall_count) , (sum / 3000),(attack_avgspeed/3000), cracked);
+            		else printf("\rProgress: %lld%%   Speed: %lld c/s   Cracked: %d passwords (avg: %lld c/s)   ",(uint64_t)((attack_current_count*100)/attack_overall_count), (sum / 3),(attack_avgspeed/3), cracked);
         	    }
     		}
-    		else if (attack_overall_count>0)
-    		{
-        	    if ( ((attack_current_count*100) / attack_overall_count) > 100)
-            	    {
-            		printf("\rProgress: 100%%   Speed: %lld c/s   Cracked: %d passwords   (please wait...)", (sum / 3), cracked);
-            	    }
-            	    else  printf("\rProgress: %lld%%   Speed: %lld c/s   Cracked: %d passwords   ", ((attack_current_count*100)/attack_overall_count) ,(sum / 3), cracked);
-    		}
     	    }
+    	    printf("                        ");
+    	    fflush(stdout);
+    	    printf("\r\e[?25l");
     	    fflush(stdout);
 
             if (session_init_file(&sessionfile) == hash_ok)
@@ -801,12 +797,12 @@ static void * ocl_start_monitor_info_thread(void *arg)
 		if (found==1)
 		{
             	    c++;
-            	    if ((ttries / 30000000) > 5) 
+            	    if ((ttries / 30000000) > 20) 
             	    {
             		ttries1=(ttries / 3000000);
             		hlog("GPU%d: %lldM c/s [Temp]: %dC  (%s)\n",c,ttries1,temperature,devname);
             	    }
-            	    else if ((ttries / 3000) > 5) 
+            	    else if ((ttries / 3000) > 20) 
             	    {
             		ttries1=(ttries / 3000);
             		hlog("GPU%d: %lldK c/s [Temp]: %dC  (%s)\n",c,ttries1,temperature,devname);
@@ -840,12 +836,12 @@ static void * ocl_start_monitor_info_thread(void *arg)
 		if (found==1)
 		{
             	    c++;
-            	    if ((ttries / 30000000) > 5) 
+            	    if ((ttries / 30000000) > 20) 
             	    {
             		ttries1=(ttries / 3000000);
             		hlog("GPU%d: %lldM c/s [Temp]: %dC  (%s)\n",c,ttries1,temperature,devname);
             	    }
-            	    else if ((ttries / 3000) > 5) 
+            	    else if ((ttries / 3000) > 20) 
             	    {
             		ttries1=(ttries / 3000);
             		hlog("GPU%d: %lldK c/s [Temp]: %dC  (%s)\n",c,ttries1,temperature,devname);

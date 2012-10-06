@@ -2096,6 +2096,7 @@ void sched_wait(int len)
 /* Atexit handler to restore term settings */
 static void restore_terminal_settings(void)
 {
+    printf("\e[?25h");
     tcsetattr(0, TCSANOW, &old_term);
 }
 

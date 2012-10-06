@@ -164,6 +164,8 @@ int hash_ret_len;
 int single_hash;
 uint64_t attack_overall_count;
 uint64_t attack_current_count;
+uint64_t attack_checkpoints;
+uint64_t attack_avgspeed;;
 
 
 /* Global variables needed by modules */
