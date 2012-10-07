@@ -854,7 +854,7 @@ static void * start_monitor_thread(void *arg)
                 {
                     if ((sum / 30000000) > 20)  printf("\rSpeed: %lldM c/s (avg: %lldM c/s)  Cracked: %d passwords   ", (sum / 3000000),(attack_avgspeed/3000000), cracked);
                     else if ((sum / 3000) > 20) printf("\rSpeed: %lldK c/s (avg: %lldK c/s)  Cracked: %d passwords   ", (sum / 3000),(attack_avgspeed/3000), cracked);
-                    else printf("\rSpeed: %lld c/s   Cracked: %d passwords (avg: %lld c/s)    ", (sum / 3),(attack_avgspeed/3), cracked);
+                    else printf("\rSpeed: %lld c/s (avg: %lld c/s)   Cracked: %d passwords    ", (sum / 3),(attack_avgspeed/3), cracked);
                 }
                 else
                 {
