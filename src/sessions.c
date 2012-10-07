@@ -88,7 +88,7 @@ hash_stat session_init_file(FILE **sessionfile)
 
     pwd=getpwuid(getuid());
     // make sure ~/.hashkill exists..
-    snprintf(fname, 255, "%s/.hashkill", pwd->pw_dir);
+    snprintf(fname, 256, "%s/.hashkill", pwd->pw_dir);
     if(stat(fname, &filest) == -1 && errno == ENOENT){
        if(mkdir(fname, S_IRWXU))
        {
@@ -696,6 +696,8 @@ hash_stat session_write_parameters(char *plugin, attack_method_t attacktype, uin
     json_object_object_add(main_header_node,"progress", jobj);
     jobj = json_object_new_int(attack_method);
     json_object_object_add(main_header_node,"attacktype", jobj);
+    jobj = json_object_new_int(ocl_gpu_platform);
+    json_object_object_add(main_header_node,"gpuplatform", jobj);
     jobj = json_object_new_int(hash_crack_speed);
     json_object_object_add(main_header_node,"attackspeed", jobj);
     jobj = json_object_new_string(asctime(localtime(&myclock)));
@@ -1010,6 +1012,7 @@ hash_stat session_restore(char *sessionname)
 	hlog("Change to working directory: %s\n",readline);
     }
     hash_ret_len = json_object_get_int(json_object_object_get(main_header_node,"hashlen"));
+    ocl_gpu_platform = json_object_get_int(json_object_object_get(main_header_node,"gpuplatform"));
     strcpy(hashlist_file, json_object_get_string(json_object_object_get(main_header_node,"hashlistfile")));
     if (hash_plugin_is_special()) load_hashes_file(hashlist_file);
     switch (json_object_get_int(json_object_object_get(main_header_node,"attacktype")))
