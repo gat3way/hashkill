@@ -221,3 +221,9 @@ void get_vector_size(int size)
 {
     vectorsize = size;
 }
+
+int get_salt_size(void)
+{
+    return 4;
+}
+
