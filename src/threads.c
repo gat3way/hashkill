@@ -784,10 +784,12 @@ static void * start_monitor_thread(void *arg)
         strcpy(bruteforce_charset,"0123456789");
         attack_method=attack_method_simple_bruteforce;
     }
+    attack_checkpoints=0;
 
     while (attack_over != 2)
     {
         sleep(3);
+        attack_checkpoints++;
         sum = 0;
         if (attack_over != 2)
         {
@@ -1953,7 +1955,7 @@ hash_stat main_thread_markov(int threads)
     ||(strcmp(get_current_plugin(),"sha512unix")==0)
     ||(strcmp(get_current_plugin(),"mscash")==0)||(strcmp(get_current_plugin(),"mscash2")==0)
     ||(strcmp(get_current_plugin(),"zip")==0)||(strcmp(get_current_plugin(),"wpa")==0)
-    ||(strcmp(get_current_plugin(),"dmg")==0)
+    ||(strcmp(get_current_plugin(),"dmg")==0)||(strcmp(get_current_plugin(),"bcrypt")==0)
     ||(strcmp(get_current_plugin(),"desunix")==0)||(strcmp(get_current_plugin(),"rar")==0)
     ) 
     {
@@ -2038,7 +2040,7 @@ hash_stat main_thread_bruteforce(int threads)
     ||(strcmp(get_current_plugin(),"sha512unix")==0)
     ||(strcmp(get_current_plugin(),"mscash")==0)||(strcmp(get_current_plugin(),"mscash2")==0)
     ||(strcmp(get_current_plugin(),"zip")==0)||(strcmp(get_current_plugin(),"wpa")==0)
-    ||(strcmp(get_current_plugin(),"dmg")==0)
+    ||(strcmp(get_current_plugin(),"dmg")==0)||(strcmp(get_current_plugin(),"bcrypt")==0)
     ||(strcmp(get_current_plugin(),"desunix")==0)||(strcmp(get_current_plugin(),"rar")==0)
     ) 
     {
@@ -2121,7 +2123,7 @@ hash_stat main_thread_rule(int threads)
     ||(strcmp(get_current_plugin(),"sha512unix")==0)
     ||(strcmp(get_current_plugin(),"mscash")==0)||(strcmp(get_current_plugin(),"mscash2")==0)
     ||(strcmp(get_current_plugin(),"zip")==0)||(strcmp(get_current_plugin(),"wpa")==0)
-    ||(strcmp(get_current_plugin(),"dmg")==0)
+    ||(strcmp(get_current_plugin(),"dmg")==0)||(strcmp(get_current_plugin(),"bcrypt")==0)
     ||(strcmp(get_current_plugin(),"desunix")==0)||(strcmp(get_current_plugin(),"rar")==0)
     ) 
     {
