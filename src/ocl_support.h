@@ -212,10 +212,10 @@ hash_stat ocl_bruteforce_osx_old(void);
 hash_stat ocl_markov_osx_old(void);
 hash_stat ocl_rule_osx_old(void);
 
-
-
-/* sl3 plugin support */
-//hash_stat ocl_bruteforce_bitcoin(void);
+/* bfunix plugin support */
+hash_stat ocl_bruteforce_bfunix(void);
+hash_stat ocl_markov_bfunix(void);
+hash_stat ocl_rule_bfunix(void);
 
 
 

@@ -82,6 +82,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"dmg",&ocl_bruteforce_dmg, &ocl_markov_dmg, &ocl_rule_dmg},
                             {1,"rar",&ocl_bruteforce_rar, &ocl_markov_rar, &ocl_rule_rar},
                             {1,"zip",&ocl_bruteforce_zip, &ocl_markov_zip, &ocl_rule_zip},
+                            {1,"bfunix",&ocl_bruteforce_bfunix, &ocl_markov_bfunix, &ocl_rule_bfunix},
                             {0, "", NULL, NULL, NULL}
                         };
 
@@ -295,6 +296,7 @@ hash_stat ocl_get_device()
 	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
 	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"mscash")==0)) ocl_vector=4;
 	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"pixmd5")==0)) ocl_vector=4;
+	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"bfunix")==0)) ocl_vector=1;
 
 	    /* Rule quirks */
 	    if (!ocl_dev_nvidia)

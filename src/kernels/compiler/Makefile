@@ -70,6 +70,7 @@ build:
 	@if [ ! -e amd_dmg__Juniper.bin ]; then ./amd-compiler amd_dmg n ;fi
 	@if [ ! -e amd_osx_old_long__Juniper.bin ]; then ./amd-compiler amd_osx_old_long n ;fi
 	@if [ ! -e amd_osx_old__Juniper.bin ]; then ./amd-compiler amd_osx_old n ;fi
+	@if [ ! -e amd_bfunix__Juniper.bin ]; then ./amd-compiler amd_bfunix n ;fi
 	@if [ ! -e amd_test__Juniper.bin ]; then ./amd-compiler amd_test n ;fi
 	# NVidia
 	@if [ ! -e nvidia_md5_long__sm10.ptx ]; then ./nvidia-compiler nvidia_md5_long ns ;fi
@@ -146,6 +147,7 @@ build:
 	@if [ ! -e nvidia_zip_long__sm10.ptx ]; then ./nvidia-compiler nvidia_zip_long n ;fi
 	@if [ ! -e nvidia_zips__sm10.ptx ]; then ./nvidia-compiler nvidia_zips n ;fi
 	@if [ ! -e nvidia_zipu__sm10.ptx ]; then ./nvidia-compiler nvidia_zipu n ;fi
+	@if [ ! -e nvidia_bfunix__sm10.ptx ]; then ./nvidia-compiler nvidia_bfunix n ;fi
 
 
 
