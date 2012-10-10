@@ -2,7 +2,7 @@ rule desunix single		|1 passwords|hashkill -pdesunix fAg0TXy49dWUo -r rule_uu
 rule apr1 single		|1 passwords|hashkill -papr1 $apr1$e0uBuPco$viwBVwsABkKXFnZeXcmhL/ -r rule_uu
 rule bfunix single		|1 passwords|hashkill -pbfunix $2a$05$CCCCCCCCCCCCCCCCCCCCC.E5YPO9kmyuRGyh0XouQYb4YMJKvyOeW -r rule_uu
 rule dmg			|1 passwords|hashkill -pdmg -f test-128-2.dmg -r rule_uu
-rule ipb single			|1 passwords|hashkill -pipb2 a0a5e97dbe549fe2154fbf10baaf842a:test -r rule_uu
+rule ipb single			|1 passwords|hashkill -pipb2 12dc7df0ddeaa120b07bd28b5d5675a7:1#Iz> -r rule_uu
 rule ldap-sha single		|1 passwords|hashkill -pldap-sha bu0-nsldap:{SHA}d7S/rU7dd40hb+nf3dzK+2KcKp8= -r rule_uu
 rule ldap-ssha single		|1 passwords|hashkill -pldap-ssha u0-nsldap:{SSHA}9iv2wLfww/nVUP/xlfdQum2u1Dc5MmNHU1pVOA== -r rule_uu
 rule lm single			|1 passwords|hashkill -plm 23e7bca62fd6839eaad3b435b51404ee -r rule_uu
