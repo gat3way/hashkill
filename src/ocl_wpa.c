@@ -408,7 +408,8 @@ hash_stat ocl_rule_wpa(void)
             bzero(pbuf,100);
             char kernelfile[255];
             _clGetDeviceInfo(device[wthreads[i].deviceid], CL_DEVICE_NAME, sizeof(pbuf),pbuf, NULL );
-    	    sprintf(kernelfile,"%s/hashkill/kernels/amd_wpa__%s.bin",DATADIR,pbuf);
+    	    if (hccap.keyver==2) sprintf(kernelfile,DATADIR"/hashkill/kernels/amd_wpa2__%s.bin",pbuf);
+    	    else sprintf(kernelfile,"%s/hashkill/kernels/amd_wpa__%s.bin",DATADIR,pbuf);
 
     	    char *ofname = kernel_decompress(kernelfile);
             if (!ofname) return hash_err;
@@ -453,7 +454,8 @@ hash_stat ocl_rule_wpa(void)
             if ((compute_capability_major==2)&&(compute_capability_minor==0)) sprintf(pbuf,"sm20");
             if ((compute_capability_major==2)&&(compute_capability_minor==1)) sprintf(pbuf,"sm21");
 	    if ((compute_capability_major==3)&&(compute_capability_minor==0)) sprintf(pbuf,"sm30");
-    	    sprintf(kernelfile,"%s/hashkill/kernels/nvidia_wpa__%s.ptx",DATADIR,pbuf);
+    	    if (hccap.keyver==2) sprintf(kernelfile,DATADIR"/hashkill/kernels/nvidia_wpa2__%s.ptx",pbuf);
+            else sprintf(kernelfile,"%s/hashkill/kernels/nvidia_wpa__%s.ptx",DATADIR,pbuf);
 
     	    char *ofname = kernel_decompress(kernelfile);
             if (!ofname) return hash_err;

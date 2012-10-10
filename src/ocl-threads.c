@@ -253,7 +253,6 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"desunix")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"phpbb3")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"md5unix")==0)) ocl_vector=4;
-		if ((strcmp(get_current_plugin(),"sha512unix")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"osx-old")==0)) ocl_vector=4;
@@ -300,6 +299,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"mscash")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"pixmd5")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"bfunix")==0)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"sha512unix")==0)) ocl_vector=1;
 
 		/* GCN/VLIW-specific */
 		if ((strcmp(get_current_plugin(),"phpbb3")==0)&&(ocl_have_gcn)) ocl_vector=1;
