@@ -210,159 +210,169 @@ hash_stat ocl_get_device()
         		_clGetDeviceInfoNoErr(device_id[a], CL_DEVICE_COMPUTE_CAPABILITY_MAJOR_NV, sizeof(cl_uint), &compute_capability_major, NULL);
             		_clGetDeviceInfoNoErr(device_id[a], CL_DEVICE_COMPUTE_CAPABILITY_MINOR_NV, sizeof(cl_uint), &compute_capability_minor, NULL);
             		if ((compute_capability_major==2)&&(compute_capability_minor==1)) ocl_have_sm21 = 1;
-            		//if ((compute_capability_major==3)&&(compute_capability_minor==0)) ocl_have_sm21 = 1;
 			break;
 		    }
 	    }
 	    loops=1;
-	    if (ocl_have_old_ati==1) 
-	    {
-    		ocl_vector=4;
-	    }
-	    if (ocl_have_sm21==1) 
+
+	    /* Default values: VLIW: vectors4/loops1 GCN: vectors1/loops4 SM21: vectors4/loops1 NV: vectors1/loops4 */
+	    if ((ocl_have_old_ati==1) || (ocl_have_sm21==1))
 	    {
     		ocl_vector=4;
     		loops=1;
 	    }
-	    if ((ocl_have_gcn)&&(attack_method!=attack_method_rule))
+
+	    if (((ocl_have_gcn)&&(attack_method!=attack_method_rule))||((ocl_dev_nvidia)&&(!ocl_have_sm21)))
 	    {
 		loops=4;
 		ocl_vector=1;
 	    }
 
-	    if ((ocl_dev_nvidia)&&(!ocl_have_sm21))
-	    {
-		loops=4;
-		ocl_vector=1;
-	    }
-
+	    /* set -G opt */
 	    if (ocl_user_threads!=0) ocl_threads = ocl_user_threads;
 
-    	    /* Some hacks on ATIs */
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"sha1")==0)) ocl_vector=4;
-	    if ((loops==4) && (strcmp(get_current_plugin(),"sha1")==0)) loops=2;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"sha256")==0)) ocl_vector=4;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"sl3")==0)) ocl_vector=4;
-	    if ((loops==4) && (strcmp(get_current_plugin(),"sl3")==0)) loops=2;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"md5md5")==0)) ocl_vector=4;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"mysql5")==0)) ocl_vector=4;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"ldap-sha")==0)) ocl_vector=4;
-	    if ((loops==4) && (strcmp(get_current_plugin(),"ldap-sha")==0)) loops=2;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"ldap-ssha")==0)) ocl_vector=4;
-	    if ((loops==4) && (strcmp(get_current_plugin(),"ldap-ssha")==0)) loops=2;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"oracle11g")==0)) ocl_vector=4;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"ipb2")==0)) ocl_vector=4;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"smf")==0)) ocl_vector=4;
-	    if ((loops==4) && (strcmp(get_current_plugin(),"smf")==0)) loops=2;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"vbulletin")==0)) ocl_vector=4;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"pixmd5")==0)) ocl_vector=4;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"mssql-2000")==0)) ocl_vector=4;
-	    if ((loops==4) && (strcmp(get_current_plugin(),"mssql-2000")==0)) loops=2;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"mssql-2005")==0)) ocl_vector=4;
-	    if ((loops==4) && (strcmp(get_current_plugin(),"mssql-2005")==0)) loops=2;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
-	    if ((loops==4) && (strcmp(get_current_plugin(),"lm")==0)) loops=1;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=2;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"desunix")==0)) ocl_vector=2;
-	    if ((loops==4) && (strcmp(get_current_plugin(),"desunix")==0)) loops=1;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"phpbb3")==0)) ocl_vector=4;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"md5unix")==0)) ocl_vector=4;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"sha512unix")==0)) ocl_vector=1;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=2;
-	    if ((loops==4) && (strcmp(get_current_plugin(),"sha512")==0)) loops=1;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
-	    if ((loops==4) && (strcmp(get_current_plugin(),"osxlion")==0)) loops=1;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"osx-old")==0)) ocl_vector=4;
-	    if ((loops==4) && (strcmp(get_current_plugin(),"osx-old")==0)) loops=2;
-	    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"zip")==0)) ocl_vector=4;
-
-	    /* Rule quirks for AMD (NVidia params get reset below */
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=2;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"md5-passsalt")==0)) ocl_vector=4;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"md5-saltpass")==0)) ocl_vector=4;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"ipb2")==0)) ocl_vector=4;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"sha256")==0)) ocl_vector=4;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"smf")==0)) ocl_vector=4;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"oracle11g")==0)) ocl_vector=4;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"mssql-2000")==0)) ocl_vector=4;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"mssql-2005")==0)) ocl_vector=4;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"ldap-ssha")==0)) ocl_vector=4;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"vbulletin")==0)) ocl_vector=4;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"md5-passsalt")==0)) ocl_vector=4;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"md5-saltpass")==0)) ocl_vector=4;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"osx-old")==0)) ocl_vector=4;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=1;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"mscash")==0)) ocl_vector=4;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"pixmd5")==0)) ocl_vector=4;
-	    if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"bfunix")==0)) ocl_vector=1;
-
-	    /* Rule quirks */
-	    if (!ocl_dev_nvidia)
-	    {
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"phpbb3")==0)&&(ocl_have_gcn)) ocl_vector=1;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"phpbb3")==0)&&(!ocl_have_gcn)) ocl_vector=4;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"wordpress")==0)&&(ocl_have_gcn)) ocl_vector=1;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"wordpress")==0)&&(!ocl_have_gcn)) ocl_vector=4;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"md5unix")==0)&&(ocl_have_gcn)) ocl_vector=1;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"md5unix")==0)&&(!ocl_have_gcn)) ocl_vector=4;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"apr1")==0)&&(ocl_have_gcn)) ocl_vector=1;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"apr1")==0)&&(!ocl_have_gcn)) ocl_vector=4;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"mscash2")==0)&&(ocl_have_gcn)) ocl_vector=1;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"mscash2")==0)&&(!ocl_have_gcn)) ocl_vector=2;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"wpa")==0)&&(ocl_have_gcn)) ocl_vector=1;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"wpa")==0)&&(!ocl_have_gcn)) ocl_vector=2;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"dmg")==0)&&(ocl_have_gcn)) ocl_vector=1;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"dmg")==0)&&(!ocl_have_gcn)) ocl_vector=2;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"rar")==0)&&(ocl_have_gcn)) ocl_vector=1;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"rar")==0)&&(!ocl_have_gcn)) ocl_vector=2;
+    	    /* VLIW vector hacks */
+    	    if (ocl_vector==8)
+    	    {
+		if ((strcmp(get_current_plugin(),"sha1")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"sha256")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"sl3")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"md5md5")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"mysql5")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"ldap-sha")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"ldap-ssha")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"oracle11g")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"ipb2")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"smf")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"vbulletin")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"pixmd5")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"mssql-2000")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"mssql-2005")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"desunix")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"phpbb3")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"md5unix")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"sha512unix")==0)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"osx-old")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"zip")==0)) ocl_vector=4;
 	    }
-	    else
+	    /* GCN loops hacks */
+	    if (loops==4)
 	    {
-		if (attack_method==attack_method_rule) ocl_vector=1;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"phpbb3")==0)&&(!ocl_have_sm21)) ocl_vector=1;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"phpbb3")==0)&&(ocl_have_sm21)) ocl_vector=4;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"wordpress")==0)&&(!ocl_have_sm21)) ocl_vector=1;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"wordpress")==0)&&(ocl_have_sm21)) ocl_vector=4;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"md5unix")==0)&&(!ocl_have_sm21)) ocl_vector=1;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"md5unix")==0)&&(ocl_have_sm21)) ocl_vector=4;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"apr1")==0)&&(!ocl_have_sm21)) ocl_vector=1;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"apr1")==0)&&(ocl_have_sm21)) ocl_vector=4;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"mscash2")==0)&&(!ocl_have_sm21)) ocl_vector=1;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"mscash2")==0)&&(ocl_have_sm21)) ocl_vector=2;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"wpa")==0)&&(!ocl_have_sm21)) ocl_vector=1;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"wpa")==0)&&(ocl_have_sm21)) ocl_vector=2;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"dmg")==0)&&(!ocl_have_sm21)) ocl_vector=1;
-		if ((attack_method==attack_method_rule) && (strcmp(get_current_plugin(),"dmg")==0)&&(ocl_have_sm21)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"sl3")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"sha1")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"ldap-sha")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"ldap-ssha")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"smf")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"mssql-2000")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"mssql-2005")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"lm")==0)) loops=1;
+		if ((strcmp(get_current_plugin(),"desunix")==0)) loops=1;
+		if ((strcmp(get_current_plugin(),"sha512")==0)) loops=1;
+		if ((strcmp(get_current_plugin(),"osxlion")==0)) loops=1;
+		if ((strcmp(get_current_plugin(),"osx-old")==0)) loops=2;
+	    }
+
+	    /* AMD rule quirks */
+	    if ((attack_method==attack_method_rule)&&(ocl_dev_nvidia==0))
+	    {
+		/* Global */
+		if ((strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"md5-passsalt")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"md5-saltpass")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"ipb2")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"sha256")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"smf")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"oracle11g")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"mssql-2000")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"mssql-2005")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"ldap-ssha")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"vbulletin")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"md5-passsalt")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"md5-saltpass")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"osx-old")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"mscash")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"pixmd5")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"bfunix")==0)) ocl_vector=1;
+
+		/* GCN/VLIW-specific */
+		if ((strcmp(get_current_plugin(),"phpbb3")==0)&&(ocl_have_gcn)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"phpbb3")==0)&&(!ocl_have_gcn)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"wordpress")==0)&&(ocl_have_gcn)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"wordpress")==0)&&(!ocl_have_gcn)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"md5unix")==0)&&(ocl_have_gcn)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"md5unix")==0)&&(!ocl_have_gcn)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"apr1")==0)&&(ocl_have_gcn)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"apr1")==0)&&(!ocl_have_gcn)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"mscash2")==0)&&(ocl_have_gcn)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"mscash2")==0)&&(!ocl_have_gcn)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"wpa")==0)&&(ocl_have_gcn)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"wpa")==0)&&(!ocl_have_gcn)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"dmg")==0)&&(ocl_have_gcn)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"dmg")==0)&&(!ocl_have_gcn)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"rar")==0)&&(ocl_have_gcn)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"rar")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 	    }
 
 
-	    /* Same hacks on Nvidias */
-	    if ((ocl_have_sm21==1) && (strcmp(get_current_plugin(),"desunix")==0)) ocl_vector=2;
-	    if ((ocl_have_sm21==1) && (strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=2;
-	    if ((ocl_have_sm21==1) && (strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
-	    if ((ocl_have_sm21==1) && (strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=1;
-	    if ((ocl_have_sm21==1) && (strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
-	    if ((ocl_dev_nvidia==1) && (strcmp(get_current_plugin(),"oracle-old")==0)) loops=1;
-	    if ((ocl_dev_nvidia==1) && (strcmp(get_current_plugin(),"rar")==0)) ocl_vector=1;
-	    if ((ocl_dev_nvidia==1) && (strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=4;
-	    if ((ocl_have_sm21==1) && (strcmp(get_current_plugin(),"zip")==0)) loops=1;
-	    else if ((ocl_dev_nvidia==1) && (strcmp(get_current_plugin(),"zip")==0)) loops=4;
+	    /* All nvidias */
+	    if (ocl_dev_nvidia==1)
+	    {
+		if ((strcmp(get_current_plugin(),"oracle-old")==0)) loops=1;
+		if ((strcmp(get_current_plugin(),"rar")==0)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=4;
+	    }
 
+	    /* SM21 hacks */
+	    if (ocl_have_sm21==1)
+	    {
+		if ((strcmp(get_current_plugin(),"desunix")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"zip")==0)) loops=1;
+	    }
+
+	    /* General nvidia setting for rule*/
 	    if ((ocl_dev_nvidia)&&(attack_method==attack_method_rule))
 	    {
 		loops=1;
 		ocl_vector=1;
 	    }
 
-
-	    if ((ocl_dev_nvidia==1)&&(ocl_threads==1)) 
+	    /* Specific nvidia rule quirks */
+	    if ((attack_method==attack_method_rule)&&(ocl_dev_nvidia==1))
 	    {
-    		wlog("gpu-threads set to 1. Use -G2 to get maximum performance\n%s","");
+		ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"phpbb3")==0)&&(!ocl_have_sm21)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"phpbb3")==0)&&(ocl_have_sm21)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"wordpress")==0)&&(!ocl_have_sm21)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"wordpress")==0)&&(ocl_have_sm21)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"md5unix")==0)&&(!ocl_have_sm21)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"md5unix")==0)&&(ocl_have_sm21)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"apr1")==0)&&(!ocl_have_sm21)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"apr1")==0)&&(ocl_have_sm21)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"mscash2")==0)&&(!ocl_have_sm21)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"mscash2")==0)&&(ocl_have_sm21)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"wpa")==0)&&(!ocl_have_sm21)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"wpa")==0)&&(ocl_have_sm21)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"dmg")==0)&&(!ocl_have_sm21)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"dmg")==0)&&(ocl_have_sm21)) ocl_vector=2;
 	    }
-	    
+
+	    /* Zip (non-rule) exception for NVidia */
+	    if ((ocl_dev_nvidia==1) && (ocl_have_sm21==0) && (strcmp(get_current_plugin(),"zip")==0)) loops=4;
+
+	    /* save old vectorsize */
 	    ocl_vectororig = ocl_vector;
+
 	    /* GPU double mode? - ATI */
 	    if ((ocl_gpu_double)&&(attack_method!=attack_method_rule)) 
 	    {
