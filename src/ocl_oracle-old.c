@@ -1712,7 +1712,7 @@ void* ocl_rule_oracle_old_thread(void *arg)
 
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
-    ocl_rule_workset[self]=256*256*2;
+    ocl_rule_workset[self]=256*128*2;
     if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=4;
     if (ocl_gpu_double) ocl_rule_workset[self]*=2;
     
@@ -1740,6 +1740,9 @@ void* ocl_rule_oracle_old_thread(void *arg)
     rule_images[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
     rule_images2[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
     bzero(&rule_images[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
+    bzero(&rule_images2[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
+    bzero(&rule_sizes[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
+    bzero(&rule_sizes2[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
     _clSetKernelArg(rule_kernel[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
     _clSetKernelArg(rule_kernel[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
     _clSetKernelArg(rule_kernel[self], 2, sizeof(cl_mem), (void*) &rule_sizes2_buf[self]);
