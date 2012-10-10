@@ -1,3 +1,8 @@
+// Dummy one
+__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
+strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str, uint16 salt)
+{
+}
 
 
 #define SET_AB(ai1,ii1,bb) { \
