@@ -532,7 +532,7 @@ static void ocl_sha512unix_callback(char *line, int self)
     }
 
 
-    if (rule_counts[self][cc]==ocl_rule_workset[self]*wthreads[self].vectorsize)
+    if (rule_counts[self][cc]==ocl_rule_workset[self]*wthreads[self].vectorsize-1)
     {
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images162_buf[cc][self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*16, rule_images162[cc][self], 0, NULL, NULL);
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_sizes162_buf[cc][self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), rule_sizes162[self], 0, NULL, NULL);

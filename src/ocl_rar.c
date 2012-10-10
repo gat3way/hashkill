@@ -488,7 +488,7 @@ static void ocl_rar_callback(char *line, int self)
 	strncpy(&rule_images162[cc][self][0]+(rule_counts[self][cc]*16),line,15);
     }
 
-    if (rule_counts[self][cc]==ocl_rule_workset[self]*wthreads[self].vectorsize)
+    if (rule_counts[self][cc]==ocl_rule_workset[self]*wthreads[self].vectorsize-1)
     {
         _clEnqueueWriteBuffer(rule_oclqueue[self], rule_images162_buf[cc][self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*16, rule_images162[cc][self], 0, NULL, NULL);
         self_kernel16[self]=cc;

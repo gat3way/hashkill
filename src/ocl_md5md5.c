@@ -1431,11 +1431,11 @@ static void ocl_md5md5_crack_callback(char *line, int self)
 
 static void ocl_md5md5_callback(char *line, int self)
 {
-    strcpy(&rule_images[self][0]+(rule_counts[self][0]*MAX),line);
-    rule_sizes[self][rule_counts[self][0]] = strlen(line);
     rule_counts[self][0]++;
+    rule_sizes[self][rule_counts[self][0]] = strlen(line);
+    strcpy(&rule_images[self][0]+(rule_counts[self][0]*MAX),line);
 
-    if ((rule_counts[self][0]>=ocl_rule_workset[self]*wthreads[self].vectorsize)||(line[0]==0x01))
+    if ((rule_counts[self][0]>=ocl_rule_workset[self]*wthreads[self].vectorsize-1)||(line[0]==0x01))
     {
 
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, rule_images[self], 0, NULL, NULL);
@@ -1443,7 +1443,7 @@ static void ocl_md5md5_callback(char *line, int self)
 
 	rule_offload_perform(ocl_md5md5_crack_callback,self);
     	bzero(&rule_images[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
-	rule_counts[self][0]=0;
+	rule_counts[self][0]=-1;
     }
     if (attack_over==2) pthread_exit(NULL);
 }
