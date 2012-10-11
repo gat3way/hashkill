@@ -11,5 +11,6 @@ rm -f configure
 rm -f src/*.lo
 rm -f src/*.la
 rm -f src/.libs/*
-libtoolize --force ; autoreconf -vi ; automake --add-missing ; autoconf
+rm -f src/Makefile.in
+libtoolize --force ; autoreconf -vi ; automake --add-missing ;automake; autoconf
 #aclocal ; autoheader ; automake ; autoconf
