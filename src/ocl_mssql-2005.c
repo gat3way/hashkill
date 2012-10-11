@@ -1811,9 +1811,9 @@ static void ocl_mssql_2005_crack_callback(char *line, int self)
 
 static void ocl_mssql_2005_callback(char *line, int self)
 {
-    strcpy(&rule_images[self][0]+(rule_counts[self][0]*MAX),line);
-    rule_sizes[self][rule_counts[self][0]] = strlen(line);
     rule_counts[self][0]++;
+    rule_sizes[self][rule_counts[self][0]] = strlen(line);
+    strcpy(&rule_images[self][0]+(rule_counts[self][0]*MAX),line);
 
     if ((rule_counts[self][0]>=ocl_rule_workset[self]*wthreads[self].vectorsize)||(line[0]==0x01))
     {
@@ -1821,6 +1821,7 @@ static void ocl_mssql_2005_callback(char *line, int self)
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_sizes_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), rule_sizes[self], 0, NULL, NULL);
 	rule_offload_perform(ocl_mssql_2005_crack_callback,self);
     	bzero(&rule_images[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
+    	bzero(&rule_sizes[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
 	rule_counts[self][0]=-1;
     }
     if (attack_over==2) pthread_exit(NULL);
@@ -1848,7 +1849,7 @@ void* ocl_rule_mssql_2005_thread(void *arg)
     if (ocl_gpu_double) ocl_rule_workset[self]*=2;
     
     rule_ptr[self] = malloc(ocl_rule_workset[self]*hash_ret_len*wthreads[self].vectorsize);
-    rule_counts[self][0]=0;
+    rule_counts[self][0]=-1;
 
     rule_kernel[self] = _clCreateKernel(program[self], "sha1_passsalt", &err );
     rule_kernel2[self] = _clCreateKernel(program[self], "strmodifyu", &err );
