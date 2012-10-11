@@ -1,0 +1,20 @@
+[1m[hashkill][0m Version 0.3.0
+[1m[hashkill][0m Scheduler initialized.
+[1m[hashkill][0m Plugin 'md5unix' loaded successfully
+[1m[hashkill][0m Rule based attack, using rule:rule_uu
+[1m[hashkill][0m CPU features: SSE2 SSE3 SSE4.1 XOP
+[1m[hashkill][0m Detected 6 CPUs.
+[1m[hashkill][0m Found GPU device: Advanced Micro Devices, Inc. - Barts
+[1m[hashkill][0m Temperature threshold set to 90 degrees C
+[1m[hashkill][0m GPU0: AMD Radeon HD 6800 Series  [busy:0%] [temp:63C]
+[1m[hashkill][0m GPU1: GeForce GT 640 [temp:43C]
+[1m[hashkill][0m Attack has O(N) complexity
+[1m[hashkill][0m Loading kernel: /usr/local/share/hashkill/kernels/amd_md5unix__Barts.bin
+[1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1;33m[hashkill][0m Interrupted by user request![1m[hashkill][0m Done!
+[1m[hashkill][0m Rule attack complete. 
+[1m[hashkill][0m -= Cracked list =-
+
+[1m[hashkill][0m Total: 1 passwords cracked
+[1m[hashkill][0m Attack took 8 seconds.
+[1m[hashkill][0m Bye bye :)
+
