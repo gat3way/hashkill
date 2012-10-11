@@ -124,6 +124,7 @@ static void ocl_sigint_handler(int val)
 	wthreads[a].templocked=0;
 	pthread_mutex_unlock(&wthreads[a].tempmutex);
     }
+    pthread_cancel(monitorinfothread);
 }
 
 
@@ -301,6 +302,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"bfunix")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"sha512unix")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"mysql5")==0)) ocl_vector=4;
 
 		/* GCN/VLIW-specific */
 		if ((strcmp(get_current_plugin(),"phpbb3")==0)&&(ocl_have_gcn)) ocl_vector=1;
@@ -319,6 +321,8 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"dmg")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"rar")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"rar")==0)&&(!ocl_have_gcn)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"sha512")==0)&&(ocl_have_gcn)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"sha512")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 	    }
 
 
