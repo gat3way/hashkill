@@ -88,6 +88,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
 
 
 extern void session_close_file_ocl(FILE *sessionfile);
+static pthread_t monitorinfothread;
 
 
 
@@ -294,12 +295,12 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"md5-passsalt")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"md5-saltpass")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"osx-old")==0)) ocl_vector=4;
-		if ((strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"mscash")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"pixmd5")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"bfunix")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"sha512unix")==0)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=1;
 
 		/* GCN/VLIW-specific */
 		if ((strcmp(get_current_plugin(),"phpbb3")==0)&&(ocl_have_gcn)) ocl_vector=1;
@@ -701,6 +702,7 @@ static void * ocl_start_monitor_thread(void *arg)
         }
     }
     printf("\n");
+    pthread_cancel(monitorinfothread);
     pthread_exit(NULL);
     return 0;
 }
@@ -1043,7 +1045,6 @@ hash_stat ocl_spawn_threads(unsigned int num, unsigned int queue_size)
 {
     unsigned int cnt;
     pthread_t monitorthread;
-    pthread_t monitorinfothread;
     pthread_mutexattr_t mutexattr;
     pthread_t calc_thread;
     pthread_t temp_thread;
