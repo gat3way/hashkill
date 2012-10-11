@@ -16,26 +16,27 @@ size[get_global_id(0)]=sizein[get_global_id(0)];
 	}
 
 #define SET_AIS(ai1,ai2,ii1,ii2) { \
-        tmp1=(uint)(((ii1)&7)<<3); \
-        elem=(uint)((ii1)>>3); \
+        tmp1=(ulong)(((ii1)&7)<<3); \
+        elem=(ulong)((ii1)>>3); \
         tmp2 = (ulong)ai1[elem]; \
         ai1[elem] = (ulong)(tmp2 |((ai2)>>tmp1)); \
-        ai1[elem+1] = select(ai2<<(64-tmp1),(ulong)0,(ulong)(tmp1==0));\
+	ai1[elem+1] = select(ai2<<(64-tmp1),(ulong)0,(ulong)(tmp1==0));\
         }
+
 
 #define gli get_local_id(0)
 
 
 
-#define ROTATE(b,x)     (((x) >> (b)) | ((x) << (64U - (b))))
+#define ROTATE(b,x)     (((x) >> (b)) | ((x) << (64 - (b))))
 #define R(b,x)          ((x) >> (b))
 #define Ch(x,y,z)       ((z)^((x)&((y)^(z))))
 #define Maj(x,y,z)      (((x) & (y)) | ((z)&((x)|(y))))
 
-#define Sigma0_512(x)   (ROTATE(28U, (x)) ^ ROTATE(34U, (x)) ^ ROTATE(39U, (x)))
-#define Sigma1_512(x)   (ROTATE(14U, (x)) ^ ROTATE(18U, (x)) ^ ROTATE(41U, (x)))
-#define sigma0_512(x)   (ROTATE(1U, (x)) ^ ROTATE(8U, (x)) ^ R(7U,   (x)))
-#define sigma1_512(x)   (ROTATE(19U, (x)) ^ ROTATE(61U, (x)) ^ R(6U,   (x)))
+#define Sigma0_512(x)   (ROTATE(28, (x)) ^ ROTATE(34, (x)) ^ ROTATE(39, (x)))
+#define Sigma1_512(x)   (ROTATE(14, (x)) ^ ROTATE(18, (x)) ^ ROTATE(41, (x)))
+#define sigma0_512(x)   (ROTATE(1, (x)) ^ ROTATE(8, (x)) ^ R(7,   (x)))
+#define sigma1_512(x)   (ROTATE(19, (x)) ^ ROTATE(61, (x)) ^ R(6,   (x)))
 
 
 #define ROUND512_0_TO_15(a,b,c,d,e,f,g,h,AC,x) T1 = (h) + Sigma1_512(e) + Ch((e), (f), (g)) + AC + x; \
@@ -154,8 +155,7 @@ __kernel void __attribute__((reqd_work_group_size(64, 1, 1)))
 sha512unix15( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
 
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
-uint ii,tmp1,elem;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
@@ -401,8 +401,7 @@ __kernel void __attribute__((reqd_work_group_size(64, 1, 1)))
 sha512unix14( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
 
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
-uint ii,tmp1,elem;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
@@ -646,8 +645,7 @@ __kernel void __attribute__((reqd_work_group_size(64, 1, 1)))
 sha512unix13( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
 
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
-uint ii,tmp1,elem;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
@@ -889,8 +887,7 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix12( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
-uint ii,tmp1,elem;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
@@ -1132,8 +1129,7 @@ __kernel void __attribute__((reqd_work_group_size(64, 1, 1)))
 sha512unix11( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
 
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
-uint ii,tmp1,elem;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
@@ -1374,8 +1370,7 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix10( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt)
 {
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
-uint ii,tmp1,elem;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
@@ -1618,8 +1613,7 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix9( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
-uint ii,tmp1,elem;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
@@ -1863,8 +1857,7 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix8( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
-uint ii,tmp1,elem;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
@@ -2109,8 +2102,7 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix7( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
-uint ii,tmp1,elem;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
@@ -2346,8 +2338,7 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix6( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
-uint ii,tmp1,elem;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
@@ -2585,8 +2576,7 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix5( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
-uint ii,tmp1,elem;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
@@ -2823,8 +2813,7 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix4( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
-uint ii,tmp1,elem;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
@@ -3060,8 +3049,7 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix3( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
-uint ii,tmp1,elem;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
@@ -3298,8 +3286,7 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix2( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
-uint ii,tmp1,elem;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
@@ -3537,8 +3524,7 @@ dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha512unix1( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint16 salt) 
 {
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2;
-uint ii,tmp1,elem;
+ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
 __local ulong sbytes[64][1];
 __local ulong pbytes[64][2];
 uint ic;
