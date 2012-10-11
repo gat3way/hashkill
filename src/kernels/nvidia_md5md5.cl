@@ -424,7 +424,7 @@ if (id==0) return;
 found[0] = 1;
 found_ind[get_global_id(0)] = 1;
 
-dst[(get_global_id(0)*4)] = (uint4)(a,b,c,d);
+dst[(get_global_id(0))] = (uint4)(a,b,c,d);
 
 }
 
