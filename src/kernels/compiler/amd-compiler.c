@@ -214,10 +214,11 @@ int compile(char *filename, char *buildparams)
 	printf("building for %s\n",pbuf);
 	char flags[1000];
 	char flags1[1000];
+	//-save-temps=test
 	if (strstr(pbuf,"ATI")) sprintf(flags,"-fno-bin-amdil -fno-bin-llvmir -fno-bin-source -DOLD_ATI   %s",buildparams);
 	else if (strstr(pbuf,"Cayman"))  sprintf(flags,"-fno-bin-amdil -fno-bin-llvmir -fno-bin-source -DVLIW4  -Dcl_amd_media_ops2 %s",buildparams);
 	else if ((strstr(pbuf,"Capeverde"))||(strstr(pbuf,"Pitcairn"))||(strstr(pbuf,"Tahiti")))  sprintf(flags,"-fno-bin-amdil -fno-bin-llvmir -fno-bin-source -DGCN  -Dcl_amd_media_ops2 %s",buildparams);
-	else sprintf(flags,"-fno-bin-amdil -fno-bin-llvmir -fno-bin-source  -Dcl_amd_media_ops2  %s",buildparams);
+	else sprintf(flags,"-fno-bin-amdil -fno-bin-llvmir -fno-bin-source  -Dcl_amd_media_ops2   %s",buildparams);
 	if (optdisable==1) sprintf(flags,"%s -cl-opt-disable -fno-bin-amdil -fno-bin-llvmir -fno-bin-source -Dcl_amd_media_ops2 -O0",flags);
 	if (big16==1) 
 	{

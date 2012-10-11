@@ -1407,7 +1407,6 @@ void print_cracked_list(void)
 	*/
 	
 	while (strlen(temp_list->username)<20) strcat(temp_list->username," ");
-	//if ((strcmp(get_current_plugin(),"md5unix")!=0)&&(strcmp(get_current_plugin(),"apr1")!=0)&&(strcmp(get_current_plugin(),"sha512unix")!=0))
 	if (temp_list->username) snprintf(outpline,14,"%s                 ", temp_list->username);
 	printf("%s \t",outpline);
 

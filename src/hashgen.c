@@ -1589,7 +1589,7 @@ void * rule_stats_thread(void *arg)
     {
 	if (attack_over!=0) return NULL;
 	bzero(lineread,MAXCAND*8);
-	fgets(lineread,MAXCAND*8-1,fp);
+	if (NULL==fgets(lineread,MAXCAND*8-1,fp)) break;
         if (strstr(lineread,"::")) line1 = str_replace(lineread,"::",":\x01:");
         else line1 = lineread;
 	if (strstr(line1,": :")) line = str_replace(line1,": :",":\x02:");

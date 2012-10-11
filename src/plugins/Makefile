@@ -4,7 +4,7 @@ endif
 
 
 #LIBS  = -lcrypto
-CFLAGS = -Wall -I../ -shared  -O3 -g -fpic  -fomit-frame-pointer -funroll-loops -minline-all-stringops  -momit-leaf-frame-pointer 
+CFLAGS += -Wall -I../ -shared  -O3 -s -fpic  -fomit-frame-pointer -funroll-loops -minline-all-stringops  -momit-leaf-frame-pointer 
 #CFLAGS = -Wall -I../ -shared  -O2 -fpic  -fomit-frame-pointer -minline-all-stringops  -Wall -funroll-loops -m32
 
 
@@ -17,8 +17,8 @@ all: plugin_md5 plugin_md5md5 plugin_md5-passsalt plugin_sha1 plugin_smf plugin_
      plugin_sha512 plugin_apr1 plugin_md5unix plugin_sha512unix plugin_privkey plugin_oracle11g \
      plugin_pixmd5 plugin_sl3 plugin_ripemd160 plugin_sha1sha1 plugin_lm plugin_oracle-old \
      plugin_ldap-sha plugin_ldap-ssha plugin_sapg plugin_mscash plugin_mediawiki plugin_zip plugin_osxlion \
-     plugin_mscash2 plugin_wpa plugin_rar plugin_dmg plugin_osx-old
-     
+     plugin_mscash2 plugin_wpa plugin_rar plugin_dmg plugin_osx-old plugin_bfunix
+ 
      #plugin_bitcoin  plugin_mysql-old
 
 
@@ -153,11 +153,15 @@ plugin_wpa:
 	@if [ ! -e wpa.so ]; then  $(CC)  plugin.c wpa.c -o wpa.so $(CFLAGS) $(LDFLAGS)  ;fi
 
 plugin_dmg:
-	@if [ ! -e dmg.so ]; then  $(CC)  -fPIC plugin.c dmg.c -o dmg.so $(CFLAGS) $(LDFLAGS) -lcrypto -O2;fi
+	@if [ ! -e dmg.so ]; then  $(CC)  -fPIC plugin.c dmg.c -o dmg.so $(CFLAGS) $(LDFLAGS) -lcrypto -O3;fi
 
 
 plugin_osx-old:
 	@if [ ! -e osx-old.so ]; then  $(CC)  plugin.c osx-old.c -o osx-old.so $(CFLAGS) $(LDFLAGS) ;fi
+
+plugin_bfunix:
+	@if [ ! -e bfunix.so ]; then  $(CC)  plugin.c bfunix.c bf-crypt.c -o bfunix.so $(CFLAGS) $(LDFLAGS) -w -funroll-all-loops -g;fi
+
 
 
 install:

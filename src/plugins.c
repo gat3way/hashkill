@@ -271,7 +271,16 @@ hash_stat load_plugin(void)
 		vectorsize = 8;
 		get_vector_size(8);
 	    }
-	    else {vectorsize = 12; get_vector_size(12);}
+	    else if (strcmp(get_current_plugin(),"privkey")==0)
+	    {
+		vectorsize = 24;
+		get_vector_size(24);
+	    }
+	    else 
+	    {
+		vectorsize = 12;
+		get_vector_size(12);
+	    }
 	    
 	    /* single-hash optimization for certain plugins */
 	    cpu_optimize_single=0;

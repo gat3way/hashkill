@@ -1,18 +1,6 @@
 begin
-must add str U*U
+must add str test
 end
 begin
-must add str vilefault
-end
-begin
-must add str defcon
-end
-begin
-must add str dictionary
-end
-begin
-must add str detested
-end
-begin
-#must add dict common
+must add dict dict_uu
 end
