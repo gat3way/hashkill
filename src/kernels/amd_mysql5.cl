@@ -128,7 +128,6 @@ C=H2;
 D=H3;  
 E=H4;  
 
-#ifndef GCN
 #ifndef OLD_ATI
 #define F_00_19(b,c,d) (bitselect(d,c,b))
 #define F_20_39(b,c,d)  ((b) ^ (c) ^ (d))  
@@ -139,12 +138,6 @@ E=H4;
 #define F_20_39(b,c,d)  ((c) ^ (b) ^ (d))  
 #define F_40_59(b,c,d)  (((b) & (c)) | (((b)|(c)) & (d)))  
 #define F_60_79(b,c,d)  F_20_39ODD(b,c,d) 
-#endif
-#else
-#define F_00_19(b,c,d) (bitselect(b,c,d))
-#define F_20_39(b,c,d)  ((b) ^ (c) ^ (d))  
-#define F_40_59(b,c,d) (bitselect((c & d),(d | c),b))
-#define F_60_79(b,c,d)  F_20_39(b,c,d) 
 #endif
 
 #define Endian_Reverse32(a) { l=(a);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (a)=(tmp1 & m)|(tmp2 & m2); } 
