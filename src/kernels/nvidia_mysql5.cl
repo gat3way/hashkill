@@ -50,7 +50,7 @@ dst[GGI*8+7] = inpc[GLI][7];
 
 
 __kernel void  __attribute__((reqd_work_group_size(128, 1, 1))) 
-mysql5( __global uint4 *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *bitmaps, __global uint *found,  uint4 singlehash) 
+mysql5( __global uint *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *bitmaps, __global uint *found,  uint4 singlehash) 
 {
 
 uint w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w16;
