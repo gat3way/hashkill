@@ -63,6 +63,7 @@ void register_des_ecb_encrypt(void * (*des_ecb_encrypt)(const unsigned char *key
 void register_des_ecb_decrypt(void * (*des_ecb_decrypt)(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *out, int mode));
 void register_des_cbc_encrypt(void * (*des_cbc_encrypt)(const unsigned char *key[VECTORSIZE], int keysize, const unsigned char *in[VECTORSIZE], int len[VECTORSIZE], unsigned char *out[VECTORSIZE], unsigned char *cbc[VECTORSIZE], int mode));
 void register_lm(void * (*lm)(const unsigned char *in[VECTORSIZE], unsigned char *out[VECTORSIZE]));
+void register_lm_slow(void * (*lm_slow)(const unsigned char *in[VECTORSIZE], unsigned char *out[VECTORSIZE]));
 void register_aes_cbc_encrypt(void * (*aes_cbc_encrypt)(const unsigned char *in,unsigned char *out,unsigned long length,AES_KEY *key,unsigned char ivec[16],int oper));
 void register_aes_set_encrypt_key(int * (*aes_set_encrypt_key)(const unsigned char *userKey,const int bits,AES_KEY *key));
 void register_aes_set_decrypt_key(int * (*aes_set_decrypt_key)(const unsigned char *userKey,const int bits,AES_KEY *key));
@@ -270,6 +271,11 @@ void register_des_cbc_encrypt(void * (*des_cbc_encrypt)(const unsigned char *key
 void register_lm(void * (*lm)(const unsigned char *in[VECTORSIZE], unsigned char *out[VECTORSIZE]))
 {
     hash_lm = lm;
+}
+
+void register_lm_slow(void * (*lm_slow)(const unsigned char *in[VECTORSIZE], unsigned char *out[VECTORSIZE]))
+{
+    hash_lm_slow = lm_slow;
 }
 
 void register_aes_cbc_encrypt(void * (*aes_cbc_encrypt)(const unsigned char *in,unsigned char *out,unsigned long length,AES_KEY *key,unsigned char ivec[16],int oper))

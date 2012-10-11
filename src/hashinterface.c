@@ -1071,6 +1071,38 @@ void hash_proto_lm(const unsigned char *in[VECTORSIZE], unsigned char *out[VECTO
 }
 
 
+/* DES encrypt openssl wrapper */
+/* mode: use 0 for no padding and 1 for padding */
+void openssl_des_ecb_encrypt(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *out, int mode)
+{
+    EVP_CIPHER_CTX ctx;
+    int outl;
+    EVP_CIPHER_CTX_init(&ctx); 
+    EVP_EncryptInit_ex(&ctx, EVP_des_ecb(), NULL, key, NULL); 
+    EVP_CIPHER_CTX_set_padding(&ctx, mode); 
+    EVP_EncryptUpdate(&ctx, out, &outl, in, len);
+    EVP_EncryptFinal_ex(&ctx, out, &outl);
+    EVP_CIPHER_CTX_cleanup(&ctx); 
+}
+
+
+
+void hash_proto_lm_slow(const unsigned char *in[VECTORSIZE], unsigned char *out[VECTORSIZE])
+{
+    int a;
+    unsigned char half1[8], half2[8];
+    unsigned char secret[8]="KGS!@#$%"; 
+    for (a=0;a<vectorsize;a++)
+    {
+	memcpy(half1,in[a],8);
+	memcpy(half2,in[a]+8,8);
+	openssl_des_ecb_encrypt(half1, 8, secret, 8, (unsigned char *)out[a], 0);
+	openssl_des_ecb_encrypt(half2, 8, secret, 8, (unsigned char *)out[a]+8, 0); 
+    }
+}
+
+
+
 void hash_proto_aes_cbc_encrypt(const unsigned char *in,unsigned char *out,unsigned long length,AES_KEY *key,unsigned char ivec[16],int oper)
 {
     OAES_CBC_ENCRYPT(in, out, length, key, ivec, oper);
