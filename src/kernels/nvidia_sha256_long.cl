@@ -1,12 +1,15 @@
-#define rotate(a,b) ((a) << (b)) + ((a) >> (32-(b)))
-#define bitselect(a,b,c) (((a)&(b))|((~a)&(c)))
+#define rotate(x,y) ((x) << (y)) + ((x) >> (32-(y)))
+
 
 #ifndef SM21
 
-void sha256_long1( __global uint4 *hashes, const uint4 input, const uint size,  __global uint4 *plains, __global uint *bitmaps, __global uint *found,  uint4 singlehash, uint x0) 
+#define getglobalid(a) (mad24(get_group_id(0), 64U, get_local_id(0)))
+
+
+void sha256_long1( __global uint *hashes, const uint4 input, const uint size,  __global uint4 *plains, __global uint *bitmaps, __global uint *found,  uint4 singlehash, uint x0) 
 {
-uint w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w16,x1,x2,x3;
-uint i,ib,ic,id;  
+uint w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w16;
+uint i,ib,ic,id,x1,x2,x3;  
 uint A,B,C,D,E,F,G,H,K,l,tmp1,tmp2,temp, SIZE;
 uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
 uint m= 0x00FF00FF;
@@ -204,19 +207,23 @@ uint res = atomic_inc(found);
 uint res = found[0];
 found[0]++;
 #endif
-hashes[res*5] = (uint4)(A);
-hashes[res*5+1] = (uint4)(B);
-hashes[res*5+2] = (uint4)(C);
-hashes[res*5+3] = (uint4)(D);
-hashes[res*5+4] = (uint4)(E);
+hashes[res*8] = (uint)(A);
+hashes[res*8+1] = (uint)(B);
+hashes[res*8+2] = (uint)(C);
+hashes[res*8+3] = (uint)(D);
+hashes[res*8+4] = (uint)(E);
+hashes[res*8+5] = (uint)(F);
+hashes[res*8+6] = (uint)(G);
+hashes[res*8+7] = (uint)(H);
 plains[res] = (uint4)(x0,x1,x2,x3);
 
 }
 
 
 
+
 __kernel void  __attribute__((reqd_work_group_size(128, 1, 1))) 
-sha256_long_double( __global uint4 *hashes,  const uint size,  __global uint4 *plains, __global uint *bitmaps, __global uint *found, __global const  uint * table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4) 
+sha256_long_double( __global uint *hashes,  const uint size,  __global uint4 *plains, __global uint *bitmaps, __global uint *found, __global const  uint * table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4) 
 {
 uint i;
 uint j,k;
@@ -281,7 +288,7 @@ sha256_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
 
 
 __kernel void  __attribute__((reqd_work_group_size(128, 1, 1))) 
-sha256_long_normal( __global uint4 *hashes,  const uint size,  __global uint4 *plains, __global uint *bitmaps, __global uint *found, __global const  uint * table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4) 
+sha256_long_normal( __global uint *hashes,  const uint size,  __global uint4 *plains, __global uint *bitmaps, __global uint *found, __global const  uint * table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4) 
 {
 uint i;
 uint j,k;
@@ -322,6 +329,7 @@ input=(uint4)(chbase1.sC,chbase1.sD,chbase1.sE,chbase1.sF);
 singlehash=(uint4)(chbase2.sC,chbase2.sD,chbase2.sE,chbase2.sF);
 sha256_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
 }
+
 
 
 #else
@@ -626,5 +634,8 @@ input=(uint4)(chbase1.s0,chbase1.s1,chbase1.s2,chbase1.s3);
 singlehash=(uint4)(chbase2.s0,chbase2.s1,chbase2.s2,chbase2.s3);
 sha256_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
 }
+
+
+
 
 #endif

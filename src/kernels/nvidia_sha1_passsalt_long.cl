@@ -1,8 +1,8 @@
-#define rotate(a,b) ((a) << (b)) + ((a) >> (32-(b)))
-
+#define rotate(x,y) ((x) << (y)) + ((x) >> (32-(y)))
 
 #ifndef SM21
 
+#define getglobalid(a) (mad24(get_group_id(0), 64U, get_local_id(0)))
 
 
 void sha1_passsalt_long1( __global uint *hashes, const uint4 input, const uint size,  __global uint4 *plains,  __global uint *found,  uint4 singlehash, uint k, uint16 salt) 
@@ -62,17 +62,10 @@ E=H4;
 
 
 
-#ifndef OLD_ATI
-#define F_00_19(b,c,d) (bitselect(d,c,b))
-#define F_20_39(b,c,d)  ((b) ^ (c) ^ (d))  
-#define F_40_59(b,c,d) (bitselect(c,b,(d^c)))
-#define F_60_79(b,c,d)  F_20_39(b,c,d) 
-#else
 #define F_00_19(b,c,d)  ((((c) ^ (d)) & (b)) ^ (d))
 #define F_20_39(b,c,d)  ((c) ^ (b) ^ (d))  
 #define F_40_59(b,c,d)  (((b) & (c)) | (((b)|(c)) & (d)))  
 #define F_60_79(b,c,d)  F_20_39(b,c,d) 
-#endif
 
 #define Endian_Reverse32(aa) { l=(aa);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (aa)=bitselect(tmp2,tmp1,m); }
 #define ROTATE1(a, b, c, d, e, x) e = e + rotate(a,S2) + F_00_19(b,c,d) + x; e = e + K; b = rotate(b,S3) 
@@ -207,7 +200,7 @@ if (((uint)singlehash.w!=D)) return;
 #ifndef SM10
 uint res = atomic_inc(found);
 #else
-uint res = found[0];
+uint res=found[0];
 found[0]++;
 #endif
 hashes[res*5] = (uint)(A);
@@ -507,7 +500,7 @@ if (all((uint4)singlehash.w!=D)) return;
 #ifndef SM10
 uint res = atomic_inc(found);
 #else
-uint res = found[0];
+uint res=found[0];
 found[0]++;
 #endif
 hashes[res*5] = (uint4)(A.s0,B.s0,C.s0,D.s0);
@@ -581,6 +574,8 @@ input=(uint4)(chbase1.s0,chbase1.s1,chbase1.s2,chbase1.s3);
 singlehash=(uint4)(chbase2.s0,chbase2.s1,chbase2.s2,chbase2.s3);
 sha1_passsalt_long1(hashes,input, size, plains, found, singlehash,k,chbase3);
 }
+
+
 
 
 #endif

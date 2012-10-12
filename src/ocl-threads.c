@@ -275,6 +275,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"sha512")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"osx-old")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"oracle11g")==0)) loops=2;
 	    }
 
 	    /* AMD rule quirks */
@@ -301,7 +302,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"pixmd5")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"bfunix")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"sha512unix")==0)) ocl_vector=1;
-		if ((strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"oracle-old")==0)) {ocl_vector=1;loops=2;}
 		if ((strcmp(get_current_plugin(),"mysql5")==0)) ocl_vector=4;
 
 		/* GCN/VLIW-specific */
@@ -313,7 +314,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"md5unix")==0)&&(!ocl_have_gcn)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"apr1")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"apr1")==0)&&(!ocl_have_gcn)) ocl_vector=4;
-		if ((strcmp(get_current_plugin(),"mscash2")==0)&&(ocl_have_gcn)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"mscash")==0)&&(ocl_have_gcn)) {ocl_vector=1;loops=2;}
 		if ((strcmp(get_current_plugin(),"mscash2")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"wpa")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"wpa")==0)&&(!ocl_have_gcn)) ocl_vector=2;
@@ -323,38 +324,39 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"rar")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"sha512")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"sha512")==0)&&(!ocl_have_gcn)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"oracle-old")==0)) {ocl_vector=1;loops=2;}
 	    }
 
 
 	    /* All nvidias */
 	    if (ocl_dev_nvidia==1)
 	    {
-		if ((strcmp(get_current_plugin(),"oracle-old")==0)) loops=1;
+		if ((strcmp(get_current_plugin(),"oracle-old")==0)) {loops=1;ocl_vector=1;}
 		if ((strcmp(get_current_plugin(),"rar")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"mscash")==0)) {loops=2;ocl_vector=1;}
+		if ((strcmp(get_current_plugin(),"oracle11g")==0)) {ocl_vector=1;loops=2;}
+		if ((strcmp(get_current_plugin(),"smf")==0)) {ocl_vector=1;loops=2;}
 	    }
 
 	    /* SM21 hacks */
 	    if (ocl_have_sm21==1)
 	    {
 		if ((strcmp(get_current_plugin(),"desunix")==0)) ocl_vector=2;
-		if ((strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"oracle-old")==0)) {ocl_vector=2;loops=1;}
+		if ((strcmp(get_current_plugin(),"oracle11g")==0)) {ocl_vector=4;loops=1;}
 		if ((strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"zip")==0)) loops=1;
-	    }
-
-	    /* General nvidia setting for rule*/
-	    if ((ocl_dev_nvidia)&&(attack_method==attack_method_rule))
-	    {
-		loops=1;
-		ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"mscash")==0)) {loops=1;ocl_vector=8;}
+		if ((strcmp(get_current_plugin(),"smf")==0)) {ocl_vector=4;loops=1;}
 	    }
 
 	    /* Specific nvidia rule quirks */
 	    if ((attack_method==attack_method_rule)&&(ocl_dev_nvidia==1))
 	    {
+		loops=1;
 		ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"phpbb3")==0)&&(!ocl_have_sm21)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"phpbb3")==0)&&(ocl_have_sm21)) ocl_vector=4;

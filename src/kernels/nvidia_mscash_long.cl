@@ -1,5 +1,4 @@
-#define rotate(x,y) ((x) << (y)) + ((x) >> (32-(y)))
-
+#define rotate(a,b) ((a) << (b)) + ((a) >> (32-(b)))
 
 #ifndef SM21
 
@@ -221,10 +220,11 @@ mscashSTEP_ROUND3_NULL_ODD (b, c, d, a, S34);
 if (((uint)singlehash.y!=b)) return;
 a=a+Ca;b=b+Cb;c=c+Cc;d=d+Cd;
 
+
 #ifndef SM10
 uint res = atomic_inc(found);
 #else
-uint res = found[0];
+uint res=found[0];
 found[0]++;
 #endif
 hashes[res] = (uint4)(a,b,c,d);
@@ -314,6 +314,7 @@ singlehash=(uint4)(chbase2.s4,chbase2.s5,chbase2.s6,chbase2.s7);
 mscash_long1(hashes,input, size, plains, found, singlehash,k,chbase4);
 
 }
+
 
 
 
@@ -538,7 +539,7 @@ a=a+Ca;b=b+Cb;c=c+Cc;d=d+Cd;
 #ifndef SM10
 uint res = atomic_inc(found);
 #else
-uint res = found[0];
+uint res=found[0];
 found[0]++;
 #endif
 hashes[res*8] = (uint4)(a.s0,b.s0,c.s0,d.s0);
@@ -629,5 +630,8 @@ singlehash=(uint4)(chbase2.s0,chbase2.s1,chbase2.s2,chbase2.s3);
 mscash_long1(hashes,input, size, plains, found, singlehash,k,chbase3);
 
 }
+
+
+
 
 #endif

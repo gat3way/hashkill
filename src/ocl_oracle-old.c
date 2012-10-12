@@ -503,7 +503,7 @@ void* ocl_bruteforce_oracle_old_thread(void *arg)
     plains_buf = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, 16*2*MAXFOUND, NULL, &err );
     _clEnqueueWriteBuffer(queue, plains_buf, CL_TRUE, 0, 16*2*MAXFOUND, plains, 0, NULL, NULL);
     // Change for other types
-    bzero(hashes,16*2*MAXFOUND);
+    bzero(hashes,hash_ret_len*2*MAXFOUND);
     _clEnqueueWriteBuffer(queue, hashes_buf, CL_TRUE, 0, hash_ret_len*2*MAXFOUND, hashes, 0, NULL, NULL);
 
 

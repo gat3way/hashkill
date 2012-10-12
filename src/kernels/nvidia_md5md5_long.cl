@@ -1,6 +1,4 @@
-#define rotate(a,b) ((a) << (b)) + ((a) >> (32-(b)))
-#define bitselect(a,b,c) (((a)&(b))|((~a)&(c)))
-
+#define rotate(x,y) ((x) << (y)) + ((x) >> (32-(y)))
 
 #ifndef SM21
 
@@ -503,6 +501,7 @@ md5md5_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
 
 #else
 
+#define getglobalid(a) (mad24(get_group_id(0), 64U, get_local_id(0)))
 
 void md5md5_long1( __global uint4 *hashes, const uint4 input, const uint size,  __global uint4 *plains, __global uint *bitmaps, __global uint *found,  uint4 singlehash,uint4 x0) 
 {
@@ -1004,12 +1003,8 @@ if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535
 if (id==0) return;
 #endif
 
-#ifndef SM10
+
 uint res = atomic_inc(found);
-#else
-uint res = found[0];
-found[0]++;
-#endif
 hashes[res*4] = (uint4)(a.s0,b.s0,c.s0,d.s0);
 hashes[res*4+1] = (uint4)(a.s1,b.s1,c.s1,d.s1);
 hashes[res*4+2] = (uint4)(a.s2,b.s2,c.s2,d.s2);
@@ -1092,5 +1087,8 @@ input=(uint4)(chbase1.s0,chbase1.s1,chbase1.s2,chbase1.s3);
 singlehash=(uint4)(chbase2.s0,chbase2.s1,chbase2.s2,chbase2.s3);
 md5md5_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
 }
+
+
+
 
 #endif

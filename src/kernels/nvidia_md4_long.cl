@@ -1,61 +1,56 @@
-#define ROTATE(a,b) ((a) << (b)) + ((a) >> (32-(b)))
-#define bitselect(a,b,c) (((a)&(b))|((~a)&(c)))
+#define rotate(x,y) ((x) << (y)) + ((x) >> (32-(y)))
 
 
 #ifndef SM21
 
+#define getglobalid(a) (mad24(get_group_id(0), 64U, get_local_id(0)))
 
-void md4_long1( __global uint4 *dst,const uint4 input,const uint size, const uint chbase, __global uint *found_ind, __global uint *bitmaps, __global uint *found,  uint i, const uint4 singlehash, uint factor) 
+
+void md4_long1( __global uint4 *hashes, const uint4 input, const uint size,  __global uint4 *plains, __global uint *bitmaps, __global uint *found,  uint4 singlehash, uint x0) 
 {  
 
+
 uint SIZE;  
-uint ib,ic,id;  
 uint a,b,c,d, tmp1, tmp2; 
-uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
 uint w0, w1, w2, w3, w4, w5, w6, w7, w14;
 uint AC, AD;
 
 
-ic = size+3;
-id = ic*8; 
-SIZE = (uint)id; 
+SIZE = (uint)size; 
 
 w1 = (uint)input.y;
 w2 = (uint)input.z;
 w3 = (uint)input.w;
-
-w0 = i|(chbase<<24); 
+w0 = x0; 
 
 //w4=w5=w6=w7=(uint)0;
 w14=SIZE;  
 
-#define S11 3  
-#define S12 7  
-#define S13 11 
-#define S14 19 
-#define S21 3  
-#define S22 5  
-#define S23 9  
-#define S24 13 
-#define S31 3  
-#define S32 9  
-#define S33 11 
-#define S34 15 
+#define S11 3U  
+#define S12 7U  
+#define S13 11U 
+#define S14 19U 
+#define S21 3U  
+#define S22 5U  
+#define S23 9U  
+#define S24 13U 
+#define S31 3U  
+#define S32 9U  
+#define S33 11U 
+#define S34 15U 
 
-#define Ca 0x67452301  
-#define Cb 0xefcdab89  
-#define Cc 0x98badcfe  
-#define Cd 0x10325476  
+#define Ca 0x67452301U  
+#define Cb 0xefcdab89U  
+#define Cc 0x98badcfeU  
+#define Cd 0x10325476U  
 
-#define MD4STEP_ROUND1A(a,b,c,d,x,s) { tmp1 = (((c) ^ (d))&(b))^(d); (a) = (a)+tmp1+x; (a) = ROTATE((a), (s)); }
-#define MD4STEP_ROUND1(a,b,c,d,x,s) { (a) = (a)+x+bitselect((b),(c),(d)); (a) = ROTATE((a), (s)); }
-#define MD4STEP_ROUND1_NULL(a,b,c,d,s) { (a) = (a)+bitselect((b),(c),(d));(a) = ROTATE((a), (s)); }
-#define MD4STEP_ROUND2(a,b,c,d,x,s) {(a) = (a) +  AC + bitselect(((d)^(c)), (b),(c)) +x  ; (a) = ROTATE((a), (s)); }  
-#define MD4STEP_ROUND2_NULL(a,b,c,d,s) {(a) = (a) + bitselect(((d)^(c)), (b),(c)) + AC; (a) = ROTATE((a), (s)); }
-
-
-#define MD4STEP_ROUND3(a,b,c,d,x,s) { (a) = (a) +  + x + AD + ((b) ^ (c) ^ (d)); (a) = ROTATE((a), (s)); }  
-#define MD4STEP_ROUND3_NULL(a,b,c,d,s) {(a) = (a) + AD + ((b) ^ (c) ^ (d)); (a) = ROTATE((a), (s)); }
+#define MD4STEP_ROUND1A(a,b,c,d,x,s) { tmp1 = (((c) ^ (d))&(b))^(d); (a) = (a)+tmp1+x; (a) = rotate((a), (s)); }
+#define MD4STEP_ROUND1(a,b,c,d,x,s) { (a) = (a)+x+bitselect((d),(c),(b)); (a) = rotate((a), (s)); }
+#define MD4STEP_ROUND1_NULL(a,b,c,d,s) { (a) = (a)+bitselect((d),(c),(b));(a) = rotate((a), (s)); }
+#define MD4STEP_ROUND2(a,b,c,d,x,s) {(a) = (a) +  AC + bitselect((c),(b),((d)^(c))) +x  ; (a) = rotate((a), (s)); }  
+#define MD4STEP_ROUND2_NULL(a,b,c,d,s) {(a) = (a) + bitselect((c),(b),((d)^(c))) + AC; (a) = rotate((a), (s)); }
+#define MD4STEP_ROUND3(a,b,c,d,x,s) { (a) = (a) +  + x + AD + ((b) ^ (c) ^ (d)); (a) = rotate((a), (s)); }  
+#define MD4STEP_ROUND3_NULL(a,b,c,d,s) {(a) = (a) + AD + ((b) ^ (c) ^ (d)); (a) = rotate((a), (s)); }
 
 
 
@@ -103,7 +98,6 @@ MD4STEP_ROUND2_NULL (c, d, a, b, S23);
 MD4STEP_ROUND2_NULL (b, c, d, a, S24); 
 
 #ifdef SINGLE_MODE
-id = 1;
 if (((uint)singlehash.y != b)) return;
 if (((uint)singlehash.z != c)) return;
 if (((uint)singlehash.w != d)) return;
@@ -126,84 +120,166 @@ MD4STEP_ROUND3 (a, b, c, d, w3, S31);
 MD4STEP_ROUND3_NULL(d, a, b, c, S32);  
 MD4STEP_ROUND3_NULL (c, d, a, b, S33);  
 MD4STEP_ROUND3_NULL (b, c, d, a, S34); 
-
-
 a=a+Ca;b=b+Cb;c=c+Cc;d=d+Cd;
 
-
 #ifndef SINGLE_MODE
+uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
+uint id=1;
 id = 0;
 b1=a;b2=b;b3=c;b4=d;
 b5=(singlehash.x >> (b&31))&1;
 b6=(singlehash.y >> (c&31))&1;
 b7=(singlehash.z >> (d&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>13]>>(b1&31))&1) && ((bitmaps[65535*8+(b2>>13)]>>(b2&31))&1) && ((bitmaps[(16*65535)+(b3>>13)]>>(b3&31))&1) && ((bitmaps[(24*65535)+(b4>>13)]>>(b4&31))&1) ) id=1;
+if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+if (id==0) return;
 #endif
 
-if (id==1) 
-{
-found[0] = 1;
-found_ind[get_global_id(0)] = 1;
-}
 
-#ifdef DOUBLE
-dst[(get_global_id(0)<<1)+factor] = (uint4)(a,b,c,d);
+#ifndef SM10
+uint res = atomic_inc(found);
 #else
-dst[(get_global_id(0))] = (uint4)(a,b,c,d);
-
+uint res = found[0];
+found[0]++;
 #endif
+hashes[res] = (uint4)(a,b,c,d);
+plains[res] = (uint4)(w0,w1,w2,w3);
 
 }
+
+
 
 
 __kernel void  __attribute__((reqd_work_group_size(128, 1, 1))) 
-md4_long( __global uint4 *dst, const uint4 input, const uint size, uint16 chbase,  __global uint *found_ind, __global uint *bitmaps, __global uint *found, __global const uint *table, uint4 singlehash) 
+md4_long_double( __global uint4 *hashes,  const uint size,  __global uint4 *plains, __global uint *bitmaps, __global uint *found, __global const  uint * table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4) 
 {
 uint i;
-uint chbase1;
-i = table[get_global_id(0)];
-chbase1 = (uint)(chbase.s0);
-md4_long1(dst,input, size, chbase1, found_ind, bitmaps, found, i, singlehash,0);
-#ifdef DOUBLE
-chbase1 = (uint)(chbase.s1);
-md4_long1(dst,input, size, chbase1, found_ind, bitmaps, found, i, singlehash,1);
-#endif
+uint j,k;
+uint c0,x0;
+uint d0,d1,d2;
+uint t1,t2,t3;
+uint x1,SIZE;
+uint c1,c2,x2;
+uint t4;
+uint4 input;
+uint4 singlehash; 
+
+
+
+SIZE = (uint)(size); 
+i=table[get_global_id(0)]<<16;
+j=table[get_global_id(1)];
+k=(i|j);
+
+
+input=(uint4)(chbase1.s0,chbase1.s1,chbase1.s2,chbase1.s3);
+singlehash=(uint4)(chbase2.s0,chbase2.s1,chbase2.s2,chbase2.s3);
+md4_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
+
+
+input=(uint4)(chbase1.s4,chbase1.s5,chbase1.s6,chbase1.s7);
+singlehash=(uint4)(chbase2.s4,chbase2.s5,chbase2.s6,chbase2.s7);
+md4_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
+
+
+input=(uint4)(chbase1.s8,chbase1.s9,chbase1.sA,chbase1.sB);
+singlehash=(uint4)(chbase2.s8,chbase2.s9,chbase2.sA,chbase2.sB);
+md4_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
+
+
+input=(uint4)(chbase1.sC,chbase1.sD,chbase1.sE,chbase1.sF);
+singlehash=(uint4)(chbase2.sC,chbase2.sD,chbase2.sE,chbase2.sF);
+md4_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
+
+
+input=(uint4)(chbase3.s0,chbase3.s1,chbase3.s2,chbase3.s3);
+singlehash=(uint4)(chbase4.s0,chbase4.s1,chbase4.s2,chbase4.s3);
+md4_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
+
+
+input=(uint4)(chbase3.s4,chbase3.s5,chbase3.s6,chbase3.s7);
+singlehash=(uint4)(chbase4.s4,chbase4.s5,chbase4.s6,chbase4.s7);
+md4_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
+
+
+input=(uint4)(chbase3.s8,chbase3.s9,chbase3.sA,chbase3.sB);
+singlehash=(uint4)(chbase4.s8,chbase4.s9,chbase4.sA,chbase4.sB);
+md4_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
+
+
+input=(uint4)(chbase3.sC,chbase3.sD,chbase3.sE,chbase3.sF);
+singlehash=(uint4)(chbase4.sC,chbase4.sD,chbase4.sE,chbase4.sF);
+md4_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
+
 }
+
+
+
+__kernel void  __attribute__((reqd_work_group_size(128, 1, 1))) 
+md4_long_normal( __global uint4 *hashes,  const uint size,  __global uint4 *plains, __global uint *bitmaps, __global uint *found, __global const  uint * table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4) 
+{
+uint i;
+uint j,k;
+uint c0,x0;
+uint d0,d1,d2;
+uint t1,t2,t3;
+uint x1,SIZE;
+uint c1,c2,x2;
+uint t4;
+uint4 input;
+uint4 singlehash; 
+
+
+
+SIZE = (uint)(size); 
+i=table[get_global_id(0)]<<16;
+j=table[get_global_id(1)];
+k=(i|j);
+
+
+input=(uint4)(chbase1.s0,chbase1.s1,chbase1.s2,chbase1.s3);
+singlehash=(uint4)(chbase2.s0,chbase2.s1,chbase2.s2,chbase2.s3);
+md4_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
+
+
+
+input=(uint4)(chbase1.s4,chbase1.s5,chbase1.s6,chbase1.s7);
+singlehash=(uint4)(chbase2.s4,chbase2.s5,chbase2.s6,chbase2.s7);
+md4_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
+
+
+input=(uint4)(chbase1.s8,chbase1.s9,chbase1.sA,chbase1.sB);
+singlehash=(uint4)(chbase2.s8,chbase2.s9,chbase2.sA,chbase2.sB);
+md4_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
+
+
+input=(uint4)(chbase1.sC,chbase1.sD,chbase1.sE,chbase1.sF);
+singlehash=(uint4)(chbase2.sC,chbase2.sD,chbase2.sE,chbase2.sF);
+md4_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
+}
+
 
 
 #else
 
-
-__kernel void  __attribute__((reqd_work_group_size(128, 1, 1))) 
-md4_long( __global uint4 *dst,const uint4 input,const uint size, const uint16 chbase, __global uint *found_ind, __global uint *bitmaps, __global uint *found, __global uint *table, const uint4 singlehash) 
-{  
-
-uint4 SIZE,chbase1;  
-uint i,ib,ic,id;  
-uint4 a,b,c,d, tmp1, tmp2; 
-uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
-uint4 w0, w1, w2, w3, w4, w5, w6, w7, w14;
-uint4 AC, AD;
-
-chbase1=(uint4)(chbase.s0,chbase.s1,chbase.s2,chbase.s3);
-
-ic = size+3;
-id = ic*8; 
-SIZE = (uint4)id; 
-
-w1 = (uint4)input.y;
-w2 = (uint4)input.z;
-w3 = (uint4)input.w;
+void md4_long1( __global uint4 *hashes, const uint4 input, const uint size,  __global uint4 *plains, __global uint *bitmaps, __global uint *found,  uint4 singlehash,uint8 x0) 
+{
 
 
-i = table[get_global_id(0)];
+uint8 SIZE;  
+uint ib,ic;  
+uint8 a,b,c,d, tmp1, tmp2; 
+uint8 w0, w1, w2, w3, w4, w5, w6, w7, w14;
+uint8 AC, AD;
 
-w0 = i|(chbase1<<24); 
 
+SIZE = (uint8)size; 
 
-w4=w5=w6=w7=(uint4)0;
+w1 = (uint8)input.y;
+w2 = (uint8)input.z;
+w3 = (uint8)input.w;
+w0 = x0; 
+
 w14=SIZE;  
-
 
 #define S11 3  
 #define S12 7  
@@ -223,20 +299,27 @@ w14=SIZE;
 #define Cc 0x98badcfe  
 #define Cd 0x10325476  
 
-#define F(x, y, z)(((x) & (y)) | (((~x) & (z))))
-#define G(x, y, z)((((x) & (y)) | (z)) & ((x) | (y)))  
-#define H(x, y, z)((x) ^ (y) ^ (z))
+#ifndef GCN
+#define MD4STEP_ROUND1A(a,b,c,d,x,s) { tmp1 = (((c) ^ (d))&(b))^(d); (a) = (a)+tmp1+x; (a) = rotate((a), (s)); }
+#define MD4STEP_ROUND1(a,b,c,d,x,s) { (a) = (a)+x+bitselect((d),(c),(b)); (a) = rotate((a), (s)); }
+#define MD4STEP_ROUND1_NULL(a,b,c,d,s) { (a) = (a)+bitselect((d),(c),(b));(a) = rotate((a), (s)); }
+#define MD4STEP_ROUND2(a,b,c,d,x,s) {(a) = (a) +  AC + bitselect((c),(b),((d)^(c))) +x  ; (a) = rotate((a), (s)); }  
+#define MD4STEP_ROUND2_NULL(a,b,c,d,s) {(a) = (a) + bitselect((c),(b),((d)^(c))) + AC; (a) = rotate((a), (s)); }
+#else
+#define MD4STEP_ROUND1A(a,b,c,d,x,s) { tmp1 = (((c) ^ (d))&(b))^(d); (a) = (a)+tmp1+x; (a) = rotate((a), (s)); }
+#define MD4STEP_ROUND1(a,b,c,d,x,s) { (a) = (a)+x+bitselect((d),(c),(b)); (a) = rotate((a), (s)); }
+#define MD4STEP_ROUND1_NULL(a,b,c,d,s) { (a) = (a)+bitselect((d),(c),(b));(a) = rotate((a), (s)); }
+#define MD4STEP_ROUND2(a,b,c,d,x,s) {(a) = (a) +  AC + bitselect((c),(b),((d)^(c))) +x  ; (a) = rotate((a), (s)); }  
+#define MD4STEP_ROUND2_NULL(a,b,c,d,s) {(a) = (a) + bitselect((c),(b),((d)^(c))) + AC; (a) = rotate((a), (s)); }
+#endif
 
-#define MD4STEP_ROUND1(a,b,c,d,x,s) { tmp1 = (b) & (c); tmp2 = ((~b)&(d)); tmp1 = tmp1 | tmp2; (a) = (a)+tmp1+x; (a) = ROTATE((a), (s)); } 
-#define MD4STEP_ROUND1_NULL(a,b,c,d,s) { tmp1 = (b) & (c); tmp2 = ((~b)&(d)); tmp1 = tmp1 | tmp2; (a) = (a)+tmp1; (a) = ROTATE((a), (s)); }
-#define MD4STEP_ROUND2(a,b,c,d,x,s) { tmp1 = (b) & (c);tmp1 = tmp1 | (d);tmp2 = (b) | (c);tmp1 = tmp1 & tmp2;(a) = (a)+ tmp1+x+AC; (a) = ROTATE((a),(s));}
-#define MD4STEP_ROUND2_NULL(a,b,c,d,s) {tmp1 = (b) & (c);tmp1 = tmp1 | (d);tmp2 = (b) | (c);tmp1 = tmp1 & tmp2;(a) = (a)+ tmp1+AC; (a) = ROTATE((a),(s));}
-#define MD4STEP_ROUND3(a,b,c,d,x,s) {tmp1 = (b) ^ (c);tmp1 = tmp1 ^ (d);(a) = (a) + tmp1 + x + AD; (a) = ROTATE((a), (s)); }
-#define MD4STEP_ROUND3_NULL(a,b,c,d,s) {tmp1 = (b) ^ (c);tmp1 = tmp1 ^ (d);(a) = (a) + tmp1 + AD; (a) = ROTATE((a), (s)); }
+#define MD4STEP_ROUND3(a,b,c,d,x,s) { (a) = (a) +  + x + AD + ((b) ^ (c) ^ (d)); (a) = rotate((a), (s)); }  
+#define MD4STEP_ROUND3_NULL(a,b,c,d,s) {(a) = (a) + AD + ((b) ^ (c) ^ (d)); (a) = rotate((a), (s)); }
 
 
-AC = (uint4)0x5a827999; 
-AD = (uint4)0x6ed9eba1; 
+
+AC = (uint8)0x5a827999; 
+AD = (uint8)0x6ed9eba1; 
 a=Ca;b=Cb;c=Cc;d=Cd;
 
 MD4STEP_ROUND1 (a, b, c, d, w0, S11);  
@@ -271,19 +354,17 @@ MD4STEP_ROUND2 (b, c, d, a, w14, S24);
 MD4STEP_ROUND2 (a, b, c, d, w3, S21);  
 
 #ifdef SINGLE_MODE
-if (all((uint4)singlehash.x != a+w0)) return;
+if (all((uint8)singlehash.x != a+w0)) return;
 #endif
 
-
-MD4STEP_ROUND2 (d, a, b, c, w7, S22);  
+MD4STEP_ROUND2_NULL (d, a, b, c, S22);  
 MD4STEP_ROUND2_NULL (c, d, a, b, S23); 
 MD4STEP_ROUND2_NULL (b, c, d, a, S24); 
 
 #ifdef SINGLE_MODE
-id = 1;
-if (all((uint4)singlehash.y != b)) return;
-if (all((uint4)singlehash.z != c)) return;
-if (all((uint4)singlehash.w != d)) return;
+if (all((uint8)singlehash.y != b)) return;
+if (all((uint8)singlehash.z != c)) return;
+if (all((uint8)singlehash.w != d)) return;
 #endif
 
 
@@ -304,48 +385,162 @@ MD4STEP_ROUND3_NULL(d, a, b, c, S32);
 MD4STEP_ROUND3_NULL (c, d, a, b, S33);  
 MD4STEP_ROUND3_NULL (b, c, d, a, S34); 
 
-a=a+Ca;b=b+Cb;c=c+Cc;d=d+Cd;
 
-id = 1;
+a=a+Ca;b=b+Cb;c=c+Cc;d=d+Cd;
 
 
 
 #ifndef SINGLE_MODE
-id = 0;
+uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
 
+uint id=1;
+id = 0;
 b1=a.s0;b2=b.s0;b3=c.s0;b4=d.s0;
 b5=(singlehash.x >> (b.s0&31))&1;
 b6=(singlehash.y >> (c.s0&31))&1;
 b7=(singlehash.z >> (d.s0&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>13]>>(b1&31))&1) && ((bitmaps[65535*8+(b2>>13)]>>(b2&31))&1) && ((bitmaps[(16*65535)+(b3>>13)]>>(b3&31))&1) && ((bitmaps[(24*65535)+(b4>>13)]>>(b4&31))&1) ) id=1;
+if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
 b1=a.s1;b2=b.s1;b3=c.s1;b4=d.s1;
 b5=(singlehash.x >> (b.s1&31))&1;
 b6=(singlehash.y >> (c.s1&31))&1;
 b7=(singlehash.z >> (d.s1&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>13]>>(b1&31))&1) && ((bitmaps[65535*8+(b2>>13)]>>(b2&31))&1) && ((bitmaps[(16*65535)+(b3>>13)]>>(b3&31))&1) && ((bitmaps[(24*65535)+(b4>>13)]>>(b4&31))&1) ) id=1;
+if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
 b1=a.s2;b2=b.s2;b3=c.s2;b4=d.s2;
 b5=(singlehash.x >> (b.s2&31))&1;
 b6=(singlehash.y >> (c.s2&31))&1;
 b7=(singlehash.z >> (d.s2&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>13]>>(b1&31))&1) && ((bitmaps[65535*8+(b2>>13)]>>(b2&31))&1) && ((bitmaps[(16*65535)+(b3>>13)]>>(b3&31))&1) && ((bitmaps[(24*65535)+(b4>>13)]>>(b4&31))&1) ) id=1;
+if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
 b1=a.s3;b2=b.s3;b3=c.s3;b4=d.s3;
 b5=(singlehash.x >> (b.s3&31))&1;
 b6=(singlehash.y >> (c.s3&31))&1;
 b7=(singlehash.z >> (d.s3&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>13]>>(b1&31))&1) && ((bitmaps[65535*8+(b2>>13)]>>(b2&31))&1) && ((bitmaps[(16*65535)+(b3>>13)]>>(b3&31))&1) && ((bitmaps[(24*65535)+(b4>>13)]>>(b4&31))&1) ) id=1;
+if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=a.s4;b2=b.s4;b3=c.s4;b4=d.s4;
+b5=(singlehash.x >> (b.s4&31))&1;
+b6=(singlehash.y >> (c.s4&31))&1;
+b7=(singlehash.z >> (d.s4&31))&1;
+if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=a.s5;b2=b.s5;b3=c.s5;b4=d.s5;
+b5=(singlehash.x >> (b.s5&31))&1;
+b6=(singlehash.y >> (c.s5&31))&1;
+b7=(singlehash.z >> (d.s5&31))&1;
+if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=a.s6;b2=b.s6;b3=c.s6;b4=d.s6;
+b5=(singlehash.x >> (b.s6&31))&1;
+b6=(singlehash.y >> (c.s6&31))&1;
+b7=(singlehash.z >> (d.s6&31))&1;
+if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=a.s7;b2=b.s7;b3=c.s7;b4=d.s7;
+b5=(singlehash.x >> (b.s7&31))&1;
+b6=(singlehash.y >> (c.s7&31))&1;
+b7=(singlehash.z >> (d.s7&31))&1;
+if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+if (id==0) return;
 #endif
 
-if (id==1) 
+
+uint res = atomic_inc(found);
+hashes[res*8] = (uint4)(a.s0,b.s0,c.s0,d.s0);
+hashes[res*8+1] = (uint4)(a.s1,b.s1,c.s1,d.s1);
+hashes[res*8+2] = (uint4)(a.s2,b.s2,c.s2,d.s2);
+hashes[res*8+3] = (uint4)(a.s3,b.s3,c.s3,d.s3);
+hashes[res*8+4] = (uint4)(a.s4,b.s4,c.s4,d.s4);
+hashes[res*8+5] = (uint4)(a.s5,b.s5,c.s5,d.s5);
+hashes[res*8+6] = (uint4)(a.s6,b.s6,c.s6,d.s6);
+hashes[res*8+7] = (uint4)(a.s7,b.s7,c.s7,d.s7);
+
+plains[res*8] = (uint4)(w0.s0,w1.s0,w2.s0,w3.s0);
+plains[res*8+1] = (uint4)(w0.s1,w1.s1,w2.s1,w3.s1);
+plains[res*8+2] = (uint4)(w0.s2,w1.s2,w2.s2,w3.s2);
+plains[res*8+3] = (uint4)(w0.s3,w1.s3,w2.s3,w3.s3);
+plains[res*8+4] = (uint4)(w0.s4,w1.s4,w2.s4,w3.s4);
+plains[res*8+5] = (uint4)(w0.s5,w1.s5,w2.s5,w3.s5);
+plains[res*8+6] = (uint4)(w0.s6,w1.s6,w2.s6,w3.s6);
+plains[res*8+7] = (uint4)(w0.s7,w1.s7,w2.s7,w3.s7);
+}
+
+
+
+__kernel void  __attribute__((reqd_work_group_size(128, 1, 1))) 
+md4_long_double( __global uint4 *hashes,  const uint size,  __global uint4 *plains, __global uint *bitmaps, __global uint *found, __global const  uint *table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4) 
 {
-found[0] = 1;
-found_ind[get_global_id(0)] = 1;
+uint8 i;
+uint j;
+uint8 k;
+uint8 c0,x0;
+uint8 d0,d1,d2;
+uint8 t1,t2,t3;
+uint8 x1,SIZE;
+uint8 c1,c2,x2;
+uint8 t4;
+uint4 input;
+uint4 singlehash; 
+
+
+SIZE = (uint8)(size); 
+i.s0=table[get_global_id(1)*8];
+i.s1=table[get_global_id(1)*8+1];
+i.s2=table[get_global_id(1)*8+2];
+i.s3=table[get_global_id(1)*8+3];
+i.s4=table[get_global_id(1)*8+4];
+i.s5=table[get_global_id(1)*8+5];
+i.s6=table[get_global_id(1)*8+6];
+i.s7=table[get_global_id(1)*8+7];
+j=table[get_global_id(0)]<<16;
+
+k=(i|j);
+
+
+input=(uint4)(chbase1.s0,chbase1.s1,chbase1.s2,chbase1.s3);
+singlehash=(uint4)(chbase2.s0,chbase2.s1,chbase2.s2,chbase2.s3);
+md4_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
+
+
+
+input=(uint4)(chbase1.s4,chbase1.s5,chbase1.s6,chbase1.s7);
+singlehash=(uint4)(chbase2.s4,chbase2.s5,chbase2.s6,chbase2.s7);
+md4_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
 }
 
-dst[(get_global_id(0)*4)] = (uint4)(a.s0,b.s0,c.s0,d.s0);
-dst[(get_global_id(0)*4)+1] = (uint4)(a.s1,b.s1,c.s1,d.s1);
-dst[(get_global_id(0)*4)+2] = (uint4)(a.s2,b.s2,c.s2,d.s2);
-dst[(get_global_id(0)*4)+3] = (uint4)(a.s3,b.s3,c.s3,d.s3);
 
+
+
+__kernel void  __attribute__((reqd_work_group_size(128, 1, 1))) 
+md4_long_normal( __global uint4 *hashes,  const uint size,  __global uint4 *plains, __global uint *bitmaps, __global uint *found, __global const  uint * table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4) 
+{
+uint8 i,k;
+uint j;
+uint8 c0,x0;
+uint8 d0,d1,d2;
+uint8 t1,t2,t3;
+uint8 x1,SIZE;
+uint8 c1,c2,x2;
+uint8 t4;
+uint4 input;
+uint4 singlehash; 
+
+
+
+SIZE = (uint8)(size); 
+i.s0=table[get_global_id(1)*8];
+i.s1=table[get_global_id(1)*8+1];
+i.s2=table[get_global_id(1)*8+2];
+i.s3=table[get_global_id(1)*8+3];
+i.s4=table[get_global_id(1)*8+4];
+i.s5=table[get_global_id(1)*8+5];
+i.s6=table[get_global_id(1)*8+6];
+i.s7=table[get_global_id(1)*8+7];
+j=table[get_global_id(0)]<<16;
+
+k=(i|j);
+
+
+input=(uint4)(chbase1.s0,chbase1.s1,chbase1.s2,chbase1.s3);
+singlehash=(uint4)(chbase2.s0,chbase2.s1,chbase2.s2,chbase2.s3);
+md4_long1(hashes,input, size, plains, bitmaps, found, singlehash,k);
 }
+
+
+
 
 #endif

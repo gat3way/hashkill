@@ -200,11 +200,14 @@ Endian_Reverse32(x3);
 
 
 uint res = atomic_inc(found);
-hashes[res*5] = (uint)(A);
-hashes[res*5+1] = (uint)(B);
-hashes[res*5+2] = (uint)(C);
-hashes[res*5+3] = (uint)(D);
-hashes[res*5+4] = (uint)(E);
+hashes[res*8] = (uint)(A);
+hashes[res*8+1] = (uint)(B);
+hashes[res*8+2] = (uint)(C);
+hashes[res*8+3] = (uint)(D);
+hashes[res*8+4] = (uint)(E);
+hashes[res*8+5] = (uint)(F);
+hashes[res*8+6] = (uint)(G);
+hashes[res*8+7] = (uint)(H);
 plains[res] = (uint4)(x0,x1,x2,x3);
 
 }

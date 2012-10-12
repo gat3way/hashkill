@@ -929,7 +929,7 @@ static void ocl_get_cracked(cl_command_queue queuein,cl_mem plains_buf, char *pl
         if (strlen(plain)>0)
         if (hash_ok==check_zip("",k1,k2,k3,k4))
         {
-            add_cracked_list(myfilename, "ZIP file    " , "123", plain);
+            if (!cracked_list) add_cracked_list(myfilename, "ZIP file    " , "123", plain);
         }
     }
 }

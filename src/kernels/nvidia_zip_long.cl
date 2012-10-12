@@ -758,7 +758,6 @@ zip_long1(hashes,input, size, plains, found, singlehash,k,chbase5,crctable);
 
 
 #else
-#define getglobalid(a) (mad24(get_group_id(0), 64U, get_local_id(0)))
 
 #define kCrcPoly 0xEDB88320
 

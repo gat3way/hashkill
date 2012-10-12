@@ -4,7 +4,7 @@
 
 
 
-void sha1_saltpass_long1( __global uint4 *hashes, const uint4 input, const uint size,  __global uint4 *plains,  __global uint *found,  uint4 singlehash, uint k, uint16 salt) 
+void sha1_saltpass_long1( __global uint *hashes, const uint4 input, const uint size,  __global uint4 *plains,  __global uint *found,  uint4 singlehash, uint k, uint16 salt) 
 {  
 uint SIZE;  
 uint ib,ic,id,ie;
@@ -87,18 +87,10 @@ C=H2;
 D=H3;  
 E=H4;  
 
-
-#ifndef OLD_ATI
 #define F_00_19(b,c,d) (bitselect(d,c,b))
 #define F_20_39(b,c,d)  ((b) ^ (c) ^ (d))  
 #define F_40_59(b,c,d) (bitselect(c,b,(d^c)))
 #define F_60_79(b,c,d)  F_20_39(b,c,d) 
-#else
-#define F_00_19(b,c,d)  ((((c) ^ (d)) & (b)) ^ (d))
-#define F_20_39(b,c,d)  ((c) ^ (b) ^ (d))  
-#define F_40_59(b,c,d)  (((b) & (c)) | (((b)|(c)) & (d)))  
-#define F_60_79(b,c,d)  F_20_39(b,c,d) 
-#endif
 
 
 #define Endian_Reverse32(aa) { l=(aa);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (aa)=bitselect(tmp2,tmp1,m); }
@@ -250,7 +242,7 @@ plains[res] = (uint4)(xx0,xx1,xx2,xx3);
 
 
 __kernel void  __attribute__((reqd_work_group_size(128, 1, 1))) 
-sha1_saltpass_long_double( __global uint4 *hashes,  const uint size,  __global uint4 *plains, __global uint *found, __global const  uint * table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4,uint16 chbase5,uint16 chbase6) 
+sha1_saltpass_long_double( __global uint *hashes,  const uint size,  __global uint4 *plains, __global uint *found, __global const  uint * table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4,uint16 chbase5,uint16 chbase6) 
 {
 uint i;
 uint j,k;
@@ -295,7 +287,7 @@ sha1_saltpass_long1(hashes,input, size, plains, found, singlehash,k,chbase6);
 
 
 __kernel void  __attribute__((reqd_work_group_size(128, 1, 1))) 
-sha1_saltpass_long_normal( __global uint4 *hashes,  const uint size,  __global uint4 *plains, __global uint *found, __global const  uint * table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4,uint16 chbase5,uint16 chbase6) 
+sha1_saltpass_long_normal( __global uint *hashes,  const uint size,  __global uint4 *plains, __global uint *found, __global const  uint * table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4,uint16 chbase5,uint16 chbase6) 
 {
 uint i;
 uint j,k;
@@ -414,18 +406,10 @@ C=H2;
 D=H3;  
 E=H4;  
 
-
-#ifndef OLD_ATI
 #define F_00_19(b,c,d) (bitselect(d,c,b))
 #define F_20_39(b,c,d)  ((b) ^ (c) ^ (d))  
 #define F_40_59(b,c,d) (bitselect(c,b,(d^c)))
 #define F_60_79(b,c,d)  F_20_39(b,c,d) 
-#else
-#define F_00_19(b,c,d)  ((((c) ^ (d)) & (b)) ^ (d))
-#define F_20_39(b,c,d)  ((c) ^ (b) ^ (d))  
-#define F_40_59(b,c,d)  (((b) & (c)) | (((b)|(c)) & (d)))  
-#define F_60_79(b,c,d)  F_20_39(b,c,d) 
-#endif
 
 
 #define Endian_Reverse32(aa) { l=(aa);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (aa)=bitselect(tmp2,tmp1,m); }

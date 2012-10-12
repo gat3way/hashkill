@@ -88,17 +88,10 @@ D=H3;
 E=H4;  
 
 
-#ifndef OLD_ATI
 #define F_00_19(b,c,d) (bitselect(d,c,b))
 #define F_20_39(b,c,d)  ((b) ^ (c) ^ (d))  
 #define F_40_59(b,c,d) (bitselect(c,b,(d^c)))
 #define F_60_79(b,c,d)  F_20_39(b,c,d) 
-#else
-#define F_00_19(b,c,d)  ((((c) ^ (d)) & (b)) ^ (d))
-#define F_20_39(b,c,d)  ((c) ^ (b) ^ (d))  
-#define F_40_59(b,c,d)  (((b) & (c)) | (((b)|(c)) & (d)))  
-#define F_60_79(b,c,d)  F_20_39(b,c,d) 
-#endif
 
 
 #define Endian_Reverse32(aa) { l=(aa);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (aa)=bitselect(tmp2,tmp1,m); }
@@ -417,17 +410,10 @@ D=H3;
 E=H4;  
 
 
-#ifndef OLD_ATI
 #define F_00_19(b,c,d) (bitselect(d,c,b))
 #define F_20_39(b,c,d)  ((b) ^ (c) ^ (d))  
 #define F_40_59(b,c,d) (bitselect(c,b,(d^c)))
 #define F_60_79(b,c,d)  F_20_39(b,c,d) 
-#else
-#define F_00_19(b,c,d)  ((((c) ^ (d)) & (b)) ^ (d))
-#define F_20_39(b,c,d)  ((c) ^ (b) ^ (d))  
-#define F_40_59(b,c,d)  (((b) & (c)) | (((b)|(c)) & (d)))  
-#define F_60_79(b,c,d)  F_20_39(b,c,d) 
-#endif
 
 
 #define Endian_Reverse32(aa) { l=(aa);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (aa)=bitselect(tmp2,tmp1,m); }
@@ -727,17 +713,10 @@ D=H3;
 E=H4;  
 
 
-#ifndef OLD_ATI
 #define F_00_19(b,c,d) (bitselect(d,c,b))
 #define F_20_39(b,c,d)  ((b) ^ (c) ^ (d))  
 #define F_40_59(b,c,d) (bitselect(c,b,(d^c)))
 #define F_60_79(b,c,d)  F_20_39(b,c,d) 
-#else
-#define F_00_19(b,c,d)  ((((c) ^ (d)) & (b)) ^ (d))
-#define F_20_39(b,c,d)  ((c) ^ (b) ^ (d))  
-#define F_40_59(b,c,d)  (((b) & (c)) | (((b)|(c)) & (d)))  
-#define F_60_79(b,c,d)  F_20_39(b,c,d) 
-#endif
 
 
 #define Endian_Reverse32(aa) { l=(aa);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (aa)=bitselect(tmp2,tmp1,m); }

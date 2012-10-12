@@ -1,5 +1,4 @@
 #define rotate(a,b) ((a) << (b)) + ((a) >> (32-(b)))
-#define bitselect(a,b,c) (((a)&(b))|((~a)&(c)))
 
 
 #ifndef SM21
@@ -61,10 +60,10 @@ D=H3;
 E=H4;  
 
 
-#define F_00_19(b,c,d) (bitselect(d,c,b))
-#define F_20_39(b,c,d)  ((b) ^ (c) ^ (d))  
-#define F_40_59(b,c,d) (bitselect((c & d),(d | c),b))
-#define F_60_79(b,c,d)  F_20_39(b,c,d) 
+#define F_00_19(bb,cc,dd) (bitselect((dd),(cc),(bb)))
+#define F_20_39(bb,cc,dd)  ((bb) ^ (cc) ^ (dd))  
+#define F_40_59(bb,cc,dd) (bitselect((cc), (bb), ((dd)^(cc))))
+#define F_60_79(bb,cc,dd)  F_20_39((bb),(cc),(dd)) 
 
 
 #define Endian_Reverse32(a) { l=(a);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (a)=(tmp1 & m)|(tmp2 & m2); } 
@@ -498,10 +497,10 @@ D=H3;
 E=H4;  
 
 
-#define F_00_19(b,c,d) (bitselect(d,c,b))
-#define F_20_39(b,c,d)  ((b) ^ (c) ^ (d))  
-#define F_40_59(b,c,d) (bitselect((c & d),(d | c),b))
-#define F_60_79(b,c,d)  F_20_39(b,c,d) 
+#define F_00_19(bb,cc,dd) (bitselect((dd),(cc),(bb)))
+#define F_20_39(bb,cc,dd)  ((bb) ^ (cc) ^ (dd))  
+#define F_40_59(bb,cc,dd) (bitselect((cc), (bb), ((dd)^(cc))))
+#define F_60_79(bb,cc,dd)  F_20_39((bb),(cc),(dd)) 
 
 
 #define Endian_Reverse32(a) { l=(a);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (a)=(tmp1 & m)|(tmp2 & m2); } 
