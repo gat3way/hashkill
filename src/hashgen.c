@@ -76,15 +76,6 @@ static void fix_line(char *line)
     }
 }
 
-static void fix_char(char *line)
-{
-    int a;
-
-    for (a=0;a<strlen(line);a++) 
-    {
-	if (line[a]==1) line [a]=0;
-    }
-}
 
 
 static void update_currentlinenum(int val,int mode)
@@ -605,9 +596,10 @@ static void parse(char *line,int self, int precalc,int mode)
     else update_mode(1,mode);
 
     tok2=strtok(NULL," ");
-    if (!tok2)
+    if (tok2==NULL)
     {
 	hg_elog("Error: line: %s not valid!\n",currentline);
+	return;
     }
     
     /* We have add keyword? */
