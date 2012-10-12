@@ -935,7 +935,7 @@ static int rar_unpack29(unsigned char *key, unsigned char *iv, int fd, int solid
 	unsigned char sdbits[]=  {2,2,3, 4, 5, 6,  6,  6};
 	unsigned int bits, distance;
 	int retval=TRUE, i,  length, dist_number, low_dist, ch, next_ch;
-	int number,last=11111,rep=0;
+	int number;
 	int length_number, failed;
 
 	//rar_dbgmsg("Offset: %ld\n", lseek(fd, 0, SEEK_CUR));
@@ -1053,11 +1053,6 @@ static int rar_unpack29(unsigned char *key, unsigned char *iv, int fd, int solid
 
 			number = rar_decode_number(unpack_data, (struct Decode *)&unpack_data->LD);
 			if (number<0) return FALSE;
-			if (number==last) rep++;
-			else rep=0;
-			if ((rep==5)) return FALSE;
-			last=number;
-			
 			rar_dbgmsg("number = %d\n", number);
 			
 			if (number < 256) {

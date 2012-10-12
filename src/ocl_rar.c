@@ -351,7 +351,6 @@ static hash_stat check_rar(unsigned char *ekey, unsigned char *eiv)
             unsigned char plain[128];
             unsigned char enc[128];
             memcpy(plain,filebuffer,128);
-
             AES_KEY keyu;
             OAES_SET_DECRYPT_KEY(ekey, 16*8, &keyu);
             OAES_CBC_ENCRYPT(plain, enc, 128, &keyu, iv1, 0);
@@ -368,7 +367,6 @@ static hash_stat check_rar(unsigned char *ekey, unsigned char *eiv)
 	    {
 		if ((enc[0] & 0x40) || (!check_huffman(enc))) return hash_err;
 	    }
-
             memcpy(iv1,eiv,16);
             bzero(&data,sizeof(data));
             data.unp_crc=0xffffffff;
@@ -434,6 +432,7 @@ static void ocl_rar_crack_callback(char *line, int self)
     gws1 = gws*wthreads[self].vectorsize;
     if (gws1==0) gws1=64;
     if (gws==0) gws=64;
+
 
     /* setup addline */
     addline.s0=addline.s1=addline.s2=addline.s3=addline.s4=addline.s5=addline.s6=addline.s7=addline.sF=0;
@@ -546,12 +545,12 @@ void* ocl_rule_rar_thread(void *arg)
     rule_buffer[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*wthreads[self].vectorsize*hash_ret_len1, NULL, &err );
     for (a=0;a<16;a++)
     {
-        rule_images16_buf[a][self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*16*2+8, NULL, &err );
-        rule_images162_buf[a][self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*16+8, NULL, &err );
-        rule_images16[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*16*2+8);
-        rule_images162[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*16+8);
-        bzero(rule_images162[a][self],ocl_rule_workset[self]*wthreads[self].vectorsize*16+8);
-        bzero(rule_images16[a][self],ocl_rule_workset[self]*wthreads[self].vectorsize*16*2+8);
+        rule_images16_buf[a][self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*16*2, NULL, &err );
+        rule_images162_buf[a][self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*16, NULL, &err );
+        rule_images16[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*16*2);
+        rule_images162[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*16);
+        bzero(rule_images162[a][self],ocl_rule_workset[self]*wthreads[self].vectorsize*16);
+        bzero(rule_images16[a][self],ocl_rule_workset[self]*wthreads[self].vectorsize*16*2);
 	_clSetKernelArg(rule_kernel16[a][self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
 	_clSetKernelArg(rule_kernel16[a][self], 1, sizeof(cl_mem), (void*) &rule_images16_buf[a][self]);
         _clSetKernelArg(rule_kernel162[a][self], 0, sizeof(cl_mem), (void*) &rule_images16_buf[a][self]);
