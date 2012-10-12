@@ -1441,6 +1441,7 @@ void worker_gen(int self, finalfn_t callback)
     bzero(rootstack,MAXCAND);
     while ((ops[self][2].parsefn==NULL)&&(attack_over==0)) usleep(10000);
     update_crack_callback(callback,RULE_MODE_PARSE);
+    if ((ops[self][2].parsefn)==NULL) return;
     ops[self][2].parsefn(rootnode,rootstack,2,self);
 }
 
