@@ -109,6 +109,7 @@ hash_stat MD5_XOP(unsigned char* pPlain[SSE_SIMULTANEOUS], int nPlainLen[SSE_SIM
     __m128i w0_1, w0_2, w0_3, w1_1, w1_2, w1_3, w2_1, w2_2, w2_3, w3_1, w3_2, w3_3, w14_1, w14_2, w14_3;
     __m128i w4_1, w4_2, w4_3, w5_1, w5_2, w5_3, w6_1, w6_2, w6_3, w7_1, w7_2, w7_3;
     __m128i w8_1, w8_2, w8_3, w9_1, w9_2, w9_3, w10_1, w10_2, w10_3;
+    __m128i w11_1, w11_2, w11_3,w12_1, w12_2, w12_3,w13_1, w13_2, w13_3;
 
      __m128i a;
      __m128i b;
@@ -198,6 +199,18 @@ hash_stat MD5_XOP(unsigned char* pPlain[SSE_SIMULTANEOUS], int nPlainLen[SSE_SIM
     w10_2 = _mm_set_epi32(udata5[10], udata6[10], udata7[10], udata8[10]);
     w10_3 = _mm_set_epi32(udata9[10], udata10[10], udata11[10], udata12[10]);
 
+    w11_1 = _mm_set_epi32(udata1[11], udata2[11], udata3[11], udata4[11]);
+    w11_2 = _mm_set_epi32(udata5[11], udata6[11], udata7[11], udata8[11]);
+    w11_3 = _mm_set_epi32(udata9[11], udata10[11], udata11[11], udata12[11]);
+
+    w12_1 = _mm_set_epi32(udata1[12], udata2[12], udata3[12], udata4[12]);
+    w12_2 = _mm_set_epi32(udata5[12], udata6[12], udata7[12], udata8[12]);
+    w12_3 = _mm_set_epi32(udata9[12], udata10[12], udata11[12], udata12[12]);
+
+    w13_1 = _mm_set_epi32(udata1[13], udata2[13], udata3[13], udata4[13]);
+    w13_2 = _mm_set_epi32(udata5[13], udata6[13], udata7[13], udata8[13]);
+    w13_3 = _mm_set_epi32(udata9[13], udata10[13], udata11[13], udata12[13]);
+
     w14_1 = _mm_set_epi32(nPlainLen[0]<<3, nPlainLen[1]<<3, nPlainLen[2]<<3, nPlainLen[3]<<3);
     w14_2 = _mm_set_epi32(nPlainLen[4]<<3, nPlainLen[5]<<3, nPlainLen[6]<<3, nPlainLen[7]<<3);
     w14_3 = _mm_set_epi32(nPlainLen[8]<<3, nPlainLen[9]<<3, nPlainLen[10]<<3, nPlainLen[11]<<3);
@@ -218,7 +231,7 @@ hash_stat MD5_XOP(unsigned char* pPlain[SSE_SIMULTANEOUS], int nPlainLen[SSE_SIM
     d2 = mCd;
     d3 = mCd;
 
-    MD5_STEPS();
+    MD5_STEPS_FULL();
 
     a = _mm_add_epi32(a,mCa);
     a2 =  _mm_add_epi32(a2,mCa);

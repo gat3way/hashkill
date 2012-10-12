@@ -1,11 +1,14 @@
-/* One way encryption based on MD5 sum.
+/* 
+   md5-crypt.c
+
+   One way encryption based on MD5 sum.
    Compatible with the behavior of MD5 crypt introduced in FreeBSD 2.0.
    Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2004, 2009
    Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1996.
 
-   Edited by Milen Rangelov <gat3way@gat3way.eu> to optimize for hash cracking.
+   Modified by Milen Rangelov <gat3way@gat3way.eu> to optimize for hash cracking.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -97,9 +100,9 @@ __md5_crypt_r (key, salt, buffer, buflen, vectorsize)
   for (i=0;i<vectorsize;i++)
   {
 
-    alt_result[i]=alloca(64);
-    bigbuf[i]=alloca(64);
-    bigbuf2[i]=alloca(64);
+    alt_result[i]=alloca(128);
+    bigbuf[i]=alloca(128);
+    bigbuf2[i]=alloca(128);
     bbl[i]=bbl2[i]=0;
     buffer[i][0] = 0;
   }
@@ -115,27 +118,6 @@ __md5_crypt_r (key, salt, buffer, buflen, vectorsize)
   salt_len = MIN (strcspn (salt, "$"), 8);
   for (i=0;i<vectorsize;i++) key_len[i] = strlen (key[i]);
 
-/*
-  for (i=0;i<vectorsize;i++) if ((key[i] - (char *) 0) % __alignof__ (md5_uint32) != 0)
-    {
-      char *tmp = (char *) alloca (key_len[i] + __alignof__ (md5_uint32));
-      key[i] = copied_key =
-	memcpy (tmp + __alignof__ (md5_uint32)
-		- (tmp - (char *) 0) % __alignof__ (md5_uint32),
-		key[i], key_len[i]);
-      assert ((key[i] - (char *) 0) % __alignof__ (md5_uint32) == 0);
-    }
-
-  if ((salt - (char *) 0) % __alignof__ (md5_uint32) != 0)
-    {
-      char *tmp = (char *) alloca (salt_len + __alignof__ (md5_uint32));
-      salt = copied_salt =
-	memcpy (tmp + __alignof__ (md5_uint32)
-		- (tmp - (char *) 0) % __alignof__ (md5_uint32),
-		salt, salt_len);
-      assert ((salt - (char *) 0) % __alignof__ (md5_uint32) == 0);
-    }
-*/
 
   for (i=0;i<vectorsize;i++)
   {
@@ -158,7 +140,7 @@ __md5_crypt_r (key, salt, buffer, buflen, vectorsize)
   for (i=0;i<vectorsize;i++) 
   {
     bbl2[i]=0;
-    bzero(bigbuf2[i],48);
+    bzero(bigbuf2[i],64);
   }
 
   for (i=0;i<vectorsize;i++) 
@@ -182,7 +164,7 @@ __md5_crypt_r (key, salt, buffer, buflen, vectorsize)
   for (i=0;i<vectorsize;i++) 
   {
     bbl[i]=0;
-    bzero(bigbuf[i],48);
+    bzero(bigbuf[i],64);
   }
 
   for (cnt = 0; cnt < 1000; ++cnt)
@@ -252,7 +234,7 @@ __md5_crypt_r (key, salt, buffer, buflen, vectorsize)
       }
 
       hash_md5_unicode(bigbuf, alt_result, bbl);
-      for (i=0;i<vectorsize;i++) {bbl[i] = 0;bzero(bigbuf[i],48);}
+      for (i=0;i<vectorsize;i++) {bbl[i] = 0;bzero(bigbuf[i],64);}
   }
 
 

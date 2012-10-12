@@ -505,6 +505,81 @@ tmp1_3 = _mm_slli_epi32((a3), (s));\
 }
 
 
+
+
+#define MD5_STEPS_FULL() { \
+MD5STEP_ROUND1(F, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, AC1, w0_1, w0_2, w0_3, w0_3, S11);\
+MD5STEP_ROUND1(F, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, AC2, w1_1, w1_2, w1_3, w1_3, S12);\
+MD5STEP_ROUND1(F, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, AC3, w2_1, w2_2, w2_3, w2_3, S13);\
+MD5STEP_ROUND1(F, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, AC4, w3_1, w3_2, w3_3, w3_3, S14);\
+MD5STEP_ROUND1(F, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, AC5, w4_1, w4_2, w4_3, w4_3, S11);\
+MD5STEP_ROUND1(F, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, AC6, w5_1, w5_2, w5_3, w5_3, S12);\
+MD5STEP_ROUND1(F, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, AC7, w6_1, w6_2, w6_3, w6_3, S13);\
+MD5STEP_ROUND1(F, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, AC8, w7_1, w7_2, w7_3, w7_3, S14);\
+\
+MD5STEP_ROUND1(F, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, AC9, w8_1, w8_2, w8_3, w8_3, S11);\
+MD5STEP_ROUND1(F, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, AC10, w9_1, w9_2, w9_3, w9_3, S12);\
+MD5STEP_ROUND1(F, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, AC11, w10_1, w10_2, w10_3, w10_3, S13);\
+MD5STEP_ROUND1(F, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, AC12, w11_1, w11_2, w11_3, w11_3, S14);\
+MD5STEP_ROUND1(F, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, AC13, w12_1, w12_2, w12_3, w12_3, S11);\
+MD5STEP_ROUND1(F, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, AC14, w13_1, w13_2, w13_3, w13_3, S12);\
+MD5STEP_ROUND1 (F, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, AC15, w14_1, w14_2, w14_3, w14_3, S13);\
+MD5STEP_ROUND1_NULL(F, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, AC16, S14);\
+\
+MD5STEP_ROUND2 (G, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, AC17, w1_1, w1_2, w1_3, w1_3, S21);\
+MD5STEP_ROUND2 (G, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, AC18, w6_1, w6_2, w6_3, w6_3, S22);\
+MD5STEP_ROUND2 (G, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, AC19, w11_1, w11_2, w11_3, w10_3, S23);\
+MD5STEP_ROUND2 (G, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, AC20, w0_1, w0_2, w0_3, w0_3, S24);\
+MD5STEP_ROUND2 (G, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, AC21, w5_1, w5_2, w5_3, w5_3, S21);\
+MD5STEP_ROUND2 (G, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, AC22, w10_1, w10_2, w10_3, w10_3, S22);\
+MD5STEP_ROUND2_NULL(G, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, AC23, S23);\
+MD5STEP_ROUND2 (G, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, AC24, w4_1, w4_2, w4_3, w4_3, S24);\
+MD5STEP_ROUND2 (G, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, AC25, w9_1, w9_2, w9_3, w9_3, S21);\
+MD5STEP_ROUND2 (G, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, AC26, w14_1, w14_2, w14_3, w14_3, S22);\
+MD5STEP_ROUND2 (G, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, AC27, w3_1, w3_2, w3_3, w3_3, S23);\
+MD5STEP_ROUND2 (G, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, AC28, w8_1, w8_2, w8_3, w8_3, S24);\
+MD5STEP_ROUND2 (G, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, AC29, w13_1, w13_2, w13_3, w13_3, S21);\
+MD5STEP_ROUND2 (G, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, AC30, w2_1, w2_2, w2_3, w2_3, S22);\
+MD5STEP_ROUND2 (G, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, AC31, w7_1, w7_2, w7_3, w7_3, S23);\
+MD5STEP_ROUND2 (G, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, AC32, w12_1, w12_2, w12_3, w12_3 , S24);\
+\
+MD5STEP_ROUND3_EVEN(H, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, AC33, w5_1, w5_2, w5_3, w5_3, S31);\
+MD5STEP_ROUND3_ODD(H, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, AC34, w8_1, w8_2, w8_3, w8_3, S32);\
+MD5STEP_ROUND3_EVEN (H, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, AC35, w11_1, w11_2, w11_3, w11_3, S33);\
+MD5STEP_ROUND3_ODD (H, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, AC36, w14_1, w14_2, w14_3, w14_3, S34);\
+MD5STEP_ROUND3_EVEN (H, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, AC37, w1_1, w1_2, w1_3, w1_3, S31);\
+MD5STEP_ROUND3_ODD (H, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, AC38, w4_1, w4_2, w4_3, w4_3, S32);\
+MD5STEP_ROUND3_EVEN (H, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, AC39, w7_1, w7_2, w7_3, w7_3, S33);\
+MD5STEP_ROUND3_ODD (H, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, AC40, w10_1, w10_2, w10_3, w10_3, S34);\
+MD5STEP_ROUND3_EVEN(H, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, AC41,w13_1, w13_2, w13_3, w13_3 ,S31);\
+MD5STEP_ROUND3_ODD (H, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, AC42, w0_1, w0_2, w0_3, w0_3, S32);\
+MD5STEP_ROUND3_EVEN (H, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, AC43, w3_1, w3_2, w3_3, w3_3, S33);\
+MD5STEP_ROUND3_ODD (H, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, AC44, w6_1, w6_2, w6_3, w6_3, S34);\
+MD5STEP_ROUND3_EVEN (H, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, AC45, w9_1, w9_2, w9_3, w9_3, S31);\
+MD5STEP_ROUND3_ODD(H, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, AC46,w12_1, w12_2, w12_3, w12_3, S32);\
+MD5STEP_ROUND3_NULL_EVEN(H, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, AC47, S33);\
+MD5STEP_ROUND3_ODD (H, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, AC48, w2_1, w2_2, w2_3, w2_3, S34);\
+\
+MD5STEP_ROUND4 (I, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, AC49, w0_1, w0_2, w0_3, w0_3, S41);\
+MD5STEP_ROUND4 (I, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, AC50, w7_1, w7_2, w7_3, w7_3, S42);\
+MD5STEP_ROUND4 (I, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, AC51, w14_1, w14_2, w14_3, w14_3, S43);\
+MD5STEP_ROUND4 (I, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, AC52, w5_1, w5_2, w5_3, w5_3, S44);\
+MD5STEP_ROUND4 (I, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, AC53, w12_1, w12_2, w12_3, w12_3, S41);\
+MD5STEP_ROUND4 (I, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, AC54, w3_1, w3_2, w3_3, w3_3, S42);\
+MD5STEP_ROUND4 (I, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, AC55, w10_1, w10_2, w10_3, w10_3, S43);\
+MD5STEP_ROUND4 (I, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, AC56, w1_1, w1_2, w1_3, w1_3, S44);\
+MD5STEP_ROUND4 (I, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, AC57, w8_1, w8_2, w8_3, w8_3, S41);\
+MD5STEP_ROUND4_NULL(I, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, AC58, S42);\
+MD5STEP_ROUND4 (I, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, AC59, w6_1, w6_2, w6_3, w6_3, S43);\
+MD5STEP_ROUND4 (I, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, AC60, w13_1, w13_2, w13_3, w13_3 ,S44);\
+MD5STEP_ROUND4 (I, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, AC61, w4_1, w4_2, w4_3, w4_3, S41);\
+MD5STEP_ROUND4 (I, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, AC62, w11_1, w11_2, w11_3, w11_3 ,S42);\
+MD5STEP_ROUND4 (I, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4,  AC63, w2_1, w2_2, w2_3, w2_3, S43);\
+MD5STEP_ROUND4 (I, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, a, a2, a3, a4, AC64, w9_1, w9_2, w9_3, w9_3, S44);\
+}
+
+
+
 #define MD5_STEPS() { \
 MD5STEP_ROUND1(F, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, d, d2, d3, d4, AC1, w0_1, w0_2, w0_3, w0_4, S11);\
 MD5STEP_ROUND1(F, d, d2, d3, d4, a, a2, a3, a4, b, b2, b3, b4, c, c2, c3, c4, AC2, w1_1, w1_2, w1_3, w1_4, S12);\
