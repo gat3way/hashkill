@@ -137,12 +137,12 @@ hash_stat hash_plugin_check_hash_dictionary(const char *hash, const char *passwo
 {
     unsigned char *keyl[VECTORSIZE];
     char *newp[VECTORSIZE];
-    int i,j,flag=0;
+    int i,j;
 
     for (j=0;j<vectorsize;j++)
     {
-	newp[j] = alloca(16);
-	bzero(newp[j],16);
+	newp[j] = alloca(32);
+	bzero(newp[j],32);
 	strcpy(newp[j],strupr((char *)password[j]));
 	i=0;
 	while ((newp[j][i]!=0)&&(i<=15)) i++;
@@ -173,7 +173,7 @@ hash_stat hash_plugin_check_hash_dictionary(const char *hash, const char *passwo
 	}
 
     }
-    hash_lm_slow((const unsigned char **)keyl, (unsigned char **)salt2);
+    hash_lm((const unsigned char **)keyl, (unsigned char **)salt2);
     for (i=0;i<vectorsize;i++) if (strlen(password[i])<8) memcpy(&salt2[i][8],"\xaa\xd3\xb4\x35\xb5\x14\x04\xee",8);
     return hash_ok;
 }
@@ -183,13 +183,13 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 {
     unsigned char *keyl[VECTORSIZE];
     char *newp[VECTORSIZE];
-    int i,j,flag=0;
+    int a,i,j,flag=0;
     
-    if (strlen(password[0])>7) flag=1;
+    for (a=0;a<vectorsize;a++) if (strlen(password[a])>7) flag=1;
     if (flag==0) for (j=0;j<vectorsize;j++)
     {
-	newp[j] = alloca(16);
-	bzero(newp[j],16);
+	newp[j] = alloca(32);
+	bzero(newp[j],32);
 	strcpy(newp[j],strupr((char *)password[j]));
 	keyl[j] = alloca(32);
 	keyl[j][0] = newp[j][0]>>1;
@@ -207,11 +207,12 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     	    keyl[j][i+2] = (keyl[j][i+2]<<1);
     	    keyl[j][i+3] = (keyl[j][i+3]<<1);
     	}
+    	keyl[j][16]=1;
     }
     else for (j=0;j<vectorsize;j++)
     {
 	newp[j] = alloca(32);
-	bzero(newp[j],16);
+	bzero(newp[j],32);
 	strcpy(newp[j],strupr((char *)password[j]));
 	i=0;
 	keyl[j] = alloca(32);
@@ -247,8 +248,6 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 
     return hash_ok;
 }
-
-
 
 
 

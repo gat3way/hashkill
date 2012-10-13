@@ -1061,7 +1061,7 @@ void DES_LM_SSE(char *plains[128], char *out[128])
     _mm_prefetch(plains[128],_MM_HINT_T0);
 
 
-    for (a=0;a<128;a++) if (plains[a][8]==0) flag = 1;
+    for (a=0;a<128;a++) if (plains[a][16]==1) flag = 1;
 
     for (a=0;a<8;a++) if ( ((ukey[7]>>a)&1) ) pp[a] = _mm_set_epi8(0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
     for (a=0;a<8;a++) if ( ((ukey[6]>>a)&1) ) pp[8+a] = _mm_set_epi8(0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
@@ -1136,8 +1136,8 @@ void DES_LM_SSE(char *plains[128], char *out[128])
 	out[7-a+(m)*8][0] = ((temp >> 8)); \
 	vec1 = _mm_slli_epi32 (vec, a+1); \
 	temp = _mm_movemask_epi8(vec1); \
-	out[7-a+1+(m)*8][1] = (temp&255); \
-	out[7-a+1+(m)*8][0] = ((temp >> 8)); \
+	out[7-(a+1)+(m)*8][1] = (temp&255); \
+	out[7-(a+1)+(m)*8][0] = ((temp >> 8)); \
     }
 
 
@@ -1198,7 +1198,7 @@ void DES_LM_SSE(char *plains[128], char *out[128])
     fetchfirstrows(12);
     fetchfirstrows(13);
     fetchfirstrows(14);
-    //fetchfirstrows(15);
+    fetchfirstrows(15);
     
     if (!hash_list->next)
     {

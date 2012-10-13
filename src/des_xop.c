@@ -811,119 +811,8 @@ void DES_LM_XOP(char *plains[128], char *out[128])
     int flag=0;
     __m128i pp[64];
 
-/*
-    _mm_prefetch(plains[30],_MM_HINT_T1);
-    _mm_prefetch(plains[31],_MM_HINT_T1);
-    _mm_prefetch(plains[32],_MM_HINT_T1);
-    _mm_prefetch(plains[33],_MM_HINT_T1);
-    _mm_prefetch(plains[34],_MM_HINT_T1);
-    _mm_prefetch(plains[35],_MM_HINT_T1);
-    _mm_prefetch(plains[36],_MM_HINT_T1);
-    _mm_prefetch(plains[37],_MM_HINT_T1);
-    _mm_prefetch(plains[38],_MM_HINT_T1);
-    _mm_prefetch(plains[39],_MM_HINT_T1);
-    _mm_prefetch(plains[40],_MM_HINT_T1);
-    _mm_prefetch(plains[41],_MM_HINT_T1);
-    _mm_prefetch(plains[42],_MM_HINT_T1);
-    _mm_prefetch(plains[43],_MM_HINT_T1);
-    _mm_prefetch(plains[44],_MM_HINT_T1);
-    _mm_prefetch(plains[45],_MM_HINT_T1);
-    _mm_prefetch(plains[46],_MM_HINT_T1);
-    _mm_prefetch(plains[47],_MM_HINT_T1);
-    _mm_prefetch(plains[48],_MM_HINT_T1);
-    _mm_prefetch(plains[49],_MM_HINT_T1);
-    _mm_prefetch(plains[50],_MM_HINT_T1);
-    _mm_prefetch(plains[51],_MM_HINT_T1);
-    _mm_prefetch(plains[52],_MM_HINT_T1);
-    _mm_prefetch(plains[53],_MM_HINT_T1);
-    _mm_prefetch(plains[54],_MM_HINT_T1);
-    _mm_prefetch(plains[55],_MM_HINT_T1);
-    _mm_prefetch(plains[56],_MM_HINT_T1);
-    _mm_prefetch(plains[57],_MM_HINT_T1);
-    _mm_prefetch(plains[58],_MM_HINT_T1);
-    _mm_prefetch(plains[59],_MM_HINT_T1);
-    _mm_prefetch(plains[20],_MM_HINT_T1);
-    _mm_prefetch(plains[21],_MM_HINT_T1);
-    _mm_prefetch(plains[22],_MM_HINT_T1);
-    _mm_prefetch(plains[23],_MM_HINT_T1);
-    _mm_prefetch(plains[24],_MM_HINT_T1);
-    _mm_prefetch(plains[25],_MM_HINT_T1);
-    _mm_prefetch(plains[26],_MM_HINT_T1);
-    _mm_prefetch(plains[27],_MM_HINT_T1);
-    _mm_prefetch(plains[28],_MM_HINT_T1);
-    _mm_prefetch(plains[29],_MM_HINT_T1);
-    _mm_prefetch(plains[60],_MM_HINT_T1);
-    _mm_prefetch(plains[61],_MM_HINT_T1);
-    _mm_prefetch(plains[62],_MM_HINT_T1);
-    _mm_prefetch(plains[63],_MM_HINT_T1);
-    _mm_prefetch(plains[64],_MM_HINT_T1);
-    _mm_prefetch(plains[65],_MM_HINT_T1);
-    _mm_prefetch(plains[66],_MM_HINT_T1);
-    _mm_prefetch(plains[67],_MM_HINT_T1);
-    _mm_prefetch(plains[68],_MM_HINT_T1);
-    _mm_prefetch(plains[69],_MM_HINT_T1);
-    _mm_prefetch(plains[70],_MM_HINT_T1);
-    _mm_prefetch(plains[71],_MM_HINT_T1);
-    _mm_prefetch(plains[72],_MM_HINT_T1);
-    _mm_prefetch(plains[73],_MM_HINT_T1);
-    _mm_prefetch(plains[74],_MM_HINT_T1);
-    _mm_prefetch(plains[75],_MM_HINT_T1);
-    _mm_prefetch(plains[76],_MM_HINT_T1);
-    _mm_prefetch(plains[77],_MM_HINT_T1);
-    _mm_prefetch(plains[78],_MM_HINT_T1);
-    _mm_prefetch(plains[79],_MM_HINT_T1);
-    _mm_prefetch(plains[80],_MM_HINT_T1);
-    _mm_prefetch(plains[81],_MM_HINT_T1);
-    _mm_prefetch(plains[82],_MM_HINT_T1);
-    _mm_prefetch(plains[83],_MM_HINT_T1);
-    _mm_prefetch(plains[84],_MM_HINT_T1);
-    _mm_prefetch(plains[85],_MM_HINT_T1);
-    _mm_prefetch(plains[86],_MM_HINT_T1);
-    _mm_prefetch(plains[87],_MM_HINT_T1);
-    _mm_prefetch(plains[88],_MM_HINT_T1);
-    _mm_prefetch(plains[89],_MM_HINT_T1);
-    _mm_prefetch(plains[90],_MM_HINT_T1);
-    _mm_prefetch(plains[91],_MM_HINT_T1);
-    _mm_prefetch(plains[92],_MM_HINT_T1);
-    _mm_prefetch(plains[93],_MM_HINT_T1);
-    _mm_prefetch(plains[94],_MM_HINT_T1);
-    _mm_prefetch(plains[95],_MM_HINT_T1);
-    _mm_prefetch(plains[96],_MM_HINT_T1);
-    _mm_prefetch(plains[97],_MM_HINT_T1);
-    _mm_prefetch(plains[98],_MM_HINT_T1);
-    _mm_prefetch(plains[99],_MM_HINT_T1);
-    _mm_prefetch(plains[100],_MM_HINT_T1);
-    _mm_prefetch(plains[101],_MM_HINT_T1);
-    _mm_prefetch(plains[102],_MM_HINT_T1);
-    _mm_prefetch(plains[103],_MM_HINT_T1);
-    _mm_prefetch(plains[104],_MM_HINT_T1);
-    _mm_prefetch(plains[105],_MM_HINT_T1);
-    _mm_prefetch(plains[106],_MM_HINT_T1);
-    _mm_prefetch(plains[107],_MM_HINT_T1);
-    _mm_prefetch(plains[108],_MM_HINT_T1);
-    _mm_prefetch(plains[109],_MM_HINT_T1);
-    _mm_prefetch(plains[110],_MM_HINT_T1);
-    _mm_prefetch(plains[111],_MM_HINT_T1);
-    _mm_prefetch(plains[112],_MM_HINT_T1);
-    _mm_prefetch(plains[113],_MM_HINT_T1);
-    _mm_prefetch(plains[114],_MM_HINT_T1);
-    _mm_prefetch(plains[115],_MM_HINT_T1);
-    _mm_prefetch(plains[116],_MM_HINT_T1);
-    _mm_prefetch(plains[117],_MM_HINT_T1);
-    _mm_prefetch(plains[118],_MM_HINT_T1);
-    _mm_prefetch(plains[119],_MM_HINT_T1);
-    _mm_prefetch(plains[120],_MM_HINT_T1);
-    _mm_prefetch(plains[121],_MM_HINT_T1);
-    _mm_prefetch(plains[122],_MM_HINT_T1);
-    _mm_prefetch(plains[123],_MM_HINT_T1);
-    _mm_prefetch(plains[124],_MM_HINT_T1);
-    _mm_prefetch(plains[125],_MM_HINT_T1);
-    _mm_prefetch(plains[126],_MM_HINT_T1);
-    _mm_prefetch(plains[127],_MM_HINT_T1);
-    _mm_prefetch(plains[128],_MM_HINT_T0);
-*/
 
-    for (a=0;a<128;a++) if (plains[a][8]==0) flag = 1;
+    for (a=0;a<128;a++) if (plains[a][16]==1) flag = 1;
 
     for (a=0;a<8;a++) if ( ((ukey[7]>>a)&1) ) pp[a] = _mm_set_epi8(0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
     for (a=0;a<8;a++) if ( ((ukey[6]>>a)&1) ) pp[8+a] = _mm_set_epi8(0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
@@ -952,8 +841,6 @@ void DES_LM_XOP(char *plains[128], char *out[128])
 				    plains[1+e][f], plains[0+e][f]);
 	}
 
-
-
 	for (b=0;b<7;b++)
 	{
     	    pvec = _mm_set_epi16(
@@ -971,10 +858,8 @@ void DES_LM_XOP(char *plains[128], char *out[128])
 		pvec1 = pveca[a+1];
 		pveca[a+1] = _mm_slli_epi16(pvec1,1);
 	    }
-
 	}
     }
-
 
     deseval_XOP(pp, c, k);
 
@@ -990,16 +875,12 @@ void DES_LM_XOP(char *plains[128], char *out[128])
 #define fetchfirstrows(m) \
     for (a=0;a<16;a++) cb[a] = (_mm_extract_epi8(c[a+48],(m))); \
     vec = _mm_set_epi8(cb[15], cb[14], cb[13], cb[12], cb[11], cb[10], cb[9], cb[8], cb[7], cb[6], cb[5], cb[4], cb[3], cb[2], cb[1], cb[0]); \
-    for (a=0;a<8;a+=2) \
+    for (a=0;a<8;a++) \
     { \
 	vec1 = _mm_slli_epi32 (vec, a); \
 	temp = _mm_movemask_epi8(vec1); \
 	out[7-a+(m)*8][1] = (temp&255); \
 	out[7-a+(m)*8][0] = ((temp >> 8)); \
-	vec1 = _mm_slli_epi32 (vec, a+1); \
-	temp = _mm_movemask_epi8(vec1); \
-	out[7-a+1+(m)*8][1] = (temp&255); \
-	out[7-a+1+(m)*8][0] = ((temp >> 8)); \
     }
 
 
@@ -1059,8 +940,8 @@ void DES_LM_XOP(char *plains[128], char *out[128])
     fetchfirstrows(12);
     fetchfirstrows(13);
     fetchfirstrows(14);
-    //fetchfirstrows(15);
-    
+    fetchfirstrows(15);
+
     if (!hash_list->next)
     {
 	b=0;
@@ -1085,7 +966,7 @@ void DES_LM_XOP(char *plains[128], char *out[128])
     fetchrowd(13);
     fetchrowd(14);
     fetchrowd(15);
-    
+
     if (flag==0) return;
 
     for (f=7;f>=0;f--)
@@ -1104,8 +985,6 @@ void DES_LM_XOP(char *plains[128], char *out[128])
 				    plains[1+e][f+8], plains[0+e][f+8]);
 	}
 
-
-
 	for (b=0;b<7;b++)
 	{
     	    pvec = _mm_set_epi16(
@@ -1121,12 +1000,10 @@ void DES_LM_XOP(char *plains[128], char *out[128])
 		pvec1 = pveca[a];
 		pveca[a] = _mm_slli_epi16(pvec1,1);
 	    }
-
 	}
     }
 
     deseval_XOP(pp, c, k);
-
 
 
 #define fetchrow2(m) \
@@ -1183,7 +1060,13 @@ void DES_LM_XOP(char *plains[128], char *out[128])
     fetchrow2(13);
     fetchrow2(14);
     fetchrow2(15);
-
+/*
+for (a=0;a<128;a++)
+{
+for (b=0;b<16;b++) printf("%02x",out[a][b]&255);
+printf("\n");
+}
+*/
 }
 
 
