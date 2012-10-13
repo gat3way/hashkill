@@ -276,6 +276,8 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"osx-old")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"oracle11g")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"mscash")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"oracle-old")==0)) loops=1;
 	    }
 
 	    /* AMD rule quirks */
@@ -314,7 +316,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"md5unix")==0)&&(!ocl_have_gcn)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"apr1")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"apr1")==0)&&(!ocl_have_gcn)) ocl_vector=4;
-		if ((strcmp(get_current_plugin(),"mscash")==0)&&(ocl_have_gcn)) {ocl_vector=1;loops=2;}
+		if ((strcmp(get_current_plugin(),"mscash")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"mscash2")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"wpa")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"wpa")==0)&&(!ocl_have_gcn)) ocl_vector=2;
