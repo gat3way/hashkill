@@ -13407,7 +13407,6 @@ msize=(uint)salt.s9;
 str[gli][0]=input[(get_global_id(0)*4)];
 str[gli][1]=input[(get_global_id(0)*4)+1];
 str[gli][2]=input[(get_global_id(0)*4)+2];
-str[gli][2]=0;
 str[gli][3]=0;
 
 ssalt[0]=(uint)salt.sE;
