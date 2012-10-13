@@ -11,7 +11,7 @@ install:
 	cp * $(IDESTDIR)$(IDATADIR)/hashkill/dict
 
 clean:
-	@rm $(IDESTDIR)$(IDATADIR)/hashkill/dict/* 2>/dev/null || echo "Nothing to delete"
+	@rm -f $(IDESTDIR)$(IDATADIR)/hashkill/dict/* 2>/dev/null || echo "Nothing to delete"
 
 distclean: clean
 

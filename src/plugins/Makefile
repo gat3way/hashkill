@@ -3,7 +3,6 @@ ifneq ($(DESTDIR),"")
 endif
 
 
-#LIBS  = -lcrypto
 CFLAGS += -Wall -I../ -shared  -O3 -s -fpic  -fomit-frame-pointer -funroll-loops -minline-all-stringops  -momit-leaf-frame-pointer 
 #CFLAGS = -Wall -I../ -shared  -O2 -fpic  -fomit-frame-pointer -minline-all-stringops  -Wall -funroll-loops -m32
 
@@ -171,10 +170,10 @@ install:
 	@echo Done
 
 clean:
-	rm *.so
+	-rm -f *.so
 
 uninstall:
-	rm -rf /usr/share/hashkill
+	-rm -rf /usr/share/hashkill
 
 distclean: clean
 

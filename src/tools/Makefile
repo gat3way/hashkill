@@ -3,8 +3,8 @@ ifneq ($(DESTDIR),"")
 endif
 
 all:
-	cc -o pcap2hcap pcap2hcap.c -O2 $(LDFLAGS)
-	cc -o markovgen markovgen.c -O2 $(LDFLAGS)
+	$(CC) -o pcap2hcap pcap2hcap.c -O2 $(LDFLAGS)
+	$(CC) -o markovgen markovgen.c -O2 $(LDFLAGS)
 
 
 install:
@@ -12,7 +12,9 @@ install:
 	cp -f pcap2hcap $(IDESTDIR)$(BINDIR)
 
 clean:
-	rm pcap2hcap
-	rm markovgen
+	-rm -f pcap2hcap
+	-rm -f markovgen
 
 distclean:
+
+maintainer-clean:

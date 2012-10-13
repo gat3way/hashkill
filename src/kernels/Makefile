@@ -9,8 +9,7 @@ all:
 
 install:
 	mkdir -p $(IDESTDIR)$(IDATADIR)/hashkill/kernels
-	chmod ugo+r $(IDESTDIR)$(IDATADIR)/hashkill/kernels
-	#cp -f *.cl $(IDESTDIR)$(IDATADIR)/hashkill/kernels
+	-chmod ugo+r $(IDESTDIR)$(IDATADIR)/hashkill/kernels
 
 clean:
 	@true

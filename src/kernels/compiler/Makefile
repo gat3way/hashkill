@@ -10,8 +10,8 @@ all: build
 
 build: 
 	# AMD
-	cc -o amd-compiler amd-compiler.c $(LZMA_SRC) $(OPENCL_SRC) -D_7ZIP_ST -ldl
-	cc -o nvidia-compiler nvidia-compiler.c $(LZMA_SRC) $(OPENCL_SRC) -D_7ZIP_ST -ldl
+	$(CC) -o amd-compiler amd-compiler.c $(LZMA_SRC) $(OPENCL_SRC) -D_7ZIP_ST -ldl
+	$(CC) -o nvidia-compiler nvidia-compiler.c $(LZMA_SRC) $(OPENCL_SRC) -D_7ZIP_ST -ldl
 	@if [ ! -e amd_ipb2_long__Juniper.bin ]; then ./amd-compiler amd_ipb2_long n ;fi
 	@if [ ! -e amd_ipb2__Juniper.bin ]; then ./amd-compiler amd_ipb2 n ;fi
 	@if [ ! -e amd_md5_long__Juniper.bin ]; then ./amd-compiler amd_md5_long ns ;fi
@@ -162,8 +162,8 @@ clean:
 	#rm *.bin
 
 distclean:
-	rm *.bin
-	rm *.ptx
+	-rm -f *.bin
+	-rm -f *.ptx
 
 distclean: clean
 
