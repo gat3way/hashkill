@@ -1,33 +1,114 @@
+bforce desunix multi		|2 passwords|hashkill -pdesunix -f desunix.hashes -b1:6:num
+bforce desunix single		|1 passwords|hashkill -pdesunix  27EP4PuToKUSI -b1:6:num
+bforce ipb single		|1 passwords|hashkill -pipb2 d834448ac1bbc03a3e6809dba6a80699:"i[}o -b1:7:num:MX-
+bforce ldap-sha single		|1 passwords|hashkill -pldap-sha {SHA}jLIjfQZ5yojbZGTqxg2pY0VROWQ= -b1:7:num
+bforce ldap-sha multi		|2 passwords|hashkill -pldap-sha -f ldap-sha.hashes -b1:7:num
+bforce ldap-ssha single		|1 passwords|hashkill -pldap-ssha {SSHA}P2oLaAFiExs+MexEjZ5R+KYbtrBhSHhzWnM4VA== -b1:6:num
+bforce lm single		|1 passwords|hashkill -plm AEBD4DE384C7EC43AAD3B435B51404EE -b1:6:num
+bforce lm multi			|2 passwords|hashkill -plm -f lm.hashes -b1:8:num
+bforce md4 single		|1 passwords|hashkill -pmd4 23580e2a459f7ea40f9efa148b63cafb -b1:6:num
+bforce md4 multi		|2 passwords|hashkill -pmd4 -f md4.hashes -b1:7:num
+bforce md5 single		|1 passwords|hashkill -pmd5 827ccb0eea8a706c4c34a16891f84e7b -b1:6:num
+bforce md5 multi		|2 passwords|hashkill -pmd5 -f md5.hashes -b1:8:num
+bforce md5md5 single		|1 passwords|hashkill -pmd5md5 1f32aa4c9a1d2ea010adcf2348166a04 -b1:6:num
+bforce md5md5 multi		|2 passwords|hashkill -pmd5md5 -f md5md5.hashes -b1:8:num
+bforce md5-saltpass single	|1 passwords|hashkill -pmd5-saltpass ff33138bca048e77e7865bab923535ae:tes -b1:6:num:tU*-
+bforce md5-passsalt single	|1 passwords|hashkill -pmd5-passsalt 23f56a87ce0127c7aa671fedbf3da946:est -b1:6:num:tU*-
+bforce mscash single		|1 passwords|hashkill -pmscash test:809d2555499622c7ea28657a51438bdd -b1:6:num
+bforce mssql-2000 single	|1 passwords|hashkill -pmssql-2000 0x010077393477CB2764D565692A0DE0D5308C3E19FEE51223EC1ACB2764D565692A0DE0D5308C3E19FEE51223EC1A -b1:6:num
+bforce mssql-2005 single	|1 passwords|hashkill -pmssql-2005 0x01004D53456421450CD84AB5AF29A49A90BDBC1AFB0EFBDAF259 -b1:6:num
+bforce mysql5 single		|1 passwords|hashkill -pmysql5 *00a51f3f48415c7d4e8908980d443c29c69b60c9 -b1:7:num
+bforce mysql5 multi		|2 passwords|hashkill -pmysql5 -f mysql5.hashes -b1:7:num
+bforce ntlm single		|1 passwords|hashkill -pntlm 32ED87BDB5FDC5E9CBA88547376818D4 -b1:6:num
+bforce ntlm multi		|2 passwords|hashkill -pntlm -f ntlm.hashes -b1:6:num
+bforce oracle-old single	|1 passwords|hashkill -poracle-old usrx:8D52A07FF0A0243D -b1:6:num
+bforce oracle11g single		|1 passwords|hashkill -poracle11g u0-oracle11:1BC4A42664A043523F68D6D108CAAA036D8ABC72176AE86143D7111BD442 -b1:6:num
+bforce osx-old single		|1 passwords|hashkill -posx-old 52726E30D61AAB40F06B1E5F6B3CE9D87D170DB79C3E76DE -b1:6:num
+bforce pixmd5 multi		|2 passwords|hashkill -ppixmd5 -f pixmd5.hashes -b1:7:num
+bforce pixmd5 single		|1 passwords|hashkill -ppixmd5 u0-pixmd5:UwiM/pkFcM.xYc8s -b1:7:num
+bforce sha1 multi		|2 passwords|hashkill -psha1 -f sha1.hashes -b1:7:num
+bforce sha1 single		|1 passwords|hashkill -psha1 8cb2237d0679ca88db6464eac60da96345513964 -b1:7:num
+bforce sha256 multi		|2 passwords|hashkill -psha256 -f sha256.hashes -b1:7:num
+bforce sha256 single		|1 passwords|hashkill -psha256 8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92 -b1:7:num
+bforce sha512 multi		|2 passwords|hashkill -psha512 -f sha512.hashes -b1:7:num
+bforce sha512 single		|1 passwords|hashkill -psha512 3627909a29c31381a071ec27f7c9ca97726182aed29a7ddd2e54353322cfb30abb9e3a6df2ac2c20fe23436311d678564d0c8d305930575f60e2d3d048184d79 -b1:7:num
+bforce smf single		|1 passwords|hashkill -psmf admin:8c7d86e03521639130f761dc9f87138ab0ce7e6c -b1:6:none:klm01-
+bforce zip (old) single		|1 passwords|hashkill -pzip -f test.zip -b1:6:none:defcon
+bforce sl3 (GPU only!)		|1 passwords|hashkill -psl3 d3399b7262fb56cb9ed053d68db9291c410839c4:0000000000000000
 rule desunix single		|1 passwords|hashkill -pdesunix fAg0TXy49dWUo -r rule_uu
+rule desunix multi		|2 passwords|hashkill -pdesunix -f desunix.hashes -r rule_num
 rule apr1 single		|1 passwords|hashkill -papr1 $apr1$e0uBuPco$viwBVwsABkKXFnZeXcmhL/ -r rule_uu
+rule apr1 multi			|2 passwords|hashkill -papr1 -f apr1.hashes -r rule_num
 rule bfunix single		|1 passwords|hashkill -pbfunix $2a$05$CCCCCCCCCCCCCCCCCCCCC.E5YPO9kmyuRGyh0XouQYb4YMJKvyOeW -r rule_uu
+rule bfunix multi		|2 passwords|hashkill -pbfunix -f bfunix.hashes -r rule_num
 rule dmg			|1 passwords|hashkill -pdmg -f test-128-2.dmg -r rule_uu
 rule ipb single			|1 passwords|hashkill -pipb2 12dc7df0ddeaa120b07bd28b5d5675a7:1#Iz> -r rule_uu
+rule ipb multi			|2 passwords|hashkill -pipb2 -f ipb2.hashes -r rule_uu
 rule ldap-sha single		|1 passwords|hashkill -pldap-sha bu0-nsldap:{SHA}d7S/rU7dd40hb+nf3dzK+2KcKp8= -r rule_uu
+rule ldap-sha multi		|2 passwords|hashkill -pldap-sha -f ldap-sha.hashes -r rule_num
 rule ldap-ssha single		|1 passwords|hashkill -pldap-ssha u0-nsldap:{SSHA}9iv2wLfww/nVUP/xlfdQum2u1Dc5MmNHU1pVOA== -r rule_uu
+rule ldap-ssha multi		|2 passwords|hashkill -pldap-ssha -f ldap-ssha.hashes -r rule_num
 rule lm single			|1 passwords|hashkill -plm 23e7bca62fd6839eaad3b435b51404ee -r rule_uu
 rule lm(>8) single		|1 passwords|hashkill -plm c6847822123c9db9bcbede45f7e388d0 -r rule_uu
+rule lm multi			|2 passwords|hashkill -plm -f lm.hashes -r rule_num
 rule md4 single			|1 passwords|hashkill -pmd4 4b5b3e5f259d2e28b98d0425b6887232 -r rule_uu
+rule md4 multi			|2 passwords|hashkill -pmd4 -f md4.hashes -r rule_num
 rule md5 single			|1 passwords|hashkill -pmd5 5cd143212df6526aabc6e60437837646 -r rule_uu
+rule md5 multi			|2 passwords|hashkill -pmd5 -f md5.hashes -r rule_num
 rule md5md5 single		|1 passwords|hashkill -pmd5md5 67fd5228d4d10b171ce9041123506cd9 -r rule_uu
+rule md5md5 multi		|2 passwords|hashkill -pmd5md5 -f md5md5.hashes -r rule_num
 rule md5-passsalt single	|1 passwords|hashkill -pmd5-passsalt 23f56a87ce0127c7aa671fedbf3da946:test -r rule_uu
 rule md5-saltpass single	|1 passwords|hashkill -pmd5-saltpass ff33138bca048e77e7865bab923535ae:test -r rule_uu
-rule md5unix single		|1 passwords|hashkill -pmd5unix $1$UCYcl6IP$37jub/uZOSKTWBVbCFftn. -r rule_uu
+rule md5unix single(1)		|1 passwords|hashkill -pmd5unix $1$FwpixhKX$g1W0FGO0ZMFk9qfKZratH0 -r rule_num
+rule md5unix single(2)		|1 passwords|hashkill -pmd5unix $1$4Kt5RedS$0QyGCX9.Xb0UrSaZW.vDD1 -r rule_num
+rule md5unix single(3)		|1 passwords|hashkill -pmd5unix $1$UCYcl6IP$37jub/uZOSKTWBVbCFftn. -r rule_uu
+rule md5unix single(4)		|1 passwords|hashkill -pmd5unix $1$mkQRVvEl$zmeLFFEq0se4eAqcaUlbB0 -r rule_num
+rule md5unix single(5)		|1 passwords|hashkill -pmd5unix $1$rhSsuGUC$ZvV.wzRaXy3z8I6rYdujh1 -r rule_num
+rule md5unix single(6)		|1 passwords|hashkill -pmd5unix $1$6xOH6MYn$6iQBMpy0n8mKtJOT7VFDR. -r rule_num
+rule md5unix single(7)		|1 passwords|hashkill -pmd5unix $1$E2lseFJ1$.zeEGTg5nfSDZHFyg.DS/1 -r rule_num
+rule md5unix single(8)		|1 passwords|hashkill -pmd5unix $1$kf05agMl$.0eV/GU9Dr6OfTBebrfg/. -r rule_num
+rule md5unix single(9)		|1 passwords|hashkill -pmd5unix $1$4vglEAqT$bEpCZRaROcD.be40YmgMY1 -r rule_num
+rule md5unix single(10)		|1 passwords|hashkill -pmd5unix $1$h25ZScLK$rcnADkqpbwLSAOFvkFJJ2. -r rule_num
+rule md5unix single(11)		|1 passwords|hashkill -pmd5unix $1$eG7UeYUm$ywUvi75l.t0roBPwSISuv/ -r rule_num
+rule md5unix single(12)		|1 passwords|hashkill -pmd5unix $1$uWd7TqYw$pnMGZsVQq/VMQn/d0dmrO. -r rule_num
+rule md5unix single(13)		|1 passwords|hashkill -pmd5unix $1$eMr7TsRB$iXYSWHRh/4CPZ.igdmwye1 -r rule_num
+rule md5unix single(14)		|1 passwords|hashkill -pmd5unix $1$bkYfSV/G$uNv.NIBYiC9phVYQw7sLS/ -r rule_num
+rule md5unix single(15)		|1 passwords|hashkill -pmd5unix $1$j3ojkngL$..3M23voahiQ3dF5z3ls5. -r rule_num
 rule mscash single		|1 passwords|hashkill -pmscash a:f0e4edfbd7cca0909780e8e775bed06f -r rule_uu
 rule mscash2 single		|1 passwords|hashkill -pmscash2 bin:343f81934056541b8a71e5529d97ec13 -r rule_uu
 rule mssql-2000 single		|1 passwords|hashkill -pmssql-2000 u0-mssql:0x010050763758677B45B44BF19C04A3E48FF8E8E4070CDF6B74F5677B45B44BF19C04A3E48FF8E8E4070CDF6B74F5: -r rule_uu
 rule mssql-2005 single		|1 passwords|hashkill -pmssql-2005 u0-mssql05:0x0100413141558103A191EC7FD06EBCD158253C29B0AF9C248512 -r rule_uu
 rule mysql5 single		|1 passwords|hashkill -pmysql5 *4ecbf78048d01cf4c7fdc36f37f9e5f0297c84d0 -r rule_uu
+rule mysql5 multi		|2 passwords|hashkill -pmysql5 -f mysql5.hashes -r rule_num
 rule ntlm single		|1 passwords|hashkill -pntlm ceb4a53eab759a7b5da77a864c89969f -r rule_uu
+rule ntlm multi			|2 passwords|hashkill -pntlm -f ntlm.hashes -r rule_num
 rule oracle11g single		|1 passwords|hashkill -poracle11g u0-oracle11:F161A5F402EAB2C37515E0E6BEDBAAC2D815C9710562FA87810CBC49A67F -r rule_uu
 rule oracle-old single		|1 passwords|hashkill -poracle-old u2:E2CF06977CF7068D -r rule_uu
 rule osx-old single		|1 passwords|hashkill -posx-old 6D3175304F0766928D31ACF277CE9468E1BD0BBF42199509 -r rule_uu
 rule phpbb3 single		|1 passwords|hashkill -pphpbb3 $H$9an1HJiB4Q/rrgjv.chX47JKt3fAT7. -r rule_uu
 rule pixmd5 single		|1 passwords|hashkill -ppixmd5 u0-pixmd5:3.KPQBcLux7P8ind -r rule_uu
-rule rar single			|1 passwords|hashkill -prar -f test.rar -r rule_uu
+rule pixmd5 multi		|2 passwords|hashkill -ppixmd5 -f pixmd5.hashes -r rule_num
+rule rar(1) single		|1 passwords|hashkill -prar -f 1.rar -r rule_num
+rule rar(2) single		|1 passwords|hashkill -prar -f 2.rar -r rule_num
+rule rar(3) single		|1 passwords|hashkill -prar -f test.rar -r rule_uu
+rule rar(4) single		|1 passwords|hashkill -prar -f 4.rar -r rule_num
+rule rar(5) single		|1 passwords|hashkill -prar -f 5.rar -r rule_num
+rule rar(6) single		|1 passwords|hashkill -prar -f 6.rar -r rule_num
+rule rar(7) single		|1 passwords|hashkill -prar -f 7.rar -r rule_num
+rule rar(8) single		|1 passwords|hashkill -prar -f 8.rar -r rule_num
+rule rar(9) single		|1 passwords|hashkill -prar -f 9.rar -r rule_num
+rule rar(10) single		|1 passwords|hashkill -prar -f 10.rar -r rule_num
+rule rar(11) single		|1 passwords|hashkill -prar -f 11.rar -r rule_num
+rule rar(12) single		|1 passwords|hashkill -prar -f 12.rar -r rule_num
+rule rar(13) single		|1 passwords|hashkill -prar -f 13.rar -r rule_num
+rule rar(14) single		|1 passwords|hashkill -prar -f 14.rar -r rule_num
+rule rar(15) single		|1 passwords|hashkill -prar -f 15.rar -r rule_num
 rule sha1 single		|1 passwords|hashkill -psha1 77b4bfad4edd778d216fe9dfdddccafb629c2a9f -r rule_uu
+rule sha1 multi			|2 passwords|hashkill -psha1 -f sha1.hashes -r rule_num
 rule sha256 single		|1 passwords|hashkill -psha256 fad1a347ae49391f06afac56f3d83c990b362c92897cb19ec53e97693cb48ea1 -r rule_uu
+rule sha256 multi		|2 passwords|hashkill -psha256 -f sha256.hashes -r rule_num
 rule sha512 single		|1 passwords|hashkill -psha512 d86b3952bb99be9b14bc0474543554441f0ad34fc2b0213f0cb4f7d0eefbdcbf9e9dc309e11d2590bad036e004cf48cce96c3677bd1e8d3a3971f844f99db9fa -r rule_uu
+rule sha512 multi		|2 passwords|hashkill -psha512 -f sha512.hashes -r rule_num
 rule sha512unix single(1)	|1 passwords|hashkill -psha512unix $6$kDKEuf1Y$z5PNHp3jPP7ocZpqCXlYK3FxJEM4eE7VN9Kw0DHUPK3MGV4zBB2xm1OL6ofaIOk892VJG7TthS6ZOG6D8GxOL0 -r rule_num
 rule sha512unix single(2)	|1 passwords|hashkill -psha512unix $6$rnUk3aNC$PGDTE3a2Br0WKFowsmfJa8ljU/vhx0muvE9w52bA1dR9bF6FKwqa0srqsDL0sZR07a6A0MV3wiCRhqa6qJAUM1 -r rule_num
 rule sha512unix single(3)	|1 passwords|hashkill -psha512unix $6$FVta5kbm$D7TvoG0ECGfiewyYUB5kiVZuJzsf.UKT6McTY/iB.ZtbExII3XC4DJCfMijdECC80zi0Q/9DBIFWRaavqAA/x. -r rule_num
@@ -51,4 +132,3 @@ rule wpa (WPA2) single		|1 passwords|hashkill -pwpa -f out.hcap -r rule_uu
 rule zip (old) single		|1 passwords|hashkill -pzip -f test.zip -r rule_uu
 rule zip (AES128) single	|1 passwords|hashkill -pzip -f test-128.zip -r rule_uu
 rule zip (AES256) single	|1 passwords|hashkill -pzip -f test-256.zip -r rule_uu
-bforce sl3 (GPU only!)		|1 passwords|hashkill -psl3 d3399b7262fb56cb9ed053d68db9291c410839c4:0000000000000000
