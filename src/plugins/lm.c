@@ -173,7 +173,7 @@ hash_stat hash_plugin_check_hash_dictionary(const char *hash, const char *passwo
 	}
 
     }
-    hash_lm((const unsigned char **)keyl, (unsigned char **)salt2);
+    hash_lm_slow((const unsigned char **)keyl, (unsigned char **)salt2);
     for (i=0;i<vectorsize;i++) if (strlen(password[i])<8) memcpy(&salt2[i][8],"\xaa\xd3\xb4\x35\xb5\x14\x04\xee",8);
     return hash_ok;
 }

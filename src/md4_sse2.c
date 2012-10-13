@@ -168,9 +168,9 @@ hash_stat MD4_SSE(char *plains[16], char *hash[16], int lens[16])
     MD4_STEPS();
     if ((cpu_optimize_single==1)&&(!hash_list->next))
     {
-	int r1 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, a));
-	int r2 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, a2));
-	int r3 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, a3));
+	int r1 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, b));
+	int r2 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, b2));
+	int r3 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, b3));
 	if ((r1==0)&&(r2==0)&&(r3==0)) return hash_err;
     }
     MD4_STEPS_LAST();
@@ -335,9 +335,9 @@ hash_stat MD4_SSE_SHORT(char *plains[16], char *hash[16], int lens[16])
     MD4_STEPS_SHORT();
     if ((cpu_optimize_single==1)&&(!hash_list->next))
     {
-	int r1 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, a));
-	int r2 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, a2));
-	int r3 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, a3));
+	int r1 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, b));
+	int r2 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, b2));
+	int r3 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, b3));
 	if ((r1==0)&&(r2==0)&&(r3==0)) return hash_err;
     }
     MD4_STEPS_SHORT_LAST();
@@ -521,9 +521,9 @@ hash_stat MD4_SSE_FIXED(char *plains[16], char *hash[16], int lens)
     MD4_STEPS();
     if ((cpu_optimize_single==1)&&(!hash_list->next))
     {
-	int r1 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, a));
-	int r2 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, a2));
-	int r3 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, a3));
+	int r1 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, b));
+	int r2 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, b2));
+	int r3 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, b3));
 	if ((r1==0)&&(r2==0)&&(r3==0)) return hash_err;
     }
     MD4_STEPS_LAST();
@@ -693,9 +693,9 @@ hash_stat MD4_SSE_SHORT_FIXED(char *plains[16], char *hash[16], int lens)
     MD4_STEPS_SHORT();
     if ((cpu_optimize_single==1)&&(!hash_list->next))
     {
-	int r1 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, a));
-	int r2 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, a2));
-	int r3 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, a3));
+	int r1 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, b));
+	int r2 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, b2));
+	int r3 = _mm_movemask_epi8(_mm_cmpeq_epi32(AR, b3));
 	if ((r1|r2|r3)==0) return hash_err;
     }
     MD4_STEPS_SHORT_LAST();

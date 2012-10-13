@@ -559,9 +559,10 @@ void FCRYPT_PREPARE_OPT(void)
 }
 
 
+
 hash_stat DES_FCRYPT_SSE(char salt[3], char *plains[128], char *out[128])
 {
-    int a,b,e,f;
+    int a,b,e,f,i;
 
     __m128i pp[64];
     __m128i c[64];
@@ -570,120 +571,8 @@ hash_stat DES_FCRYPT_SSE(char salt[3], char *plains[128], char *out[128])
     __m128i pveca[16];
 
 
-    _mm_prefetch(plains[30],_MM_HINT_T1);
-    _mm_prefetch(plains[31],_MM_HINT_T1);
-    _mm_prefetch(plains[32],_MM_HINT_T1);
-    _mm_prefetch(plains[33],_MM_HINT_T1);
-    _mm_prefetch(plains[34],_MM_HINT_T1);
-    _mm_prefetch(plains[35],_MM_HINT_T1);
-    _mm_prefetch(plains[36],_MM_HINT_T1);
-    _mm_prefetch(plains[37],_MM_HINT_T1);
-    _mm_prefetch(plains[38],_MM_HINT_T1);
-    _mm_prefetch(plains[39],_MM_HINT_T1);
-    _mm_prefetch(plains[40],_MM_HINT_T1);
-    _mm_prefetch(plains[41],_MM_HINT_T1);
-    _mm_prefetch(plains[42],_MM_HINT_T1);
-    _mm_prefetch(plains[43],_MM_HINT_T1);
-    _mm_prefetch(plains[44],_MM_HINT_T1);
-    _mm_prefetch(plains[45],_MM_HINT_T1);
-    _mm_prefetch(plains[46],_MM_HINT_T1);
-    _mm_prefetch(plains[47],_MM_HINT_T1);
-    _mm_prefetch(plains[48],_MM_HINT_T1);
-    _mm_prefetch(plains[49],_MM_HINT_T1);
-    _mm_prefetch(plains[50],_MM_HINT_T1);
-    _mm_prefetch(plains[51],_MM_HINT_T1);
-    _mm_prefetch(plains[52],_MM_HINT_T1);
-    _mm_prefetch(plains[53],_MM_HINT_T1);
-    _mm_prefetch(plains[54],_MM_HINT_T1);
-    _mm_prefetch(plains[55],_MM_HINT_T1);
-    _mm_prefetch(plains[56],_MM_HINT_T1);
-    _mm_prefetch(plains[57],_MM_HINT_T1);
-    _mm_prefetch(plains[58],_MM_HINT_T1);
-    _mm_prefetch(plains[59],_MM_HINT_T1);
-    _mm_prefetch(plains[20],_MM_HINT_T1);
-    _mm_prefetch(plains[21],_MM_HINT_T1);
-    _mm_prefetch(plains[22],_MM_HINT_T1);
-    _mm_prefetch(plains[23],_MM_HINT_T1);
-    _mm_prefetch(plains[24],_MM_HINT_T1);
-    _mm_prefetch(plains[25],_MM_HINT_T1);
-    _mm_prefetch(plains[26],_MM_HINT_T1);
-    _mm_prefetch(plains[27],_MM_HINT_T1);
-    _mm_prefetch(plains[28],_MM_HINT_T1);
-    _mm_prefetch(plains[29],_MM_HINT_T1);
-    _mm_prefetch(plains[60],_MM_HINT_T1);
-    _mm_prefetch(plains[61],_MM_HINT_T1);
-    _mm_prefetch(plains[62],_MM_HINT_T1);
-    _mm_prefetch(plains[63],_MM_HINT_T1);
-    _mm_prefetch(plains[64],_MM_HINT_T1);
-    _mm_prefetch(plains[65],_MM_HINT_T1);
-    _mm_prefetch(plains[66],_MM_HINT_T1);
-    _mm_prefetch(plains[67],_MM_HINT_T1);
-    _mm_prefetch(plains[68],_MM_HINT_T1);
-    _mm_prefetch(plains[69],_MM_HINT_T1);
-    _mm_prefetch(plains[70],_MM_HINT_T1);
-    _mm_prefetch(plains[71],_MM_HINT_T1);
-    _mm_prefetch(plains[72],_MM_HINT_T1);
-    _mm_prefetch(plains[73],_MM_HINT_T1);
-    _mm_prefetch(plains[74],_MM_HINT_T1);
-    _mm_prefetch(plains[75],_MM_HINT_T1);
-    _mm_prefetch(plains[76],_MM_HINT_T1);
-    _mm_prefetch(plains[77],_MM_HINT_T1);
-    _mm_prefetch(plains[78],_MM_HINT_T1);
-    _mm_prefetch(plains[79],_MM_HINT_T1);
-    _mm_prefetch(plains[80],_MM_HINT_T1);
-    _mm_prefetch(plains[81],_MM_HINT_T1);
-    _mm_prefetch(plains[82],_MM_HINT_T1);
-    _mm_prefetch(plains[83],_MM_HINT_T1);
-    _mm_prefetch(plains[84],_MM_HINT_T1);
-    _mm_prefetch(plains[85],_MM_HINT_T1);
-    _mm_prefetch(plains[86],_MM_HINT_T1);
-    _mm_prefetch(plains[87],_MM_HINT_T1);
-    _mm_prefetch(plains[88],_MM_HINT_T1);
-    _mm_prefetch(plains[89],_MM_HINT_T1);
-    _mm_prefetch(plains[90],_MM_HINT_T1);
-    _mm_prefetch(plains[91],_MM_HINT_T1);
-    _mm_prefetch(plains[92],_MM_HINT_T1);
-    _mm_prefetch(plains[93],_MM_HINT_T1);
-    _mm_prefetch(plains[94],_MM_HINT_T1);
-    _mm_prefetch(plains[95],_MM_HINT_T1);
-    _mm_prefetch(plains[96],_MM_HINT_T1);
-    _mm_prefetch(plains[97],_MM_HINT_T1);
-    _mm_prefetch(plains[98],_MM_HINT_T1);
-    _mm_prefetch(plains[99],_MM_HINT_T1);
-    _mm_prefetch(plains[100],_MM_HINT_T1);
-    _mm_prefetch(plains[101],_MM_HINT_T1);
-    _mm_prefetch(plains[102],_MM_HINT_T1);
-    _mm_prefetch(plains[103],_MM_HINT_T1);
-    _mm_prefetch(plains[104],_MM_HINT_T1);
-    _mm_prefetch(plains[105],_MM_HINT_T1);
-    _mm_prefetch(plains[106],_MM_HINT_T1);
-    _mm_prefetch(plains[107],_MM_HINT_T1);
-    _mm_prefetch(plains[108],_MM_HINT_T1);
-    _mm_prefetch(plains[109],_MM_HINT_T1);
-    _mm_prefetch(plains[110],_MM_HINT_T1);
-    _mm_prefetch(plains[111],_MM_HINT_T1);
-    _mm_prefetch(plains[112],_MM_HINT_T1);
-    _mm_prefetch(plains[113],_MM_HINT_T1);
-    _mm_prefetch(plains[114],_MM_HINT_T1);
-    _mm_prefetch(plains[115],_MM_HINT_T1);
-    _mm_prefetch(plains[116],_MM_HINT_T1);
-    _mm_prefetch(plains[117],_MM_HINT_T1);
-    _mm_prefetch(plains[118],_MM_HINT_T1);
-    _mm_prefetch(plains[119],_MM_HINT_T1);
-    _mm_prefetch(plains[120],_MM_HINT_T1);
-    _mm_prefetch(plains[121],_MM_HINT_T1);
-    _mm_prefetch(plains[122],_MM_HINT_T1);
-    _mm_prefetch(plains[123],_MM_HINT_T1);
-    _mm_prefetch(plains[124],_MM_HINT_T1);
-    _mm_prefetch(plains[125],_MM_HINT_T1);
-    _mm_prefetch(plains[126],_MM_HINT_T1);
-    _mm_prefetch(plains[127],_MM_HINT_T1);
-    _mm_prefetch(plains[128],_MM_HINT_T0);
-
-
-
 /* Setup key bits */
-    for (f=7;f>=1;f--)
+    for (f=7;f>=0;f--)
     {
         for (b=0;b<8;b+=2)
         {
@@ -724,74 +613,24 @@ hash_stat DES_FCRYPT_SSE(char salt[3], char *plains[128], char *out[128])
         }
     }
 
-  for (b=0;b<8;b++) 
-  {
-        e = b*16;
-        pveca[b] = _mm_set_epi8(plains[15+e][7], plains[14+e][7], plains[13+e][7], plains[12+e][7], plains[11+e][7],
-                                    plains[10+e][7], plains[9+e][7], plains[8+e][7], plains[7+e][7], plains[6+e][7],
-                                    plains[5+e][7], plains[4+e][7], plains[3+e][7], plains[2+e][7],
-                                    plains[1+e][7], plains[0+e][7]);
-        }
-
-        for (a=7;a>=0;a--)
-        {
-            pvec1 = pveca[a];
-            pveca[a] = _mm_slli_epi16(pvec1,1);
-        }
-        for (b=0;b<7;b++)
-        {
-            pvec = _mm_set_epi16(
-                                     _mm_movemask_epi8(pveca[7]), _mm_movemask_epi8(pveca[6]),
-                                     _mm_movemask_epi8(pveca[5]), _mm_movemask_epi8(pveca[4]),
-                                     _mm_movemask_epi8(pveca[3]), _mm_movemask_epi8(pveca[2]),
-                                     _mm_movemask_epi8(pveca[1]), _mm_movemask_epi8(pveca[0])
-                                 );
-        for (a=7;a>=0;a--)
-        {
-            pvec1 = pveca[a];
-            pveca[a] = _mm_slli_epi16(pvec1,1);
-        }
-	k[7-b-1] = pvec;
-    }
-
-
 
 /* Setup all-zero plaintext bits */
-    for (a=0;a<64;a+=4) 
+    for (a=0;a<64;a+=2) 
     {
-	pp[a] = _mm_set_epi32(0,0,0,0);
-	pp[a+1] = _mm_set_epi32(0,0,0,0);
-	pp[a+2] = _mm_set_epi32(0,0,0,0);
-	pp[a+3] = _mm_set_epi32(0,0,0,0);
+	pp[a] = _mm_setzero_si128();
+	pp[a+1] = _mm_setzero_si128();
     }
 
 /* Perform 25 encryptions */
 
     deseval_SSE_salted (pp, c, k, salt);
-    deseval_SSE_salted (c, pp, k, salt);
-    deseval_SSE_salted (pp, c, k, salt);
-    deseval_SSE_salted (c, pp, k, salt);
-    deseval_SSE_salted (pp, c, k, salt);
-    deseval_SSE_salted (c, pp, k, salt);
-    deseval_SSE_salted (pp, c, k, salt);
-    deseval_SSE_salted (c, pp, k, salt);
-    deseval_SSE_salted (pp, c, k, salt);
-    deseval_SSE_salted (c, pp, k, salt);
-    deseval_SSE_salted (pp, c, k, salt);
-    deseval_SSE_salted (c, pp, k, salt);
-    deseval_SSE_salted (pp, c, k, salt);
-    deseval_SSE_salted (c, pp, k, salt);
-    deseval_SSE_salted (pp, c, k, salt);
-    deseval_SSE_salted (c, pp, k, salt);
-    deseval_SSE_salted (pp, c, k, salt);
-    deseval_SSE_salted (c, pp, k, salt);
-    deseval_SSE_salted (pp, c, k, salt);
-    deseval_SSE_salted (c, pp, k, salt);
-    deseval_SSE_salted (pp, c, k, salt);
-    deseval_SSE_salted (c, pp, k, salt);
-    deseval_SSE_salted (pp, c, k, salt);
-    deseval_SSE_salted (c, pp, k, salt);
-    deseval_SSE_salted (pp, c, k, salt);
+    for (a=0;a<24;a+=4)
+    {
+	deseval_SSE_salted (c, pp, k, salt);
+	deseval_SSE_salted (pp, c, k, salt);
+	deseval_SSE_salted (c, pp, k, salt);
+	deseval_SSE_salted (pp, c, k, salt);
+    }
 
 
 /* Get the ciphertexts */
@@ -804,74 +643,58 @@ hash_stat DES_FCRYPT_SSE(char salt[3], char *plains[128], char *out[128])
     int flag1=0;
 
 
+
 #define fetchrowc(m)  \
     flag=0; \
     for (a=0;a<16;a++) { cb[a] = (_mm_extract_epi8(c[a+48],(m))); } \
-    vec = _mm_set_epi8(cb[15], cb[14], cb[13], cb[12], cb[11], cb[10], cb[9], cb[8], cb[7], cb[6], cb[5], cb[4], cb[3], cb[2], cb[1], cb[0]); \
-    for (a=0;a<8;a+=2) \
+    vec = _mm_set_epi8(cb[15], cb[14], cb[13], cb[12], cb[11], cb[10], cb[9], cb[8], cb[7], cb[6], cb[5], cb[4], cb[3],cb[2], cb[1], cb[0]); \
+    for (a=0;a<8;a++) \
     { \
-	vec1 = _mm_slli_epi32 (vec, a); \
-	temp = _mm_movemask_epi8(vec1); \
-	out[7-a+(m)*8][1] = (temp&255); \
-	out[7-a+(m)*8][0] = ((temp >> 8)); \
-	vec1 = _mm_slli_epi32 (vec, a+1); \
-	temp = _mm_movemask_epi8(vec1); \
-	out[7-(a+1)+(m)*8][1] = (temp&255); \
-	out[7-(a+1)+(m)*8][0] = ((temp >> 8)); \
-	flag = (((target1&255)==(out[(7-(a))+((m)*8)][0]&255)))  ? 1 : flag; \
+        vec1 = _mm_slli_epi32 (vec, a); \
+        temp = _mm_movemask_epi8(vec1); \
+        out[7-a+(m)*8][1] = (temp&255); \
+        out[7-a+(m)*8][0] = ((temp >> 8))&255; \
+        flag = (((target1&255)==(out[(7-(a))+((m)*8)][0]&255)))  ? 1 : flag; \
     } \
-    flag+=flag;
+    flag1+=flag;
 
-
-#define fetchrowc1(m)  \
+#define fetchrowc1(m) \
     { \
-	for (a=0;a<16;a++) cb[a] = (_mm_extract_epi8(c[a],(m))); \
-	vec = _mm_set_epi8(cb[15], cb[14], cb[13], cb[12], cb[11], cb[10], cb[9], cb[8], cb[7], cb[6], cb[5], cb[4], cb[3], cb[2], cb[1], cb[0]); \
-	for (a=0;a<8;a+=2) \
-	{ \
-	    vec1 = _mm_slli_epi32 (vec, a); \
-	    temp = _mm_movemask_epi8(vec1); \
-	    out[7-a+(m)*8][7] = (temp&255); \
-	    out[7-a+(m)*8][6] = ((temp >> 8)); \
-	    vec1 = _mm_slli_epi32 (vec, a+1); \
-	    temp = _mm_movemask_epi8(vec1); \
-	    out[7-(a+1)+(m)*8][7] = (temp&255); \
-	    out[7-(a+1)+(m)*8][6] = ((temp >> 8)); \
-	} \
-	for (a=0;a<16;a++) cb[a] = (_mm_extract_epi8(c[a+16],(m))); \
-	vec = _mm_set_epi8(cb[15], cb[14], cb[13], cb[12], cb[11], cb[10], cb[9], cb[8], cb[7], cb[6], cb[5], cb[4], cb[3], cb[2], cb[1], cb[0]); \
-	for (a=0;a<8;a+=2) \
-	{ \
-	    vec1 = _mm_slli_epi32 (vec, a); \
-	    temp = _mm_movemask_epi8(vec1); \
-	    out[7-a+(m)*8][5] = (temp&255); \
-	    out[7-a+(m)*8][4] = ((temp >> 8)); \
-	    vec1 = _mm_slli_epi32 (vec, a+1); \
-	    temp = _mm_movemask_epi8(vec1); \
-	    out[7-(a+1)+(m)*8][5] = (temp&255); \
-	    out[7-(a+1)+(m)*8][4] = ((temp >> 8)); \
-	} \
-	for (a=0;a<16;a+=4) \
-	{ \
-	    cb[a] = (_mm_extract_epi8(c[a+32],(m))); \
-	    cb[a+1] = (_mm_extract_epi8(c[a+33],(m))); \
-	    cb[a+2] = (_mm_extract_epi8(c[a+34],(m))); \
-	    cb[a+3] = (_mm_extract_epi8(c[a+35],(m))); \
-	} \
-	vec = _mm_set_epi8(cb[15], cb[14], cb[13], cb[12], cb[11], cb[10], cb[9], cb[8], cb[7], cb[6], cb[5], cb[4], cb[3], cb[2], cb[1], cb[0]); \
-	for (a=0;a<8;a+=2) \
-	{ \
-	    vec1 = _mm_slli_epi32 (vec, a); \
-	    temp = _mm_movemask_epi8(vec1); \
-	    out[7-a+(m)*8][3] = (temp&255); \
-	    out[7-a+(m)*8][2] = (temp >> 8); \
-	    vec1 = _mm_slli_epi32 (vec, a+1); \
-	    temp = _mm_movemask_epi8(vec1); \
-	    out[7-(a+1)+(m)*8][3] = (temp&255); \
-	    out[7-(a+1)+(m)*8][2] = (temp >> 8); \
-	} \
+        for (a=0;a<16;a++) cb[a] = (_mm_extract_epi8(c[a],(m))); \
+        vec = _mm_set_epi8(cb[15], cb[14], cb[13], cb[12], cb[11], cb[10], cb[9], cb[8], cb[7], cb[6], cb[5], cb[4], cb[3], cb[2], cb[1], cb[0]); \
+        for (a=0;a<8;a++) \
+        { \
+            vec1 = _mm_slli_epi32 (vec, a); \
+            temp = _mm_movemask_epi8(vec1); \
+            out[7-a+(m)*8][7] = (temp&255); \
+            out[7-a+(m)*8][6] = ((temp >> 8)); \
+        } \
+        for (a=0;a<16;a++) cb[a] = (_mm_extract_epi8(c[a+16],(m))); \
+        vec = _mm_set_epi8(cb[15], cb[14], cb[13], cb[12], cb[11], cb[10], cb[9], cb[8], cb[7], cb[6], cb[5], cb[4], cb[3], cb[2], cb[1], cb[0]); \
+        for (a=0;a<8;a++) \
+        { \
+            vec1 = _mm_slli_epi32 (vec, a); \
+            temp = _mm_movemask_epi8(vec1); \
+            out[7-a+(m)*8][5] = (temp&255); \
+            out[7-a+(m)*8][4] = ((temp >> 8)); \
+        } \
+        for (a=0;a<16;a+=4) \
+        { \
+            cb[a] = (_mm_extract_epi8(c[a+32],(m))); \
+            cb[a+1] = (_mm_extract_epi8(c[a+33],(m))); \
+            cb[a+2] = (_mm_extract_epi8(c[a+34],(m))); \
+            cb[a+3] = (_mm_extract_epi8(c[a+35],(m))); \
+        } \
+        vec = _mm_set_epi8(cb[15], cb[14], cb[13], cb[12], cb[11], cb[10], cb[9], cb[8], cb[7], cb[6], cb[5], cb[4], cb[3], cb[2], cb[1], cb[0]); \
+        for (a=0;a<8;a++) \
+        { \
+            vec1 = _mm_slli_epi32 (vec, a); \
+            temp = _mm_movemask_epi8(vec1); \
+            out[7-a+(m)*8][3] = (temp&255); \
+            out[7-a+(m)*8][2] = (temp >> 8); \
+        } \
     } \
-
+    flag1+=flag;
 
     fetchrowc(0);
     fetchrowc(1);
@@ -889,27 +712,29 @@ hash_stat DES_FCRYPT_SSE(char salt[3], char *plains[128], char *out[128])
     fetchrowc(13);
     fetchrowc(14);
     fetchrowc(15);
-    if ((cpu_optimize_single==1)&&(flag1!=0)) return hash_err;
-    fetchrowc(0);
-    fetchrowc(1);
-    fetchrowc(2);
-    fetchrowc(3);
-    fetchrowc(4);
-    fetchrowc(5);
-    fetchrowc(6);
-    fetchrowc(7);
-    fetchrowc(8);
-    fetchrowc(9);
-    fetchrowc(10);
-    fetchrowc(11);
-    fetchrowc(12);
-    fetchrowc(13);
-    fetchrowc(14);
-    fetchrowc(15);
+    if ((cpu_optimize_single==1)&&(flag1==0)) return hash_err;
+    fetchrowc1(0);
+    fetchrowc1(1);
+    fetchrowc1(2);
+    fetchrowc1(3);
+    fetchrowc1(4);
+    fetchrowc1(5);
+    fetchrowc1(6);
+    fetchrowc1(7);
+    fetchrowc1(8);
+    fetchrowc1(9);
+    fetchrowc1(10);
+    fetchrowc1(11);
+    fetchrowc1(12);
+    fetchrowc1(13);
+    fetchrowc1(14);
+    fetchrowc1(15);
+
+
 
 /* convert each plaintext to salt+base64(block) */
+
     char r[12];
-    int i;
     char _cov_2char[66] = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     for (a=0;a<128;a++)
@@ -936,7 +761,9 @@ hash_stat DES_FCRYPT_SSE(char salt[3], char *plains[128], char *out[128])
         out[a][13]=0;
     }
     return hash_ok;
+
 }
+
 
 
 void DES_LM_SSE(char *plains[128], char *out[128])
