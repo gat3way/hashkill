@@ -110,16 +110,15 @@ am_hashkill_OBJECTS = hashkill-ocl-base.$(OBJEXT) \
 	hashkill-ocl_md4.$(OBJEXT) hashkill-ocl_ntlm.$(OBJEXT) \
 	hashkill-ocl_md5md5.$(OBJEXT) hashkill-ocl_mysql5.$(OBJEXT) \
 	hashkill-ocl_sha256.$(OBJEXT) hashkill-ocl_sha512.$(OBJEXT) \
-	hashkill-ocl_lm.$(OBJEXT) hashkill-ocl_ldap-sha.$(OBJEXT) \
-	hashkill-ocl_sl3.$(OBJEXT) hashkill-ocl_md5-passsalt.$(OBJEXT) \
-	hashkill-ocl_md5-saltpass.$(OBJEXT) \
-	hashkill-ocl_ipb2.$(OBJEXT) hashkill-ocl_vbulletin.$(OBJEXT) \
-	hashkill-ocl_smf.$(OBJEXT) hashkill-ocl_oracle11g.$(OBJEXT) \
+	hashkill-ocl_lm.$(OBJEXT) hashkill-ocl_nsldap.$(OBJEXT) \
+	hashkill-ocl_sl3.$(OBJEXT) hashkill-ocl_joomla.$(OBJEXT) \
+	hashkill-ocl_oscommerce.$(OBJEXT) hashkill-ocl_ipb2.$(OBJEXT) \
+	hashkill-ocl_vbulletin.$(OBJEXT) hashkill-ocl_smf.$(OBJEXT) \
+	hashkill-ocl_oracle11g.$(OBJEXT) \
 	hashkill-ocl_mssql-2000.$(OBJEXT) \
 	hashkill-ocl_mssql-2005.$(OBJEXT) \
-	hashkill-ocl_ldap-ssha.$(OBJEXT) \
-	hashkill-ocl_osx-old.$(OBJEXT) hashkill-ocl_osxlion.$(OBJEXT) \
-	hashkill-ocl_desunix.$(OBJEXT) \
+	hashkill-ocl_nsldaps.$(OBJEXT) hashkill-ocl_osx-old.$(OBJEXT) \
+	hashkill-ocl_osxlion.$(OBJEXT) hashkill-ocl_desunix.$(OBJEXT) \
 	hashkill-ocl_oracle-old.$(OBJEXT) \
 	hashkill-ocl_mscash.$(OBJEXT) hashkill-ocl_pixmd5.$(OBJEXT) \
 	hashkill-ocl_phpbb3.$(OBJEXT) hashkill-ocl_wordpress.$(OBJEXT) \
@@ -339,9 +338,9 @@ threads.h hashinterface.h plugins.h sessions.h md5_sse2.c md5_sse2.h sha1_sse2.c
 md4_sse2.c md4_sse2.h des_sse2.c ocl-threads.c  des_nonstd_sse2.c ocl_support.h \
 lzma/7zFile.c lzma/7zStream.c lzma/LzmaDec.c lzma/LzmaEnc.c lzma/Alloc.c lzma/LzFind.c lzma/lzma.c \
 cpu-feat.c hashgen.c hashgen.h hashgen-mangle.c hashgen-mangle.h ocl-adl.c ocl_md5.c ocl_sha1.c \
-ocl_md4.c ocl_ntlm.c ocl_md5md5.c ocl_mysql5.c ocl_sha256.c ocl_sha512.c ocl_lm.c ocl_ldap-sha.c ocl_sl3.c \
-ocl_md5-passsalt.c ocl_md5-saltpass.c ocl_ipb2.c ocl_vbulletin.c ocl_smf.c ocl_oracle11g.c ocl_mssql-2000.c \
-ocl_mssql-2005.c ocl_ldap-ssha.c ocl_osx-old.c ocl_osxlion.c ocl_desunix.c ocl_oracle-old.c  ocl_mscash.c \
+ocl_md4.c ocl_ntlm.c ocl_md5md5.c ocl_mysql5.c ocl_sha256.c ocl_sha512.c ocl_lm.c ocl_nsldap.c ocl_sl3.c \
+ocl_joomla.c ocl_oscommerce.c ocl_ipb2.c ocl_vbulletin.c ocl_smf.c ocl_oracle11g.c ocl_mssql-2000.c \
+ocl_mssql-2005.c ocl_nsldaps.c ocl_osx-old.c ocl_osxlion.c ocl_desunix.c ocl_oracle-old.c  ocl_mscash.c \
 ocl_pixmd5.c ocl_phpbb3.c ocl_wordpress.c ocl_md5unix.c ocl_sha512unix.c ocl_mscash2.c ocl_apr1.c ocl_wpa.c \
 ocl_dmg.c unrargpu.c ocl_rar.c ocl_bfunix.c ocl_zip.c
 
@@ -366,9 +365,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu src/Makefile
+	  $(AUTOMAKE) --foreign src/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -512,12 +511,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_desunix.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_dmg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_ipb2.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_ldap-sha.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_ldap-ssha.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_joomla.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_lm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_md4.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_md5-passsalt.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_md5-saltpass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_md5.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_md5md5.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_md5unix.Po@am__quote@
@@ -526,9 +522,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_mssql-2000.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_mssql-2005.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_mysql5.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_nsldap.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_nsldaps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_ntlm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_oracle-old.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_oracle11g.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_oscommerce.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_osx-old.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_osxlion.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_phpbb3.Po@am__quote@
@@ -1095,19 +1094,19 @@ hashkill-ocl_lm.obj: ocl_lm.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_lm.obj `if test -f 'ocl_lm.c'; then $(CYGPATH_W) 'ocl_lm.c'; else $(CYGPATH_W) '$(srcdir)/ocl_lm.c'; fi`
 
-hashkill-ocl_ldap-sha.o: ocl_ldap-sha.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_ldap-sha.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_ldap-sha.Tpo -c -o hashkill-ocl_ldap-sha.o `test -f 'ocl_ldap-sha.c' || echo '$(srcdir)/'`ocl_ldap-sha.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_ldap-sha.Tpo $(DEPDIR)/hashkill-ocl_ldap-sha.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_ldap-sha.c' object='hashkill-ocl_ldap-sha.o' libtool=no @AMDEPBACKSLASH@
+hashkill-ocl_nsldap.o: ocl_nsldap.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_nsldap.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_nsldap.Tpo -c -o hashkill-ocl_nsldap.o `test -f 'ocl_nsldap.c' || echo '$(srcdir)/'`ocl_nsldap.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_nsldap.Tpo $(DEPDIR)/hashkill-ocl_nsldap.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_nsldap.c' object='hashkill-ocl_nsldap.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_ldap-sha.o `test -f 'ocl_ldap-sha.c' || echo '$(srcdir)/'`ocl_ldap-sha.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_nsldap.o `test -f 'ocl_nsldap.c' || echo '$(srcdir)/'`ocl_nsldap.c
 
-hashkill-ocl_ldap-sha.obj: ocl_ldap-sha.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_ldap-sha.obj -MD -MP -MF $(DEPDIR)/hashkill-ocl_ldap-sha.Tpo -c -o hashkill-ocl_ldap-sha.obj `if test -f 'ocl_ldap-sha.c'; then $(CYGPATH_W) 'ocl_ldap-sha.c'; else $(CYGPATH_W) '$(srcdir)/ocl_ldap-sha.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_ldap-sha.Tpo $(DEPDIR)/hashkill-ocl_ldap-sha.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_ldap-sha.c' object='hashkill-ocl_ldap-sha.obj' libtool=no @AMDEPBACKSLASH@
+hashkill-ocl_nsldap.obj: ocl_nsldap.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_nsldap.obj -MD -MP -MF $(DEPDIR)/hashkill-ocl_nsldap.Tpo -c -o hashkill-ocl_nsldap.obj `if test -f 'ocl_nsldap.c'; then $(CYGPATH_W) 'ocl_nsldap.c'; else $(CYGPATH_W) '$(srcdir)/ocl_nsldap.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_nsldap.Tpo $(DEPDIR)/hashkill-ocl_nsldap.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_nsldap.c' object='hashkill-ocl_nsldap.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_ldap-sha.obj `if test -f 'ocl_ldap-sha.c'; then $(CYGPATH_W) 'ocl_ldap-sha.c'; else $(CYGPATH_W) '$(srcdir)/ocl_ldap-sha.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_nsldap.obj `if test -f 'ocl_nsldap.c'; then $(CYGPATH_W) 'ocl_nsldap.c'; else $(CYGPATH_W) '$(srcdir)/ocl_nsldap.c'; fi`
 
 hashkill-ocl_sl3.o: ocl_sl3.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_sl3.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_sl3.Tpo -c -o hashkill-ocl_sl3.o `test -f 'ocl_sl3.c' || echo '$(srcdir)/'`ocl_sl3.c
@@ -1123,33 +1122,33 @@ hashkill-ocl_sl3.obj: ocl_sl3.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_sl3.obj `if test -f 'ocl_sl3.c'; then $(CYGPATH_W) 'ocl_sl3.c'; else $(CYGPATH_W) '$(srcdir)/ocl_sl3.c'; fi`
 
-hashkill-ocl_md5-passsalt.o: ocl_md5-passsalt.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_md5-passsalt.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_md5-passsalt.Tpo -c -o hashkill-ocl_md5-passsalt.o `test -f 'ocl_md5-passsalt.c' || echo '$(srcdir)/'`ocl_md5-passsalt.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_md5-passsalt.Tpo $(DEPDIR)/hashkill-ocl_md5-passsalt.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_md5-passsalt.c' object='hashkill-ocl_md5-passsalt.o' libtool=no @AMDEPBACKSLASH@
+hashkill-ocl_joomla.o: ocl_joomla.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_joomla.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_joomla.Tpo -c -o hashkill-ocl_joomla.o `test -f 'ocl_joomla.c' || echo '$(srcdir)/'`ocl_joomla.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_joomla.Tpo $(DEPDIR)/hashkill-ocl_joomla.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_joomla.c' object='hashkill-ocl_joomla.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_md5-passsalt.o `test -f 'ocl_md5-passsalt.c' || echo '$(srcdir)/'`ocl_md5-passsalt.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_joomla.o `test -f 'ocl_joomla.c' || echo '$(srcdir)/'`ocl_joomla.c
 
-hashkill-ocl_md5-passsalt.obj: ocl_md5-passsalt.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_md5-passsalt.obj -MD -MP -MF $(DEPDIR)/hashkill-ocl_md5-passsalt.Tpo -c -o hashkill-ocl_md5-passsalt.obj `if test -f 'ocl_md5-passsalt.c'; then $(CYGPATH_W) 'ocl_md5-passsalt.c'; else $(CYGPATH_W) '$(srcdir)/ocl_md5-passsalt.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_md5-passsalt.Tpo $(DEPDIR)/hashkill-ocl_md5-passsalt.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_md5-passsalt.c' object='hashkill-ocl_md5-passsalt.obj' libtool=no @AMDEPBACKSLASH@
+hashkill-ocl_joomla.obj: ocl_joomla.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_joomla.obj -MD -MP -MF $(DEPDIR)/hashkill-ocl_joomla.Tpo -c -o hashkill-ocl_joomla.obj `if test -f 'ocl_joomla.c'; then $(CYGPATH_W) 'ocl_joomla.c'; else $(CYGPATH_W) '$(srcdir)/ocl_joomla.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_joomla.Tpo $(DEPDIR)/hashkill-ocl_joomla.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_joomla.c' object='hashkill-ocl_joomla.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_md5-passsalt.obj `if test -f 'ocl_md5-passsalt.c'; then $(CYGPATH_W) 'ocl_md5-passsalt.c'; else $(CYGPATH_W) '$(srcdir)/ocl_md5-passsalt.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_joomla.obj `if test -f 'ocl_joomla.c'; then $(CYGPATH_W) 'ocl_joomla.c'; else $(CYGPATH_W) '$(srcdir)/ocl_joomla.c'; fi`
 
-hashkill-ocl_md5-saltpass.o: ocl_md5-saltpass.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_md5-saltpass.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_md5-saltpass.Tpo -c -o hashkill-ocl_md5-saltpass.o `test -f 'ocl_md5-saltpass.c' || echo '$(srcdir)/'`ocl_md5-saltpass.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_md5-saltpass.Tpo $(DEPDIR)/hashkill-ocl_md5-saltpass.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_md5-saltpass.c' object='hashkill-ocl_md5-saltpass.o' libtool=no @AMDEPBACKSLASH@
+hashkill-ocl_oscommerce.o: ocl_oscommerce.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_oscommerce.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_oscommerce.Tpo -c -o hashkill-ocl_oscommerce.o `test -f 'ocl_oscommerce.c' || echo '$(srcdir)/'`ocl_oscommerce.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_oscommerce.Tpo $(DEPDIR)/hashkill-ocl_oscommerce.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_oscommerce.c' object='hashkill-ocl_oscommerce.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_md5-saltpass.o `test -f 'ocl_md5-saltpass.c' || echo '$(srcdir)/'`ocl_md5-saltpass.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_oscommerce.o `test -f 'ocl_oscommerce.c' || echo '$(srcdir)/'`ocl_oscommerce.c
 
-hashkill-ocl_md5-saltpass.obj: ocl_md5-saltpass.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_md5-saltpass.obj -MD -MP -MF $(DEPDIR)/hashkill-ocl_md5-saltpass.Tpo -c -o hashkill-ocl_md5-saltpass.obj `if test -f 'ocl_md5-saltpass.c'; then $(CYGPATH_W) 'ocl_md5-saltpass.c'; else $(CYGPATH_W) '$(srcdir)/ocl_md5-saltpass.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_md5-saltpass.Tpo $(DEPDIR)/hashkill-ocl_md5-saltpass.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_md5-saltpass.c' object='hashkill-ocl_md5-saltpass.obj' libtool=no @AMDEPBACKSLASH@
+hashkill-ocl_oscommerce.obj: ocl_oscommerce.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_oscommerce.obj -MD -MP -MF $(DEPDIR)/hashkill-ocl_oscommerce.Tpo -c -o hashkill-ocl_oscommerce.obj `if test -f 'ocl_oscommerce.c'; then $(CYGPATH_W) 'ocl_oscommerce.c'; else $(CYGPATH_W) '$(srcdir)/ocl_oscommerce.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_oscommerce.Tpo $(DEPDIR)/hashkill-ocl_oscommerce.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_oscommerce.c' object='hashkill-ocl_oscommerce.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_md5-saltpass.obj `if test -f 'ocl_md5-saltpass.c'; then $(CYGPATH_W) 'ocl_md5-saltpass.c'; else $(CYGPATH_W) '$(srcdir)/ocl_md5-saltpass.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_oscommerce.obj `if test -f 'ocl_oscommerce.c'; then $(CYGPATH_W) 'ocl_oscommerce.c'; else $(CYGPATH_W) '$(srcdir)/ocl_oscommerce.c'; fi`
 
 hashkill-ocl_ipb2.o: ocl_ipb2.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_ipb2.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_ipb2.Tpo -c -o hashkill-ocl_ipb2.o `test -f 'ocl_ipb2.c' || echo '$(srcdir)/'`ocl_ipb2.c
@@ -1235,19 +1234,19 @@ hashkill-ocl_mssql-2005.obj: ocl_mssql-2005.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_mssql-2005.obj `if test -f 'ocl_mssql-2005.c'; then $(CYGPATH_W) 'ocl_mssql-2005.c'; else $(CYGPATH_W) '$(srcdir)/ocl_mssql-2005.c'; fi`
 
-hashkill-ocl_ldap-ssha.o: ocl_ldap-ssha.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_ldap-ssha.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_ldap-ssha.Tpo -c -o hashkill-ocl_ldap-ssha.o `test -f 'ocl_ldap-ssha.c' || echo '$(srcdir)/'`ocl_ldap-ssha.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_ldap-ssha.Tpo $(DEPDIR)/hashkill-ocl_ldap-ssha.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_ldap-ssha.c' object='hashkill-ocl_ldap-ssha.o' libtool=no @AMDEPBACKSLASH@
+hashkill-ocl_nsldaps.o: ocl_nsldaps.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_nsldaps.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_nsldaps.Tpo -c -o hashkill-ocl_nsldaps.o `test -f 'ocl_nsldaps.c' || echo '$(srcdir)/'`ocl_nsldaps.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_nsldaps.Tpo $(DEPDIR)/hashkill-ocl_nsldaps.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_nsldaps.c' object='hashkill-ocl_nsldaps.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_ldap-ssha.o `test -f 'ocl_ldap-ssha.c' || echo '$(srcdir)/'`ocl_ldap-ssha.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_nsldaps.o `test -f 'ocl_nsldaps.c' || echo '$(srcdir)/'`ocl_nsldaps.c
 
-hashkill-ocl_ldap-ssha.obj: ocl_ldap-ssha.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_ldap-ssha.obj -MD -MP -MF $(DEPDIR)/hashkill-ocl_ldap-ssha.Tpo -c -o hashkill-ocl_ldap-ssha.obj `if test -f 'ocl_ldap-ssha.c'; then $(CYGPATH_W) 'ocl_ldap-ssha.c'; else $(CYGPATH_W) '$(srcdir)/ocl_ldap-ssha.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_ldap-ssha.Tpo $(DEPDIR)/hashkill-ocl_ldap-ssha.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_ldap-ssha.c' object='hashkill-ocl_ldap-ssha.obj' libtool=no @AMDEPBACKSLASH@
+hashkill-ocl_nsldaps.obj: ocl_nsldaps.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_nsldaps.obj -MD -MP -MF $(DEPDIR)/hashkill-ocl_nsldaps.Tpo -c -o hashkill-ocl_nsldaps.obj `if test -f 'ocl_nsldaps.c'; then $(CYGPATH_W) 'ocl_nsldaps.c'; else $(CYGPATH_W) '$(srcdir)/ocl_nsldaps.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_nsldaps.Tpo $(DEPDIR)/hashkill-ocl_nsldaps.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_nsldaps.c' object='hashkill-ocl_nsldaps.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_ldap-ssha.obj `if test -f 'ocl_ldap-ssha.c'; then $(CYGPATH_W) 'ocl_ldap-ssha.c'; else $(CYGPATH_W) '$(srcdir)/ocl_ldap-ssha.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_nsldaps.obj `if test -f 'ocl_nsldaps.c'; then $(CYGPATH_W) 'ocl_nsldaps.c'; else $(CYGPATH_W) '$(srcdir)/ocl_nsldaps.c'; fi`
 
 hashkill-ocl_osx-old.o: ocl_osx-old.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_osx-old.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_osx-old.Tpo -c -o hashkill-ocl_osx-old.o `test -f 'ocl_osx-old.c' || echo '$(srcdir)/'`ocl_osx-old.c

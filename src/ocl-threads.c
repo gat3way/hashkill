@@ -55,17 +55,17 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"sha256",&ocl_bruteforce_sha256, &ocl_markov_sha256, &ocl_rule_sha256},
                             {1,"sha512",&ocl_bruteforce_sha512, &ocl_markov_sha512, &ocl_rule_sha512},
                             {1,"lm",&ocl_bruteforce_lm, &ocl_markov_lm, &ocl_rule_lm},
-                            {1,"ldap-sha",&ocl_bruteforce_ldap_sha, &ocl_markov_ldap_sha, &ocl_rule_ldap_sha},
+                            {1,"nsldap",&ocl_bruteforce_nsldap, &ocl_markov_nsldap, &ocl_rule_nsldap},
                             {1,"sl3",&ocl_bruteforce_sl3, &ocl_bruteforce_sl3, &ocl_bruteforce_sl3},
-                            {1,"md5-passsalt",&ocl_bruteforce_md5_passsalt, &ocl_markov_md5_passsalt, &ocl_rule_md5_passsalt},
-                            {1,"md5-saltpass",&ocl_bruteforce_md5_saltpass, &ocl_markov_md5_saltpass, &ocl_rule_md5_saltpass},
+                            {1,"joomla",&ocl_bruteforce_joomla, &ocl_markov_joomla, &ocl_rule_joomla},
+                            {1,"oscommerce",&ocl_bruteforce_oscommerce, &ocl_markov_oscommerce, &ocl_rule_oscommerce},
                             {1,"ipb2",&ocl_bruteforce_ipb2, &ocl_markov_ipb2, &ocl_rule_ipb2},
                             {1,"vbulletin",&ocl_bruteforce_vbulletin, &ocl_markov_vbulletin, &ocl_rule_vbulletin},
                             {1,"smf",&ocl_bruteforce_smf, &ocl_markov_smf, &ocl_rule_smf},
                             {1,"oracle11g",&ocl_bruteforce_oracle11g, &ocl_markov_oracle11g, &ocl_rule_oracle11g},
                             {1,"mssql-2000",&ocl_bruteforce_mssql_2000, &ocl_markov_mssql_2000, &ocl_rule_mssql_2000},
                             {1,"mssql-2005",&ocl_bruteforce_mssql_2005, &ocl_markov_mssql_2005, &ocl_rule_mssql_2005},
-                            {1,"ldap-ssha",&ocl_bruteforce_ldap_ssha, &ocl_markov_ldap_ssha, &ocl_rule_ldap_ssha},
+                            {1,"nsldaps",&ocl_bruteforce_nsldaps, &ocl_markov_nsldaps, &ocl_rule_nsldaps},
                             {1,"osx-old",&ocl_bruteforce_osx_old, &ocl_markov_osx_old, &ocl_rule_osx_old},
                             {1,"osxlion",&ocl_bruteforce_osxlion, &ocl_markov_osxlion, &ocl_rule_osxlion},
                             {1,"desunix",&ocl_bruteforce_desunix, &ocl_markov_desunix, &ocl_rule_desunix},
@@ -241,8 +241,8 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"sl3")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"md5md5")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"mysql5")==0)) ocl_vector=4;
-		if ((strcmp(get_current_plugin(),"ldap-sha")==0)) ocl_vector=4;
-		if ((strcmp(get_current_plugin(),"ldap-ssha")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"nsldap")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"nsldaps")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"oracle11g")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"ipb2")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"smf")==0)) ocl_vector=4;
@@ -265,8 +265,8 @@ hash_stat ocl_get_device()
 	    {
 		if ((strcmp(get_current_plugin(),"sl3")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"sha1")==0)) loops=2;
-		if ((strcmp(get_current_plugin(),"ldap-sha")==0)) loops=2;
-		if ((strcmp(get_current_plugin(),"ldap-ssha")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"nsldap")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"nsldaps")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"smf")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"mssql-2000")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"mssql-2005")==0)) loops=2;
@@ -286,18 +286,18 @@ hash_stat ocl_get_device()
 		/* Global */
 		if ((strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=2;
-		if ((strcmp(get_current_plugin(),"md5-passsalt")==0)) ocl_vector=4;
-		if ((strcmp(get_current_plugin(),"md5-saltpass")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"joomla")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"oscommerce")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"ipb2")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"sha256")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"smf")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"oracle11g")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"mssql-2000")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"mssql-2005")==0)) ocl_vector=4;
-		if ((strcmp(get_current_plugin(),"ldap-ssha")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"nsldaps")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"vbulletin")==0)) ocl_vector=4;
-		if ((strcmp(get_current_plugin(),"md5-passsalt")==0)) ocl_vector=4;
-		if ((strcmp(get_current_plugin(),"md5-saltpass")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"joomla")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"oscommerce")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"osx-old")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"mscash")==0)) ocl_vector=4;

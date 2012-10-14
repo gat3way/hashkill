@@ -1,4 +1,4 @@
-/* md5-passsalt.c
+/* joomla.c
  *
  * hashkill - a hash cracking tool
  * Copyright (C) 2010 Milen Rangelov <gat3way@gat3way.eu>
@@ -29,13 +29,13 @@
 
 char * hash_plugin_summary(void)
 {
-    return("md5-passsalt \tmd5(password,salt) plugin (joomla)");
+    return("joomla \t\tmd5(password,salt) plugin (joomla)");
 }
 
 
 char * hash_plugin_detailed(void)
 {
-    return("md5-passsalt - A md5(password,salt) module\n"
+    return("joomla - A md5(password,salt) module\n"
 	    "------------------------\n"
 	    "Use this module to crack md5(password,salt) hashes\n"
 	    "Input should be in form: \'user:hash:salt\' or just \'hash:salt\'\n"

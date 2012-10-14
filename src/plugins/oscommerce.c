@@ -1,4 +1,4 @@
-/* md5-saltpass.c
+/* oscommerce.c
  *
  * hashkill - a hash cracking tool
  * Copyright (C) 2010 Milen Rangelov <gat3way@gat3way.eu>
@@ -30,13 +30,13 @@ int vectorsize;
 
 char * hash_plugin_summary(void)
 {
-    return("md5-saltpass \tmd5(salt,password) plugin (osCommerce)");
+    return("oscommerce \tmd5(salt,password) plugin (osCommerce)");
 }
 
 
 char * hash_plugin_detailed(void)
 {
-    return("md5 - A md5(salt,password) module\n"
+    return("oscommerce - A md5(salt,password) module\n"
 	    "------------------------\n"
 	    "Use this module to crack simple md5(salt,password) hashes\n"
 	    "Input should be in form: \'user:hash:salt\' od just \'hash:salt\'\n"

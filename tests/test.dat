@@ -1,9 +1,9 @@
 bforce desunix multi		|2 passwords|hashkill -pdesunix -f desunix.hashes -b1:6:num
 bforce desunix single		|1 passwords|hashkill -pdesunix  27EP4PuToKUSI -b1:6:num
 bforce ipb single		|1 passwords|hashkill -pipb2 d834448ac1bbc03a3e6809dba6a80699:"i[}o -b1:7:num:MX-
-bforce ldap-sha single		|1 passwords|hashkill -pldap-sha {SHA}jLIjfQZ5yojbZGTqxg2pY0VROWQ= -b1:7:num
-bforce ldap-sha multi		|2 passwords|hashkill -pldap-sha -f ldap-sha.hashes -b1:7:num
-bforce ldap-ssha single		|1 passwords|hashkill -pldap-ssha {SSHA}P2oLaAFiExs+MexEjZ5R+KYbtrBhSHhzWnM4VA== -b1:6:num
+bforce nsldap single		|1 passwords|hashkill -pnsldap {SHA}jLIjfQZ5yojbZGTqxg2pY0VROWQ= -b1:7:num
+bforce nsldap multi		|2 passwords|hashkill -pnsldap -f nsldap.hashes -b1:7:num
+bforce nsldaps single		|1 passwords|hashkill -pnsldaps {SSHA}P2oLaAFiExs+MexEjZ5R+KYbtrBhSHhzWnM4VA== -b1:6:num
 bforce lm single		|1 passwords|hashkill -plm AEBD4DE384C7EC43AAD3B435B51404EE -b1:6:num
 bforce lm multi			|2 passwords|hashkill -plm -f lm.hashes -b1:8:num
 bforce md4 single		|1 passwords|hashkill -pmd4 23580e2a459f7ea40f9efa148b63cafb -b1:6:num
@@ -12,8 +12,8 @@ bforce md5 single		|1 passwords|hashkill -pmd5 827ccb0eea8a706c4c34a16891f84e7b 
 bforce md5 multi		|2 passwords|hashkill -pmd5 -f md5.hashes -b1:8:num
 bforce md5md5 single		|1 passwords|hashkill -pmd5md5 1f32aa4c9a1d2ea010adcf2348166a04 -b1:6:num
 bforce md5md5 multi		|2 passwords|hashkill -pmd5md5 -f md5md5.hashes -b1:8:num
-bforce md5-saltpass single	|1 passwords|hashkill -pmd5-saltpass ff33138bca048e77e7865bab923535ae:tes -b1:6:num:tU*-
-bforce md5-passsalt single	|1 passwords|hashkill -pmd5-passsalt 23f56a87ce0127c7aa671fedbf3da946:est -b1:6:num:tU*-
+bforce oscommerce single	|1 passwords|hashkill -poscommerce ff33138bca048e77e7865bab923535ae:tes -b1:6:num:tU*-
+bforce joomla single		|1 passwords|hashkill -pjoomla 23f56a87ce0127c7aa671fedbf3da946:est -b1:6:num:tU*-
 bforce mscash single		|1 passwords|hashkill -pmscash test:809d2555499622c7ea28657a51438bdd -b1:6:num
 bforce mssql-2000 single	|1 passwords|hashkill -pmssql-2000 0x010077393477CB2764D565692A0DE0D5308C3E19FEE51223EC1ACB2764D565692A0DE0D5308C3E19FEE51223EC1A -b1:6:num
 bforce mssql-2005 single	|1 passwords|hashkill -pmssql-2005 0x01004D53456421450CD84AB5AF29A49A90BDBC1AFB0EFBDAF259 -b1:6:num
@@ -44,10 +44,10 @@ rule bfunix multi		|2 passwords|hashkill -pbfunix -f bfunix.hashes -r rule_num
 rule dmg			|1 passwords|hashkill -pdmg -f test-128-2.dmg -r rule_uu
 rule ipb single			|1 passwords|hashkill -pipb2 12dc7df0ddeaa120b07bd28b5d5675a7:1#Iz> -r rule_uu
 rule ipb multi			|2 passwords|hashkill -pipb2 -f ipb2.hashes -r rule_uu
-rule ldap-sha single		|1 passwords|hashkill -pldap-sha bu0-nsldap:{SHA}d7S/rU7dd40hb+nf3dzK+2KcKp8= -r rule_uu
-rule ldap-sha multi		|2 passwords|hashkill -pldap-sha -f ldap-sha.hashes -r rule_num
-rule ldap-ssha single		|1 passwords|hashkill -pldap-ssha u0-nsldap:{SSHA}9iv2wLfww/nVUP/xlfdQum2u1Dc5MmNHU1pVOA== -r rule_uu
-rule ldap-ssha multi		|2 passwords|hashkill -pldap-ssha -f ldap-ssha.hashes -r rule_num
+rule nsldap single		|1 passwords|hashkill -pnsldap bu0-nsldap:{SHA}d7S/rU7dd40hb+nf3dzK+2KcKp8= -r rule_uu
+rule nsldap multi		|2 passwords|hashkill -pnsldap -f nsldap.hashes -r rule_num
+rule nsldaps single		|1 passwords|hashkill -pnsldaps u0-nsldap:{SSHA}9iv2wLfww/nVUP/xlfdQum2u1Dc5MmNHU1pVOA== -r rule_uu
+rule nsldaps multi		|2 passwords|hashkill -pnsldaps -f nsldaps.hashes -r rule_num
 rule lm single			|1 passwords|hashkill -plm 23e7bca62fd6839eaad3b435b51404ee -r rule_uu
 rule lm(>8) single		|1 passwords|hashkill -plm c6847822123c9db9bcbede45f7e388d0 -r rule_uu
 rule lm multi			|2 passwords|hashkill -plm -f lm.hashes -r rule_num
@@ -57,8 +57,8 @@ rule md5 single			|1 passwords|hashkill -pmd5 5cd143212df6526aabc6e60437837646 -
 rule md5 multi			|2 passwords|hashkill -pmd5 -f md5.hashes -r rule_num
 rule md5md5 single		|1 passwords|hashkill -pmd5md5 67fd5228d4d10b171ce9041123506cd9 -r rule_uu
 rule md5md5 multi		|2 passwords|hashkill -pmd5md5 -f md5md5.hashes -r rule_num
-rule md5-passsalt single	|1 passwords|hashkill -pmd5-passsalt 23f56a87ce0127c7aa671fedbf3da946:test -r rule_uu
-rule md5-saltpass single	|1 passwords|hashkill -pmd5-saltpass ff33138bca048e77e7865bab923535ae:test -r rule_uu
+rule joomla single		|1 passwords|hashkill -pjoomla 23f56a87ce0127c7aa671fedbf3da946:test -r rule_uu
+rule oscommerce single		|1 passwords|hashkill -poscommerce ff33138bca048e77e7865bab923535ae:test -r rule_uu
 rule md5unix single(1)		|1 passwords|hashkill -pmd5unix $1$FwpixhKX$g1W0FGO0ZMFk9qfKZratH0 -r rule_num
 rule md5unix single(2)		|1 passwords|hashkill -pmd5unix $1$4Kt5RedS$0QyGCX9.Xb0UrSaZW.vDD1 -r rule_num
 rule md5unix single(3)		|1 passwords|hashkill -pmd5unix $1$UCYcl6IP$37jub/uZOSKTWBVbCFftn. -r rule_uu

@@ -10,12 +10,12 @@ CFLAGS += -Wall -I../ -shared  -O3 -s -fpic  -fomit-frame-pointer -funroll-loops
 CC = gcc 
 
 
-all: plugin_md5 plugin_md5md5 plugin_md5-passsalt plugin_sha1 plugin_smf plugin_md4 \
-     plugin_ntlm plugin_desunix plugin_md5-saltpass plugin_mysql5 plugin_ipb2 plugin_vbulletin \
+all: plugin_md5 plugin_md5md5 plugin_joomla plugin_sha1 plugin_smf plugin_md4 \
+     plugin_ntlm plugin_desunix plugin_oscommerce plugin_mysql5 plugin_ipb2 plugin_vbulletin \
      plugin_mssql-2000 plugin_mssql-2005 plugin_phpbb3 plugin_wordpress plugin_sha256 \
      plugin_sha512 plugin_apr1 plugin_md5unix plugin_sha512unix plugin_privkey plugin_oracle11g \
      plugin_pixmd5 plugin_sl3 plugin_ripemd160 plugin_sha1sha1 plugin_lm plugin_oracle-old \
-     plugin_ldap-sha plugin_ldap-ssha plugin_sapg plugin_mscash plugin_mediawiki plugin_zip plugin_osxlion \
+     plugin_nsldap plugin_nsldaps plugin_sapg plugin_mscash plugin_mediawiki plugin_zip plugin_osxlion \
      plugin_mscash2 plugin_wpa plugin_rar plugin_dmg plugin_osx-old plugin_bfunix
  
      #plugin_bitcoin  plugin_mysql-old
@@ -31,11 +31,11 @@ plugin_md4:
 plugin_md5md5:
 	@if [ ! -e md5md5.so ]; then  $(CC)  plugin.c md5md5.c -o md5md5.so $(CFLAGS) $(LDFLAGS) ;fi
 
-plugin_md5-saltpass:
-	@if [ ! -e md5-saltpass.so ]; then  $(CC)  plugin.c md5-saltpass.c -o md5-saltpass.so $(CFLAGS) $(LDFLAGS) ;fi
+plugin_oscommerce:
+	@if [ ! -e oscommerce.so ]; then  $(CC)  plugin.c oscommerce.c -o oscommerce.so $(CFLAGS) $(LDFLAGS) ;fi
 
-plugin_md5-passsalt:
-	@if [ ! -e md5-passsalt.so ]; then  $(CC)  plugin.c md5-passsalt.c -o md5-passsalt.so $(CFLAGS) $(LDFLAGS) ;fi
+plugin_joomla:
+	@if [ ! -e joomla.so ]; then  $(CC)  plugin.c joomla.c -o joomla.so $(CFLAGS) $(LDFLAGS) ;fi
 
 plugin_sha1:
 	@if [ ! -e sha1.so ]; then  $(CC)  plugin.c sha1.c -o sha1.so $(CFLAGS) $(LDFLAGS) ;fi
@@ -123,11 +123,11 @@ plugin_rar:
 plugin_null:
 	@if [ ! -e null.so ]; then  $(CC)  plugin.c null.c -o null.so $(CFLAGS) $(LDFLAGS)  -O0 ;fi
 
-plugin_ldap-sha:
-	@if [ ! -e ldap-sha.so ]; then  $(CC)  plugin.c ldap-sha.c base64.c -o ldap-sha.so $(CFLAGS) $(LDFLAGS)   ;fi
+plugin_nsldap:
+	@if [ ! -e nsldap.so ]; then  $(CC)  plugin.c nsldap.c base64.c -o nsldap.so $(CFLAGS) $(LDFLAGS)   ;fi
 
-plugin_ldap-ssha:
-	@if [ ! -e ldap-ssha.so ]; then  $(CC)  plugin.c ldap-ssha.c base64.c -o ldap-ssha.so $(CFLAGS) $(LDFLAGS)   ;fi
+plugin_nsldaps:
+	@if [ ! -e nsldaps.so ]; then  $(CC)  plugin.c nsldaps.c base64.c -o nsldaps.so $(CFLAGS) $(LDFLAGS)   ;fi
 
 plugin_sapg:
 	@if [ ! -e sapg.so ]; then  $(CC)  plugin.c sapg.c -o sapg.so $(CFLAGS) $(LDFLAGS)   ;fi

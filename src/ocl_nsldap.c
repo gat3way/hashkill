@@ -1,5 +1,5 @@
 /*
- * ocl_ldap-sha.c
+ * ocl_nsldap.c
  *
  * hashkill - a hash cracking tool
  * Copyright (C) 2010 Milen Rangelov <gat3way@gat3way.eu>
@@ -549,7 +549,7 @@ static void ocl_execute(cl_command_queue queue, cl_kernel kernel, size_t *global
 
 
 /* Bruteforce larger charsets */
-void* ocl_bruteforce_ldap_sha_thread(void *arg)
+void* ocl_bruteforce_nsldap_thread(void *arg)
 {
     int err;
     cl_command_queue queue;
@@ -1458,7 +1458,7 @@ void* ocl_bruteforce_ldap_sha_thread(void *arg)
 
 
 
-void* ocl_markov_ldap_sha_thread(void *arg)
+void* ocl_markov_nsldap_thread(void *arg)
 {
     int err;
     cl_command_queue queue;
@@ -2180,7 +2180,7 @@ void* ocl_markov_ldap_sha_thread(void *arg)
 
 
 /* Crack callback */
-static void ocl_ldap_sha_crack_callback(char *line, int self)
+static void ocl_nsldap_crack_callback(char *line, int self)
 {
     int a,b,c,e;
     int *found;
@@ -2259,7 +2259,7 @@ static void ocl_ldap_sha_crack_callback(char *line, int self)
 
 
 
-static void ocl_ldap_sha_callback(char *line, int self)
+static void ocl_nsldap_callback(char *line, int self)
 {
     rule_counts[self][0]++;
     rule_sizes[self][rule_counts[self][0]] = strlen(line);
@@ -2271,7 +2271,7 @@ static void ocl_ldap_sha_callback(char *line, int self)
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, rule_images[self], 0, NULL, NULL);
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_sizes_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), rule_sizes[self], 0, NULL, NULL);
 
-	rule_offload_perform(ocl_ldap_sha_crack_callback,self);
+	rule_offload_perform(ocl_nsldap_crack_callback,self);
     	bzero(&rule_images[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
 	rule_counts[self][0]=-1;
     }
@@ -2282,7 +2282,7 @@ static void ocl_ldap_sha_callback(char *line, int self)
 
 
 /* Worker thread - rule attack */
-void* ocl_rule_ldap_sha_thread(void *arg)
+void* ocl_rule_nsldap_thread(void *arg)
 {
     cl_int err;
     char hex1[hash_ret_len1+5];
@@ -2399,7 +2399,7 @@ void* ocl_rule_ldap_sha_thread(void *arg)
     _clSetKernelArg(rule_kernel2[self], 4, sizeof(cl_uint16), (void*) &none);
     pthread_mutex_unlock(&biglock); 
 
-    worker_gen(self,ocl_ldap_sha_callback);
+    worker_gen(self,ocl_nsldap_callback);
 
     return hash_ok;
 }
@@ -2407,7 +2407,7 @@ void* ocl_rule_ldap_sha_thread(void *arg)
 
 
 
-hash_stat ocl_bruteforce_ldap_sha(void)
+hash_stat ocl_bruteforce_nsldap(void)
 {
     int a,i;
     uint64_t bcnt;
@@ -2530,7 +2530,7 @@ hash_stat ocl_bruteforce_ldap_sha(void)
     for (a=0;a<nwthreads;a++) if (wthreads[a].type!=cpu_thread)
     {
         worker_thread_keys[a]=a;
-        pthread_create(&crack_threads[a], NULL, ocl_bruteforce_ldap_sha_thread, &worker_thread_keys[a]);
+        pthread_create(&crack_threads[a], NULL, ocl_bruteforce_nsldap_thread, &worker_thread_keys[a]);
     }
 
     for (a=0;a<nwthreads;a++) if (wthreads[a].type!=cpu_thread) pthread_join(crack_threads[a], NULL);
@@ -2543,7 +2543,7 @@ hash_stat ocl_bruteforce_ldap_sha(void)
 
 
 
-hash_stat ocl_markov_ldap_sha(void)
+hash_stat ocl_markov_nsldap(void)
 {
     int a,i;
     int err;
@@ -2663,7 +2663,7 @@ hash_stat ocl_markov_ldap_sha(void)
     for (a=0;a<nwthreads;a++) if (wthreads[a].type!=cpu_thread)
     {
 	worker_thread_keys[a]=a;
-	pthread_create(&crack_threads[a], NULL, ocl_markov_ldap_sha_thread, &worker_thread_keys[a]);
+	pthread_create(&crack_threads[a], NULL, ocl_markov_nsldap_thread, &worker_thread_keys[a]);
     }
     
     for (a=0;a<nwthreads;a++) if (wthreads[a].type!=cpu_thread) 
@@ -2682,7 +2682,7 @@ hash_stat ocl_markov_ldap_sha(void)
 
 
 /* Main thread - rule */
-hash_stat ocl_rule_ldap_sha(void)
+hash_stat ocl_rule_nsldap(void)
 {
     int a,i;
     int err;
@@ -2799,9 +2799,9 @@ hash_stat ocl_rule_ldap_sha(void)
     for (a=0;a<nwthreads;a++)
     {
         worker_thread_keys[a]=a;
-        pthread_create(&crack_threads[a], NULL, ocl_rule_ldap_sha_thread, &worker_thread_keys[a]);
+        pthread_create(&crack_threads[a], NULL, ocl_rule_nsldap_thread, &worker_thread_keys[a]);
     }
-    rule_gen_parse(rule_file,ocl_ldap_sha_callback,nwthreads,SELF_THREAD);
+    rule_gen_parse(rule_file,ocl_nsldap_callback,nwthreads,SELF_THREAD);
 
     for (a=0;a<nwthreads;a++) pthread_join(crack_threads[a], NULL);
     attack_over=2;

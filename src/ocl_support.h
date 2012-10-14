@@ -64,15 +64,15 @@ hash_stat ocl_rule_mysql5(void);
 //hash_stat ocl_markov_mysql_old(void);
 //hash_stat ocl_rule_mysql_old(void);
 
-/* ldap-sha plugin support */
-hash_stat ocl_bruteforce_ldap_sha(void);
-hash_stat ocl_markov_ldap_sha(void);
-hash_stat ocl_rule_ldap_sha(void);
+/* nsldap plugin support */
+hash_stat ocl_bruteforce_nsldap(void);
+hash_stat ocl_markov_nsldap(void);
+hash_stat ocl_rule_nsldap(void);
 
-/* ldap-ssha plugin support */
-hash_stat ocl_bruteforce_ldap_ssha(void);
-hash_stat ocl_markov_ldap_ssha(void);
-hash_stat ocl_rule_ldap_ssha(void);
+/* nsldaps plugin support */
+hash_stat ocl_bruteforce_nsldaps(void);
+hash_stat ocl_markov_nsldaps(void);
+hash_stat ocl_rule_nsldaps(void);
 
 
 /* sha256 plugin support */
@@ -86,10 +86,10 @@ hash_stat ocl_markov_sha512(void);
 hash_stat ocl_rule_sha512(void);
 
 
-/* md5-passsalt plugin support */
-hash_stat ocl_bruteforce_md5_passsalt(void);
-hash_stat ocl_markov_md5_passsalt(void);
-hash_stat ocl_rule_md5_passsalt(void);
+/* joomla plugin support */
+hash_stat ocl_bruteforce_joomla(void);
+hash_stat ocl_markov_joomla(void);
+hash_stat ocl_rule_joomla(void);
 
 /* lm plugin support */
 hash_stat ocl_bruteforce_lm(void);
@@ -116,10 +116,10 @@ hash_stat ocl_bruteforce_vbulletin(void);
 hash_stat ocl_markov_vbulletin(void);
 hash_stat ocl_rule_vbulletin(void);
 
-/* md5-saltpass plugin support */
-hash_stat ocl_bruteforce_md5_saltpass(void);
-hash_stat ocl_markov_md5_saltpass(void);
-hash_stat ocl_rule_md5_saltpass(void);
+/* oscommerce plugin support */
+hash_stat ocl_bruteforce_oscommerce(void);
+hash_stat ocl_markov_oscommerce(void);
+hash_stat ocl_rule_oscommerce(void);
 
 /* smf plugin support */
 hash_stat ocl_bruteforce_smf(void);

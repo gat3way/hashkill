@@ -35,9 +35,9 @@ threads.h hashinterface.h plugins.h sessions.h md5_sse2.c md5_sse2.h sha1_sse2.c
 md4_sse2.c md4_sse2.h des_sse2.c ocl-threads.c  des_nonstd_sse2.c ocl_support.h \
 lzma/7zFile.c lzma/7zStream.c lzma/LzmaDec.c lzma/LzmaEnc.c lzma/Alloc.c lzma/LzFind.c lzma/lzma.c \
 cpu-feat.c hashgen.c hashgen.h hashgen-mangle.c hashgen-mangle.h ocl-adl.c ocl_md5.c ocl_sha1.c \
-ocl_md4.c ocl_ntlm.c ocl_md5md5.c ocl_mysql5.c ocl_sha256.c ocl_sha512.c ocl_lm.c ocl_ldap-sha.c ocl_sl3.c \
-ocl_md5-passsalt.c ocl_md5-saltpass.c ocl_ipb2.c ocl_vbulletin.c ocl_smf.c ocl_oracle11g.c ocl_mssql-2000.c \
-ocl_mssql-2005.c ocl_ldap-ssha.c ocl_osx-old.c ocl_osxlion.c ocl_desunix.c ocl_oracle-old.c  ocl_mscash.c \
+ocl_md4.c ocl_ntlm.c ocl_md5md5.c ocl_mysql5.c ocl_sha256.c ocl_sha512.c ocl_lm.c ocl_nsldap.c ocl_sl3.c \
+ocl_joomla.c ocl_oscommerce.c ocl_ipb2.c ocl_vbulletin.c ocl_smf.c ocl_oracle11g.c ocl_mssql-2000.c \
+ocl_mssql-2005.c ocl_nsldaps.c ocl_osx-old.c ocl_osxlion.c ocl_desunix.c ocl_oracle-old.c  ocl_mscash.c \
 ocl_pixmd5.c ocl_phpbb3.c ocl_wordpress.c ocl_md5unix.c ocl_sha512unix.c ocl_mscash2.c ocl_apr1.c ocl_wpa.c \
 ocl_dmg.c unrargpu.c ocl_rar.c ocl_bfunix.c ocl_zip.c
 

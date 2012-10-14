@@ -1,4 +1,4 @@
-/* ldap-sha.c
+/* nsldap.c
  *
  * hashkill - a hash cracking tool
  * Copyright (C) 2010 Milen Rangelov <gat3way@gat3way.eu>
@@ -32,13 +32,13 @@ int vectorsize;
 
 char * hash_plugin_summary(void)
 {
-    return("ldap-sha \tLDAP SHA plugin");
+    return("nsldap \t\tLDAP SHA plugin");
 }
 
 
 char * hash_plugin_detailed(void)
 {
-    return("ldap-sha - LDAP-SHA plugin\n"
+    return("nsldap - nsldap plugin\n"
 	    "------------------------\n"
 	    "Use this module to crack LDAP SHA passwords\n"
 	    "Input should be in form: \'user:hash\' or just \'hash\'\n"
