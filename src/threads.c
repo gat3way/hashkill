@@ -400,11 +400,12 @@ static void thread_attack_worker_linear_bruteforce(int self)
 			    if ((strcmp(addlist->username, mylist->username) == 0) && (memcmp(addlist->hash, mylist->hash, hash_ret_len) == 0)) flag = 1;
 			    addlist = addlist->next;
 			}
-			pthread_mutex_unlock(&crackedmutex);
 			if (flag == 0) 
 			{
+			    pthread_mutex_unlock(&crackedmutex);
 			    add_cracked_list(mylist->username, mylist->hash, mylist->salt, hash_cpu[self].plaintext[d]);
 			}
+			else pthread_mutex_unlock(&crackedmutex);
 		    }
 		    mylist=mylist->indexnext;
 		}
