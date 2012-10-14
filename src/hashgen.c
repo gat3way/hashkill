@@ -606,6 +606,11 @@ static void parse(char *line,int self, int precalc,int mode)
     if (strstr(tok2,"add"))
     {
 	tok3=strtok(NULL," ");
+	if (!tok3)
+	{
+	    hg_elog("Error: line: %s not valid!\n",currentline);
+	    return;
+	}
 	/* is cset? */
 	if (strcmp(tok3,"cset")==0)
 	{
