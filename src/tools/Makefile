@@ -11,6 +11,13 @@ install:
 	mkdir -p $(IDESTDIR)$(BINDIR)
 	cp -f pcap2hcap $(IDESTDIR)$(BINDIR)
 
+install-strip:
+	strip pcap2hcap
+	strip markovgen
+	mkdir -p $(IDESTDIR)$(BINDIR)
+	cp -f pcap2hcap $(IDESTDIR)$(BINDIR)
+	cp -f markovgen $(IDESTDIR)$(BINDIR)
+
 clean:
 	-rm -f pcap2hcap
 	-rm -f markovgen

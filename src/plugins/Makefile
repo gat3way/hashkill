@@ -3,7 +3,7 @@ ifneq ($(DESTDIR),"")
 endif
 
 
-CFLAGS += -Wall -I../ -shared  -O3 -s -fpic  -fomit-frame-pointer -funroll-loops -minline-all-stringops  -momit-leaf-frame-pointer 
+CFLAGS += -Wall -I../ -shared  -O3 -fpic  -fomit-frame-pointer -funroll-loops -minline-all-stringops  -momit-leaf-frame-pointer 
 #CFLAGS = -Wall -I../ -shared  -O2 -fpic  -fomit-frame-pointer -minline-all-stringops  -Wall -funroll-loops -m32
 
 
@@ -118,7 +118,7 @@ plugin_mssql-2005:
 	@if [ ! -e mssql-2005.so ]; then  $(CC)  plugin.c mssql-2005.c  -o mssql-2005.so $(CFLAGS) $(LDFLAGS) ;fi
 
 plugin_rar:
-	@if [ ! -e rar.so ]; then  $(CC) -fPIC -shared plugin.c rar.c unrar.c  -o rar.so $(CFLAGS) $(LDFLAGS) -lcrypto -Wno-unused-value -Wno-unused-function -Wno-switch -O3;fi
+	@if [ ! -e rar.so ]; then  $(CC) -fPIC -shared plugin.c rar.c unrar.c  -o rar.so $(CFLAGS) -lcrypto -Wno-unused-value -Wno-unused-function -Wno-switch $(LDFLAGS) ;fi
 
 plugin_null:
 	@if [ ! -e null.so ]; then  $(CC)  plugin.c null.c -o null.so $(CFLAGS) $(LDFLAGS)  -O0 ;fi
@@ -168,6 +168,14 @@ install:
 	@mkdir -p $(IDESTDIR)$(IDATADIR)/hashkill/plugins
 	@cp -vf *.so $(IDESTDIR)$(IDATADIR)/hashkill/plugins 
 	@echo Done
+
+install-strip:
+	@echo Copying plugins...
+	-strip *.so
+	@mkdir -p $(IDESTDIR)$(IDATADIR)/hashkill/plugins
+	@cp -vf *.so $(IDESTDIR)$(IDATADIR)/hashkill/plugins 
+	@echo Done
+
 
 clean:
 	-rm -f *.so
