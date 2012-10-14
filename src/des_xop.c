@@ -616,37 +616,6 @@ hash_stat DES_FCRYPT_XOP(char salt[3], char *plains[128], char *out[128])
         }
     }
 
-/*
-    for (b=0;b<8;b++) 
-    {
-        e = b*16;
-        pveca[b] = _mm_set_epi8(plains[15+e][7], plains[14+e][7], plains[13+e][7], plains[12+e][7], plains[11+e][7],
-                                    plains[10+e][7], plains[9+e][7], plains[8+e][7], plains[7+e][7], plains[6+e][7],
-                                    plains[5+e][7], plains[4+e][7], plains[3+e][7], plains[2+e][7],
-                                    plains[1+e][7], plains[0+e][7]);
-    }
-
-    for (a=7;a>=0;a--)
-    {
-        pvec1 = pveca[a];
-        pveca[a] = _mm_slli_epi16(pvec1,1);
-    }
-    for (b=0;b<7;b++)
-    {
-        pvec = _mm_set_epi16(
-                                 _mm_movemask_epi8(pveca[7]), _mm_movemask_epi8(pveca[6]),
-                                 _mm_movemask_epi8(pveca[5]), _mm_movemask_epi8(pveca[4]),
-                                 _mm_movemask_epi8(pveca[3]), _mm_movemask_epi8(pveca[2]),
-                                 _mm_movemask_epi8(pveca[1]), _mm_movemask_epi8(pveca[0])
-                             );
-	for (a=7;a>=0;a--)
-	{
-    	    pvec1 = pveca[a];
-    	    pveca[a] = _mm_slli_epi16(pvec1,1);
-	}
-	k[7-b-1] = pvec;
-    }
-*/
 
 /* Setup all-zero plaintext bits */
     for (a=0;a<64;a+=2) 

@@ -121,6 +121,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 hash_stat hash_plugin_check_hash_dictionary(const char *hash, const char *password[VECTORSIZE], const char *salt,  char *salt2[VECTORSIZE], const char *username, int *num, int threadid)
 {
     char *hash1[VECTORSIZE];
+    int lens[VECTORSIZE];
     char *hash2[VECTORSIZE];
     int a;
     int usernamelen;
@@ -132,12 +133,14 @@ hash_stat hash_plugin_check_hash_dictionary(const char *hash, const char *passwo
 	hash2[a]=alloca(64);
 	hash1[a][0] = 0;
 	bzero(hash2[a], 64);
+	bzero(hash1[a], 64);
 	strcpy(hash2[a], username);
 	//strlow(hash2[a]);
 	memcpy(hash1[a], hash2[a],usernamelen);
 	memcpy(hash1[a]+usernamelen, password[a], strlen(password[a]));
+	lens[a]=strlen(password[a])+usernamelen;
     }
-    (void)hash_sha1((const char **)hash1, salt2, THREAD_SALTPROVIDED,threadid);
+    (void)hash_sha1_unicode((const char **)hash1, salt2, lens);
 
     for (a=0;a<vectorsize;a++) if (fastcompare(salt2[a], hash,20)==0) {*num=a;return hash_ok;}
     return hash_err;
