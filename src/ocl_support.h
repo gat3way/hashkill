@@ -217,6 +217,10 @@ hash_stat ocl_bruteforce_bfunix(void);
 hash_stat ocl_markov_bfunix(void);
 hash_stat ocl_rule_bfunix(void);
 
+/* drupal7 plugin support */
+hash_stat ocl_bruteforce_drupal7(void);
+hash_stat ocl_markov_drupal7(void);
+hash_stat ocl_rule_drupal7(void);
 
 
 /* supported plugins struct array*/

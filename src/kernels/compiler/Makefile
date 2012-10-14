@@ -41,7 +41,7 @@ build:
 	@if [ ! -e amd_sha1_passsaltu__Juniper.bin ]; then ./amd-compiler amd_sha1_passsaltu n ;fi
 	@if [ ! -e amd_oracle_old_long__Juniper.bin ]; then ./amd-compiler amd_oracle_old_long n ;fi
 	@if [ ! -e amd_oracle_old__Juniper.bin ]; then ./amd-compiler amd_oracle_old n ;fi
-	@if [ ! -e amd_vbulletin_long__Juniper.bin ]; then ./amd-compiler amd_vbulletin_long nbo ;fi
+	@if [ ! -e amd_vbulletin_long__Juniper.bin ]; then ./amd-compiler amd_vbulletin_long no ;fi
 	@if [ ! -e amd_vbulletin__Juniper.bin ]; then ./amd-compiler amd_vbulletin n ;fi
 	@if [ ! -e amd_md5_saltpass_long__Juniper.bin ]; then ./amd-compiler amd_md5_saltpass_long n ;fi
 	@if [ ! -e amd_md5_saltpass__Juniper.bin ]; then ./amd-compiler amd_md5_saltpass n ;fi
@@ -71,6 +71,7 @@ build:
 	@if [ ! -e amd_osx_old_long__Juniper.bin ]; then ./amd-compiler amd_osx_old_long n ;fi
 	@if [ ! -e amd_osx_old__Juniper.bin ]; then ./amd-compiler amd_osx_old n ;fi
 	@if [ ! -e amd_bfunix__Juniper.bin ]; then ./amd-compiler amd_bfunix n ;fi
+	@if [ ! -e amd_phpass512__Juniper.bin ]; then ./amd-compiler amd_phpass512 n ;fi
 	@if [ ! -e amd_test__Juniper.bin ]; then ./amd-compiler amd_test n ;fi
 	# NVidia
 	@if [ ! -e nvidia_md5_long__sm10.ptx ]; then ./nvidia-compiler nvidia_md5_long ns ;fi
@@ -81,7 +82,7 @@ build:
 	@if [ ! -e nvidia_ntlm_long__sm10.ptx ]; then ./nvidia-compiler nvidia_ntlm_long ns ;fi
 	@if [ ! -e nvidia_md4__sm10.ptx ]; then ./nvidia-compiler nvidia_md4 ns ;fi
 	@if [ ! -e nvidia_md4_long__sm10.ptx ]; then ./nvidia-compiler nvidia_md4_long ns ;fi
-	@if [ ! -e nvidia_lm__sm10.ptx ]; then ./nvidia-compiler nvidia_lm nbs ;fi
+	@if [ ! -e nvidia_lm__sm10.ptx ]; then ./nvidia-compiler nvidia_lm ns ;fi
 	@if [ ! -e nvidia_lm_long__sm10.ptx ]; then ./nvidia-compiler nvidia_lm_long ns ;fi
 	@if [ ! -e nvidia_md5md5__sm10.ptx ]; then ./nvidia-compiler nvidia_md5md5 ns ;fi
 	@if [ ! -e nvidia_md5md5_long__sm10.ptx ]; then ./nvidia-compiler nvidia_md5md5_long ns ;fi
@@ -96,9 +97,9 @@ build:
 	@if [ ! -e nvidia_md5_passsalt_long__sm10.ptx ]; then ./nvidia-compiler nvidia_md5_passsalt_long n ;fi
 	@if [ ! -e nvidia_md5_saltpass__sm10.ptx ]; then ./nvidia-compiler nvidia_md5_saltpass n ;fi
 	@if [ ! -e nvidia_md5_saltpass_long__sm10.ptx ]; then ./nvidia-compiler nvidia_md5_saltpass_long n ;fi
-	@if [ ! -e nvidia_ipb2__sm10.ptx ]; then ./nvidia-compiler nvidia_ipb2 nb ;fi
-	@if [ ! -e nvidia_ipb2_long__sm10.ptx ]; then ./nvidia-compiler nvidia_ipb2_long nb ;fi
-	@if [ ! -e nvidia_vbulletin__sm10.ptx ]; then ./nvidia-compiler nvidia_vbulletin nb ;fi
+	@if [ ! -e nvidia_ipb2__sm10.ptx ]; then ./nvidia-compiler nvidia_ipb2 n ;fi
+	@if [ ! -e nvidia_ipb2_long__sm10.ptx ]; then ./nvidia-compiler nvidia_ipb2_long n ;fi
+	@if [ ! -e nvidia_vbulletin__sm10.ptx ]; then ./nvidia-compiler nvidia_vbulletin n ;fi
 	@if [ ! -e nvidia_vbulletin_long__sm10.ptx ]; then ./nvidia-compiler nvidia_vbulletin_long n ;fi
 	@if [ ! -e nvidia_sha1_saltpass__sm10.ptx ]; then ./nvidia-compiler nvidia_sha1_saltpass n ;fi
 	@if [ ! -e nvidia_sha1_saltpass_long__sm10.ptx ]; then ./nvidia-compiler nvidia_sha1_saltpass_long n ;fi
@@ -118,12 +119,13 @@ build:
 	@if [ ! -e nvidia_mscash__sm10.ptx ]; then ./nvidia-compiler nvidia_mscash n ;fi
 	@if [ ! -e nvidia_pixmd5_long__sm10.ptx ]; then ./nvidia-compiler nvidia_pixmd5_long ns ;fi
 	@if [ ! -e nvidia_pixmd5__sm10.ptx ]; then ./nvidia-compiler nvidia_pixmd5 ns ;fi
-	@if [ ! -e nvidia_phpass__sm10.ptx ]; then ./nvidia-compiler nvidia_phpass nb ;fi
+	@if [ ! -e nvidia_phpass__sm10.ptx ]; then ./nvidia-compiler nvidia_phpass n ;fi
 	@if [ ! -e nvidia_md5unix__sm10.ptx ]; then ./nvidia-compiler nvidia_md5unix n ;fi
 	@if [ ! -e nvidia_mscash2__sm10.ptx ]; then ./nvidia-compiler nvidia_mscash2 n ;fi
 	@if [ ! -e nvidia_wpa__sm10.ptx ]; then ./nvidia-compiler nvidia_wpa n ;fi
 	@if [ ! -e nvidia_wpa2__sm10.ptx ]; then ./nvidia-compiler nvidia_wpa2 n ;fi
 	@if [ ! -e nvidia_dmg__sm10.ptx ]; then ./nvidia-compiler nvidia_dmg n ;fi
+	@if [ ! -e nvidia_phpass512__sm10.ptx ]; then ./nvidia-compiler nvidia_phpass512 n ;fi
 	@if [ ! -e nvidia_rar__sm10.ptx ]; then \
 	./nvidia-compiler nvidia_rar Fn 0; \
 	./nvidia-compiler nvidia_rar Fn 1; \

@@ -16,7 +16,7 @@ all: plugin_md5 plugin_md5md5 plugin_joomla plugin_sha1 plugin_smf plugin_md4 \
      plugin_sha512 plugin_apr1 plugin_md5unix plugin_sha512unix plugin_privkey plugin_oracle11g \
      plugin_pixmd5 plugin_sl3 plugin_ripemd160 plugin_sha1sha1 plugin_lm plugin_oracle-old \
      plugin_nsldap plugin_nsldaps plugin_sapg plugin_mscash plugin_mediawiki plugin_zip plugin_osxlion \
-     plugin_mscash2 plugin_wpa plugin_rar plugin_dmg plugin_osx-old plugin_bfunix
+     plugin_mscash2 plugin_wpa plugin_rar plugin_dmg plugin_osx-old plugin_bfunix plugin_drupal7
  
      #plugin_bitcoin  plugin_mysql-old
 
@@ -160,6 +160,10 @@ plugin_osx-old:
 
 plugin_bfunix:
 	@if [ ! -e bfunix.so ]; then  $(CC)  plugin.c bfunix.c bf-crypt.c -o bfunix.so $(CFLAGS) $(LDFLAGS) -w -funroll-all-loops -g;fi
+
+plugin_drupal7:
+	@if [ ! -e drupal7.so ]; then  $(CC)  plugin.c drupal7.c phpass-512.c -o drupal7.so $(CFLAGS) $(LDFLAGS)  ;fi
+
 
 
 

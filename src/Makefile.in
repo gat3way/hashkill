@@ -127,7 +127,8 @@ am_hashkill_OBJECTS = hashkill-ocl-base.$(OBJEXT) \
 	hashkill-ocl_mscash2.$(OBJEXT) hashkill-ocl_apr1.$(OBJEXT) \
 	hashkill-ocl_wpa.$(OBJEXT) hashkill-ocl_dmg.$(OBJEXT) \
 	hashkill-unrargpu.$(OBJEXT) hashkill-ocl_rar.$(OBJEXT) \
-	hashkill-ocl_bfunix.$(OBJEXT) hashkill-ocl_zip.$(OBJEXT)
+	hashkill-ocl_bfunix.$(OBJEXT) hashkill-ocl_drupal7.$(OBJEXT) \
+	hashkill-ocl_zip.$(OBJEXT)
 hashkill_OBJECTS = $(am_hashkill_OBJECTS)
 hashkill_DEPENDENCIES = libtargets.la
 hashkill_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -342,7 +343,7 @@ ocl_md4.c ocl_ntlm.c ocl_md5md5.c ocl_mysql5.c ocl_sha256.c ocl_sha512.c ocl_lm.
 ocl_joomla.c ocl_oscommerce.c ocl_ipb2.c ocl_vbulletin.c ocl_smf.c ocl_oracle11g.c ocl_mssql-2000.c \
 ocl_mssql-2005.c ocl_nsldaps.c ocl_osx-old.c ocl_osxlion.c ocl_desunix.c ocl_oracle-old.c  ocl_mscash.c \
 ocl_pixmd5.c ocl_phpbb3.c ocl_wordpress.c ocl_md5unix.c ocl_sha512unix.c ocl_mscash2.c ocl_apr1.c ocl_wpa.c \
-ocl_dmg.c unrargpu.c ocl_rar.c ocl_bfunix.c ocl_zip.c
+ocl_dmg.c unrargpu.c ocl_rar.c ocl_bfunix.c ocl_drupal7.c ocl_zip.c 
 
 
 # forced static linkage below
@@ -365,9 +366,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign src/Makefile
+	  $(AUTOMAKE) --gnu src/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -510,6 +511,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_bfunix.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_desunix.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_dmg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_drupal7.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_ipb2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_joomla.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_lm.Po@am__quote@
@@ -1485,6 +1487,20 @@ hashkill-ocl_bfunix.obj: ocl_bfunix.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_bfunix.c' object='hashkill-ocl_bfunix.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_bfunix.obj `if test -f 'ocl_bfunix.c'; then $(CYGPATH_W) 'ocl_bfunix.c'; else $(CYGPATH_W) '$(srcdir)/ocl_bfunix.c'; fi`
+
+hashkill-ocl_drupal7.o: ocl_drupal7.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_drupal7.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_drupal7.Tpo -c -o hashkill-ocl_drupal7.o `test -f 'ocl_drupal7.c' || echo '$(srcdir)/'`ocl_drupal7.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_drupal7.Tpo $(DEPDIR)/hashkill-ocl_drupal7.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_drupal7.c' object='hashkill-ocl_drupal7.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_drupal7.o `test -f 'ocl_drupal7.c' || echo '$(srcdir)/'`ocl_drupal7.c
+
+hashkill-ocl_drupal7.obj: ocl_drupal7.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_drupal7.obj -MD -MP -MF $(DEPDIR)/hashkill-ocl_drupal7.Tpo -c -o hashkill-ocl_drupal7.obj `if test -f 'ocl_drupal7.c'; then $(CYGPATH_W) 'ocl_drupal7.c'; else $(CYGPATH_W) '$(srcdir)/ocl_drupal7.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_drupal7.Tpo $(DEPDIR)/hashkill-ocl_drupal7.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_drupal7.c' object='hashkill-ocl_drupal7.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_drupal7.obj `if test -f 'ocl_drupal7.c'; then $(CYGPATH_W) 'ocl_drupal7.c'; else $(CYGPATH_W) '$(srcdir)/ocl_drupal7.c'; fi`
 
 hashkill-ocl_zip.o: ocl_zip.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_zip.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_zip.Tpo -c -o hashkill-ocl_zip.o `test -f 'ocl_zip.c' || echo '$(srcdir)/'`ocl_zip.c
