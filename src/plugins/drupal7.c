@@ -34,13 +34,13 @@ int vectorsize;
 
 char * hash_plugin_summary(void)
 {
-    return("drupal7 \tdrupal7 hashes plugin");
+    return("drupal7 \tDrupal >=7 hashes plugin");
 }
 
 
 char * hash_plugin_detailed(void)
 {
-    return("drupal7 - drupal7 hashes plugin\n"
+    return("drupal7 - Drupal >=7 hashes plugin\n"
 	    "------------------------\n"
 	    "Use this module to crack drupal7 passwords\n"
 	    "Input should be in form: \'user:hash\' or just \'hash\'.\n"
