@@ -117,13 +117,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 {
     int a;
 
-    switch (*(salt+1))
-    {
-	case 'P': 
-	    pacrypt_private(password, salt, salt2, vectorsize);
-	    break;
-	default: return hash_err;
-    }
+    pacrypt_private(password, salt, salt2, vectorsize);
 
     for (a=0;a<vectorsize;a++) if (fastcompare((const char *)salt2[a],hash,strlen(hash))==0) {*num=a;return hash_ok;}
     return hash_err;
