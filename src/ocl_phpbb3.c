@@ -143,7 +143,6 @@ static void ocl_phpbb3_crack_callback(char *line, int self)
         char *p = strchr((char *)cov_2char, mylist->salt[3]);
         if (!p) return;
         salt.s1 = 1 << (p - (char *)cov_2char);
-        if (salt.s1 < 7 || salt.s1 > 30) return;
 	_clSetKernelArg(rule_kernel2[self], 5, sizeof(cl_uint16), (void*) &salt);
 	_clSetKernelArg(rule_kernel[self], 6, sizeof(cl_uint16), (void*) &salt);
 
