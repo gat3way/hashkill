@@ -598,7 +598,7 @@ int main(int argc, char *argv[])
     if (initialize_opencl() != hash_ok)
     {
 	printf("No OpenCL library found!\n");
-	exit(1);
+	exit(0);
     }
 
     if (strstr(argv[2],"s")) csingle=1;
