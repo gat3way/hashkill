@@ -81,6 +81,7 @@ extern int b64_pton(char *src,unsigned char *target,size_t targsize);
 /* init session file */
 hash_stat session_init_file(FILE **sessionfile)
 {
+#ifdef HAVE_JSON_JSON_H
     char fname[512];
     int fd;
     struct stat filest;
@@ -131,6 +132,7 @@ hash_stat session_init_file(FILE **sessionfile)
     }
 
     root_node = json_object_new_object();
+#endif
 
     return hash_ok;
 }
@@ -140,6 +142,7 @@ hash_stat session_init_file(FILE **sessionfile)
 /* close session file */
 void session_close_file(FILE *sessionfile)
 {
+#ifdef HAVE_JSON_JSON_H
     FILE *sf; // valgrind!
     uid_t uid;
     struct passwd *pwd;
@@ -191,6 +194,7 @@ void session_close_file(FILE *sessionfile)
     fclose(sessionfile);
     unlink(fname2);
     rename(fname, fname2);
+#endif
 }
 
 
@@ -198,6 +202,8 @@ void session_close_file(FILE *sessionfile)
 /* close session file - OpenCL version*/
 void session_close_file_ocl(FILE *sessionfile)
 {
+#ifdef HAVE_JSON_JSON_H
+
     FILE *sf; // valgrind!
     uid_t uid;
     struct passwd *pwd;
@@ -251,6 +257,7 @@ void session_close_file_ocl(FILE *sessionfile)
     unlink(fname2);
     rename(fname, fname2);
     unlink(fname);
+#endif
 }
 
 
