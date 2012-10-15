@@ -336,8 +336,8 @@ MD5STEP_ROUND1(a, b, c, d, mAC9, x8, S11);
 MD5STEP_ROUND1(d, a, b, c, mAC10,x9, S12);
 MD5STEP_ROUND1(c, d, a, b, mAC11,x10,S13);
 MD5STEP_ROUND1(b, c, d, a, mAC12,x11,S14);
-MD5STEP_ROUND1_NULL(a, b, c, d, mAC13,x12,S11);
-MD5STEP_ROUND1_NULL(d, a, b, c, mAC14,x13, S12);
+MD5STEP_ROUND1_NULL(a, b, c, d, mAC13,S11);
+MD5STEP_ROUND1_NULL(d, a, b, c, mAC14,S12);
 MD5STEP_ROUND1 (c, d, a, b, mAC15, x14, S13);  
 MD5STEP_ROUND1_NULL(b, c, d, a, mAC16, S14);
 
@@ -669,8 +669,8 @@ MD5STEP_ROUND1(a, b, c, d, mAC9, x8, S11);
 MD5STEP_ROUND1(d, a, b, c, mAC10,x9, S12);
 MD5STEP_ROUND1(c, d, a, b, mAC11,x10,S13);
 MD5STEP_ROUND1(b, c, d, a, mAC12,x11,S14);
-MD5STEP_ROUND1_NULL(a, b, c, d, mAC13,x12,S11);
-MD5STEP_ROUND1_NULL(d, a, b, c, mAC14,x13, S12);
+MD5STEP_ROUND1_NULL(a, b, c, d, mAC13,S11);
+MD5STEP_ROUND1_NULL(d, a, b, c, mAC14, S12);
 MD5STEP_ROUND1 (c, d, a, b, mAC15, x14, S13);  
 MD5STEP_ROUND1_NULL(b, c, d, a, mAC16, S14);
 
