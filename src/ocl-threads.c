@@ -84,6 +84,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"zip",&ocl_bruteforce_zip, &ocl_markov_zip, &ocl_rule_zip},
                             {1,"bfunix",&ocl_bruteforce_bfunix, &ocl_markov_bfunix, &ocl_rule_bfunix},
                             {1,"drupal7",&ocl_bruteforce_drupal7, &ocl_markov_drupal7, &ocl_rule_drupal7},
+                            {1,"django256",&ocl_bruteforce_django256, &ocl_markov_django256, &ocl_rule_django256},
                             {0, "", NULL, NULL, NULL}
                         };
 
@@ -329,6 +330,8 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"rar")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"sha512")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"sha512")==0)&&(!ocl_have_gcn)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"django256")==0)&&(ocl_have_gcn)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"django256")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"oracle-old")==0)) {ocl_vector=1;loops=2;}
 	    }
 
@@ -359,6 +362,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"zip")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"mscash")==0)) {loops=1;ocl_vector=8;}
 		if ((strcmp(get_current_plugin(),"smf")==0)) {ocl_vector=4;loops=1;}
+		if ((strcmp(get_current_plugin(),"django")==0)) ocl_vector=2;
 	    }
 
 	    /* Specific nvidia rule quirks */

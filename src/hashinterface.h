@@ -250,6 +250,7 @@ void hash_proto_new_biomem(FILE *file);
 void hash_proto_PEM_readfile(const char *passphrase, int *RSAret);
 void hash_proto_pbkdf2(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out);
 void hash_proto_pbkdf2_len(const char *pass, int passlen, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out);
+void hash_proto_pbkdf2_256_len(const char *pass, int passlen, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out);
 void hash_proto_hmac_sha1_file(void *key, int keylen, char *filename, long offset, long size, unsigned char *output, int outputlen);
 void hash_proto_hmac_sha1(void *key, int keylen, unsigned char *data, int datalen, unsigned char *output, int outputlen);
 void hash_proto_hmac_md5(void *key, int keylen, unsigned char *data, int datalen, unsigned char *output, int outputlen);

@@ -839,6 +839,46 @@ void hash_proto_pbkdf2_len(const char *pass, int passlen, unsigned char *salt, i
 }
 
 
+/* PBKDF2/sha256/lenprovided from OpenSSL */
+/* This performs just _ONE_ loop (output<32) */
+void hash_proto_pbkdf2_256_len(const char *pass, int passlen, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)
+{
+    SHA256_CTX ctx,ctx1,ctx2;
+    unsigned char ipad[64], opad[64], hash[32];
+    int  a,b;
+    memset(ipad,0x36,64);
+    memset(opad,0x5C,64);
+
+    for(a = 0;a<passlen;a++) 
+    {
+	ipad[a] ^= pass[a];
+	opad[a] ^= pass[a];
+    }
+    SHA256_Init(&ctx);
+    SHA256_Update(&ctx, ipad, 64);
+    memcpy(&ctx1, &ctx, sizeof(SHA256_CTX));
+    SHA256_Update(&ctx, salt, saltlen);
+    SHA256_Update(&ctx, "\x0\x0\x0\x1", 4);
+    SHA256_Final(hash, &ctx);
+    SHA256_Init(&ctx);
+    SHA256_Update(&ctx, opad, 64);
+    memcpy(&ctx2, &ctx, sizeof(SHA256_CTX));
+    SHA256_Update(&ctx, hash, 32);
+    SHA256_Final(hash, &ctx);
+    memcpy(out,hash,32);
+    for(a=1;a<iter;a++) 
+    {
+	memcpy(&ctx, &ctx1,sizeof(SHA256_CTX));
+	SHA256_Update(&ctx,hash,32);
+	SHA256_Final(hash, &ctx);
+	memcpy(&ctx, &ctx2, sizeof(SHA256_CTX));
+	SHA256_Update(&ctx,hash,32);
+	SHA256_Final(hash, &ctx);
+	for(b=0;b<32;b++) out[b] ^= hash[b];
+    }
+}
+
+
 
 /* PBKDF2 with HMAC_SHA512 */
 void hash_proto_pbkdf512(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)

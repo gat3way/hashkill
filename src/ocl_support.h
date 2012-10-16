@@ -222,6 +222,12 @@ hash_stat ocl_bruteforce_drupal7(void);
 hash_stat ocl_markov_drupal7(void);
 hash_stat ocl_rule_drupal7(void);
 
+/* django256 plugin support */
+hash_stat ocl_bruteforce_django256(void);
+hash_stat ocl_markov_django256(void);
+hash_stat ocl_rule_django256(void);
+
+
 
 /* supported plugins struct array*/
 struct ocl_supported_plugins_s

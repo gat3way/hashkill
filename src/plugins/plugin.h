@@ -57,6 +57,7 @@ void *(*hash_PEM_readfile)(const char *passphrase, int *RSAret);
 void *(*hash_new_biomem)(FILE *filename);
 void *(*hash_pbkdf2)(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out);
 void *(*hash_pbkdf2_len)(const char *pass, int passlen, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out);
+void *(*hash_pbkdf2_256_len)(const char *pass, int passlen, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out);
 void *(*hash_hmac_sha1_file)(void *key, int keylen, char *filename, long offset, long size, unsigned char *output, int outputlen);
 void *(*hash_hmac_sha1)(void *key, int keylen, unsigned char *data, int datalen, unsigned char *output, int outputlen);
 void *(*hash_hmac_md5)(void *key, int keylen, unsigned char *data, int datalen,  unsigned char *output, int outputlen);
@@ -100,6 +101,7 @@ void register_PEM_readfile(void *(*PEM_readfile)(const char *passphrase, int *RS
 void register_new_biomem(void *(*PEM_readfile)(FILE *filename));
 void register_pbkdf2(void *(*pbkdf2)(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out));
 void register_pbkdf2_len(void *(*pbkdf2_len)(const char *pass, int passlen,unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out));
+void register_pbkdf2_256_len(void *(*pbkdf2_256_len)(const char *pass, int passlen,unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out));
 void register_hmac_sha1_file(void *(*hmac_sha1_file)(void *key, int keylen, char *filename, long offset, long size, unsigned char *output, int outputlen));
 void register_hmac_sha1(void *(*hmac_sha1)(void *key, int keylen,unsigned char *data, int datalen, unsigned char *output, int outputlen));
 void register_hmac_md5(void *(*hmac_md5)(void *key, int keylen,unsigned char *data, int datalen, unsigned char *output, int outputlen));

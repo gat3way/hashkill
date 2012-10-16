@@ -1,5 +1,5 @@
 /*
- * ocl_drupal7.c
+ * ocl_django256.c
  *
  * hashkill - a hash cracking tool
  * Copyright (C) 2010 Milen Rangelov <gat3way@gat3way.eu>
@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <ctype.h>
 #include <string.h>
 #include <pthread.h>
 #include "err.h"
@@ -35,144 +36,117 @@
 
 
 
-static unsigned const char cov_2char[65]="./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-static int hash_ret_len1=64;
+static int hash_ret_len1=32;
 
-static int b64_pton(char const *src, char *target)
+
+static const char Base64[] =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static const char Pad64 = '=';
+
+
+static int b64_pton(src, target, targsize)
+        char const *src;
+        u_char *target;
+        size_t targsize;
 {
-    int y,j;
-    unsigned char c1,c2,c3,c4;
+    int tarindex, state, ch;
+    char *pos;
 
-    c1=c2=c3=c4=0;
-    y=0;
-    for (j=0; j<65; j++) if (cov_2char[j]==src[3]) c1=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[2]) c2=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[1]) c3=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[0]) c4=(j&255);
-    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
-    target[2]=(y>>24)&255;
-    target[1]=(y>>16)&255;
-    target[0]=(y>>8)&255;
+    state = 0;
+    tarindex = 0;
 
-    y=0;
-    for (j=0; j<65; j++) if (cov_2char[j]==src[7]) c1=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[6]) c2=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[5]) c3=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[4]) c4=(j&255);
-    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
-    target[5]=(y>>24)&255;
-    target[4]=(y>>16)&255;
-    target[3]=(y>>8)&255;
+    while ((ch = *src++) != '\0') 
+    {
+        if (isspace(ch)) continue;
+        if (ch == Pad64) break;
 
-    y=0;
-    for (j=0; j<65; j++) if (cov_2char[j]==src[11]) c1=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[10]) c2=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[9]) c3=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[8]) c4=(j&255);
-    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
-    target[8]=(y>>24)&255;
-    target[7]=(y>>16)&255;
-    target[6]=(y>>8)&255;
+        pos = strchr(Base64, ch);
+        if (pos == 0) return (-1);
 
-    y=0;
-    for (j=0; j<65; j++) if (cov_2char[j]==src[15]) c1=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[14]) c2=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[13]) c3=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[12]) c4=(j&255);
-    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
-    target[11]=(y>>24)&255;
-    target[10]=(y>>16)&255;
-    target[9]=(y>>8)&255;
+        switch (state) 
+        {
+    	    case 0:
+                if (target) 
+                {
+            	    if ((size_t)tarindex >= targsize) return (-1);
+                    target[tarindex] = (pos - Base64) << 2;
+                }
+                state = 1;
+                break;
+            case 1:
+                if (target) 
+                {
+            	    if ((size_t)tarindex + 1 >= targsize) return (-1);
+                    target[tarindex]   |=  (pos - Base64) >> 4;
+                    target[tarindex+1]  = ((pos - Base64) & 0x0f) << 4 ;
+                }
+                tarindex++;
+                state = 2;
+                break;
+            case 2:
+                if (target) 
+                {
+                    if ((size_t)tarindex + 1 >= targsize) return (-1);
+                    target[tarindex]   |=  (pos - Base64) >> 2;
+                    target[tarindex+1]  = ((pos - Base64) & 0x03) << 6;
+                }
+                tarindex++;
+                state = 3;
+                break;
+            case 3:
+                if (target) 
+                {
+                    if ((size_t)tarindex >= targsize) return (-1);
+                    target[tarindex] |= (pos - Base64);
+                }
+                tarindex++;
+                state = 0;
+                break;
+            default:
+                abort();
+        }
+    }
 
-    y=0;
-    for (j=0; j<65; j++) if (cov_2char[j]==src[19]) c1=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[18]) c2=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[17]) c3=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[16]) c4=(j&255);
-    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
-    target[14]=(y>>24)&255;
-    target[13]=(y>>16)&255;
-    target[12]=(y>>8)&255;
-
-    y=0;
-    for (j=0; j<65; j++) if (cov_2char[j]==src[23]) c1=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[22]) c2=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[21]) c3=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[20]) c4=(j&255);
-    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
-    target[17]=(y>>24)&255;
-    target[16]=(y>>16)&255;
-    target[15]=(y>>8)&255;
-
-    y=0;
-    for (j=0; j<65; j++) if (cov_2char[j]==src[27]) c1=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[26]) c2=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[25]) c3=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[24]) c4=(j&255);
-    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
-    target[20]=(y>>24)&255;
-    target[19]=(y>>16)&255;
-    target[18]=(y>>8)&255;
-
-    y=0;
-    for (j=0; j<65; j++) if (cov_2char[j]==src[31]) c1=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[30]) c2=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[29]) c3=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[28]) c4=(j&255);
-    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
-    target[23]=(y>>24)&255;
-    target[22]=(y>>16)&255;
-    target[21]=(y>>8)&255;
-
-    y=0;
-    for (j=0; j<65; j++) if (cov_2char[j]==src[35]) c1=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[34]) c2=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[33]) c3=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[32]) c4=(j&255);
-    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
-    target[26]=(y>>24)&255;
-    target[25]=(y>>16)&255;
-    target[24]=(y>>8)&255;
-
-    y=0;
-    for (j=0; j<65; j++) if (cov_2char[j]==src[39]) c1=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[38]) c2=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[37]) c3=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[36]) c4=(j&255);
-    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
-    target[29]=(y>>24)&255;
-    target[28]=(y>>16)&255;
-    target[27]=(y>>8)&255;
-
-    y=0;
-    for (j=0; j<65; j++) if (cov_2char[j]==src[41]) c1=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[40]) c2=(j&255);
-    y=(c1<<26)|(c2<<20)|0;//(c3<<14)|(c4<<8);
-    target[31]=(y>>8)&255;
-    target[30]=0;
-    return 0;
+    if (ch == Pad64) 
+    {
+        ch = *src++;
+        switch (state) 
+        {
+            case 0: 
+            case 1: return (-1);
+            case 2:
+                for ((void)NULL; ch != '\0'; ch = *src++) if (!isspace(ch)) break;
+                if (ch != Pad64) return (-1);
+                ch = *src++;
+            case 3:
+                for ((void)NULL; ch != '\0'; ch = *src++) if (!isspace(ch)) return (-1);
+                if (target && target[tarindex] != 0) return (-1);
+        }
+    } 
+    else 
+    {
+        if (state != 0) return (-1);
+    }
+    return (tarindex);
 }
 
 
 
 
-
-
-
 /* Crack callback */
-static void ocl_drupal7_crack_callback(char *line, int self)
+static void ocl_django256_crack_callback(char *line, int self)
 {
-    int a,b,c,e;
+    int a,b,c,e,rounds;
     int *found;
     int err;
     struct  hash_list_s  *mylist, *addlist;
     char plain[MAX];
-    char hex1[64];
+    char hex1[16];
     cl_uint16 addline;
     cl_uint16 salt;
-    cl_ulong4 singlehash;
-    char mhash[64];
-    char base64[64];
+    cl_uint16 singlehash;
+    char mhash[32];
+    char base64[88];
 
     mylist = hash_list;
     while (mylist)
@@ -188,32 +162,46 @@ static void ocl_drupal7_crack_callback(char *line, int self)
 	_clSetKernelArg(rule_kernel2[self], 4, sizeof(cl_uint16), (void*) &addline);
 
 	/* setup salt */
-        salt.sE=(mylist->salt[4])|(mylist->salt[5]<<8)|(mylist->salt[6]<<16)|(mylist->salt[7]<<24);
-        salt.sF=(mylist->salt[8])|(mylist->salt[9]<<8)|(mylist->salt[10]<<16)|(mylist->salt[11]<<24);
-
-        char *p = strchr((char *)cov_2char, mylist->salt[3]);
-        if (!p) return;
-        salt.s1 = 1 << (p - (char *)cov_2char);
+        salt.s0=(mylist->salt[12])|(mylist->salt[13]<<8)|(mylist->salt[14]<<16)|(mylist->salt[15]<<24);
+        salt.s1=(mylist->salt[16])|(mylist->salt[17]<<8)|(mylist->salt[18]<<16)|(mylist->salt[19]<<24);
+        salt.s2=(mylist->salt[20])|(mylist->salt[21]<<8)|(mylist->salt[22]<<16)|(mylist->salt[23]<<24);
+        salt.s3=1;
+	rounds=atoi(mylist->salt);
+	salt.sE=rounds-1;
+	salt.sF=12;
 
 	_clSetKernelArg(rule_kernel2[self], 5, sizeof(cl_uint16), (void*) &salt);
 	_clSetKernelArg(rule_kernel[self], 6, sizeof(cl_uint16), (void*) &salt);
 
-        memcpy(base64,mylist->hash,68);
-        b64_pton(base64+12,mhash);
-        uint64_t A,B,C,D;
-        memcpy(hex1,mhash,8);
-        memcpy(&A, hex1, 8);
-        memcpy(hex1,mhash+8,8);
-        memcpy(&B, hex1, 8);
-        memcpy(hex1,mhash+16,8);
-        memcpy(&C, hex1, 8);
-        memcpy(hex1,mhash+24,8);
-        memcpy(&D, hex1, 8);
-	singlehash.x=A;
-	singlehash.y=B;
-	singlehash.z=C;
-	singlehash.w=D;
-	_clSetKernelArg(rule_kernel[self], 5, sizeof(cl_ulong4), (void*) &singlehash);
+        strcpy(base64,mylist->hash+33);
+        b64_pton(base64,mhash,32);
+
+        unsigned int A,B,C,D,E,F,G,H;
+        memcpy(hex1,mhash,4);
+        memcpy(&A, hex1, 4);
+        memcpy(hex1,mhash+4,4);
+        memcpy(&B, hex1, 4);
+        memcpy(hex1,mhash+8,4);
+        memcpy(&C, hex1, 4);
+        memcpy(hex1,mhash+12,4);
+        memcpy(&D, hex1, 4);
+        memcpy(hex1,mhash+16,4);
+        memcpy(&E, hex1, 4);
+        memcpy(hex1,mhash+20,4);
+        memcpy(&F, hex1, 4);
+        memcpy(hex1,mhash+24,4);
+        memcpy(&G, hex1, 4);
+        memcpy(hex1,mhash+28,4);
+        memcpy(&H, hex1, 4);
+	singlehash.s0=A;
+	singlehash.s1=B;
+	singlehash.s2=C;
+	singlehash.s3=D;
+	singlehash.s4=E;
+	singlehash.s5=F;
+	singlehash.s6=G;
+	singlehash.s7=H;
+	_clSetKernelArg(rule_kernel[self], 5, sizeof(cl_uint16), (void*) &singlehash);
 
         if (attack_over!=0) pthread_exit(NULL);
         pthread_mutex_lock(&wthreads[self].tempmutex);
@@ -236,9 +224,9 @@ static void ocl_drupal7_crack_callback(char *line, int self)
 		for (c=0;c<wthreads[self].vectorsize;c++)
 		{
 	    	    e=(a)*wthreads[self].vectorsize+c;
-                    memcpy(base64,mylist->hash,68);
-                    b64_pton(base64+12,mhash);
-    		    if (memcmp(mhash, (char *)rule_ptr[self]+(e)*hash_ret_len1, 32) == 0)
+                    strcpy(base64,mylist->hash);
+                    b64_pton(base64+33,mhash,32);
+    		    if (memcmp(mhash, (char *)rule_ptr[self]+(e)*hash_ret_len1, hash_ret_len1-1) == 0)
     		    {
             		int flag = 0;
                 	strcpy(plain,&rule_images[self][0]+(e*MAX));
@@ -247,17 +235,16 @@ static void ocl_drupal7_crack_callback(char *line, int self)
                 	addlist = cracked_list;
                 	while (addlist)
                 	{
-                	    if ((strcmp(addlist->username, mylist->username) == 0) && (memcmp(addlist->hash, mylist->hash, hash_ret_len) == 0))
+                	    if ((strcmp(addlist->username, mylist->username) == 0) && (memcmp(addlist->hash, mylist->hash, hash_ret_len1) == 0))
                                 flag = 1;
                     	    addlist = addlist->next;
                 	}
+                	pthread_mutex_unlock(&crackedmutex);
                 	if (flag == 0)
                 	{
-                	    pthread_mutex_unlock(&crackedmutex);
                 	    add_cracked_list(mylist->username, mylist->hash, mylist->salt, plain);
                 	    mylist->salt2[0]=1;
                 	}
-                	else pthread_mutex_unlock(&crackedmutex);
     		    }
 		}
 	    }
@@ -273,7 +260,7 @@ static void ocl_drupal7_crack_callback(char *line, int self)
 
 
 
-static void ocl_drupal7_callback(char *line, int self)
+static void ocl_django256_callback(char *line, int self)
 {
     rule_counts[self][0]++;
     rule_sizes[self][rule_counts[self][0]] = strlen(line);
@@ -283,7 +270,7 @@ static void ocl_drupal7_callback(char *line, int self)
     {
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, rule_images[self], 0, NULL, NULL);
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_sizes_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), rule_sizes[self], 0, NULL, NULL);
-	rule_offload_perform(ocl_drupal7_crack_callback,self);
+	rule_offload_perform(ocl_django256_crack_callback,self);
     	bzero(&rule_images[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
 	rule_counts[self][0]=-1;
     }
@@ -294,7 +281,7 @@ static void ocl_drupal7_callback(char *line, int self)
 
 
 /* Worker thread - rule attack */
-void* ocl_rule_drupal7_thread(void *arg)
+void* ocl_rule_django256_thread(void *arg)
 {
     cl_int err;
     int found;
@@ -315,7 +302,7 @@ void* ocl_rule_drupal7_thread(void *arg)
     rule_ptr[self] = malloc(ocl_rule_workset[self]*hash_ret_len1*wthreads[self].vectorsize);
     rule_counts[self][0]=0;
 
-    rule_kernel[self] = _clCreateKernel(program[self], "phpass512", &err );
+    rule_kernel[self] = _clCreateKernel(program[self], "django256", &err );
     rule_kernel2[self] = _clCreateKernel(program[self], "strmodify", &err );
 
     rule_oclqueue[self] = _clCreateCommandQueue(context[self], wthreads[self].cldeviceid, 0, &err );
@@ -350,7 +337,7 @@ void* ocl_rule_drupal7_thread(void *arg)
     _clSetKernelArg(rule_kernel2[self], 3, sizeof(cl_mem), (void*) &rule_sizes_buf[self]);
     pthread_mutex_unlock(&biglock); 
 
-    worker_gen(self,ocl_drupal7_callback);
+    worker_gen(self,ocl_django256_callback);
 
     return hash_ok;
 }
@@ -358,7 +345,7 @@ void* ocl_rule_drupal7_thread(void *arg)
 
 
 
-hash_stat ocl_bruteforce_drupal7(void)
+hash_stat ocl_bruteforce_django256(void)
 {
     suggest_rule_attack();
     return hash_ok;
@@ -366,7 +353,7 @@ hash_stat ocl_bruteforce_drupal7(void)
 
 
 
-hash_stat ocl_markov_drupal7(void)
+hash_stat ocl_markov_django256(void)
 {
     suggest_rule_attack();
     return hash_ok;
@@ -377,7 +364,7 @@ hash_stat ocl_markov_drupal7(void)
 
 
 /* Main thread - rule */
-hash_stat ocl_rule_drupal7(void)
+hash_stat ocl_rule_django256(void)
 {
     int a,i;
     int err;
@@ -400,7 +387,7 @@ hash_stat ocl_rule_drupal7(void)
             bzero(pbuf,100);
             char kernelfile[255];
             _clGetDeviceInfo(device[wthreads[i].deviceid], CL_DEVICE_NAME, sizeof(pbuf),pbuf, NULL );
-    	    sprintf(kernelfile,"%s/hashkill/kernels/amd_phpass512__%s.bin",DATADIR,pbuf);
+    	    sprintf(kernelfile,"%s/hashkill/kernels/amd_django256__%s.bin",DATADIR,pbuf);
 
     	    char *ofname = kernel_decompress(kernelfile);
             if (!ofname) return hash_err;
@@ -445,7 +432,7 @@ hash_stat ocl_rule_drupal7(void)
             if ((compute_capability_major==2)&&(compute_capability_minor==0)) sprintf(pbuf,"sm20");
             if ((compute_capability_major==2)&&(compute_capability_minor==1)) sprintf(pbuf,"sm21");
 	    if ((compute_capability_major==3)&&(compute_capability_minor==0)) sprintf(pbuf,"sm30");
-    	    sprintf(kernelfile,"%s/hashkill/kernels/nvidia_phpass512__%s.ptx",DATADIR,pbuf);
+    	    sprintf(kernelfile,"%s/hashkill/kernels/nvidia_django256__%s.ptx",DATADIR,pbuf);
 
     	    char *ofname = kernel_decompress(kernelfile);
             if (!ofname) return hash_err;
@@ -477,9 +464,9 @@ hash_stat ocl_rule_drupal7(void)
     for (a=0;a<nwthreads;a++)
     {
         worker_thread_keys[a]=a;
-        pthread_create(&crack_threads[a], NULL, ocl_rule_drupal7_thread, &worker_thread_keys[a]);
+        pthread_create(&crack_threads[a], NULL, ocl_rule_django256_thread, &worker_thread_keys[a]);
     }
-    rule_gen_parse(rule_file,ocl_drupal7_callback,nwthreads,SELF_THREAD);
+    rule_gen_parse(rule_file,ocl_django256_callback,nwthreads,SELF_THREAD);
 
     for (a=0;a<nwthreads;a++) pthread_join(crack_threads[a], NULL);
     attack_over=2;

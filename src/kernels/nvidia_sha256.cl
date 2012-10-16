@@ -113,6 +113,10 @@ Endian_Reverse32(w0);
 Endian_Reverse32(w1);
 Endian_Reverse32(w2);
 Endian_Reverse32(w3);
+Endian_Reverse32(w4);
+Endian_Reverse32(w5);
+Endian_Reverse32(w6);
+Endian_Reverse32(w7);
 
 #define  SHR(x,n) ((x) >> n)
 #define ROTR(x,n) (ROTATE(x,(32-n)))

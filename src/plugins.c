@@ -199,6 +199,7 @@ hash_stat load_plugin(void)
 	void(*register_new_biomem)(void (*new_biomem)(FILE *file)) = dlsym(dlhandle, "register_new_biomem");
 	void(*register_pbkdf2)(void (*pbkdf2)(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)) = dlsym(dlhandle, "register_pbkdf2");
 	void(*register_pbkdf2_len)(void (*pbkdf2_len)(const char *pass, int passlen, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)) = dlsym(dlhandle, "register_pbkdf2_len");
+	void(*register_pbkdf2_256_len)(void (*pbkdf2_256_len)(const char *pass, int passlen, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)) = dlsym(dlhandle, "register_pbkdf2_256_len");
 	void(*register_hmac_sha1_file)(void (*hmac_sha1_file)(void *key, int keylen, char *filename, long offset, long size, unsigned char *output, int outputlen)) = dlsym(dlhandle, "register_hmac_sha1_file");
 	void(*register_hmac_sha1)(void (*hmac_sha1)(void *key, int keylen, unsigned char *data, int datalen,unsigned char *output, int outputlen)) = dlsym(dlhandle, "register_hmac_sha1");
 	void(*register_hmac_md5)(void (*hmac_md5)(void *key, int keylen, unsigned char *data, int datalen, unsigned char *output, int outputlen)) = dlsym(dlhandle, "register_hmac_md5");
@@ -246,6 +247,7 @@ hash_stat load_plugin(void)
 	    register_PEM_readfile(hash_proto_PEM_readfile);
 	    register_pbkdf2(hash_proto_pbkdf2);
 	    register_pbkdf2_len(hash_proto_pbkdf2_len);
+	    register_pbkdf2_256_len(hash_proto_pbkdf2_256_len);
 	    register_hmac_sha1_file(hash_proto_hmac_sha1_file);
 	    register_hmac_sha1(hash_proto_hmac_sha1);
 	    register_hmac_md5(hash_proto_hmac_md5);
