@@ -69,8 +69,7 @@ char *pacrypt_private_dictionary(char *password[VECTORSIZE], char *setting, char
 	char *bigbuf[VECTORSIZE];
 	int bbl[VECTORSIZE];
 	int a;
-	
-	
+
 	for (a=0;a<vectorsize;a++)
 	{
 	    output[a] = alloca(128);
@@ -150,6 +149,7 @@ char *pacrypt_private(char *password[VECTORSIZE], char *setting, char *out[VECTO
 	    hash[a] = alloca(16);
 	    bigbuf[a] = alloca(128);
 	    length[a] = strlen(password[a]);
+	    bzero(bigbuf[a],128);
 	}
 
 	for (a=0;a<vectorsize;a++)
