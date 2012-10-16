@@ -307,10 +307,9 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     int ret, bsize, rsize, usize,a,b=0;
     unsigned char in[1024*16+100];
     unsigned char out[1024*16*10+100];
-    unsigned char authcode[10];
-    unsigned char authresult[10];
+    unsigned char authcode[16];
+    unsigned char authresult[16];
 
-    
     for (a=0;a<vectorsize;a++)
     if (has_winzip_encryption==1) 
     {
