@@ -1,4 +1,4 @@
-/* bcrypt.c
+/* bfunix.c
  *
  * hashkill - a hash cracking tool
  * Copyright (C) 2010 Milen Rangelov <gat3way@gat3way.eu>
@@ -39,13 +39,13 @@ extern void __bf_swap(unsigned int *x, int count);
 
 char * hash_plugin_summary(void)
 {
-    return("bcrypt \t\tbcrypt plugin (shadow files)");
+    return("bfunix \t\tbfunix plugin (shadow files)");
 }
 
 
 char * hash_plugin_detailed(void)
 {
-    return("bcrypt - bcrypt (Blowfish) plugin\n"
+    return("bfunix - bcrypt (Blowfish) plugin\n"
 	    "------------------------\n"
 	    "Use this module to crack shadow passwords\n"
 	    "Input should be in form: \'user:hash\' or just \'hash\'. shadow files are acceptable\n"
