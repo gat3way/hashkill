@@ -52,6 +52,9 @@ typedef cl_int (*CLGETPROGRAMBUILDINFO)(cl_program  program,cl_device_id  device
 typedef cl_int (*CLRELEASECONTEXT)(cl_context context);
 typedef cl_int (*CLUNLOADCOMPILER)(void);
 typedef cl_int (*CLRELEASEPROGRAM)(cl_program program);
+typedef cl_int (*CLRELEASEKERNEL)(cl_kernel kernel);
+typedef cl_int (*CLFLUSH)(cl_command_queue queue);
+typedef cl_int (*CLFINISH)(cl_command_queue queue);
 typedef cl_int (*CLGETPLATFORMINFO)(cl_platform_id platform,cl_platform_info param_name, size_t param_value_size, void *param_value,size_t *param_value_size_ret);
 
 
@@ -81,6 +84,9 @@ cl_int _clGetProgramInfo(cl_program program,cl_program_info param_name,size_t pa
 cl_int _clGetProgramBuildInfo(cl_program  program,cl_device_id  device,cl_program_build_info  param_name,size_t  param_value_size,void  *param_value,size_t  *param_value_size_ret);
 cl_int _clReleaseContext(cl_context context);
 cl_int _clReleaseProgram(cl_program program);
+cl_int _clReleaseKernel(cl_kernel kernel);
+cl_int _clFlush(cl_command_queue queue);
+cl_int _clFinish(cl_command_queue queue);
 cl_int _clUnloadCompiler(void);
 cl_int _clGetPlatformInfo(cl_platform_id platform,cl_platform_info param_name, size_t param_value_size, void *param_value,size_t *param_value_size_ret);
 cl_int _clGetPlatformInfoNoErr(cl_platform_id platform,cl_platform_info param_name, size_t param_value_size, void *param_value,size_t *param_value_size_ret);
@@ -110,6 +116,9 @@ CLGETPLATFORMIDS clGetPlatformIDs = NULL;
 CLGETPROGRAMINFO clGetProgramInfo = NULL;
 CLGETPROGRAMBUILDINFO clGetProgramBuildInfo = NULL;
 CLRELEASECONTEXT clReleaseContext = NULL;
+CLRELEASEKERNEL clReleaseKernel = NULL;
+CLFLUSH clFlush = NULL;
+CLFINISH clFinish = NULL;
 CLRELEASEPROGRAM clReleaseProgram = NULL;
 CLGETPLATFORMINFO clGetPlatformInfo = NULL;
 CLUNLOADCOMPILER clUnloadCompiler = NULL;
@@ -250,6 +259,24 @@ hash_stat initialize_opencl(void)
     }
     clReleaseContext = (CLRELEASECONTEXT)GetProcAddress(dll,"clReleaseContext");
     if (!clReleaseContext)
+    {
+	dlclose(dll);
+	return hash_err;
+    }
+    clReleaseKernel = (CLRELEASEKERNEL)GetProcAddress(dll,"clReleaseKernel");
+    if (!clReleaseKernel)
+    {
+	dlclose(dll);
+	return hash_err;
+    }
+    clFlush = (CLFLUSH)GetProcAddress(dll,"clFlush");
+    if (!clFlush)
+    {
+	dlclose(dll);
+	return hash_err;
+    }
+    clFinish = (CLFLUSH)GetProcAddress(dll,"clFinish");
+    if (!clFinish)
     {
 	dlclose(dll);
 	return hash_err;
@@ -550,6 +577,32 @@ cl_int _clReleaseContext(cl_context context)
 
     err = clReleaseContext(context);
     checkErr("clReleaseContext",err);
+    return err;
+}
+
+cl_int _clReleaseKernel(cl_kernel kernel)
+{
+    cl_int err;
+
+    err = clReleaseKernel(kernel);
+    checkErr("clReleaseKernel",err);
+    return err;
+}
+
+cl_int _clFlush(cl_command_queue queue)
+{
+    cl_int err;
+
+    err = clFlush(queue);
+    checkErr("clFlush",err);
+    return err;
+}
+cl_int _clFinish(cl_command_queue queue)
+{
+    cl_int err;
+
+    err = clFinish(queue);
+    checkErr("clFinish",err);
     return err;
 }
 

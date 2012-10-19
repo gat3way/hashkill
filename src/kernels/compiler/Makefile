@@ -136,16 +136,8 @@ build:
 	./nvidia-compiler nvidia_rar Fn 5; \
 	./nvidia-compiler nvidia_rar Fn 6; \
 	fi;
-	@if [ ! -e nvidia_sha512unix__sm10.ptx ]; then \
-	./nvidia-compiler nvidia_sha512unix Fn 0; \
-	./nvidia-compiler nvidia_sha512unix Fn 1; \
-	./nvidia-compiler nvidia_sha512unix Fn 2; \
-	./nvidia-compiler nvidia_sha512unix Fn 3; \
-	./nvidia-compiler nvidia_sha512unix Fn 4; \
-	./nvidia-compiler nvidia_sha512unix Fn 5; \
-	./nvidia-compiler nvidia_sha512unix Fn 6; \
-	fi;
 	@if [ ! -e nvidia_sha1_passsalt_ulong__sm10.ptx ]; then ./nvidia-compiler nvidia_sha1_passsalt_ulong n ;fi
+	@if [ ! -e nvidia_sha512unix__sm10.ptx ]; then ./nvidia-compiler nvidia_sha512unix n ;fi
 	@if [ ! -e nvidia_zip__sm10.ptx ]; then ./nvidia-compiler nvidia_zip n ;fi
 	@if [ ! -e nvidia_zip_long__sm10.ptx ]; then ./nvidia-compiler nvidia_zip_long n ;fi
 	@if [ ! -e nvidia_zips__sm10.ptx ]; then ./nvidia-compiler nvidia_zips n ;fi

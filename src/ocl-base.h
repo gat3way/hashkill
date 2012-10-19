@@ -51,6 +51,9 @@ cl_program _clCreateProgramWithSource(cl_context context,cl_uint count,const cha
 cl_int _clGetProgramInfo(cl_program program,cl_program_info param_name,size_t param_value_size,void *param_value,size_t *param_value_size_ret);
 cl_int _clGetProgramBuildInfo(cl_program  program,cl_device_id  device,cl_program_build_info  param_name,size_t  param_value_size,void  *param_value,size_t  *param_value_size_ret);
 cl_int _clReleaseContext(cl_context context);
+cl_int _clReleaseKernel(cl_kernel kernel);
+cl_int _clFlush(cl_command_queue queue);
+cl_int _clFinish(cl_command_queue queue);
 cl_int _clGetPlatformInfo(cl_platform_id platform,cl_platform_info param_name, size_t param_value_size, void *param_value,size_t *param_value_size_ret);
 cl_int _clGetPlatformInfoNoErr(cl_platform_id platform,cl_platform_info param_name, size_t param_value_size, void *param_value,size_t *param_value_size_ret);
 cl_int _clGetPlatformIDsNoErr(cl_uint num_entries,cl_platform_id *platforms,cl_uint *num_platforms);
