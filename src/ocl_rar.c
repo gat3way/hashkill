@@ -412,7 +412,6 @@ static void ocl_rar_crack_callback(char *line, int self)
     int a,c,d,e;
     cl_uint16 addline;
     cl_uint4 salt;
-    cl_uint16 saltdummy;
     int cc,cc1;
     size_t gws,gws1;
     unsigned char key[16],iv[16];
@@ -434,33 +433,63 @@ static void ocl_rar_crack_callback(char *line, int self)
     if (gws==0) gws=64;
 
 
+
     /* setup addline */
     addline.s0=addline.s1=addline.s2=addline.s3=addline.s4=addline.s5=addline.s6=addline.s7=addline.sF=0;
     addline.sF=strlen(line);
+    addline.sE=(cc1*2)+11;
+    addline.sD=(cc);
     addline.s0=line[0]|(line[1]<<8)|(line[2]<<16)|(line[3]<<24);
     addline.s1=line[4]|(line[5]<<8)|(line[6]<<16)|(line[7]<<24);
     addline.s2=line[8]|(line[9]<<8)|(line[10]<<16)|(line[11]<<24);
     addline.s3=line[12]|(line[13]<<8)|(line[14]<<16)|(line[15]<<24);
-    _clSetKernelArg(rule_kernel162[cc][self], 2, sizeof(cl_uint16), (void*) &addline);
-
 
     /* setup salt */
     salt=ocl_get_salt(rarsalt,cc1);
-    saltdummy.s0=cc;
-    _clSetKernelArg(rule_kernel162[cc][self], 3, sizeof(cl_uint16), (void*) &saltdummy);
-    _clSetKernelArg(rule_kernel16[cc1][self], 2, sizeof(cl_uint4), (void*) &salt);
-    _clSetKernelArg(rule_kernel162[cc][self], 0, sizeof(cl_mem), (void*) &rule_images16_buf[cc1][self]);
+    salt.s3=(16384*16*((cc1*2)+11));
 
+    _clSetKernelArg(rule_kernelmod[self], 0, sizeof(cl_mem), (void*) &rule_images16_buf[cc1][self]);
+    _clSetKernelArg(rule_kernelmod[self], 1, sizeof(cl_mem), (void*) &rule_images162_buf[cc][self]);
+    _clSetKernelArg(rule_kernelmod[self], 2, sizeof(cl_mem), (void*) &rule_images163_buf[cc1][self]);
+    _clSetKernelArg(rule_kernelmod[self], 3, sizeof(cl_uint16), (void*) &addline);
+    _clSetKernelArg(rule_kernelmod[self], 4, sizeof(cl_uint4), (void*) &salt);
+    _clSetKernelArg(rule_kerneliv[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
+    _clSetKernelArg(rule_kerneliv[self], 1, sizeof(cl_mem), (void*) &rule_images16_buf[cc1][self]);
+    _clSetKernelArg(rule_kerneliv[self], 2, sizeof(cl_mem), (void*) &rule_images163_buf[cc1][self]);
+    _clSetKernelArg(rule_kerneliv[self], 3, sizeof(cl_uint16), (void*) &addline);
+    _clSetKernelArg(rule_kerneliv[self], 4, sizeof(cl_uint4), (void*) &salt);
+    _clSetKernelArg(rule_kernelblock[self], 0, sizeof(cl_mem), (void*) &rule_images163_buf[cc1][self]);
+    _clSetKernelArg(rule_kernelblock[self], 1, sizeof(cl_mem), (void*) &rule_images16_buf[cc1][self]);
+    _clSetKernelArg(rule_kernelblock[self], 2, sizeof(cl_mem), (void*) &rule_images163_buf[cc1][self]);
+    _clSetKernelArg(rule_kernelblock[self], 3, sizeof(cl_uint16), (void*) &addline);
+    _clSetKernelArg(rule_kernelblock[self], 4, sizeof(cl_uint4), (void*) &salt);
+    _clSetKernelArg(rule_kernellast[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
+    _clSetKernelArg(rule_kernellast[self], 1, sizeof(cl_mem), (void*) &rule_images164_buf[cc1][self]);
+    _clSetKernelArg(rule_kernellast[self], 2, sizeof(cl_mem), (void*) &rule_images163_buf[cc1][self]);
+    _clSetKernelArg(rule_kernellast[self], 3, sizeof(cl_uint16), (void*) &addline);
+    _clSetKernelArg(rule_kernellast[self], 4, sizeof(cl_uint4), (void*) &salt);
 
-    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel162[cc][self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
-    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel16[cc1][self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
+    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelmod[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
+    for (a=0;a<16;a++)
+    {
+	salt.s2=(16384*a);
+        _clSetKernelArg(rule_kerneliv[self], 4, sizeof(cl_uint4), (void*) &salt);
+        _clSetKernelArg(rule_kernelblock[self], 4, sizeof(cl_uint4), (void*) &salt);
+	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kerneliv[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
+	_clFinish(rule_oclqueue[self]);
+	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelblock[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
+	_clFinish(rule_oclqueue[self]);
+	if (attack_over!=0) pthread_exit(NULL);
+	wthreads[self].tries+=((rule_counts[self][cc]*wthreads[self].vectorsize)/16);
+    }
+    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernellast[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
     _clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, hash_ret_len1*wthreads[self].vectorsize*ocl_rule_workset[self], rule_ptr[self], 0, NULL, NULL);
 
     for (a=0;a<=rule_counts[self][cc];a++)
     {
         for (c=0;c<wthreads[self].vectorsize;c++)
         {
-            wthreads[self].tries++;
+            //wthreads[self].tries++;
             if (attack_over==2) pthread_exit(NULL);
             e=(a)*wthreads[self].vectorsize+c;
             memcpy(key,(char *)rule_ptr[self]+(e)*32,16);
@@ -520,43 +549,40 @@ void* ocl_rule_rar_thread(void *arg)
     size_t amd_local_work_size[3]={64,1,1};
     int self;
     int a;
-    char kernelname[32];
 
     memcpy(&self,arg,sizeof(int));
     pthread_mutex_lock(&biglock);
 
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
-    ocl_rule_workset[self]=32*64;
-    if (ocl_gpu_double==1) ocl_rule_workset[self]=64*64;
+    ocl_rule_workset[self]=64*32;
+    if (ocl_gpu_double==1) ocl_rule_workset[self]*=16;
     if (wthreads[self].ocl_have_gcn==1) ocl_rule_workset[self]*=4;
-    if (interactive_mode==1) ocl_rule_workset[self]/=16;
+    if (interactive_mode==1) ocl_rule_workset[self]/=4;
 
     rule_ptr[self] = malloc(ocl_rule_workset[self]*hash_ret_len1*wthreads[self].vectorsize);
-
-    for (a=0;a<16;a++)
-    {
-        sprintf(kernelname,"rar%d",a);
-        rule_kernel16[a][self] = _clCreateKernel(program[self], kernelname, &err );
-        rule_kernel162[a][self] = _clCreateKernel(program[self], "strmodify", &err );
-    }
 
     rule_oclqueue[self] = _clCreateCommandQueue(context[self], wthreads[self].cldeviceid, 0, &err );
     rule_buffer[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*wthreads[self].vectorsize*hash_ret_len1, NULL, &err );
     for (a=0;a<16;a++)
     {
-        rule_images16_buf[a][self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*16*2, NULL, &err );
+        rule_images16_buf[a][self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*56, NULL, &err );
         rule_images162_buf[a][self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*16, NULL, &err );
-        rule_images16[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*16*2);
+        rule_images163_buf[a][self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*28, NULL, &err );
+        rule_images16[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*48);
         rule_images162[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*16);
+        rule_images163[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*20);
+        bzero(rule_images16[a][self],ocl_rule_workset[self]*wthreads[self].vectorsize*48);
         bzero(rule_images162[a][self],ocl_rule_workset[self]*wthreads[self].vectorsize*16);
-        bzero(rule_images16[a][self],ocl_rule_workset[self]*wthreads[self].vectorsize*16*2);
-	_clSetKernelArg(rule_kernel16[a][self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
-	_clSetKernelArg(rule_kernel16[a][self], 1, sizeof(cl_mem), (void*) &rule_images16_buf[a][self]);
-        _clSetKernelArg(rule_kernel162[a][self], 0, sizeof(cl_mem), (void*) &rule_images16_buf[a][self]);
-        _clSetKernelArg(rule_kernel162[a][self], 1, sizeof(cl_mem), (void*) &rule_images162_buf[a][self]);
+        bzero(rule_images163[a][self],ocl_rule_workset[self]*wthreads[self].vectorsize*20);
         rule_counts[self][a]=-1;
     }
+    rule_kernelmod[self] = _clCreateKernel(program[self], "strmodify", &err );
+    rule_kerneliv[self] = _clCreateKernel(program[self], "calculateiv", &err );
+    rule_kernelblock[self] = _clCreateKernel(program[self], "calculateblock", &err );
+    rule_kernellast[self] = _clCreateKernel(program[self], "calculatelast", &err );
+
+
     pthread_mutex_unlock(&biglock); 
     worker_gen(self,ocl_rar_callback);
 

@@ -110,6 +110,8 @@ cl_mem rule_sizes_buf[HASHKILL_MAXTHREADS];
 cl_mem rule_sizes2_buf[HASHKILL_MAXTHREADS];
 cl_mem rule_images16_buf[16][HASHKILL_MAXTHREADS];
 cl_mem rule_images162_buf[16][HASHKILL_MAXTHREADS];
+cl_mem rule_images163_buf[16][HASHKILL_MAXTHREADS];
+cl_mem rule_images164_buf[16][HASHKILL_MAXTHREADS];
 cl_mem rule_sizes16_buf[16][HASHKILL_MAXTHREADS];
 cl_mem rule_sizes162_buf[16][HASHKILL_MAXTHREADS];
 
@@ -120,8 +122,29 @@ int *rule_sizes[HASHKILL_MAXTHREADS];
 int *rule_sizes2[HASHKILL_MAXTHREADS];
 char *rule_images16[16][HASHKILL_MAXTHREADS];
 char *rule_images162[16][HASHKILL_MAXTHREADS];
+char *rule_images163[16][HASHKILL_MAXTHREADS];
+char *rule_images164[16][HASHKILL_MAXTHREADS];
 int *rule_sizes16[16][HASHKILL_MAXTHREADS];
 int *rule_sizes162[16][HASHKILL_MAXTHREADS];
+
+/* sha512 kernels */
+cl_kernel rule_kernel0[HASHKILL_MAXTHREADS];
+cl_kernel rule_kernel00[HASHKILL_MAXTHREADS];
+cl_kernel rule_kernel03[HASHKILL_MAXTHREADS];
+cl_kernel rule_kernel037[HASHKILL_MAXTHREADS];
+cl_kernel rule_kernel07[HASHKILL_MAXTHREADS];
+cl_kernel rule_kernel1[HASHKILL_MAXTHREADS];
+cl_kernel rule_kernel13[HASHKILL_MAXTHREADS];
+cl_kernel rule_kernel137[HASHKILL_MAXTHREADS];
+cl_kernel rule_kernel17[HASHKILL_MAXTHREADS];
+/* rar kernels */
+cl_kernel rule_kernelmod[HASHKILL_MAXTHREADS];
+cl_kernel rule_kerneliv[HASHKILL_MAXTHREADS];
+cl_kernel rule_kernelblock[HASHKILL_MAXTHREADS];
+cl_kernel rule_kerneliter[HASHKILL_MAXTHREADS];
+cl_kernel rule_kernellast[HASHKILL_MAXTHREADS];
+
+
 
 cl_uint *rule_found_ind[HASHKILL_MAXTHREADS];
 int rule_counts[HASHKILL_MAXTHREADS][32]; // Padded to cacheline to avoid false sharing

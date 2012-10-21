@@ -85,6 +85,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"bfunix",&ocl_bruteforce_bfunix, &ocl_markov_bfunix, &ocl_rule_bfunix},
                             {1,"drupal7",&ocl_bruteforce_drupal7, &ocl_markov_drupal7, &ocl_rule_drupal7},
                             {1,"django256",&ocl_bruteforce_django256, &ocl_markov_django256, &ocl_rule_django256},
+                            //{1,"sha256unix",&ocl_bruteforce_sha256unix, &ocl_markov_sha256unix, &ocl_rule_sha256unix},
                             {0, "", NULL, NULL, NULL}
                         };
 
@@ -306,6 +307,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"pixmd5")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"bfunix")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"drupal7")==0)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"sha256unix")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"sha512unix")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"oracle-old")==0)) {ocl_vector=1;loops=2;}
 		if ((strcmp(get_current_plugin(),"mysql5")==0)) ocl_vector=4;

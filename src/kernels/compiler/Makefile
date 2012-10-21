@@ -127,21 +127,13 @@ build:
 	@if [ ! -e nvidia_wpa2__sm10.ptx ]; then ./nvidia-compiler nvidia_wpa2 n ;fi
 	@if [ ! -e nvidia_dmg__sm10.ptx ]; then ./nvidia-compiler nvidia_dmg n ;fi
 	@if [ ! -e nvidia_phpass512__sm10.ptx ]; then ./nvidia-compiler nvidia_phpass512 n ;fi
-	@if [ ! -e nvidia_rar__sm10.ptx ]; then \
-	./nvidia-compiler nvidia_rar Fn 0; \
-	./nvidia-compiler nvidia_rar Fn 1; \
-	./nvidia-compiler nvidia_rar Fn 2; \
-	./nvidia-compiler nvidia_rar Fn 3; \
-	./nvidia-compiler nvidia_rar Fn 4; \
-	./nvidia-compiler nvidia_rar Fn 5; \
-	./nvidia-compiler nvidia_rar Fn 6; \
-	fi;
 	@if [ ! -e nvidia_sha1_passsalt_ulong__sm10.ptx ]; then ./nvidia-compiler nvidia_sha1_passsalt_ulong n ;fi
 	@if [ ! -e nvidia_sha512unix__sm10.ptx ]; then ./nvidia-compiler nvidia_sha512unix n ;fi
 	@if [ ! -e nvidia_zip__sm10.ptx ]; then ./nvidia-compiler nvidia_zip n ;fi
 	@if [ ! -e nvidia_zip_long__sm10.ptx ]; then ./nvidia-compiler nvidia_zip_long n ;fi
 	@if [ ! -e nvidia_zips__sm10.ptx ]; then ./nvidia-compiler nvidia_zips n ;fi
 	@if [ ! -e nvidia_zipu__sm10.ptx ]; then ./nvidia-compiler nvidia_zipu n ;fi
+	@if [ ! -e nvidia_rar__sm10.ptx ]; then ./nvidia-compiler nvidia_rar n ;fi
 	@if [ ! -e nvidia_bfunix__sm10.ptx ]; then ./nvidia-compiler nvidia_bfunix n ;fi
 	@if [ ! -e nvidia_django256__sm10.ptx ]; then ./nvidia-compiler nvidia_django256 n ;fi
 
