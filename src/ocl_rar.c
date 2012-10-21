@@ -555,10 +555,10 @@ void* ocl_rule_rar_thread(void *arg)
 
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
-    ocl_rule_workset[self]=64*32;
+    ocl_rule_workset[self]=64*64;
     if (ocl_gpu_double==1) ocl_rule_workset[self]*=16;
     if (wthreads[self].ocl_have_gcn==1) ocl_rule_workset[self]*=4;
-    if (interactive_mode==1) ocl_rule_workset[self]/=4;
+    if (interactive_mode==1) ocl_rule_workset[self]/=8;
 
     rule_ptr[self] = malloc(ocl_rule_workset[self]*hash_ret_len1*wthreads[self].vectorsize);
 
