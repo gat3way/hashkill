@@ -463,6 +463,11 @@ static void ocl_rar_crack_callback(char *line, int self)
     _clSetKernelArg(rule_kernelblock[self], 2, sizeof(cl_mem), (void*) &rule_images163_buf[cc1][self]);
     _clSetKernelArg(rule_kernelblock[self], 3, sizeof(cl_uint16), (void*) &addline);
     _clSetKernelArg(rule_kernelblock[self], 4, sizeof(cl_uint4), (void*) &salt);
+    _clSetKernelArg(rule_kernelblocks[self], 0, sizeof(cl_mem), (void*) &rule_images163_buf[cc1][self]);
+    _clSetKernelArg(rule_kernelblocks[self], 1, sizeof(cl_mem), (void*) &rule_images16_buf[cc1][self]);
+    _clSetKernelArg(rule_kernelblocks[self], 2, sizeof(cl_mem), (void*) &rule_images163_buf[cc1][self]);
+    _clSetKernelArg(rule_kernelblocks[self], 3, sizeof(cl_uint16), (void*) &addline);
+    _clSetKernelArg(rule_kernelblocks[self], 4, sizeof(cl_uint4), (void*) &salt);
     _clSetKernelArg(rule_kernellast[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
     _clSetKernelArg(rule_kernellast[self], 1, sizeof(cl_mem), (void*) &rule_images164_buf[cc1][self]);
     _clSetKernelArg(rule_kernellast[self], 2, sizeof(cl_mem), (void*) &rule_images163_buf[cc1][self]);
@@ -472,14 +477,16 @@ static void ocl_rar_crack_callback(char *line, int self)
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelmod[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
     for (a=0;a<16;a++)
     {
+	if (attack_over!=0) pthread_exit(NULL);
 	salt.s2=(16384*a);
         _clSetKernelArg(rule_kerneliv[self], 4, sizeof(cl_uint4), (void*) &salt);
         _clSetKernelArg(rule_kernelblock[self], 4, sizeof(cl_uint4), (void*) &salt);
+        _clSetKernelArg(rule_kernelblocks[self], 4, sizeof(cl_uint4), (void*) &salt);
 	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kerneliv[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
-	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelblock[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
+	if (cc1>6) _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelblock[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
+	else _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelblocks[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
-	if (attack_over!=0) pthread_exit(NULL);
 	wthreads[self].tries+=((rule_counts[self][cc]*wthreads[self].vectorsize)/16);
     }
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernellast[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
@@ -496,7 +503,7 @@ static void ocl_rar_crack_callback(char *line, int self)
             memcpy(iv,(char *)rule_ptr[self]+(e)*32+16,16);
             if (check_rar(key,iv)==hash_ok)
             {
-                for (d=0;d<16;d++) plainimg[d] = rule_images162[cc][self][e*32+d];
+                for (d=0;d<16;d++) plainimg[d] = rule_images162[cc][self][e*16+d];
                 strcat((char *)plainimg,line);
                 if (!cracked_list) add_cracked_list(hash_list->username, hash_list->hash, hash_list->salt, (char *)plainimg);
             }
@@ -580,6 +587,7 @@ void* ocl_rule_rar_thread(void *arg)
     rule_kernelmod[self] = _clCreateKernel(program[self], "strmodify", &err );
     rule_kerneliv[self] = _clCreateKernel(program[self], "calculateiv", &err );
     rule_kernelblock[self] = _clCreateKernel(program[self], "calculateblock", &err );
+    rule_kernelblocks[self] = _clCreateKernel(program[self], "calculateblocks", &err );
     rule_kernellast[self] = _clCreateKernel(program[self], "calculatelast", &err );
 
 
