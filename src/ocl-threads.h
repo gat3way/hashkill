@@ -141,7 +141,7 @@ cl_kernel rule_kernel17[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernelmod[HASHKILL_MAXTHREADS];
 cl_kernel rule_kerneliv[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernelblock[HASHKILL_MAXTHREADS];
-cl_kernel rule_kerneliter[HASHKILL_MAXTHREADS];
+cl_kernel rule_kernelblocks[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernellast[HASHKILL_MAXTHREADS];
 
 
