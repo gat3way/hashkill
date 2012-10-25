@@ -49,7 +49,7 @@ typedef struct ops_s
     char charset[128];
 } ops_t;
 
-ops_t ops[HASHKILL_MAXTHREADS+3][MAXRULES];
+ops_t ops[HASHKILL_MAXTHREADS+3][MAXRULES] __attribute__((aligned(64)));;
 
 
 
@@ -60,7 +60,7 @@ typedef struct rule_queue_s
     char line[MAXCAND];
 } rule_queue_t;
 
-rule_queue_t rule_queue[HASHKILL_MAXTHREADS+3];
+rule_queue_t rule_queue[HASHKILL_MAXTHREADS+3] __attribute__((aligned(64)));;
 
 
 

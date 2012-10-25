@@ -1122,7 +1122,7 @@ static void *calculate_markov_thread(void *arg)
     {
         overall += markov_calculate_overall(cnt-1);
     }
-    attack_overall_count = overall;
+    attack_overall_count = overall*strlen(markov_charset);
     pthread_exit(NULL);
 }
 
@@ -1953,7 +1953,7 @@ hash_stat main_thread_markov(int threads)
     // Some plugins have non-regular 'hash' value though 
     flag=0;
     if ((strcmp(get_current_plugin(),"md5unix")==0)||(strcmp(get_current_plugin(),"apr1")==0)
-    ||(strcmp(get_current_plugin(),"sha512unix")==0)
+    ||(strcmp(get_current_plugin(),"sha512unix")==0)||(strcmp(get_current_plugin(),"sha256unix")==0)
     ||(strcmp(get_current_plugin(),"mscash")==0)||(strcmp(get_current_plugin(),"mscash2")==0)
     ||(strcmp(get_current_plugin(),"zip")==0)||(strcmp(get_current_plugin(),"wpa")==0)
     ||(strcmp(get_current_plugin(),"dmg")==0)||(strcmp(get_current_plugin(),"bcrypt")==0)
@@ -2013,7 +2013,7 @@ hash_stat main_thread_bruteforce(int threads)
     mylist = hash_list;
     spawn_threads(threads);
     if (session_restore_flag==0) attack_overall_count=1;
-    if (bruteforce_start==bruteforce_end) attack_overall_count = (powl(strlen(bruteforce_charset),bruteforce_end-1));
+    if (bruteforce_start==bruteforce_end) attack_overall_count = (powl(strlen(bruteforce_charset),bruteforce_end));
     else for (cnt = bruteforce_start; cnt <= bruteforce_end; cnt++)
     {
         attack_overall_count += (powl(strlen(bruteforce_charset),cnt));
@@ -2038,7 +2038,7 @@ hash_stat main_thread_bruteforce(int threads)
     // Some plugins have non-regular 'hash' value though 
     flag=0;
     if ((strcmp(get_current_plugin(),"md5unix")==0)||(strcmp(get_current_plugin(),"apr1")==0)
-    ||(strcmp(get_current_plugin(),"sha512unix")==0)
+    ||(strcmp(get_current_plugin(),"sha512unix")==0)||(strcmp(get_current_plugin(),"sha256unix")==0)
     ||(strcmp(get_current_plugin(),"mscash")==0)||(strcmp(get_current_plugin(),"mscash2")==0)
     ||(strcmp(get_current_plugin(),"zip")==0)||(strcmp(get_current_plugin(),"wpa")==0)
     ||(strcmp(get_current_plugin(),"dmg")==0)||(strcmp(get_current_plugin(),"bcrypt")==0)
@@ -2121,7 +2121,7 @@ hash_stat main_thread_rule(int threads)
     // Some plugins have non-regular 'hash' value though 
     flag=0;
     if ((strcmp(get_current_plugin(),"md5unix")==0)||(strcmp(get_current_plugin(),"apr1")==0)
-    ||(strcmp(get_current_plugin(),"sha512unix")==0)
+    ||(strcmp(get_current_plugin(),"sha512unix")==0)||(strcmp(get_current_plugin(),"sha256unix")==0)
     ||(strcmp(get_current_plugin(),"mscash")==0)||(strcmp(get_current_plugin(),"mscash2")==0)
     ||(strcmp(get_current_plugin(),"zip")==0)||(strcmp(get_current_plugin(),"wpa")==0)
     ||(strcmp(get_current_plugin(),"dmg")==0)||(strcmp(get_current_plugin(),"bcrypt")==0)

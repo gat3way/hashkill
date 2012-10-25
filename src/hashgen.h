@@ -67,7 +67,7 @@ typedef struct optimize_s
 } optimize_t;
 
 
-optimize_t rule_optimize[HASHKILL_MAXTHREADS+1];
+optimize_t rule_optimize[HASHKILL_MAXTHREADS+1] __attribute__((aligned(64)));;
 
 
 typedef void (*finalfn_t)(char *line, int self);

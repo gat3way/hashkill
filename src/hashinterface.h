@@ -59,7 +59,7 @@ typedef struct hash_cpu_node_s
     char pad_to_avoid_false_sharing[64];
 } hash_cpu_t;
 
-hash_cpu_t hash_cpu[HASHKILL_MAXTHREADS];
+hash_cpu_t hash_cpu[HASHKILL_MAXTHREADS] __attribute__((aligned(64)));
 
 
 /* hashes linked lists */
@@ -89,7 +89,7 @@ typedef enum attack_method_e
 struct hash_index_t
 {
     struct hash_list_s *nodes;
-} hash_index[256][256];
+} hash_index[256][256] __attribute__((aligned(64)));
 
 
 /* Thread types enum */
@@ -125,7 +125,7 @@ typedef struct workthreads_s
     int activity;		// Activity
     char adaptername[255];	// Adapter name
 } workthreads_t;
-workthreads_t wthreads[HASHKILL_MAXTHREADS];
+workthreads_t wthreads[HASHKILL_MAXTHREADS] __attribute__((aligned(64)));
 int nwthreads;
 
 
