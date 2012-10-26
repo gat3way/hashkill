@@ -106,6 +106,8 @@ cl_ulong8 rule_singlehash_long8[HASHKILL_MAXTHREADS];
 
 cl_mem rule_images_buf[HASHKILL_MAXTHREADS];
 cl_mem rule_images2_buf[HASHKILL_MAXTHREADS];
+cl_mem rule_images3_buf[HASHKILL_MAXTHREADS];
+cl_mem rule_images4_buf[HASHKILL_MAXTHREADS];
 cl_mem rule_sizes_buf[HASHKILL_MAXTHREADS];
 cl_mem rule_sizes2_buf[HASHKILL_MAXTHREADS];
 cl_mem rule_images16_buf[16][HASHKILL_MAXTHREADS];
@@ -118,6 +120,8 @@ cl_mem rule_sizes162_buf[16][HASHKILL_MAXTHREADS];
 
 char *rule_images[HASHKILL_MAXTHREADS];
 char *rule_images2[HASHKILL_MAXTHREADS];
+char *rule_images3[HASHKILL_MAXTHREADS];
+char *rule_images4[HASHKILL_MAXTHREADS];
 int *rule_sizes[HASHKILL_MAXTHREADS];
 int *rule_sizes2[HASHKILL_MAXTHREADS];
 char *rule_images16[16][HASHKILL_MAXTHREADS];
@@ -127,7 +131,7 @@ char *rule_images164[16][HASHKILL_MAXTHREADS];
 int *rule_sizes16[16][HASHKILL_MAXTHREADS];
 int *rule_sizes162[16][HASHKILL_MAXTHREADS];
 
-/* sha512 kernels */
+/* sha512/sha256 kernels */
 cl_kernel rule_kernel0[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernel00[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernel03[HASHKILL_MAXTHREADS];
@@ -143,6 +147,13 @@ cl_kernel rule_kerneliv[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernelblock[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernelblocks[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernellast[HASHKILL_MAXTHREADS];
+/* pbkdf kernels */
+cl_kernel rule_kernelmod[HASHKILL_MAXTHREADS];
+cl_kernel rule_kernelpre1[HASHKILL_MAXTHREADS];
+cl_kernel rule_kernelbl1[HASHKILL_MAXTHREADS];
+cl_kernel rule_kernelpre2[HASHKILL_MAXTHREADS];
+cl_kernel rule_kernelbl2[HASHKILL_MAXTHREADS];
+cl_kernel rule_kernelend[HASHKILL_MAXTHREADS];
 
 
 
