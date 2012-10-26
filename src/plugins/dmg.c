@@ -325,7 +325,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    AES_KEY aes_decrypt_key;
 	    //unsigned char outbuf[4096];
 	    unsigned char outbuf2[4096];
-	    unsigned char iv[16];
+	    unsigned char iv[20];
 
 	    hash_pbkdf2_len(password[a], strlen(password[a]), (unsigned char *)header2.kdf_salt, 20, 1000, sizeof(derived_key), derived_key);
 
