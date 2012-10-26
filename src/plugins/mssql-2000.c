@@ -123,6 +123,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     for (a=0;a<vectorsize;a++)
     {
 	newpass[a] = alloca(64);
+	bzero(newpass[a],40);
 	passwordup[a] = alloca(64);
     }
     
@@ -182,6 +183,7 @@ hash_stat hash_plugin_check_hash_dictionary(const char *hash, const char *passwo
     {
 	newpass[a] = alloca(64);
 	passwordup[a] = alloca(64);
+	bzero(newpass[a],40);
     }
     
     for (a=0;a<vectorsize;a++)

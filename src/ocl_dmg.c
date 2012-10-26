@@ -355,7 +355,7 @@ static hash_stat check_dmg(unsigned char *derived_key, char *pwd)
         int outlen, tmplen;
         AES_KEY aes_decrypt_key;
         unsigned char outbuf2[4096];
-        unsigned char iv[16];
+        unsigned char iv[20];
 
 
         EVP_CIPHER_CTX_init(&ctx);

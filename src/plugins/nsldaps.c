@@ -122,6 +122,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     for (a=0;a<vectorsize;a++) 
     {
 	salted[a]=alloca(128);
+	bzero(salted[a],40);
 	memcpy(salted[a],password[a], strlen(password[a]));
 	memcpy(salted[a]+strlen(password[a]), salt,strlen(salt));
 	dest[a] = alloca(128);
@@ -153,6 +154,7 @@ hash_stat hash_plugin_check_hash_dictionary(const char *hash, const char *passwo
     for (a=0;a<vectorsize;a++) 
     {
 	salted[a]=alloca(128);
+	bzero(salted[a],40);
 	memcpy(salted[a],password[a], strlen(password[a]));
 	memcpy(salted[a]+strlen(password[a]), salt,strlen(salt));
 	dest[a] = alloca(128);
