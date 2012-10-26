@@ -110,6 +110,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     for (a=0;a<vectorsize;a++) 
     {
 	hash2[a] = alloca(64);
+	bzero(hash2[a],40);
 	memcpy(hash2[a], password[a], strlen(password[a]));
 	memcpy(hash2[a]+strlen(password[a]), saltc,10);
 	lens[a] = strlen(password[a])+10;

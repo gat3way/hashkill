@@ -117,11 +117,10 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     int lens[VECTORSIZE];
 
 
-    for (a=0;a<vectorsize;a++) newpass[a] = alloca(128);
-
     for (a=0;a<vectorsize;a++)
     {
 	newpass[a] = alloca(128);
+	bzero(newpass[a],40);
 	for (cnt=0;cnt<strlen(password[a]);cnt++)
 	{
 	    newpass[a][cnt*2] = password[a][cnt];
