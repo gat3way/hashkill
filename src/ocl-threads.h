@@ -141,19 +141,21 @@ cl_kernel rule_kernel1[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernel13[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernel137[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernel17[HASHKILL_MAXTHREADS];
+
 /* rar kernels */
 cl_kernel rule_kernelmod[HASHKILL_MAXTHREADS];
 cl_kernel rule_kerneliv[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernelblock[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernelblocks[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernellast[HASHKILL_MAXTHREADS];
+
 /* pbkdf kernels */
-cl_kernel rule_kernelmod[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernelpre1[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernelbl1[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernelpre2[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernelbl2[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernelend[HASHKILL_MAXTHREADS];
+
 
 
 
