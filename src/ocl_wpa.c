@@ -266,7 +266,9 @@ static void ocl_wpa_crack_callback(char *line, int self)
     _clSetKernelArg(rule_kernelbl2[self], 8, sizeof(cl_mem), (void*) &eapol_buf[self]);
 
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelmod[self], 1, NULL, &nws1, rule_local_work_size, 0, NULL, NULL);
+    _clFinish(rule_oclqueue[self]);
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+    _clFinish(rule_oclqueue[self]);
     for (a=0;a<7;a++)
     {
 	if (attack_over==1) pthread_exit(NULL);
@@ -278,6 +280,7 @@ static void ocl_wpa_crack_callback(char *line, int self)
     }
 
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre2[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+    _clFinish(rule_oclqueue[self]);
     for (a=0;a<7;a++)
     {
 	if (attack_over==1) pthread_exit(NULL);

@@ -399,7 +399,6 @@ static void ocl_sha512unix_crack_callback(char *line, int self)
     struct  hash_list_s  *mylist, *addlist;
     char plain[MAX];
     char hex1[16];
-    cl_uint16 addline;
     cl_uint salt;
     cl_ulong8 singlehash;
     unsigned char base64[89];
@@ -448,6 +447,7 @@ static void ocl_sha512unix_crack_callback(char *line, int self)
             strcpy(candidate,rule_images162[cc][self]+(a*16));
             strcat(candidate,line);
             setup_spint0(candidate,hex1,&rule_images16[cc1][self][0]+(a*96));
+            if (attack_over!=0) pthread_exit(NULL);
         }
 
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images16_buf[cc1][self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*96, rule_images16[cc1][self], 0, NULL, NULL);
@@ -524,6 +524,7 @@ static void ocl_sha512unix_crack_callback(char *line, int self)
 
 	/* Now call first transform00+4999*(transformX+sha512unixm+sha512unixe) */
 	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel00[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
+	_clFinish(rule_oclqueue[self]);
 	for (a=0;a<4999;a++)
 	{
 	    if ( ((a&1)==0)&&((a%3)!=0)&&((a%7)!=0) ) _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel037[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
@@ -534,11 +535,13 @@ static void ocl_sha512unix_crack_callback(char *line, int self)
 	    else if ( ((a&1)!=0)&&((a%3)!=0)&&((a%7)==0) ) _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel13[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
 	    else if ( ((a&1)!=0)&&((a%3)==0)&&((a%7)==0) ) _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel1[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
 	    else if ( ((a&1)!=0)&&((a%3)==0)&&((a%7)!=0) ) _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel17[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
+	    _clFinish(rule_oclqueue[self]);
 	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
-	    if (wthreads[self].ocl_have_gcn==1) _clFinish(rule_oclqueue[self]);
+	    _clFinish(rule_oclqueue[self]);
     	    if ((a%500)==1) wthreads[self].tries+=(wthreads[self].vectorsize*ocl_rule_workset[self])/10;
 	}
 	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel137[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
+	_clFinish(rule_oclqueue[self]);
 	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel2[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
         found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
         if (err!=CL_SUCCESS) continue;
@@ -644,8 +647,8 @@ void* ocl_rule_sha512unix_thread(void *arg)
 
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
-    ocl_rule_workset[self]=128*64;
-    if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*8;
+    ocl_rule_workset[self]=128*128*2;
+    if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*2;
     if (ocl_gpu_double) ocl_rule_workset[self]*=2;
     if (interactive_mode==1) ocl_rule_workset[self]/=8;
     

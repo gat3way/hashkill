@@ -189,6 +189,7 @@ static void ocl_apr1_crack_callback(char *line, int self)
 	if (gws==0) gws=64;
         wthreads[self].tries+=(gws1)/get_hashes_num();
         _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel162[cc][self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
+	_clFinish(rule_oclqueue[self]);
         _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel16[cc1][self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
         found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
         if (err!=CL_SUCCESS) continue;

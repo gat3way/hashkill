@@ -475,6 +475,7 @@ static void ocl_rar_crack_callback(char *line, int self)
     _clSetKernelArg(rule_kernellast[self], 4, sizeof(cl_uint4), (void*) &salt);
 
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelmod[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
+    _clFinish(rule_oclqueue[self]);
     for (a=0;a<16;a++)
     {
 	if (attack_over!=0) pthread_exit(NULL);

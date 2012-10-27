@@ -1377,6 +1377,7 @@ static void ocl_md5md5_crack_callback(char *line, int self)
     wthreads[self].tries+=ocl_rule_workset[self]*wthreads[self].vectorsize;
     size_t nws=ocl_rule_workset[self]*wthreads[self].vectorsize;
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel2[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+    _clFinish(rule_oclqueue[self]);
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
     found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
     if (*found>0) 

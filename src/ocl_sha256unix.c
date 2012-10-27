@@ -1,5 +1,5 @@
 /*
- * ocl_md5unix.c
+ * ocl_sha256unix.c
  *
  * hashkill - a hash cracking tool
  * Copyright (C) 2010 Milen Rangelov <gat3way@gat3way.eu>
@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <pthread.h>
+#include <openssl/sha.h>
 #include "err.h"
 #include "ocl-base.h"
 #include "ocl-threads.h"
@@ -33,11 +34,15 @@
 #include "ocl-adl.h"
 #include "hashgen.h"
 
+#define MIN(a,b) ((a) < (b) ? a : b)
+static int hash_ret_len1=64;
 
 static unsigned const char cov_2char[65]="./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-static int hash_ret_len1=16;
 
-//Pick out the 16 bytes in this order: 11 4 10 5 3 9 15 2 8 14 1 7 13 0 6 12.
+//Pick out the 16 bytes in this order: 
+// 63 62 20 41 40 61 19 18 39 60 59 17 38 37 58 16 15 36 57 56 14 35 34 55 
+// 13 12 33 54 53 11 32 31 52 10 9 30 51 50 8 29 28 49 7 6 27 48 47 5 26 
+// 25 46 4 3 24 45 44 2 23 22 43 1 0 21 42
 static int b64_pton_crypt(unsigned char const *src, unsigned char *target)
 {
     int y,j;
@@ -52,8 +57,8 @@ static int b64_pton_crypt(unsigned char const *src, unsigned char *target)
     for (j=0; j<65; j++) if (cov_2char[j]==src[0]) c4=(j&255);
     y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
     target[0]=(y>>24)&255;
-    target[6]=(y>>16)&255;
-    target[12]=(y>>8)&255;
+    target[21]=(y>>16)&255;
+    target[42]=(y>>8)&255;
 
     y=0;
     for (j=0; j<65; j++) if (cov_2char[j]==src[7]) c1=(j&255);
@@ -61,19 +66,18 @@ static int b64_pton_crypt(unsigned char const *src, unsigned char *target)
     for (j=0; j<65; j++) if (cov_2char[j]==src[5]) c3=(j&255);
     for (j=0; j<65; j++) if (cov_2char[j]==src[4]) c4=(j&255);
     y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
-    target[1]=(y>>24)&255;
-    target[7]=(y>>16)&255;
-    target[13]=(y>>8)&255;
-
+    target[22]=(y>>24)&255;
+    target[43]=(y>>16)&255;
+    target[1]=(y>>8)&255;
     y=0;
     for (j=0; j<65; j++) if (cov_2char[j]==src[11]) c1=(j&255);
     for (j=0; j<65; j++) if (cov_2char[j]==src[10]) c2=(j&255);
     for (j=0; j<65; j++) if (cov_2char[j]==src[9]) c3=(j&255);
     for (j=0; j<65; j++) if (cov_2char[j]==src[8]) c4=(j&255);
     y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
-    target[2]=(y>>24)&255;
-    target[8]=(y>>16)&255;
-    target[14]=(y>>8)&255;
+    target[44]=(y>>24)&255;
+    target[2]=(y>>16)&255;
+    target[23]=(y>>8)&255;
 
     y=0;
     for (j=0; j<65; j++) if (cov_2char[j]==src[15]) c1=(j&255);
@@ -82,8 +86,8 @@ static int b64_pton_crypt(unsigned char const *src, unsigned char *target)
     for (j=0; j<65; j++) if (cov_2char[j]==src[12]) c4=(j&255);
     y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
     target[3]=(y>>24)&255;
-    target[9]=(y>>16)&255;
-    target[15]=(y>>8)&255;
+    target[24]=(y>>16)&255;
+    target[45]=(y>>8)&255;
 
     y=0;
     for (j=0; j<65; j++) if (cov_2char[j]==src[19]) c1=(j&255);
@@ -91,24 +95,303 @@ static int b64_pton_crypt(unsigned char const *src, unsigned char *target)
     for (j=0; j<65; j++) if (cov_2char[j]==src[17]) c3=(j&255);
     for (j=0; j<65; j++) if (cov_2char[j]==src[16]) c4=(j&255);
     y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
-    target[4]=(y>>24)&255;
-    target[10]=(y>>16)&255;
-    target[5]=(y>>8)&255;
+    target[25]=(y>>24)&255;
+    target[46]=(y>>16)&255;
+    target[4]=(y>>8)&255;
 
     y=0;
-    for (j=0; j<65; j++) if (cov_2char[j]==src[21]) c1=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[20]) c2=(j&255);
-    y=(c1<<14)|(c2<<8)|0;//(c3<<14)|(c4<<8);
-    target[11]=(y>>8)&255;
-    target[16]=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[23]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[22]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[21]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[20]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[47]=(y>>24)&255;
+    target[5]=(y>>16)&255;
+    target[26]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[27]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[26]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[25]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[24]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[6]=(y>>24)&255;
+    target[27]=(y>>16)&255;
+    target[48]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[31]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[30]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[29]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[28]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[28]=(y>>24)&255;
+    target[49]=(y>>16)&255;
+    target[7]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[35]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[34]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[33]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[32]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[50]=(y>>24)&255;
+    target[8]=(y>>16)&255;
+    target[29]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[39]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[38]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[37]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[36]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[9]=(y>>24)&255;
+    target[30]=(y>>16)&255;
+    target[51]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[43]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[42]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[41]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[40]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[31]=(y>>24)&255;
+    target[52]=(y>>16)&255;
+    target[10]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[47]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[46]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[45]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[44]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[53]=(y>>24)&255;
+    target[11]=(y>>16)&255;
+    target[32]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[51]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[50]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[49]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[48]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[12]=(y>>24)&255;
+    target[33]=(y>>16)&255;
+    target[54]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[55]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[54]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[53]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[52]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[34]=(y>>24)&255;
+    target[55]=(y>>16)&255;
+    target[13]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[59]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[58]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[57]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[56]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[56]=(y>>24)&255;
+    target[14]=(y>>16)&255;
+    target[35]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[63]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[62]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[61]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[60]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[15]=(y>>24)&255;
+    target[36]=(y>>16)&255;
+    target[57]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[67]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[66]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[65]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[64]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[37]=(y>>24)&255;
+    target[58]=(y>>16)&255;
+    target[16]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[71]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[70]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[69]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[68]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[59]=(y>>24)&255;
+    target[17]=(y>>16)&255;
+    target[38]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[75]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[74]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[73]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[72]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[18]=(y>>24)&255;
+    target[39]=(y>>16)&255;
+    target[60]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[79]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[78]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[77]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[76]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[40]=(y>>24)&255;
+    target[61]=(y>>16)&255;
+    target[19]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[83]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[82]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[81]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[80]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[62]=(y>>24)&255;
+    target[20]=(y>>16)&255;
+    target[41]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[87]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[86]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[85]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[84]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    //target[63]=(y>>24)&255;
+    //target[63]=(y>>16)&255;
+    target[63]=(y>>8)&255;
+
 
     return 0;
 }
 
 
+static void setup_spint0(char *key, char *salt, char *result)
+{
+    char *p_bytes;
+    char *s_bytes;
+    char *cp;
+    char *bigbuf, *bigbuf2;
+    int bbl, bbl2;
+    int cnt;
+    int key_len = strlen(key);
+    int salt_len = MIN (strcspn (salt, "$"), 16);
+    unsigned char *alt_result;
+    unsigned char *temp_result;
+    SHA256_CTX ctx;
+
+    bigbuf=alloca(4255);
+    bigbuf2=alloca(4255);
+    p_bytes=alloca(16);
+    s_bytes=alloca(16);
+    alt_result=alloca(4255);
+    temp_result=alloca(4255);
+    bbl=0;
+    bbl2=0;
+    bzero(p_bytes,16);
+    bzero(s_bytes,16);
+    bzero(result,88);
+
+    memcpy(bigbuf, key, key_len);
+    bbl += key_len;
+    memcpy(bigbuf+bbl, salt, salt_len);
+    bbl += salt_len;
+    memcpy(bigbuf2, key, key_len);
+    bbl2 += key_len;
+    memcpy(bigbuf2+bbl2, salt, salt_len);
+    bbl2 += salt_len;
+    memcpy(bigbuf2+bbl2, key, key_len);
+    bbl2 += key_len;
+
+
+    SHA256_Init(&ctx);
+    SHA256_Update(&ctx, bigbuf2, bbl2);
+    SHA256_Final((unsigned char *)alt_result,&ctx);
+    //hash_sha256_unicode(bigbuf2, alt_result, bbl2);
+
+    bbl2 = 0;
+
+    for (cnt = key_len; cnt > 32; cnt -= 32)
+    {
+        memcpy(bigbuf+bbl, alt_result, 32);
+        bbl += 32;
+    }
+    memcpy(bigbuf+bbl, alt_result, cnt);
+    bbl += cnt;
+
+    for (cnt = key_len; cnt > 0; cnt >>= 1)
+    if ((cnt & 1) != 0)
+    {
+      memcpy(bigbuf+bbl, alt_result, 32);
+      bbl += 32;
+    }
+    else
+    {
+      memcpy(bigbuf+bbl, key, key_len);
+      bbl += key_len;
+    }
+    SHA256_Init(&ctx);
+    SHA256_Update(&ctx, bigbuf, bbl);
+    SHA256_Final((unsigned char *)alt_result,&ctx);
+    //hash_sha256_unicode(bigbuf, alt_result, bbl);
+
+    bbl = 0;
+    for (cnt = 0; cnt < key_len; ++cnt)
+    {
+        memcpy(bigbuf2+bbl2, key, key_len);
+        bbl2 += key_len;
+    }
+
+    SHA256_Init(&ctx);
+    SHA256_Update(&ctx, bigbuf2, bbl2);
+    SHA256_Final((unsigned char *)temp_result,&ctx);
+    //hash_sha256_unicode(bigbuf2, temp_result, bbl2);
+    bbl2 = 0;
+
+
+    /* Create byte sequence P.  */
+    cp = p_bytes = alloca (key_len);
+    for (cnt = key_len; cnt >= 32; cnt -= 32)
+    cp = memcpy (cp, temp_result, 32);
+    memcpy (cp, temp_result, cnt);
+
+    bbl2 = 0;
+    for (cnt = 0; cnt < (16 + (alt_result[0]&255)); ++cnt)
+    {
+        memcpy(bigbuf2+bbl2, salt, salt_len);
+        bbl2 += salt_len;
+    }
+
+    SHA256_Init(&ctx);
+    SHA256_Update(&ctx, bigbuf2, bbl2);
+    SHA256_Final((unsigned char *)temp_result,&ctx);
+    //hash_sha256_unicode(bigbuf2, temp_result, bbl2);
+    bbl2=0;
+    /* Create byte sequence S.  */
+    cp = s_bytes = alloca (salt_len);
+    for (cnt = salt_len; cnt >= 32; cnt -= 32)
+        cp = memcpy (cp, temp_result, 32);
+    memcpy (cp, temp_result, cnt);
+    bbl=0;
+
+    /* prepare end buffer: sbytes+int0+pbytes */
+    memcpy(result,s_bytes,8);
+    memcpy(result+8,alt_result,32);
+    memcpy(result+32+8,p_bytes,key_len);
+}
+
+
 
 /* Crack callback */
-static void ocl_md5unix_crack_callback(char *line, int self)
+static void ocl_sha256unix_crack_callback(char *line, int self)
 {
     int a,b,c,e;
     int *found;
@@ -118,10 +401,11 @@ static void ocl_md5unix_crack_callback(char *line, int self)
     char hex1[16];
     cl_uint16 addline;
     cl_uint16 salt;
-    cl_uint16 singlehash;
-    unsigned char base64[64];
+    cl_ulong8 singlehash;
+    unsigned char base64[89];
     int cc,cc1;
     size_t gws,gws1;
+    char kernelname[32];
 
     cc = self_kernel16[self];
     cc1 = self_kernel16[self]+strlen(line);
@@ -129,67 +413,70 @@ static void ocl_md5unix_crack_callback(char *line, int self)
     mylist = hash_list;
     while (mylist)
     {
+	sprintf(kernelname,"sha256unix%d",cc1);
+	rule_kernel[self] = _clCreateKernel(program[self], kernelname, &err );
+        _clSetKernelArg(rule_kernel[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
+        _clSetKernelArg(rule_kernel[self], 1, sizeof(cl_mem), (void*) &rule_images16_buf[cc1][self]);
+        _clSetKernelArg(rule_kernel[self], 2, sizeof(cl_mem), (void*) &rule_found_ind_buf[self]);
+        _clSetKernelArg(rule_kernel[self], 3, sizeof(cl_mem), (void*) &rule_found_buf[self]);
+
         if (mylist->salt2[0]==1) {mylist=mylist->next;continue;}
 	/* setup addline */
-	addline.s0=addline.s1=addline.s2=addline.s3=addline.s4=addline.s5=addline.s6=addline.s7=addline.sF=0;
-	addline.sF=strlen(line);
-	addline.s0=line[0]|(line[1]<<8)|(line[2]<<16)|(line[3]<<24);
-	addline.s1=line[4]|(line[5]<<8)|(line[6]<<16)|(line[7]<<24);
-	addline.s2=line[8]|(line[9]<<8)|(line[10]<<16)|(line[11]<<24);
-	addline.s3=line[12]|(line[13]<<8)|(line[14]<<16)|(line[15]<<24);
-	_clSetKernelArg(rule_kernel162[cc][self], 4, sizeof(cl_uint16), (void*) &addline);
+	_clSetKernelArg(rule_kernel2[self], 4, sizeof(cl_uint16), (void*) &addline);
 
-	/* setup salt */
-	char tempsalt[32];
-        bzero(tempsalt,32);
-        strcpy(tempsalt,mylist->salt);
-        a=strlen(tempsalt)-1;
-        tempsalt[a]=0;tempsalt[a+1]=0;tempsalt[a+2]=0;tempsalt[a+3]=0;tempsalt[a+4]=0;
-        tempsalt[a+5]=0;tempsalt[a+6]=0;tempsalt[a+7]=0;
+	/* setup_salt */
+	_clSetKernelArg(rule_kernel2[self], 5, sizeof(cl_uint16), (void*) &salt);
+	_clSetKernelArg(rule_kernel[self], 5, sizeof(cl_uint16), (void*) &salt);
 
-        salt.s0=salt.s4=salt.s8=salt.sB=0;
-        salt.sC=strlen(tempsalt)-3;
-        salt.sE=(tempsalt[3])|(tempsalt[4]<<8)|(tempsalt[5]<<16)|(tempsalt[6]<<24);
-        salt.sF=(tempsalt[7])|(tempsalt[8]<<8)|(tempsalt[9]<<16)|(tempsalt[10]<<24);
-        salt.sD=cc1;
-        salt.sB=cc;
-        salt.s9=1;
-        salt.sA='1';
-
-	_clSetKernelArg(rule_kernel162[cc][self], 5, sizeof(cl_uint16), (void*) &salt);
-	_clSetKernelArg(rule_kernel16[cc1][self], 5, sizeof(cl_uint16), (void*) &salt);
-	_clSetKernelArg(rule_kernel162[cc][self], 0, sizeof(cl_mem), (void*) &rule_images16_buf[cc1][self]);
-
-        unsigned char mhash[22];
-        memcpy(base64,mylist->hash,22);
+        unsigned char mhash[89];
+        memcpy(base64,mylist->hash,88);
         b64_pton_crypt(base64,mhash);
-        unsigned int A,B,C,D;
+        uint64_t A1,A2,A3,A4,A5,A6,A7,A8;
         memcpy(hex1,mhash,4);
-        memcpy(&A, hex1, 4);
+        memcpy(&A1, hex1, 4);
         memcpy(hex1,mhash+4,4);
-        memcpy(&B, hex1, 4);
+        memcpy(&A2, hex1, 4);
         memcpy(hex1,mhash+8,4);
-        memcpy(&C, hex1, 4);
+        memcpy(&A3, hex1, 4);
         memcpy(hex1,mhash+12,4);
-        memcpy(&D, hex1, 4);
-	singlehash.x=A;singlehash.y=B;singlehash.z=C;singlehash.w=D;
-	_clSetKernelArg(rule_kernel16[cc1][self], 4, sizeof(cl_uint4), (void*) &singlehash);
+        memcpy(&A4, hex1, 4);
+        memcpy(hex1,mhash+16,4);
+        memcpy(&A5, hex1, 4);
+        memcpy(hex1,mhash+20,4);
+        memcpy(&A6, hex1, 4);
+        memcpy(hex1,mhash+24,4);
+        memcpy(&A7, hex1, 4);
+        memcpy(hex1,mhash+28,4);
+        memcpy(&A8, hex1, 4);
+        singlehash.s0=A1;singlehash.s1=A2;singlehash.s2=A3;singlehash.s3=A4;
+        singlehash.s4=A5;singlehash.s5=A6;singlehash.s6=A7;singlehash.s7=A8;
+	_clSetKernelArg(rule_kernel[self], 4, sizeof(cl_ulong8), (void*) &singlehash);
 
+        for (a=0;a<ocl_rule_workset[self];a++)
+        {
+	    char candidate[32];
+	    bzero(candidate,32);
+	    bzero(hex1,16);
+            memcpy(hex1,mylist->salt+3,8);
+            strcpy(candidate,rule_images162[cc][self]+(a*16));
+            strcat(candidate,line);
+            setup_spint0(candidate,hex1,&rule_images16[cc1][self][0]+(a*56));
+        }
+
+	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images16_buf[cc1][self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*88, rule_images16[cc1][self], 0, NULL, NULL);
         if (attack_over!=0) pthread_exit(NULL);
         pthread_mutex_lock(&wthreads[self].tempmutex);
         pthread_mutex_unlock(&wthreads[self].tempmutex);
 
-        if (rule_counts[self][cc]==-1) return;
+	if (rule_counts[self][cc]==-1) return;
         gws = (rule_counts[self][cc] / wthreads[self].vectorsize);
         while ((gws%64)!=0) gws++;
         gws1 = gws*wthreads[self].vectorsize;
         if (gws1==0) gws1=64;
         if (gws==0) gws=64;
-
         wthreads[self].tries+=(gws1)/get_hashes_num();
-        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel162[cc][self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
-        _clFinish(rule_oclqueue[self]);
-        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel16[cc1][self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
+
+        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
         found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
         if (err!=CL_SUCCESS) continue;
         if (*found>0) 
@@ -203,10 +490,10 @@ static void ocl_md5unix_crack_callback(char *line, int self)
 		for (c=0;c<wthreads[self].vectorsize;c++)
 		{
 	    	    e=(a)*wthreads[self].vectorsize+c;
-                    unsigned char mhash[20];
-                    memcpy(base64,mylist->hash,22);
+                    unsigned char mhash[89];
+                    memcpy(base64,mylist->hash,88);
                     b64_pton_crypt(base64,mhash);
-    		    if (memcmp(mhash, (char *)rule_ptr[self]+(e)*hash_ret_len1, hash_ret_len1-1) == 0)
+    		    if (memcmp(mhash, (char *)rule_ptr[self]+(e)*hash_ret_len1, hash_ret_len1-2) == 0)
     		    {
             		int flag = 0;
                 	strcpy(plain,&rule_images162[cc][self][0]+(e*16));
@@ -235,12 +522,13 @@ static void ocl_md5unix_crack_callback(char *line, int self)
 	}
 	_clEnqueueUnmapMemObject(rule_oclqueue[self],rule_found_buf[self],(void *)found,0,NULL,NULL);
 	mylist = mylist->next;
+	_clReleaseKernel(rule_kernel[self]);
     }
 }
 
 
 
-static void ocl_md5unix_callback(char *line, int self)
+static void ocl_sha256unix_callback(char *line, int self)
 {
     int cc=0;
 
@@ -252,12 +540,13 @@ static void ocl_md5unix_callback(char *line, int self)
 	strncpy(&rule_images162[cc][self][0]+(rule_counts[self][cc]*16),line,15);
     }
 
+
     if (rule_counts[self][cc]==ocl_rule_workset[self]*wthreads[self].vectorsize-1)
     {
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images162_buf[cc][self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*16, rule_images162[cc][self], 0, NULL, NULL);
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_sizes162_buf[cc][self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), rule_sizes162[self], 0, NULL, NULL);
 	self_kernel16[self]=cc;
-	rule_offload_perform(ocl_md5unix_crack_callback,self);
+	rule_offload_perform(ocl_sha256unix_crack_callback,self);
     	bzero(&rule_images162[cc][self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*16);
 	rule_counts[self][cc]=-1;
     }
@@ -268,7 +557,7 @@ static void ocl_md5unix_callback(char *line, int self)
 	self_kernel16[self]=cc;
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images162_buf[cc][self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*16, rule_images162[cc][self], 0, NULL, NULL);
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_sizes162_buf[cc][self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), rule_sizes162[self], 0, NULL, NULL);
-	rule_offload_perform(ocl_md5unix_crack_callback,self);
+	rule_offload_perform(ocl_sha256unix_crack_callback,self);
     	bzero(&rule_images162[cc][self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*16);
 	rule_counts[self][cc]=-1;
     }
@@ -279,7 +568,7 @@ static void ocl_md5unix_callback(char *line, int self)
 
 
 /* Worker thread - rule attack */
-void* ocl_rule_md5unix_thread(void *arg)
+void* ocl_rule_sha256unix_thread(void *arg)
 {
     cl_int err;
     int found;
@@ -287,27 +576,19 @@ void* ocl_rule_md5unix_thread(void *arg)
     size_t amd_local_work_size[3]={64,1,1};
     int self;
     int a;
-    char kernelname[32];
 
     memcpy(&self,arg,sizeof(int));
     pthread_mutex_lock(&biglock);
 
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
-    ocl_rule_workset[self]=128*256;
+    ocl_rule_workset[self]=64*64*2;
     if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=4;
     if (ocl_gpu_double) ocl_rule_workset[self]*=2;
     if (interactive_mode==1) ocl_rule_workset[self]/=8;
     
     rule_ptr[self] = malloc(ocl_rule_workset[self]*hash_ret_len1*wthreads[self].vectorsize);
-
-    for (a=0;a<16;a++)
-    {
-	sprintf(kernelname,"md5unix%d",a);
-	rule_kernel16[a][self] = _clCreateKernel(program[self], kernelname, &err );
-	rule_kernel162[a][self] = _clCreateKernel(program[self], "strmodify", &err );
-    }
-
+    rule_kernel2[self] = _clCreateKernel(program[self], "strmodify", &err );
     rule_oclqueue[self] = _clCreateCommandQueue(context[self], wthreads[self].cldeviceid, 0, &err );
     rule_buffer[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*wthreads[self].vectorsize*hash_ret_len1, NULL, &err );
     rule_found_buf[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, 4, NULL, &err );
@@ -319,28 +600,26 @@ void* ocl_rule_md5unix_thread(void *arg)
     _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE, 0, 4, &found, 0, NULL, NULL);
     for (a=0;a<16;a++)
     {
-        rule_images16_buf[a][self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*16, NULL, &err );
+        rule_images16_buf[a][self] = _clCreateBuffer(context[self], CL_MEM_READ_ONLY, ocl_rule_workset[self]*wthreads[self].vectorsize*56, NULL, &err );
         rule_images162_buf[a][self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*16, NULL, &err );
         rule_sizes16_buf[a][self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), NULL, &err );
         rule_sizes162_buf[a][self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), NULL, &err );
         rule_sizes16[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int));
         rule_sizes162[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int));
-        rule_images16[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*16);
+        rule_images16[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*56);
         rule_images162[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*16);
-        bzero(&rule_images16[a][self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*16);
-	_clSetKernelArg(rule_kernel16[a][self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
-	_clSetKernelArg(rule_kernel16[a][self], 1, sizeof(cl_mem), (void*) &rule_images16_buf[a][self]);
-	_clSetKernelArg(rule_kernel16[a][self], 2, sizeof(cl_mem), (void*) &rule_found_ind_buf[self]);
-	_clSetKernelArg(rule_kernel16[a][self], 3, sizeof(cl_mem), (void*) &rule_found_buf[self]);
-        _clSetKernelArg(rule_kernel162[a][self], 0, sizeof(cl_mem), (void*) &rule_images16_buf[a][self]);
-        _clSetKernelArg(rule_kernel162[a][self], 1, sizeof(cl_mem), (void*) &rule_images162_buf[a][self]);
-        _clSetKernelArg(rule_kernel162[a][self], 2, sizeof(cl_mem), (void*) &rule_sizes16_buf[a][self]);
-        _clSetKernelArg(rule_kernel162[a][self], 3, sizeof(cl_mem), (void*) &rule_sizes162_buf[a][self]);
+        bzero(&rule_images16[a][self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*56);
+        bzero(&rule_images162[a][self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*16);
         rule_counts[self][a]=-1;
     }
+    _clSetKernelArg(rule_kernel2[self], 0, sizeof(cl_mem), (void*) &rule_images16_buf[0][self]);
+    _clSetKernelArg(rule_kernel2[self], 1, sizeof(cl_mem), (void*) &rule_images162_buf[0][self]);
+    _clSetKernelArg(rule_kernel2[self], 2, sizeof(cl_mem), (void*) &rule_sizes16_buf[0][self]);
+    _clSetKernelArg(rule_kernel2[self], 3, sizeof(cl_mem), (void*) &rule_sizes162_buf[0][self]);
+
     pthread_mutex_unlock(&biglock); 
 
-    worker_gen(self,ocl_md5unix_callback);
+    worker_gen(self,ocl_sha256unix_callback);
 
     return hash_ok;
 }
@@ -348,7 +627,7 @@ void* ocl_rule_md5unix_thread(void *arg)
 
 
 
-hash_stat ocl_bruteforce_md5unix(void)
+hash_stat ocl_bruteforce_sha256unix(void)
 {
     suggest_rule_attack();
     return hash_ok;
@@ -356,7 +635,7 @@ hash_stat ocl_bruteforce_md5unix(void)
 
 
 
-hash_stat ocl_markov_md5unix(void)
+hash_stat ocl_markov_sha256unix(void)
 {
     suggest_rule_attack();
     return hash_ok;
@@ -367,7 +646,7 @@ hash_stat ocl_markov_md5unix(void)
 
 
 /* Main thread - rule */
-hash_stat ocl_rule_md5unix(void)
+hash_stat ocl_rule_sha256unix(void)
 {
     int a,i;
     int err;
@@ -390,7 +669,7 @@ hash_stat ocl_rule_md5unix(void)
             bzero(pbuf,100);
             char kernelfile[255];
             _clGetDeviceInfo(device[wthreads[i].deviceid], CL_DEVICE_NAME, sizeof(pbuf),pbuf, NULL );
-    	    sprintf(kernelfile,"%s/hashkill/kernels/amd_md5unix__%s.bin",DATADIR,pbuf);
+    	    sprintf(kernelfile,"%s/hashkill/kernels/amd_sha256unix__%s.bin",DATADIR,pbuf);
 
     	    char *ofname = kernel_decompress(kernelfile);
             if (!ofname) return hash_err;
@@ -435,7 +714,7 @@ hash_stat ocl_rule_md5unix(void)
             if ((compute_capability_major==2)&&(compute_capability_minor==0)) sprintf(pbuf,"sm20");
             if ((compute_capability_major==2)&&(compute_capability_minor==1)) sprintf(pbuf,"sm21");
 	    if ((compute_capability_major==3)&&(compute_capability_minor==0)) sprintf(pbuf,"sm30");
-    	    sprintf(kernelfile,"%s/hashkill/kernels/nvidia_md5unix__%s.ptx",DATADIR,pbuf);
+    	    sprintf(kernelfile,"%s/hashkill/kernels/nvidia_sha256unix__%s.ptx",DATADIR,pbuf);
 
     	    char *ofname = kernel_decompress(kernelfile);
             if (!ofname) return hash_err;
@@ -467,9 +746,9 @@ hash_stat ocl_rule_md5unix(void)
     for (a=0;a<nwthreads;a++)
     {
         worker_thread_keys[a]=a;
-        pthread_create(&crack_threads[a], NULL, ocl_rule_md5unix_thread, &worker_thread_keys[a]);
+        pthread_create(&crack_threads[a], NULL, ocl_rule_sha256unix_thread, &worker_thread_keys[a]);
     }
-    rule_gen_parse(rule_file,ocl_md5unix_callback,nwthreads,SELF_THREAD);
+    rule_gen_parse(rule_file,ocl_sha256unix_callback,nwthreads,SELF_THREAD);
 
     for (a=0;a<nwthreads;a++) pthread_join(crack_threads[a], NULL);
     attack_over=2;

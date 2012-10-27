@@ -2071,6 +2071,7 @@ static void ocl_zip_crack_callback(char *line, int self)
     wthreads[self].tries+=ocl_rule_workset[self]*wthreads[self].vectorsize;
     size_t nws=ocl_rule_workset[self]*wthreads[self].vectorsize;
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel2[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+    _clFinish(rule_oclqueue[self]);
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
     found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
     if (*found==1) 
@@ -2180,6 +2181,8 @@ void* ocl_rule_zip_thread(void *arg)
     else ocl_rule_workset[self]=1024*512;
     if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=4;
     if (ocl_gpu_double) ocl_rule_workset[self]*=2;
+    if (interactive_mode==1) ocl_rule_workset[self]/=4;
+
 
     rule_ptr[self] = malloc(ocl_rule_workset[self]*hash_ret_len*wthreads[self].vectorsize);
     rule_counts[self][0]=0;
