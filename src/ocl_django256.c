@@ -159,7 +159,6 @@ static void ocl_django256_crack_callback(char *line, int self)
 	addline.s1=line[4]|(line[5]<<8)|(line[6]<<16)|(line[7]<<24);
 	addline.s2=line[8]|(line[9]<<8)|(line[10]<<16)|(line[11]<<24);
 	addline.s3=line[12]|(line[13]<<8)|(line[14]<<16)|(line[15]<<24);
-	_clSetKernelArg(rule_kernel2[self], 4, sizeof(cl_uint16), (void*) &addline);
 
 	/* setup salt */
         salt.s0=(mylist->salt[12])|(mylist->salt[13]<<8)|(mylist->salt[14]<<16)|(mylist->salt[15]<<24);
@@ -169,9 +168,6 @@ static void ocl_django256_crack_callback(char *line, int self)
 	rounds=atoi(mylist->salt);
 	salt.sE=rounds-1;
 	salt.sF=12;
-
-	_clSetKernelArg(rule_kernel2[self], 5, sizeof(cl_uint16), (void*) &salt);
-	_clSetKernelArg(rule_kernel[self], 6, sizeof(cl_uint16), (void*) &salt);
 
         strcpy(base64,mylist->hash+33);
         b64_pton(base64,mhash,32);
@@ -201,16 +197,53 @@ static void ocl_django256_crack_callback(char *line, int self)
 	singlehash.s5=F;
 	singlehash.s6=G;
 	singlehash.s7=H;
-	_clSetKernelArg(rule_kernel[self], 5, sizeof(cl_uint16), (void*) &singlehash);
 
         if (attack_over!=0) pthread_exit(NULL);
         pthread_mutex_lock(&wthreads[self].tempmutex);
         pthread_mutex_unlock(&wthreads[self].tempmutex);
 
-        wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/get_hashes_num();
+	_clSetKernelArg(rule_kernelmod[self], 0, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
+	_clSetKernelArg(rule_kernelmod[self], 1, sizeof(cl_mem), (void*) &rule_images_buf[self]);
+	_clSetKernelArg(rule_kernelmod[self], 2, sizeof(cl_mem), (void*) &rule_sizes_buf[self]);
+	_clSetKernelArg(rule_kernelmod[self], 3, sizeof(cl_uint16), (void*) &addline);
+	_clSetKernelArg(rule_kernelmod[self], 4, sizeof(cl_uint16), (void*) &salt);
+	_clSetKernelArg(rule_kernelpre1[self], 0, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
+	_clSetKernelArg(rule_kernelpre1[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
+	_clSetKernelArg(rule_kernelpre1[self], 2, sizeof(cl_mem), (void*) &rule_sizes_buf[self]);
+	_clSetKernelArg(rule_kernelpre1[self], 3, sizeof(cl_mem), (void*) &rule_found_ind_buf[self]);
+	_clSetKernelArg(rule_kernelpre1[self], 4, sizeof(cl_mem), (void*) &rule_found_buf[self]);
+	_clSetKernelArg(rule_kernelpre1[self], 5, sizeof(cl_uint16), (void*) &singlehash);
+	_clSetKernelArg(rule_kernelpre1[self], 6, sizeof(cl_uint16), (void*) &salt);
+	_clSetKernelArg(rule_kernelbl1[self], 0, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
+	_clSetKernelArg(rule_kernelbl1[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
+	_clSetKernelArg(rule_kernelbl1[self], 2, sizeof(cl_mem), (void*) &rule_sizes_buf[self]);
+	_clSetKernelArg(rule_kernelbl1[self], 3, sizeof(cl_mem), (void*) &rule_found_ind_buf[self]);
+	_clSetKernelArg(rule_kernelbl1[self], 4, sizeof(cl_mem), (void*) &rule_found_buf[self]);
+	_clSetKernelArg(rule_kernelbl1[self], 5, sizeof(cl_uint16), (void*) &singlehash);
+	_clSetKernelArg(rule_kernelbl1[self], 6, sizeof(cl_uint16), (void*) &salt);
+	_clSetKernelArg(rule_kernellast[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
+	_clSetKernelArg(rule_kernellast[self], 1, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
+	_clSetKernelArg(rule_kernellast[self], 2, sizeof(cl_mem), (void*) &rule_sizes_buf[self]);
+	_clSetKernelArg(rule_kernellast[self], 3, sizeof(cl_mem), (void*) &rule_found_ind_buf[self]);
+	_clSetKernelArg(rule_kernellast[self], 4, sizeof(cl_mem), (void*) &rule_found_buf[self]);
+	_clSetKernelArg(rule_kernellast[self], 5, sizeof(cl_uint16), (void*) &singlehash);
+	_clSetKernelArg(rule_kernellast[self], 6, sizeof(cl_uint16), (void*) &salt);
+
         size_t nws=ocl_rule_workset[self]*wthreads[self].vectorsize;
-        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel2[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
-        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
+        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelmod[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+	_clFinish(rule_oclqueue[self]);
+        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
+	_clFinish(rule_oclqueue[self]);
+
+	for (a=0;a<(salt.sE/1000);a++)
+	{
+    	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
+	    _clFinish(rule_oclqueue[self]);
+    	    wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/(get_hashes_num()*(salt.sE/1000));
+	}
+	salt.sA=(salt.sE%1000);
+	_clSetKernelArg(rule_kernellast[self], 6, sizeof(cl_uint16), (void*) &salt);
+    	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernellast[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
         found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
         if (err!=CL_SUCCESS) continue;
         if (*found>0) 
@@ -302,8 +335,10 @@ void* ocl_rule_django256_thread(void *arg)
     rule_ptr[self] = malloc(ocl_rule_workset[self]*hash_ret_len1*wthreads[self].vectorsize);
     rule_counts[self][0]=0;
 
-    rule_kernel[self] = _clCreateKernel(program[self], "django256", &err );
-    rule_kernel2[self] = _clCreateKernel(program[self], "strmodify", &err );
+    rule_kernelmod[self] = _clCreateKernel(program[self], "strmodify", &err );
+    rule_kernelpre1[self] = _clCreateKernel(program[self], "prepare", &err );
+    rule_kernelbl1[self] = _clCreateKernel(program[self], "pbkdf", &err );
+    rule_kernellast[self] = _clCreateKernel(program[self], "final", &err );
 
     rule_oclqueue[self] = _clCreateCommandQueue(context[self], wthreads[self].cldeviceid, 0, &err );
     rule_buffer[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*wthreads[self].vectorsize*hash_ret_len1, NULL, &err );
@@ -316,25 +351,16 @@ void* ocl_rule_django256_thread(void *arg)
     _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE, 0, 4, &found, 0, NULL, NULL);
     rule_images_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
     rule_images2_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
+    rule_images3_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*128, NULL, &err );
     rule_sizes_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), NULL, &err );
-    rule_sizes2_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), NULL, &err );
     rule_sizes[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int));
-    rule_sizes2[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int));
     rule_images[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
     rule_images2[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
+    rule_images3[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*128);
     bzero(&rule_images[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
     bzero(&rule_images2[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
+    bzero(&rule_images3[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*128);
     bzero(&rule_sizes[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
-    bzero(&rule_sizes2[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
-    _clSetKernelArg(rule_kernel[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
-    _clSetKernelArg(rule_kernel[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
-    _clSetKernelArg(rule_kernel[self], 2, sizeof(cl_mem), (void*) &rule_sizes2_buf[self]);
-    _clSetKernelArg(rule_kernel[self], 3, sizeof(cl_mem), (void*) &rule_found_ind_buf[self]);
-    _clSetKernelArg(rule_kernel[self], 4, sizeof(cl_mem), (void*) &rule_found_buf[self]);
-    _clSetKernelArg(rule_kernel2[self], 0, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
-    _clSetKernelArg(rule_kernel2[self], 1, sizeof(cl_mem), (void*) &rule_images_buf[self]);
-    _clSetKernelArg(rule_kernel2[self], 2, sizeof(cl_mem), (void*) &rule_sizes2_buf[self]);
-    _clSetKernelArg(rule_kernel2[self], 3, sizeof(cl_mem), (void*) &rule_sizes_buf[self]);
     pthread_mutex_unlock(&biglock); 
 
     worker_gen(self,ocl_django256_callback);
