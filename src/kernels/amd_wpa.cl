@@ -3280,7 +3280,7 @@ OPE=input1[get_global_id(0)*2*5+9];
 
 // We now have the first HMAC. Iterate to find the rest
 
-for (ic=str.sA;ic<1170+str.sA;ic++)
+for (ic=str.sA;ic<1170+str.sA;ic+=2)
 {
 
 // calculate hash sum 1
@@ -3858,7 +3858,7 @@ OPE=input1[get_global_id(0)*2*5+9];
 
 
 // We now have the first HMAC part2. Iterate to find the rest
-for (ic=str.sA;ic<str.sA+1170;ic++)
+for (ic=str.sA;ic<str.sA+1170;ic+=2)
 {
 
 // calculate hash sum 1
