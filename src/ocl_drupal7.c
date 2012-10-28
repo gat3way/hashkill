@@ -145,11 +145,113 @@ static int b64_pton(char const *src, char *target)
     target[27]=(y>>8)&255;
 
     y=0;
-    for (j=0; j<65; j++) if (cov_2char[j]==src[41]) c1=(j&255);
-    for (j=0; j<65; j++) if (cov_2char[j]==src[40]) c2=(j&255);
-    y=(c1<<26)|(c2<<20)|0;//(c3<<14)|(c4<<8);
-    target[31]=(y>>8)&255;
-    target[30]=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[43]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[42]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[41]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[40]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[32]=(y>>24)&255;
+    target[31]=(y>>16)&255;
+    target[30]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[47]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[46]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[45]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[44]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[35]=(y>>24)&255;
+    target[34]=(y>>16)&255;
+    target[33]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[51]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[50]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[49]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[48]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[38]=(y>>24)&255;
+    target[37]=(y>>16)&255;
+    target[36]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[55]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[54]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[53]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[52]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[41]=(y>>24)&255;
+    target[40]=(y>>16)&255;
+    target[39]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[59]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[58]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[57]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[56]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[44]=(y>>24)&255;
+    target[43]=(y>>16)&255;
+    target[42]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[63]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[62]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[61]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[60]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[47]=(y>>24)&255;
+    target[46]=(y>>16)&255;
+    target[45]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[67]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[66]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[65]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[64]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[50]=(y>>24)&255;
+    target[49]=(y>>16)&255;
+    target[48]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[71]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[70]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[69]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[68]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[53]=(y>>24)&255;
+    target[52]=(y>>16)&255;
+    target[51]=(y>>8)&255;
+
+    y=0;
+    for (j=0; j<65; j++) if (cov_2char[j]==src[75]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[74]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[73]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[72]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[56]=(y>>24)&255;
+    target[55]=(y>>16)&255;
+    target[54]=(y>>8)&255;
+
+    for (j=0; j<65; j++) if (cov_2char[j]==src[79]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[78]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[77]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[76]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[59]=(y>>24)&255;
+    target[58]=(y>>16)&255;
+    target[57]=(y>>8)&255;
+
+    for (j=0; j<65; j++) if (cov_2char[j]==src[83]) c1=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[82]) c2=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[81]) c3=(j&255);
+    for (j=0; j<65; j++) if (cov_2char[j]==src[80]) c4=(j&255);
+    y=(c1<<26)|(c2<<20)|(c3<<14)|(c4<<8);
+    target[62]=(y>>24)&255;
+    target[61]=(y>>16)&255;
+    target[60]=(y>>8)&255;
+
     return 0;
 }
 
@@ -172,7 +274,7 @@ static void ocl_drupal7_crack_callback(char *line, int self)
     cl_uint16 salt;
     cl_ulong4 singlehash;
     char mhash[64];
-    char base64[64];
+    char base64[128];
 
     mylist = hash_list;
     while (mylist)
@@ -185,7 +287,6 @@ static void ocl_drupal7_crack_callback(char *line, int self)
 	addline.s1=line[4]|(line[5]<<8)|(line[6]<<16)|(line[7]<<24);
 	addline.s2=line[8]|(line[9]<<8)|(line[10]<<16)|(line[11]<<24);
 	addline.s3=line[12]|(line[13]<<8)|(line[14]<<16)|(line[15]<<24);
-	_clSetKernelArg(rule_kernel2[self], 4, sizeof(cl_uint16), (void*) &addline);
 
 	/* setup salt */
         salt.sE=(mylist->salt[4])|(mylist->salt[5]<<8)|(mylist->salt[6]<<16)|(mylist->salt[7]<<24);
@@ -195,10 +296,8 @@ static void ocl_drupal7_crack_callback(char *line, int self)
         if (!p) return;
         salt.s1 = 1 << (p - (char *)cov_2char);
 
-	_clSetKernelArg(rule_kernel2[self], 5, sizeof(cl_uint16), (void*) &salt);
-	_clSetKernelArg(rule_kernel[self], 6, sizeof(cl_uint16), (void*) &salt);
 
-        memcpy(base64,mylist->hash,68);
+        memcpy(base64,mylist->hash,128);
         b64_pton(base64+12,mhash);
         uint64_t A,B,C,D;
         memcpy(hex1,mhash,8);
@@ -213,16 +312,50 @@ static void ocl_drupal7_crack_callback(char *line, int self)
 	singlehash.y=B;
 	singlehash.z=C;
 	singlehash.w=D;
-	_clSetKernelArg(rule_kernel[self], 5, sizeof(cl_ulong4), (void*) &singlehash);
 
         if (attack_over!=0) pthread_exit(NULL);
         pthread_mutex_lock(&wthreads[self].tempmutex);
         pthread_mutex_unlock(&wthreads[self].tempmutex);
 
-        wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/get_hashes_num();
-        size_t nws=ocl_rule_workset[self]*wthreads[self].vectorsize;
-        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel2[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
-        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
+        _clSetKernelArg(rule_kernelmod[self], 0, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
+        _clSetKernelArg(rule_kernelmod[self], 1, sizeof(cl_mem), (void*) &rule_images_buf[self]);
+        _clSetKernelArg(rule_kernelmod[self], 2, sizeof(cl_mem), (void*) &rule_sizes2_buf[self]);
+        _clSetKernelArg(rule_kernelmod[self], 3, sizeof(cl_mem), (void*) &rule_sizes_buf[self]);
+	_clSetKernelArg(rule_kernelmod[self], 4, sizeof(cl_uint16), (void*) &addline);
+	_clSetKernelArg(rule_kernelmod[self], 5, sizeof(cl_uint16), (void*) &salt);
+        _clSetKernelArg(rule_kernelpre1[self], 0, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
+        _clSetKernelArg(rule_kernelpre1[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
+        _clSetKernelArg(rule_kernelpre1[self], 2, sizeof(cl_mem), (void*) &rule_sizes2_buf[self]);
+        _clSetKernelArg(rule_kernelpre1[self], 3, sizeof(cl_mem), (void*) &rule_found_ind_buf[self]);
+        _clSetKernelArg(rule_kernelpre1[self], 4, sizeof(cl_mem), (void*) &rule_found_buf[self]);
+	_clSetKernelArg(rule_kernelpre1[self], 5, sizeof(cl_ulong4), (void*) &singlehash);
+	_clSetKernelArg(rule_kernelpre1[self], 6, sizeof(cl_uint16), (void*) &salt);
+        _clSetKernelArg(rule_kernelbl1[self], 0, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
+        _clSetKernelArg(rule_kernelbl1[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
+        _clSetKernelArg(rule_kernelbl1[self], 2, sizeof(cl_mem), (void*) &rule_sizes2_buf[self]);
+        _clSetKernelArg(rule_kernelbl1[self], 3, sizeof(cl_mem), (void*) &rule_found_ind_buf[self]);
+        _clSetKernelArg(rule_kernelbl1[self], 4, sizeof(cl_mem), (void*) &rule_found_buf[self]);
+	_clSetKernelArg(rule_kernelbl1[self], 5, sizeof(cl_ulong4), (void*) &singlehash);
+	_clSetKernelArg(rule_kernelbl1[self], 6, sizeof(cl_uint16), (void*) &salt);
+        _clSetKernelArg(rule_kernellast[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
+        _clSetKernelArg(rule_kernellast[self], 1, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
+        _clSetKernelArg(rule_kernellast[self], 2, sizeof(cl_mem), (void*) &rule_sizes2_buf[self]);
+        _clSetKernelArg(rule_kernellast[self], 3, sizeof(cl_mem), (void*) &rule_found_ind_buf[self]);
+        _clSetKernelArg(rule_kernellast[self], 4, sizeof(cl_mem), (void*) &rule_found_buf[self]);
+	_clSetKernelArg(rule_kernellast[self], 5, sizeof(cl_ulong4), (void*) &singlehash);
+	_clSetKernelArg(rule_kernellast[self], 6, sizeof(cl_uint16), (void*) &salt);
+
+        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelmod[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
+        _clFinish(rule_oclqueue[self]);
+        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
+	for (a=0;a<(salt.s1/512);a++)
+	{
+	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
+	    _clFinish(rule_oclqueue[self]);
+	    wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/(get_hashes_num()*(salt.s1/512));
+	}
+        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernellast[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
+
         found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
         if (err!=CL_SUCCESS) continue;
         if (*found>0) 
@@ -236,7 +369,7 @@ static void ocl_drupal7_crack_callback(char *line, int self)
 		for (c=0;c<wthreads[self].vectorsize;c++)
 		{
 	    	    e=(a)*wthreads[self].vectorsize+c;
-                    memcpy(base64,mylist->hash,68);
+                    memcpy(base64,mylist->hash,128);
                     b64_pton(base64+12,mhash);
     		    if (memcmp(mhash, (char *)rule_ptr[self]+(e)*hash_ret_len1, 32) == 0)
     		    {
@@ -307,7 +440,7 @@ void* ocl_rule_drupal7_thread(void *arg)
 
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
-    ocl_rule_workset[self]=64*32;
+    ocl_rule_workset[self]=64*64;
     if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=4;
     if (ocl_gpu_double) ocl_rule_workset[self]*=2;
     if (interactive_mode==1) ocl_rule_workset[self]/=8;
@@ -315,8 +448,10 @@ void* ocl_rule_drupal7_thread(void *arg)
     rule_ptr[self] = malloc(ocl_rule_workset[self]*hash_ret_len1*wthreads[self].vectorsize);
     rule_counts[self][0]=0;
 
-    rule_kernel[self] = _clCreateKernel(program[self], "phpass512", &err );
-    rule_kernel2[self] = _clCreateKernel(program[self], "strmodify", &err );
+    rule_kernelmod[self] = _clCreateKernel(program[self], "strmodify", &err );
+    rule_kernelpre1[self] = _clCreateKernel(program[self], "prepare", &err );
+    rule_kernelbl1[self] = _clCreateKernel(program[self], "phpass", &err );
+    rule_kernellast[self] = _clCreateKernel(program[self], "final", &err );
 
     rule_oclqueue[self] = _clCreateCommandQueue(context[self], wthreads[self].cldeviceid, 0, &err );
     rule_buffer[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*wthreads[self].vectorsize*hash_ret_len1, NULL, &err );
@@ -329,25 +464,19 @@ void* ocl_rule_drupal7_thread(void *arg)
     _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE, 0, 4, &found, 0, NULL, NULL);
     rule_images_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
     rule_images2_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
+    rule_images3_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*64, NULL, &err );
     rule_sizes_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), NULL, &err );
     rule_sizes2_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), NULL, &err );
     rule_sizes[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int));
     rule_sizes2[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int));
     rule_images[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
     rule_images2[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
+    rule_images3[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*64);
     bzero(&rule_images[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
     bzero(&rule_images2[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
+    bzero(&rule_images3[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*64);
     bzero(&rule_sizes[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
     bzero(&rule_sizes2[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
-    _clSetKernelArg(rule_kernel[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
-    _clSetKernelArg(rule_kernel[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
-    _clSetKernelArg(rule_kernel[self], 2, sizeof(cl_mem), (void*) &rule_sizes2_buf[self]);
-    _clSetKernelArg(rule_kernel[self], 3, sizeof(cl_mem), (void*) &rule_found_ind_buf[self]);
-    _clSetKernelArg(rule_kernel[self], 4, sizeof(cl_mem), (void*) &rule_found_buf[self]);
-    _clSetKernelArg(rule_kernel2[self], 0, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
-    _clSetKernelArg(rule_kernel2[self], 1, sizeof(cl_mem), (void*) &rule_images_buf[self]);
-    _clSetKernelArg(rule_kernel2[self], 2, sizeof(cl_mem), (void*) &rule_sizes2_buf[self]);
-    _clSetKernelArg(rule_kernel2[self], 3, sizeof(cl_mem), (void*) &rule_sizes_buf[self]);
     pthread_mutex_unlock(&biglock); 
 
     worker_gen(self,ocl_drupal7_callback);

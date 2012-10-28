@@ -46,24 +46,35 @@ dst[GGI*8+6] = inpc[GLI][6];
 dst[GGI*8+7] = inpc[GLI][7];
 }
 
+#ifndef GCN
+#define Endian_Reverse64(a) { (a) = ((a) & 0x00000000000000FFL) << 56 | ((a) & 0x000000000000FF00L) << 40 | \
+                              ((a) & 0x0000000000FF0000L) << 24 | ((a) & 0x00000000FF000000L) << 8 | \
+                              ((a) & 0x000000FF00000000L) >> 8 | ((a) & 0x0000FF0000000000L) >> 24 | \
+                              ((a) & 0x00FF000000000000L) >> 40 | ((a) & 0xFF00000000000000L) >> 56; }
+#else
+#define Endian_Reverse64(n)       ((n) = as_ulong(as_uchar8(n).s76543210))
+#endif
 
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-phpass512( __global ulong4 *dst,  __global ulong *input, __global uint *size,  __global uint *found_ind, __global uint *found,  ulong4 singlehash, uint16 salt) 
-{
+#define ROTATE(b,x)     (((x) >> (b)) | ((x) << (64 - (b))))
+#define R(b,x)          ((x) >> (b))
+#define Ch(x,y,z)       ((z)^((x)&((y)^(z))))
+#define Maj(x,y,z)      (((x) & (y)) | ((z)&((x)|(y))))
+#define Sigma0_512(x)   (ROTATE(28, (x)) ^ ROTATE(34, (x)) ^ ROTATE(39, (x)))
+#define Sigma1_512(x)   (ROTATE(14, (x)) ^ ROTATE(18, (x)) ^ ROTATE(41, (x)))
+#define sigma0_512(x)   (ROTATE( 1, (x)) ^ ROTATE( 8, (x)) ^ R( 7,   (x)))
+#define sigma1_512(x)   (ROTATE(19, (x)) ^ ROTATE(61, (x)) ^ R( 6,   (x)))
 
-ulong SIZE,tsize;  
-uint i,ib,ic,id,ie;  
-uint t1,t2,t3,t4;
-ulong x0,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16; 
-ulong y0,y1,y2,y3,y4,y5,y6,y7,y8,y9,y10;
-ulong w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w15; 
-uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
-ulong A,B,C,D,E,F,G,H,K,l,tmp1,tmp2,temp,T1;
 
-uint4 m= 0x00FF00FF;
-uint4 m2= 0xFF00FF00;
-#define Sl 8
-#define Sr 24
+#define ROUND512_0_TO_15(a,b,c,d,e,f,g,h,AC,x) T1 = (h) + Sigma1_512(e) + Ch((e), (f), (g)) + AC + x; \
+                                                (d) += T1; (h) = T1 + Sigma0_512(a) + Maj((a), (b), (c))
+
+#define ROUND512_0_TO_15_NL(a,b,c,d,e,f,g,h,AC) T1 = (h) + Sigma1_512(e) + Ch((e), (f), (g)) + AC; \
+                                                (d) += T1; (h) = T1 + Sigma0_512(a) + Maj((a), (b), (c))
+
+
+#define ROUND512(a,b,c,d,e,f,g,h,AC,x)  T1 = (h) + Sigma1_512(e) + Ch((e), (f), (g)) + AC + x;\
+                                        (d) += T1; (h) = T1 + Sigma0_512(a) + Maj((a), (b), (c)); 
+
 
 #define H0 0x6a09e667f3bcc908L
 #define H1 0xbb67ae8584caa73bL
@@ -156,14 +167,21 @@ uint4 m2= 0xFF00FF00;
 #define AC80 0x6c44198c4a475817L
 
 
-#ifndef GCN
-#define Endian_Reverse64(a) { (a) = ((a) & 0x00000000000000FFL) << 56 | ((a) & 0x000000000000FF00L) << 40 | \
-                              ((a) & 0x0000000000FF0000L) << 24 | ((a) & 0x00000000FF000000L) << 8 | \
-                              ((a) & 0x000000FF00000000L) >> 8 | ((a) & 0x0000FF0000000000L) >> 24 | \
-                              ((a) & 0x00FF000000000000L) >> 40 | ((a) & 0xFF00000000000000L) >> 56; }
-#else
-#define Endian_Reverse64(n)       ((n) = as_ulong(as_uchar8(n).s76543210))
-#endif
+
+
+__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
+prepare( __global ulong *dst,  __global ulong *input, __global uint *size,  __global uint *found_ind, __global uint *found,  ulong4 singlehash, uint16 salt) 
+{
+
+ulong SIZE,tsize;  
+uint i,ib,ic,id,ie;  
+uint t1,t2,t3,t4;
+ulong x0,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16; 
+ulong y0,y1,y2,y3,y4,y5,y6,y7,y8,y9,y10;
+ulong w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w15; 
+uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
+ulong A,B,C,D,E,F,G,H,K,l,tmp1,tmp2,temp,T1;
+
 
 A=(ulong)H0;
 B=(ulong)H1;
@@ -173,31 +191,6 @@ E=(ulong)H4;
 F=(ulong)H5;
 G=(ulong)H6;
 H=(ulong)H7;
-
-
-#define ROTATE(b,x)     (((x) >> (b)) | ((x) << (64 - (b))))
-#define R(b,x)          ((x) >> (b))
-#define Ch(x,y,z)       ((z)^((x)&((y)^(z))))
-#define Maj(x,y,z)      (((x) & (y)) | ((z)&((x)|(y))))
-#define Sigma0_512(x)   (ROTATE(28, (x)) ^ ROTATE(34, (x)) ^ ROTATE(39, (x)))
-#define Sigma1_512(x)   (ROTATE(14, (x)) ^ ROTATE(18, (x)) ^ ROTATE(41, (x)))
-#define sigma0_512(x)   (ROTATE( 1, (x)) ^ ROTATE( 8, (x)) ^ R( 7,   (x)))
-#define sigma1_512(x)   (ROTATE(19, (x)) ^ ROTATE(61, (x)) ^ R( 6,   (x)))
-
-
-#define ROUND512_0_TO_15(a,b,c,d,e,f,g,h,AC,x) T1 = (h) + Sigma1_512(e) + Ch((e), (f), (g)) + AC + x; \
-                                                (d) += T1; (h) = T1 + Sigma0_512(a) + Maj((a), (b), (c))
-
-#define ROUND512_0_TO_15_NL(a,b,c,d,e,f,g,h,AC) T1 = (h) + Sigma1_512(e) + Ch((e), (f), (g)) + AC; \
-                                                (d) += T1; (h) = T1 + Sigma0_512(a) + Maj((a), (b), (c))
-
-
-#define ROUND512(a,b,c,d,e,f,g,h,AC,x)  T1 = (h) + Sigma1_512(e) + Ch((e), (f), (g)) + AC + x;\
-                                        (d) += T1; (h) = T1 + Sigma0_512(a) + Maj((a), (b), (c)); 
-
-
-
-
 
 
 
@@ -222,14 +215,7 @@ y0=x1;
 y1=x2;
 y2=x3;
 y3=x4;
-y4=x5;
-y5=x6;
-y6=x7;
-y7=x8;
 
-
-
-{
 A=(ulong)H0;
 B=(ulong)H1;
 C=(ulong)H2;
@@ -335,11 +321,59 @@ F+=(ulong)H5;
 G+=(ulong)H6;
 H+=(ulong)H7;
 
+
+dst[(get_global_id(0)*8)]=A;
+dst[(get_global_id(0)*8)+1]=B;
+dst[(get_global_id(0)*8)+2]=C;
+dst[(get_global_id(0)*8)+3]=D;
+dst[(get_global_id(0)*8)+4]=E;
+dst[(get_global_id(0)*8)+5]=F;
+dst[(get_global_id(0)*8)+6]=G;
+dst[(get_global_id(0)*8)+7]=H;
+
 }
 
 
+__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
+phpass( __global ulong *dst,  __global ulong *input, __global uint *size,  __global uint *found_ind, __global uint *found,  ulong4 singlehash, uint16 salt) 
+{
+
+ulong SIZE,tsize;  
+uint i,ib,ic,id,ie;  
+uint t1,t2,t3,t4;
+ulong x0,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16; 
+ulong y0,y1,y2,y3,y4,y5,y6,y7,y8,y9,y10;
+ulong w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w15; 
+uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
+ulong A,B,C,D,E,F,G,H,K,l,tmp1,tmp2,temp,T1;
+
+
+A=dst[(get_global_id(0)*8)];
+B=dst[(get_global_id(0)*8)+1];
+C=dst[(get_global_id(0)*8)+2];
+D=dst[(get_global_id(0)*8)+3];
+E=dst[(get_global_id(0)*8)+4];
+F=dst[(get_global_id(0)*8)+5];
+G=dst[(get_global_id(0)*8)+6];
+H=dst[(get_global_id(0)*8)+7];
+
+x1=input[(get_global_id(0)*4)];
+x2=input[(get_global_id(0)*4)+1];
+x3=input[(get_global_id(0)*4)+2];
+x4=input[(get_global_id(0)*4)+3];
+
+
+y0=x1;
+y1=x2;
+y2=x3;
+y3=x4;
+i=size[(get_global_id(0))]; 
+SIZE=i;
+tsize=SIZE;
+
+
 tsize=(64+tsize)<<3;
-for (i=0;i<salt.s1;i++)
+for (i=0;i<512;i++)
 {
 
 SIZE=tsize;
@@ -356,7 +390,6 @@ x9=y1;
 x10=y2;
 x11=y3;
 x12=x13=x14=x16=(ulong)0;
-{
 A=(ulong)H0;
 B=(ulong)H1;
 C=(ulong)H2;
@@ -459,10 +492,43 @@ E+=(ulong)H4;
 F+=(ulong)H5;
 G+=(ulong)H6;
 H+=(ulong)H7;
+}
+
+dst[(get_global_id(0)*8)]=A;
+dst[(get_global_id(0)*8)+1]=B;
+dst[(get_global_id(0)*8)+2]=C;
+dst[(get_global_id(0)*8)+3]=D;
+dst[(get_global_id(0)*8)+4]=E;
+dst[(get_global_id(0)*8)+5]=F;
+dst[(get_global_id(0)*8)+6]=G;
+dst[(get_global_id(0)*8)+7]=H;
+
 
 }
 
-}
+__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
+final (__global ulong4 *dst,  __global ulong *input, __global uint *size,  __global uint *found_ind, __global uint *found,  ulong4 singlehash, uint16 salt) 
+{
+
+ulong SIZE,tsize;  
+uint i,ib,ic,id,ie;  
+uint t1,t2,t3,t4;
+ulong x0,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16; 
+ulong y0,y1,y2,y3,y4,y5,y6,y7,y8,y9,y10;
+ulong w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w15; 
+uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
+ulong A,B,C,D,E,F,G,H,K,l,tmp1,tmp2,temp,T1;
+
+
+A=input[(get_global_id(0)*8)];
+B=input[(get_global_id(0)*8)+1];
+C=input[(get_global_id(0)*8)+2];
+D=input[(get_global_id(0)*8)+3];
+E=input[(get_global_id(0)*8)+4];
+F=input[(get_global_id(0)*8)+5];
+G=input[(get_global_id(0)*8)+6];
+H=input[(get_global_id(0)*8)+7];
+
 
 Endian_Reverse64(A);
 Endian_Reverse64(B);
@@ -475,7 +541,9 @@ Endian_Reverse64(H);
 
 id=0;
 if (((ulong)singlehash.x!=A)) return;
-//if (((ulong)singlehash.y!=B)) return;
+if (((ulong)singlehash.y!=B)) return;
+if (((ulong)singlehash.z!=C)) return;
+if (((ulong)singlehash.w!=D)) return;
 
 
 found[0] = 1;
