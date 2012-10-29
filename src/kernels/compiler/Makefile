@@ -73,6 +73,7 @@ build:
 	@if [ ! -e amd_bfunix__Juniper.bin ]; then ./amd-compiler amd_bfunix n ;fi
 	@if [ ! -e amd_phpass512__Juniper.bin ]; then ./amd-compiler amd_phpass512 n ;fi
 	@if [ ! -e amd_django256__Juniper.bin ]; then ./amd-compiler amd_django256 n ;fi
+	@if [ ! -e amd_sha256unix__Juniper.bin ]; then ./amd-compiler amd_sha256unix n ;fi
 	@if [ ! -e amd_test__Juniper.bin ]; then ./amd-compiler amd_test n ;fi
 	# NVidia
 	@if [ ! -e nvidia_md5_long__sm10.ptx ]; then ./nvidia-compiler nvidia_md5_long ns ;fi
@@ -136,6 +137,7 @@ build:
 	@if [ ! -e nvidia_rar__sm10.ptx ]; then ./nvidia-compiler nvidia_rar n ;fi
 	@if [ ! -e nvidia_bfunix__sm10.ptx ]; then ./nvidia-compiler nvidia_bfunix n ;fi
 	@if [ ! -e nvidia_django256__sm10.ptx ]; then ./nvidia-compiler nvidia_django256 n ;fi
+	@if [ ! -e nvidia_sha256unix__sm10.ptx ]; then ./nvidia-compiler nvidia_sha256unix n ;fi
 
 
 

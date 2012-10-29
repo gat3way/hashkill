@@ -151,6 +151,11 @@ hash_stat ocl_bruteforce_sha512unix(void);
 hash_stat ocl_markov_sha512unix(void);
 hash_stat ocl_rule_sha512unix(void);
 
+/* sha256unix plugin support */
+hash_stat ocl_bruteforce_sha256unix(void);
+hash_stat ocl_markov_sha256unix(void);
+hash_stat ocl_rule_sha256unix(void);
+
 
 /* osxlion plugin support */
 hash_stat ocl_bruteforce_osxlion(void);

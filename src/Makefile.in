@@ -128,7 +128,8 @@ am_hashkill_OBJECTS = hashkill-ocl-base.$(OBJEXT) \
 	hashkill-ocl_wpa.$(OBJEXT) hashkill-ocl_dmg.$(OBJEXT) \
 	hashkill-unrargpu.$(OBJEXT) hashkill-ocl_rar.$(OBJEXT) \
 	hashkill-ocl_bfunix.$(OBJEXT) hashkill-ocl_drupal7.$(OBJEXT) \
-	hashkill-ocl_zip.$(OBJEXT) hashkill-ocl_django256.$(OBJEXT)
+	hashkill-ocl_zip.$(OBJEXT) hashkill-ocl_django256.$(OBJEXT) \
+	hashkill-ocl_sha256unix.$(OBJEXT)
 hashkill_OBJECTS = $(am_hashkill_OBJECTS)
 hashkill_DEPENDENCIES = libtargets.la
 hashkill_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -343,7 +344,7 @@ ocl_md4.c ocl_ntlm.c ocl_md5md5.c ocl_mysql5.c ocl_sha256.c ocl_sha512.c ocl_lm.
 ocl_joomla.c ocl_oscommerce.c ocl_ipb2.c ocl_vbulletin.c ocl_smf.c ocl_oracle11g.c ocl_mssql-2000.c \
 ocl_mssql-2005.c ocl_nsldaps.c ocl_osx-old.c ocl_osxlion.c ocl_desunix.c ocl_oracle-old.c  ocl_mscash.c \
 ocl_pixmd5.c ocl_phpbb3.c ocl_wordpress.c ocl_md5unix.c ocl_sha512unix.c ocl_mscash2.c ocl_apr1.c ocl_wpa.c \
-ocl_dmg.c unrargpu.c ocl_rar.c ocl_bfunix.c ocl_drupal7.c ocl_zip.c ocl_django256.c
+ocl_dmg.c unrargpu.c ocl_rar.c ocl_bfunix.c ocl_drupal7.c ocl_zip.c ocl_django256.c ocl_sha256unix.c
 
 
 # forced static linkage below
@@ -538,6 +539,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_rar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_sha1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_sha256.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_sha256unix.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_sha512.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_sha512unix.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_sl3.Po@am__quote@
@@ -1530,6 +1532,20 @@ hashkill-ocl_django256.obj: ocl_django256.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_django256.c' object='hashkill-ocl_django256.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_django256.obj `if test -f 'ocl_django256.c'; then $(CYGPATH_W) 'ocl_django256.c'; else $(CYGPATH_W) '$(srcdir)/ocl_django256.c'; fi`
+
+hashkill-ocl_sha256unix.o: ocl_sha256unix.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_sha256unix.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_sha256unix.Tpo -c -o hashkill-ocl_sha256unix.o `test -f 'ocl_sha256unix.c' || echo '$(srcdir)/'`ocl_sha256unix.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_sha256unix.Tpo $(DEPDIR)/hashkill-ocl_sha256unix.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_sha256unix.c' object='hashkill-ocl_sha256unix.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_sha256unix.o `test -f 'ocl_sha256unix.c' || echo '$(srcdir)/'`ocl_sha256unix.c
+
+hashkill-ocl_sha256unix.obj: ocl_sha256unix.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_sha256unix.obj -MD -MP -MF $(DEPDIR)/hashkill-ocl_sha256unix.Tpo -c -o hashkill-ocl_sha256unix.obj `if test -f 'ocl_sha256unix.c'; then $(CYGPATH_W) 'ocl_sha256unix.c'; else $(CYGPATH_W) '$(srcdir)/ocl_sha256unix.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_sha256unix.Tpo $(DEPDIR)/hashkill-ocl_sha256unix.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_sha256unix.c' object='hashkill-ocl_sha256unix.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_sha256unix.obj `if test -f 'ocl_sha256unix.c'; then $(CYGPATH_W) 'ocl_sha256unix.c'; else $(CYGPATH_W) '$(srcdir)/ocl_sha256unix.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
