@@ -382,9 +382,22 @@ void node_add_dict(char *line, char *stack,int ind,int self)
 		    exit(1);
 		}
 		fp=fmemopen((char *)map,st.st_size,"r");
+		if (!fp)
+		{
+		    hg_elog("Could not mmap dictionary: %s\n",nextname);
+		    exit(1);
+		}
 		mapped=1;
 	    }
-	    else fp=fopen(nextname,"r");
+	    else 
+	    {
+		fp=fopen(nextname,"r");
+		if (!fp)
+		{
+		    hg_elog("Could not mmap dictionary: %s\n",nextname);
+		    exit(1);
+		}
+	    }
 	}
 	else
 	{
@@ -399,6 +412,11 @@ void node_add_dict(char *line, char *stack,int ind,int self)
 		}
 	    }
 	    fp=fopen(nextname,"r");
+	    if (!fp)
+	    {
+	        hg_elog("Could not mmap dictionary: %s\n",nextname);
+	        exit(1);
+	    }
 	}
 
 	while (!feof(fp))
@@ -2273,7 +2291,7 @@ void node_add_cset(char *line, char *stack,int ind,int self)
 
 
 /* Generate permutation candidates */
-void node_add_set(char *line, char *stack,int ind,int self)
+void node_add_set(char* __restrict line,char *stack,int ind,int self)
 {
     int c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12;
     char str[MAXCAND];
@@ -3951,7 +3969,7 @@ void node_replace_dict(char *line, char *stack,int ind,int self)
 
 
 /* numrange hook */
-void node_add_numrange(char *line, char *stack,int ind,int self)
+void node_add_numrange(char* __restrict  line, char *stack,int ind,int self)
 {
     int a;
     char cline[MAXCAND];
