@@ -281,7 +281,6 @@ static void ocl_sha256unix_crack_callback(char *line, int self)
     struct  hash_list_s  *mylist, *addlist;
     char plain[MAX];
     char hex1[16];
-    cl_uint salt;
     cl_uint8 singlehash;
     unsigned char base64[89];
     int cc,cc1;
