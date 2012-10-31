@@ -28,6 +28,7 @@
 #include "err.h"
 #include "hashinterface.h"
 #include "ocl_support.h"
+#include "hashgen.h"
 
 
 #define MAXFOUND 1024*64
@@ -87,6 +88,12 @@ int reduced_size;
 
 
 /* Used by rule attack */
+uint ocl_rule_opt_counts[HASHKILL_MAXTHREADS];
+cl_uint16 addline1[HASHKILL_MAXTHREADS];
+cl_uint16 addline2[HASHKILL_MAXTHREADS];
+cl_uint16 addline3[HASHKILL_MAXTHREADS];
+char addlines[HASHKILL_MAXTHREADS][8][MAXCAND];
+
 size_t ocl_rule_workset[HASHKILL_MAXTHREADS];
 cl_command_queue rule_oclqueue[HASHKILL_MAXTHREADS];
 size_t *rule_local_work_size;
@@ -96,7 +103,12 @@ cl_kernel rule_kernel2[HASHKILL_MAXTHREADS];
 cl_kernel rule_kernel16[16][HASHKILL_MAXTHREADS];
 cl_kernel rule_kernel162[16][HASHKILL_MAXTHREADS];
 int self_kernel16[HASHKILL_MAXTHREADS];
+/* 
+    rule_bitmaps is the _OLD_ one which is to be deprecated
+    use rule_bitmap_buf instead!
+*/
 cl_mem rule_bitmaps_buf[HASHKILL_MAXTHREADS];
+cl_mem rule_bitmap_buf;
 char *rule_ptr[HASHKILL_MAXTHREADS];
 cl_mem rule_found_ind_buf[HASHKILL_MAXTHREADS];
 cl_mem rule_found_buf[HASHKILL_MAXTHREADS];

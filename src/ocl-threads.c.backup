@@ -1,0 +1,844 @@
+/*
+ * ocl-threads.c
+ *
+ * hashkill - a hash cracking tool
+ * Copyright (C) 2010 Milen Rangelov <gat3way@gat3way.eu>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+
+
+#ifdef HAVE_CL_CL_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <string.h>
+#include <unistd.h>
+#include <signal.h>
+#include <CL/opencl.h>
+#include <CL/cl.h>
+#include <alloca.h>
+#include "err.h"
+#include "hashinterface.h"
+#include "plugins.h"
+#include "ocl-threads.h"
+#include "ocl_support.h"
+#include "ocl-adl.h"
+#include "hashgen.h"
+#include "sessions.h"
+
+/* Local variables */
+static time_t time1;
+static uint64_t attack_current_count_local=0;
+
+
+/* supported plugins */
+struct ocl_supported_plugins_s ocl_supported_plugins[] =
+                        { 
+                            {1,"md5",&ocl_bruteforce_md5, &ocl_markov_md5, &ocl_hybrid_md5},
+                            {1,"sha1",&ocl_bruteforce_sha1, &ocl_markov_sha1, &ocl_hybrid_sha1},
+                            {1,"md4",&ocl_bruteforce_md4, &ocl_markov_md4, &ocl_hybrid_md4},
+                            {1,"ntlm",&ocl_bruteforce_ntlm, &ocl_markov_ntlm, &ocl_hybrid_ntlm},
+                            {1,"md5md5",&ocl_bruteforce_md5md5, &ocl_markov_md5md5, &ocl_hybrid_md5md5},
+                            {1,"sl3",&ocl_bruteforce_sl3, &ocl_bruteforce_sl3, &ocl_bruteforce_sl3},
+                            {1,"mysql5",&ocl_bruteforce_mysql5, &ocl_markov_mysql5, &ocl_hybrid_mysql5},
+                            {1,"mysql-old",&ocl_bruteforce_mysql_old, &ocl_markov_mysql_old, &ocl_hybrid_mysql_old},
+                            {1,"ldap-sha",&ocl_bruteforce_ldap_sha, &ocl_markov_ldap_sha, &ocl_hybrid_ldap_sha},
+                            {1,"md5-passsalt",&ocl_bruteforce_md5_passsalt, &ocl_markov_md5_passsalt, &ocl_hybrid_md5_passsalt},
+                            {1,"sha256",&ocl_bruteforce_sha256, &ocl_markov_sha256, &ocl_hybrid_sha256},
+                            //{1,"bitcoin",&ocl_bruteforce_bitcoin, &ocl_bruteforce_bitcoin, &ocl_bruteforce_bitcoin},
+                            {1,"lm",&ocl_bruteforce_lm, &ocl_markov_lm, &ocl_hybrid_lm},
+                            {1,"oracle-old",&ocl_bruteforce_oracle_old, &ocl_markov_oracle_old, &ocl_hybrid_oracle_old},
+                            {1,"ldap-ssha",&ocl_bruteforce_ldap_ssha, &ocl_markov_ldap_ssha, &ocl_hybrid_ldap_ssha},
+                            {1,"oracle11g",&ocl_bruteforce_oracle11g, &ocl_markov_oracle11g, &ocl_hybrid_oracle11g},
+                            {1,"ipb2",&ocl_bruteforce_ipb2, &ocl_markov_ipb2, &ocl_hybrid_ipb2},
+                            {1,"vbulletin",&ocl_bruteforce_vbulletin, &ocl_markov_vbulletin, &ocl_hybrid_vbulletin},
+                            {1,"md5-saltpass",&ocl_bruteforce_md5_saltpass, &ocl_markov_md5_saltpass, &ocl_hybrid_md5_saltpass},
+                            {1,"smf",&ocl_bruteforce_smf, &ocl_markov_smf, &ocl_hybrid_smf},
+                            {1,"desunix",&ocl_bruteforce_desunix, &ocl_markov_desunix, &ocl_hybrid_desunix},
+                            {1,"phpbb3",&ocl_bruteforce_phpbb3, &ocl_markov_phpbb3, &ocl_hybrid_phpbb3},
+                            {1,"wordpress",&ocl_bruteforce_wordpress, &ocl_markov_wordpress, &ocl_hybrid_wordpress},
+                            {1,"hashunix",&ocl_bruteforce_hashunix, &ocl_markov_hashunix, &ocl_hybrid_hashunix},
+                            {1,"sha512",&ocl_bruteforce_sha512, &ocl_markov_sha512, &ocl_hybrid_sha512},
+                            {1,"osxlion",&ocl_bruteforce_osxlion, &ocl_markov_osxlion, &ocl_hybrid_osxlion},
+                            {1,"pixmd5",&ocl_bruteforce_pixmd5, &ocl_markov_pixmd5, &ocl_hybrid_pixmd5},
+                            {1,"mssql-2000",&ocl_bruteforce_mssql_2000, &ocl_markov_mssql_2000, &ocl_hybrid_mssql_2000},
+                            {1,"mssql-2005",&ocl_bruteforce_mssql_2005, &ocl_markov_mssql_2005, &ocl_hybrid_mssql_2005},
+
+                            {0, "", NULL, NULL, NULL}
+                        };
+
+
+extern hash_stat session_write_ocl_parm(struct thread_restore_t restore_data[64], FILE *sessionfile);
+extern void session_close_file_ocl(FILE *sessionfile);
+
+
+
+/* Is that plugin supported? */
+hash_stat ocl_is_supported_plugin(char *plugin)
+{
+    int index,supported;
+    
+    index=supported=0;
+    while (ocl_supported_plugins[index].bruteforce_routine)
+    {
+	if (strcmp(plugin, ocl_supported_plugins[index].plugin_name)==0)
+	{
+	    return hash_ok;
+	}
+	index++;
+    }
+    return hash_err;
+}
+
+
+/* SIGINT/SIGTERM handler - needs to be reinstalled as AMD SDK 2.3 fucks it up*/
+static void ocl_sigint_handler(int val)
+{
+    printf("\n");
+    wlog("Interrupted by user request!%s","");
+    printf("\n");
+    ctrl_c_pressed = 1;
+    attack_over = 2;
+}
+
+
+/* Probe for OpenCL-enabled device if any */
+hash_stat ocl_get_device()
+{
+    cl_device_id device_id[16];
+    cl_uint num_of_devices;
+    cl_int err;
+    cl_platform_id platforms[4];
+    cl_uint num_platforms;
+    char *devicename = alloca(255);
+    char *platformname = alloca(255);
+    char *devicevendor = alloca(255);
+    int a;
+
+    ocl_dev_nvidia = ocl_dev_amd = 0;
+    err = clGetPlatformIDs(4, platforms, &num_platforms);
+    if (err != CL_SUCCESS)
+    {
+	elog("clGetPlatformIDs returned error (no OpenCL installed?)%s\n","");
+	return hash_err;
+    }
+
+    clGetPlatformInfo(platforms[ocl_gpu_platform],CL_PLATFORM_VERSION,255,platformname,NULL);
+    if (!strstr(platformname,"2.4")) ocl_old_sdk=1;
+    else ocl_old_sdk=0;
+    
+    ocl_have_old_ati = 0;
+    ocl_have_sm21 = 0;
+    ocl_have_69xx = 0;
+    
+    err = clGetDeviceIDs(platforms[ocl_gpu_platform], CL_DEVICE_TYPE_GPU, 16, device_id, &num_of_devices);
+    if (err!=CL_SUCCESS) return hash_err;
+    for (a=0;a<num_of_devices;a++)
+    {
+	switch (err)
+	{
+	    case CL_INVALID_PLATFORM:
+		elog("Invalid OpenCL platform!%s\n","");
+		return hash_err;
+		break;
+	    case CL_DEVICE_NOT_FOUND:
+		elog("No suitable GPU devices found!%s\n","");
+		return hash_err;
+		break;
+	    default: 
+		clGetDeviceInfo( device_id[a], CL_DEVICE_NAME, 254, devicename,  NULL);
+		clGetDeviceInfo( device_id[a], CL_DEVICE_VENDOR, 254, devicevendor,  NULL);
+		hlog("Found GPU device: %s - %s\n", devicevendor,devicename);
+		if (strstr(devicevendor,"IDIA")) {ocl_dev_nvidia = 1;ocl_vector=1;ocl_threads=1;}
+		if (strstr(devicevendor,"idia")) {ocl_dev_nvidia = 1;ocl_vector=1;ocl_threads=1;}
+		if (strstr(devicevendor,"dvanced Micro")) {ocl_dev_amd = 1;ocl_vector=8;ocl_threads=2;}
+		if (strstr(devicevendor,"ATI")) {ocl_dev_amd = 1;ocl_vector=8;ocl_threads=2;}
+		if (strstr(devicename,"RV7")) {ocl_have_old_ati=1;}
+		if (strstr(devicename,"Cayman")) {ocl_have_69xx=1;}
+
+        	#define CL_DEVICE_COMPUTE_CAPABILITY_MAJOR_NV       0x4000
+                #define CL_DEVICE_COMPUTE_CAPABILITY_MINOR_NV       0x4001
+        	int compute_capability_major,compute_capability_minor;
+        	clGetDeviceInfo(device_id[a], CL_DEVICE_COMPUTE_CAPABILITY_MAJOR_NV, sizeof(cl_uint), &compute_capability_major, NULL);
+                clGetDeviceInfo(device_id[a], CL_DEVICE_COMPUTE_CAPABILITY_MINOR_NV, sizeof(cl_uint), &compute_capability_minor, NULL);
+                if ((compute_capability_major==2)&&(compute_capability_minor==1)) ocl_have_sm21 = 1;
+
+		/* For testing purposes ONLY */
+		//ocl_dev_nvidia = 1;ocl_vector=1;ocl_threads=1;
+		//ocl_vector=4;ocl_have_sm21=1;
+		//ocl_have_old_ati=1;
+		//ocl_have_69xx=1;
+		break;
+	}
+    }
+    
+    if (ocl_have_old_ati==1) 
+    {
+        ocl_vector=4;
+        hlog("Using 4xxx codepath\n%s","");
+    }
+    
+    if (ocl_have_sm21==1) 
+    {
+        ocl_vector=4;
+        hlog("Using nvidia_sm21 codepath\n%s","");
+    }
+
+    if (ocl_user_threads!=0) ocl_threads = ocl_user_threads;
+
+    /* Some hacks on ATIs */
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"sha1")==0)) ocl_vector=4;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"sha256")==0)) ocl_vector=4;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"sl3")==0)) ocl_vector=4;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"md5md5")==0)) ocl_vector=4;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"mysql5")==0)) ocl_vector=4;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"ldap-sha")==0)) ocl_vector=4;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"ldap-ssha")==0)) ocl_vector=4;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"oracle11g")==0)) ocl_vector=4;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"ipb2")==0)) ocl_vector=4;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"smf")==0)) ocl_vector=4;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"vbulletin")==0)) ocl_vector=4;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"pixmd5")==0)) ocl_vector=4;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"mssql-2000")==0)) ocl_vector=4;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"mssql-2005")==0)) ocl_vector=4;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=2;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"desunix")==0)) ocl_vector=2;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"phpbb3")==0)) ocl_vector=4;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"hashunix")==0)) ocl_vector=4;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"wordpress")==0)) ocl_vector=4;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=2;
+    if ((ocl_vector==8) && (strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
+    /* Same hacks on Nvidias */
+    if ((ocl_dev_nvidia==1) && (strcmp(get_current_plugin(),"desunix")==0)) ocl_vector=2;
+    if ((ocl_dev_nvidia==1) && (strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=2;
+    if ((ocl_dev_nvidia==1) && (strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
+    if ((ocl_dev_nvidia==1) && (strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=2;
+    if ((ocl_dev_nvidia==1) && (strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
+
+
+
+    if ((ocl_dev_nvidia==1)&&(ocl_threads==1)) 
+    {
+        wlog("gpu-threads set to 1. Use -G2 to get maximum performance\n%s","");
+    }
+
+    // GPU double mode? - ATI
+    if ((ocl_gpu_double)&&(ocl_have_old_ati==0)&&(ocl_dev_nvidia==0)&&(attack_method!=attack_method_rule)) 
+    {
+	if ( (strcmp(get_current_plugin(),"md5")==0)||(strcmp(get_current_plugin(),"ntlm")==0)
+	    || (strcmp(get_current_plugin(),"mysql-old")==0)||(strcmp(get_current_plugin(),"md4")==0)
+	    || (strcmp(get_current_plugin(),"sha1")==0) || (strcmp(get_current_plugin(),"ldap-sha")==0)
+	    ) ocl_vector*=2;
+    }
+    // GPU double mode? - Nvidia
+    if ((ocl_gpu_double)&&(ocl_have_sm21==1)&&(ocl_dev_nvidia==1)&&(attack_method!=attack_method_rule)) 
+    {
+	if ( (strcmp(get_current_plugin(),"md5")==0)||(strcmp(get_current_plugin(),"sha1")==0)||(strcmp(get_current_plugin(),"ntlm")==0)) ocl_vector*=2;
+    }
+
+    // We are printing rule-generated output - do not go through GPU codepath
+    if (hashgen_stdout_mode==1) return hash_err;
+
+    if (hash_ok!=setup_adl()) hlog("ADL not found!\n%s","");
+    return hash_ok;
+}
+
+
+
+/* GPU bruteforce attack */
+hash_stat ocl_bruteforce()
+{
+    int index = 0; // ocl_supported_plugins[] index
+    int supported = 0;
+
+    while (ocl_supported_plugins[index].bruteforce_routine)
+    {
+	if (strcmp(get_current_plugin(), ocl_supported_plugins[index].plugin_name)==0)
+	{
+	    hlog("This plugin supports GPU acceleration.\n%s","");
+	    if (strlen(bruteforce_prefix)>0) hlog("Warning: bruteforce prefix is ignored in GPU-accelerated mode!\n%s","");
+	    ocl_spawn_threads(0,0);
+	    ocl_supported_plugins[index].bruteforce_routine();
+	    supported = 1;
+	    return hash_ok;
+	}
+	index++;
+    }
+    if (supported==0) return hash_err;
+
+    /* Display timing stats */
+    static time_t time2;
+    time2 = time(NULL);
+    index=time2; //warning supress
+    hlog("Bruteforce attack complete.%s\n","");
+    return hash_ok;
+}
+
+
+
+/* GPU Markov attack */
+hash_stat ocl_markov()
+{
+    int index = 0; // ocl_supported_plugins[] index
+    int supported = 0;
+
+    while (ocl_supported_plugins[index].bruteforce_routine)
+    {
+	if (strcmp(get_current_plugin(), ocl_supported_plugins[index].plugin_name)==0)
+	{
+	    hlog("This plugin supports GPU acceleration.\n%s","");
+	    ocl_spawn_threads(0,0);
+	    ocl_supported_plugins[index].markov_routine();
+	    supported = 1;
+	    return hash_ok;
+	}
+	index++;
+    }
+    if (supported==0) {return hash_err;}
+
+    /* Display timing stats */
+    static time_t time2;
+    time2 = time(NULL);
+    index=time2; //warning supress
+    hlog("Markov attack complete. %s\n","");
+
+    return hash_ok;
+}
+
+
+
+/* GPU rule attack */
+hash_stat ocl_rule()
+{
+    int index = 0; 
+    int supported = 0;
+
+    while (ocl_supported_plugins[index].bruteforce_routine)
+    {
+	if ((strcmp(get_current_plugin(), ocl_supported_plugins[index].plugin_name)==0))
+	{
+	    ocl_spawn_threads(0,0);
+	    ocl_supported_plugins[index].hybrid_routine();
+	    supported=1;
+	}
+	index++;
+    }
+    if (supported==0) return hash_err;
+
+    /* Display timing stats */
+    
+    static time_t time2;
+    time2 = time(NULL);
+    index=time2; //warning supress
+    hlog("Rule attack complete. %s\n","");
+    return hash_ok;
+}
+
+
+/* Increase invocations count */
+void ocl_inc_inv(int cur, int csize, int vsize)
+{
+    if ((cur+vsize)>csize) {invocations+=(((csize-cur)*10)/vsize);}
+    else invocations+=10;
+    idealinvocations++;
+}
+
+
+/* Start ocl monitor thread */
+static void * ocl_start_monitor_thread(void *arg)
+{
+
+    uint64_t sum;
+    int cracked;
+    FILE *sessionfile;
+    char *attack_current_str = "abcdeffsd";
+    int installed=0;
+
+    // No stats if plugin is bitcoin
+    if (strcmp(get_current_plugin(),"bitcoin")==0) return NULL;
+
+    while (invocations==0) usleep(10000);
+    printf("\n");
+    //printf("\nAttack statistics...\n");
+
+    if (session_restore_flag==1) attack_current_count = attack_current_count_local;
+    if ((strcmp(get_current_plugin(),"sl3")==0)) 
+    {
+	strcpy(bruteforce_charset,"0123456789");
+	attack_method=attack_method_simple_bruteforce;
+    }
+
+
+    while (attack_over != 2)
+    {
+        sleep(3);
+        if (installed == 0) 
+        {
+    	    signal(SIGINT, ocl_sigint_handler);
+    	    signal(SIGTERM, ocl_sigint_handler);
+    	    installed=1;
+    	}
+        sum = 0;
+        if (attack_over != 2)
+        {
+    	    if ((attack_method == attack_method_simple_bruteforce))
+    	    {
+    		sum += (invocations*strlen(bruteforce_charset)*strlen(bruteforce_charset)*strlen(bruteforce_charset)*ocl_vector);
+        	if ((strlen(bruteforce_charset)<=26)&&(attack_method == attack_method_simple_bruteforce) ) sum *= strlen(bruteforce_charset);
+        	if ((strcmp(get_current_plugin(),"sl3")==0)) sum *= strlen(bruteforce_charset)*strlen(bruteforce_charset);
+        	/* "slow " plugins may not require ndrange of charset_size^5 ... */
+        	if ((strlen(bruteforce_charset)<=26)&&(strcmp(get_current_plugin(),"oracle-old")==0)) sum /= strlen(bruteforce_charset);
+        	if ((strlen(bruteforce_charset)<=26)&&(strcmp(get_current_plugin(),"mysql5")==0)) sum /= strlen(bruteforce_charset);
+        	if ((strlen(bruteforce_charset)<=26)&&(strcmp(get_current_plugin(),"osxlion")==0)) sum /= strlen(bruteforce_charset);
+        	if ((strlen(bruteforce_charset)<=26)&&(strcmp(get_current_plugin(),"mssql-2000")==0)) sum /= strlen(bruteforce_charset);
+        	if ((strlen(bruteforce_charset)<=26)&&(strcmp(get_current_plugin(),"mssql-2005")==0)) sum /= strlen(bruteforce_charset);
+        	sum/=10;
+        	attack_current_count+=(idealinvocations);
+        	invocations=0;
+        	idealinvocations=0;
+    	    }
+    	    if (attack_method==attack_method_markov)
+    	    { 
+    	        if (fast_markov==1) sum += (invocations*(strlen(markov_charset)-23)*(strlen(markov_charset)-23)*(strlen(markov_charset)-23)*ocl_vector);
+    	        else sum += (invocations*(strlen(markov_charset))*(strlen(markov_charset))*(strlen(markov_charset))*ocl_vector);
+    		attack_current_count+=invocations;
+    		invocations=0;
+    	    }
+
+            cracked = get_cracked_num();
+            
+    	    if (attack_method==attack_method_rule)
+    	    {
+    		sum+=invocations*ocl_rule_workset*ocl_vector;
+    		printf("\rSpeed: %lld KPlaintexts/sec   Cracked: %d hashes    \b\b\b", (sum/3000), cracked);
+    		if (cracked >= hashes_count) attack_over = 2;
+    		fflush(stdout);
+    		invocations=0;
+    	    }
+	    else
+	    {
+    		if (attack_overall_count == 1)
+    		{
+            	    if ((sum / 30000000) > 5) printf("\rSpeed: %lld MPlaintexts/sec   Cracked: %d hashes    \b\b\b", (sum / 3000000), cracked);
+            	    else if ((sum / 3000) > 5) printf("\rSpeed: %lld KPlaintexts/sec   Cracked: %d hashes    \b\b\b", (sum / 3000), cracked);
+            	    else printf("\rSpeed: %lld plaintexts/sec   Cracked: %d hashes   ", (sum / 3), cracked);
+    		}
+    		else if (((sum / 3000) > 5)&&(attack_overall_count!=0))
+    		{
+            	    if ( ((attack_current_count*100) / attack_overall_count) > 100)
+            	    {
+        		if (sum>30000000) printf("\rProgress: 100%%   Speed: %lld MPlaintexts/sec   Cracked: %d hashes  (please wait...)", (sum / 3000000), cracked);
+            		else printf("\rProgress: 100%%   Speed: %lld KPlaintexts/sec   Cracked: %d hashes  (please wait...)", (sum / 3000), cracked);
+            	    }
+            	    else  
+            	    {
+            		if (sum>30000000) printf("\rProgress: %lld%%   Speed: %lld MPlaintexts/sec   Cracked: %d hashes  ", ((attack_current_count*100)/attack_overall_count) ,(sum / 3000000), cracked);
+            		else printf("\rProgress: %lld%%   Speed: %lld KPlaintexts/sec   Cracked: %d hashes  ", ((attack_current_count*100)/attack_overall_count) ,(sum / 3000), cracked);
+        	    }
+    		}
+    		else if (attack_overall_count>0)
+    		{
+        	    if ( ((attack_current_count*100) / attack_overall_count) > 100)
+            	    {
+            		printf("\rProgress: 100%%   Speed: %lld plaintexts/sec   Cracked: %d hashes   (please wait...)", (sum / 3), cracked);
+            	    }
+            	    else  printf("\rProgress: %lld%%   Speed: %lld plaintexts/sec   Cracked: %d hashes   ", ((attack_current_count*100)/attack_overall_count) ,(sum / 3), cracked);
+    		}
+    	    }
+    	    fflush(stdout);
+
+            if (session_init_file(&sessionfile) == hash_ok)
+            {
+                if (attack_overall_count<2) session_write_parameters(get_current_plugin(), attack_method, 0 , sessionfile);
+                else session_write_parameters(get_current_plugin(), attack_method, ((attack_current_count*100)/(attack_overall_count+1)), sessionfile);
+                if (attack_method == attack_method_simple_bruteforce)
+                {
+                    session_write_bruteforce_parm(bruteforce_start, bruteforce_end, bruteforce_prefix, bruteforce_suffix, bruteforce_charset, thread_save[0].cstart, thread_save[0].cstr, attack_current_count, sessionfile);
+                }
+                else if (attack_method == attack_method_markov)
+                {
+                    session_write_markov_parm(markov_statfile, markov_threshold, markov_max_len, attack_overall_count, attack_current_count, attack_current_str,  sessionfile);
+                }
+                else if (attack_method == attack_method_rule)
+                {
+                    session_write_rule_parm(rule_file, rule_current_elem, rule_overall_elem, sessionfile);
+                }
+
+
+                if (attack_over==0)
+                {
+                    session_write_hashlist(sessionfile);
+                    session_write_crackedlist(sessionfile);
+                    session_write_ocl_parm(thread_save, sessionfile);
+                }
+                session_close_file_ocl(sessionfile);
+            }
+
+            if (cracked >= hashes_count) attack_over = 2;
+        }
+    }
+    printf("\n");
+    pthread_exit(NULL);
+    return 0;
+}
+
+
+
+/* Start monitor info thread (this actually just waits for keyboard input and prints out stats*/
+static void * ocl_start_monitor_info_thread(void *arg)
+{
+
+    char key[2];
+    uint64_t timeest;
+    static time_t time2;
+    char *stringest = alloca(200);
+    char *stringest1 = alloca(100);
+
+    // No stats if plugin is bitcoin
+    if (strcmp(get_current_plugin(),"bitcoin")==0) return NULL;
+
+
+    while (attack_over==0)
+    {
+        read(0, &key,2);
+        print_cracked_list();
+        hlog(" -= End list =-%s\n","");
+        time2 = time(NULL);
+        bzero(stringest,200);
+        timeest = (((attack_overall_count-attack_current_count)*(time2-time1))/(attack_current_count));
+        if ((attack_overall_count == 1)||(attack_method == attack_method_rule))
+        {
+            strcpy(stringest, "Time remaining: UNKNOWN");
+        }
+        else
+        {
+            strcpy(stringest, "Time remaining: ");
+            if ((timeest / (60*60*24*30*12))>1)
+            {
+                sprintf(stringest1,"%lld years ",(timeest / (60*60*24*30*12)));
+                strcat(stringest, stringest1);
+            }
+            if ((timeest / (60*60*24*30))>1)
+            {
+                sprintf(stringest1,"%lld months ",(timeest / (60*60*24*30))%(12));
+                strcat(stringest, stringest1);
+            }
+            if ((timeest / (60*60*24))>1)
+            {
+                sprintf(stringest1,"%lld days ",(timeest / (60*60*24))%(30));
+                strcat(stringest, stringest1);
+            }
+            if ((timeest / (60*60))>1)
+            {
+                sprintf(stringest1,"%lld hours ",(timeest / (60*60))%(24));
+                strcat(stringest, stringest1);
+            }
+            if ((timeest / (60))>1)
+            {
+                sprintf(stringest1,"%lld minutes ",(timeest / (60))%60);
+                strcat(stringest, stringest1);
+            }
+            else
+            {
+                sprintf(stringest1,"%lld sec ",(timeest));
+                strcat(stringest, stringest1);
+            }
+        }
+        hlog("%s\n\n", stringest);
+        adl_getstats();
+    }
+    return NULL;
+}
+
+
+/* Star temp monitor thread */
+static void * ocl_temp_thread(void *arg)
+{
+    /* Bitcoin has its own */
+    if (strcmp(get_current_plugin(),"bitcoin")==0) return NULL;
+    while (attack_over!=2)
+    {
+        sleep(60);
+        do_adl();
+    }
+    return NULL;
+}
+
+
+static uint64_t markov_calculate_overall(int n)
+{
+    int a,b,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14;
+    uint64_t overall = 0;
+    int reduced_size;
+    int markov2[88][88];
+    int markov_csize;
+
+    /* wait until the threads started cracking */
+    while (invocations==0) usleep(1000);
+    reduced_size=0;
+    markov_csize = strlen(markov_charset);
+    if ((fast_markov==1)) markov_csize-=23;
+    reduced_size=0;
+    for (a=0;a<markov_csize;a++) if (markov0[a]>markov_threshold)
+    {
+	for (b=0;b<markov_csize;b++) markov2[reduced_size][b] = markov1[a][b];
+	reduced_size++;
+    }
+
+    switch (n)
+    {
+        case 2:
+            for (a1=0;a1<=reduced_size;a1+=ocl_vector)
+            for (a2=0;a2<markov_csize;a2++) if ( (markov2[a1][a2]>markov_threshold) || (markov2[a1+1][a2]>markov_threshold) || (markov2[a1+2][a2]>markov_threshold) || (markov2[a1+3][a2]>markov_threshold) )
+            {overall++; }
+        break;
+
+        case 3:
+            for (a1=0;a1<reduced_size;a1+=ocl_vector)
+            for (a2=0;a2<markov_csize;a2++) if ( (markov2[a1][a2]>markov_threshold) || (markov2[a1+1][a2]>markov_threshold) || (markov2[a1+2][a2]>markov_threshold) || (markov2[a1+3][a2]>markov_threshold) )
+            for (a3=0;a3<markov_csize;a3++) if (markov1[a2][a3]>markov_threshold)
+            {overall++; }
+        break;
+
+        case 4:
+            for (a1=0;a1<reduced_size;a1+=ocl_vector)
+            for (a2=0;a2<markov_csize;a2++) if ( (markov2[a1][a2]>markov_threshold) || (markov2[a1+1][a2]>markov_threshold) || (markov2[a1+2][a2]>markov_threshold) || (markov2[a1+3][a2]>markov_threshold) )
+            for (a3=0;a3<markov_csize;a3++) if (markov1[a2][a3]>markov_threshold)
+            for (a4=0;a4<markov_csize;a4++) if (markov1[a3][a4]>markov_threshold)
+            {overall++;} 
+        break;
+
+        case 5:
+            for (a1=0;a1<reduced_size;a1+=ocl_vector)
+            for (a2=0;a2<markov_csize;a2++) if ( (markov2[a1][a2]>markov_threshold) || (markov2[a1+1][a2]>markov_threshold) || (markov2[a1+2][a2]>markov_threshold) || (markov2[a1+3][a2]>markov_threshold) )
+            for (a3=0;a3<markov_csize;a3++) if (markov1[a2][a3]>markov_threshold)
+            for (a4=0;a4<markov_csize;a4++) if (markov1[a3][a4]>markov_threshold)
+            for (a5=0;a5<markov_csize;a5++) if (markov1[a4][a5]>markov_threshold)
+            {overall++; }
+        break;
+
+        case 6:
+            for (a1=0;a1<reduced_size;a1+=ocl_vector)
+            for (a2=0;a2<markov_csize;a2++) if ( (markov2[a1][a2]>markov_threshold) || (markov2[a1+1][a2]>markov_threshold) || (markov2[a1+2][a2]>markov_threshold) || (markov2[a1+3][a2]>markov_threshold) )
+            for (a3=0;a3<markov_csize;a3++) if (markov1[a2][a3]>markov_threshold)
+            for (a4=0;a4<markov_csize;a4++) if (markov1[a3][a4]>markov_threshold)
+            for (a5=0;a5<markov_csize;a5++) if (markov1[a4][a5]>markov_threshold)
+            for (a6=0;a6<markov_csize;a6++) if (markov1[a5][a6]>markov_threshold)
+            {overall++; }
+        break;
+
+        case 7:
+            for (a1=0;a1<reduced_size;a1+=ocl_vector)
+            for (a2=0;a2<markov_csize;a2++) if ( (markov2[a1][a2]>markov_threshold) || (markov2[a1+1][a2]>markov_threshold) || (markov2[a1+2][a2]>markov_threshold) || (markov2[a1+3][a2]>markov_threshold) )
+            for (a3=0;a3<markov_csize;a3++) if (markov1[a2][a3]>markov_threshold)
+            for (a4=0;a4<markov_csize;a4++) if (markov1[a3][a4]>markov_threshold)
+            for (a5=0;a5<markov_csize;a5++) if (markov1[a4][a5]>markov_threshold)
+            for (a6=0;a6<markov_csize;a6++) if (markov1[a5][a6]>markov_threshold)
+            for (a7=0;a7<markov_csize;a7++) if (markov1[a6][a7]>markov_threshold)
+            {overall++; }
+        break;
+
+        case 8:
+            for (a1=0;a1<reduced_size;a1+=ocl_vector)
+            for (a2=0;a2<markov_csize;a2++) if ( (markov2[a1][a2]>markov_threshold) || (markov2[a1+1][a2]>markov_threshold) || (markov2[a1+2][a2]>markov_threshold) || (markov2[a1+3][a2]>markov_threshold) )
+            for (a3=0;a3<markov_csize;a3++) if (markov1[a2][a3]>markov_threshold)
+            for (a4=0;a4<markov_csize;a4++) if (markov1[a3][a4]>markov_threshold)
+            for (a5=0;a5<markov_csize;a5++) if (markov1[a4][a5]>markov_threshold)
+            for (a6=0;a6<markov_csize;a6++) if (markov1[a5][a6]>markov_threshold)
+            for (a7=0;a7<markov_csize;a7++) if (markov1[a6][a7]>markov_threshold)
+            for (a8=0;a8<markov_csize;a8++) if (markov1[a7][a8]>markov_threshold)
+            {overall++; }
+        break;
+
+        case 9:
+            for (a1=0;a1<reduced_size;a1+=ocl_vector)
+            for (a2=0;a2<markov_csize;a2++) if ( (markov2[a1][a2]>markov_threshold) || (markov2[a1+1][a2]>markov_threshold) || (markov2[a1+2][a2]>markov_threshold) || (markov2[a1+3][a2]>markov_threshold) )
+            for (a3=0;a3<markov_csize;a3++) if (markov1[a2][a3]>markov_threshold)
+            for (a4=0;a4<markov_csize;a4++) if (markov1[a3][a4]>markov_threshold)
+            for (a5=0;a5<markov_csize;a5++) if (markov1[a4][a5]>markov_threshold)
+            for (a6=0;a6<markov_csize;a6++) if (markov1[a5][a6]>markov_threshold)
+            for (a7=0;a7<markov_csize;a7++) if (markov1[a6][a7]>markov_threshold)
+            for (a8=0;a8<markov_csize;a8++) if (markov1[a7][a8]>markov_threshold)
+            for (a9=0;a9<markov_csize;a9++) if (markov1[a8][a9]>markov_threshold)
+            {overall++; }
+        break;
+
+        case 10:
+            for (a1=0;a1<reduced_size;a1+=ocl_vector)
+            for (a2=0;a2<markov_csize;a2++) if ( (markov2[a1][a2]>markov_threshold) || (markov2[a1+1][a2]>markov_threshold) || (markov2[a1+2][a2]>markov_threshold) || (markov2[a1+3][a2]>markov_threshold) )
+            for (a3=0;a3<markov_csize;a3++) if (markov1[a2][a3]>markov_threshold)
+            for (a4=0;a4<markov_csize;a4++) if (markov1[a3][a4]>markov_threshold)
+            for (a5=0;a5<markov_csize;a5++) if (markov1[a4][a5]>markov_threshold)
+            for (a6=0;a6<markov_csize;a6++) if (markov1[a5][a6]>markov_threshold)
+            for (a7=0;a7<markov_csize;a7++) if (markov1[a6][a7]>markov_threshold)
+            for (a8=0;a8<markov_csize;a8++) if (markov1[a7][a8]>markov_threshold)
+            for (a9=0;a9<markov_csize;a9++) if (markov1[a8][a9]>markov_threshold)
+            for (a10=0;a10<markov_csize;a10++) if (markov1[a9][a10]>markov_threshold)
+            {overall++; }
+        break;
+
+        case 11:
+            for (a1=0;a1<reduced_size;a1+=ocl_vector)
+            for (a2=0;a2<markov_csize;a2++) if ( (markov2[a1][a2]>markov_threshold) || (markov2[a1+1][a2]>markov_threshold) || (markov2[a1+2][a2]>markov_threshold) || (markov2[a1+3][a2]>markov_threshold) )
+            for (a3=0;a3<markov_csize;a3++) if (markov1[a2][a3]>markov_threshold)
+            for (a4=0;a4<markov_csize;a4++) if (markov1[a3][a4]>markov_threshold)
+            for (a5=0;a5<markov_csize;a5++) if (markov1[a4][a5]>markov_threshold)
+            for (a6=0;a6<markov_csize;a6++) if (markov1[a5][a6]>markov_threshold)
+            for (a7=0;a7<markov_csize;a7++) if (markov1[a6][a7]>markov_threshold)
+            for (a8=0;a8<markov_csize;a8++) if (markov1[a7][a8]>markov_threshold)
+            for (a9=0;a9<markov_csize;a9++) if (markov1[a8][a9]>markov_threshold)
+            for (a10=0;a10<markov_csize;a10++) if (markov1[a9][a10]>markov_threshold)
+            for (a11=0;a11<markov_csize;a11++) if (markov1[a10][a11]>markov_threshold)
+            {overall++; }
+        break;
+
+        case 12:
+            for (a1=0;a1<reduced_size;a1+=ocl_vector)
+            for (a2=0;a2<markov_csize;a2++) if ( (markov2[a1][a2]>markov_threshold) || (markov2[a1+1][a2]>markov_threshold) || (markov2[a1+2][a2]>markov_threshold) || (markov2[a1+3][a2]>markov_threshold) )
+            for (a3=0;a3<markov_csize;a3++) if (markov1[a2][a3]>markov_threshold)
+            for (a4=0;a4<markov_csize;a4++) if (markov1[a3][a4]>markov_threshold)
+            for (a5=0;a5<markov_csize;a5++) if (markov1[a4][a5]>markov_threshold)
+            for (a6=0;a6<markov_csize;a6++) if (markov1[a5][a6]>markov_threshold)
+            for (a7=0;a7<markov_csize;a7++) if (markov1[a6][a7]>markov_threshold)
+            for (a8=0;a8<markov_csize;a8++) if (markov1[a7][a8]>markov_threshold)
+            for (a9=0;a9<markov_csize;a9++) if (markov1[a8][a9]>markov_threshold)
+            for (a10=0;a10<markov_csize;a10++) if (markov1[a9][a10]>markov_threshold)
+            for (a11=0;a11<markov_csize;a11++) if (markov1[a10][a11]>markov_threshold)
+            for (a12=0;a12<markov_csize;a12++) if (markov1[a11][a12]>markov_threshold)
+            {overall++; }
+        break;
+
+        case 13:
+            for (a1=0;a1<reduced_size;a1+=ocl_vector)
+            for (a2=0;a2<markov_csize;a2++) if ( (markov2[a1][a2]>markov_threshold) || (markov2[a1+1][a2]>markov_threshold) || (markov2[a1+2][a2]>markov_threshold) || (markov2[a1+3][a2]>markov_threshold) )
+            for (a3=0;a3<markov_csize;a3++) if (markov1[a2][a3]>markov_threshold)
+            for (a4=0;a4<markov_csize;a4++) if (markov1[a3][a4]>markov_threshold)
+            for (a5=0;a5<markov_csize;a5++) if (markov1[a4][a5]>markov_threshold)
+            for (a6=0;a6<markov_csize;a6++) if (markov1[a5][a6]>markov_threshold)
+            for (a7=0;a7<markov_csize;a7++) if (markov1[a6][a7]>markov_threshold)
+            for (a8=0;a8<markov_csize;a8++) if (markov1[a7][a8]>markov_threshold)
+            for (a9=0;a9<markov_csize;a9++) if (markov1[a8][a9]>markov_threshold)
+            for (a10=0;a10<markov_csize;a10++) if (markov1[a9][a10]>markov_threshold)
+            for (a11=0;a11<markov_csize;a11++) if (markov1[a10][a11]>markov_threshold)
+            for (a12=0;a12<markov_csize;a12++) if (markov1[a11][a12]>markov_threshold)
+            for (a13=0;a13<markov_csize;a13++) if (markov1[a12][a13]>markov_threshold)
+            {overall++; }
+        break;
+
+        case 14:
+            for (a1=0;a1<reduced_size;a1+=ocl_vector)
+            for (a2=0;a2<markov_csize;a2++) if ( (markov2[a1][a2]>markov_threshold) || (markov2[a1+1][a2]>markov_threshold) || (markov2[a1+2][a2]>markov_threshold) || (markov2[a1+3][a2]>markov_threshold) )
+            for (a3=0;a3<markov_csize;a3++) if (markov1[a2][a3]>markov_threshold)
+            for (a4=0;a4<markov_csize;a4++) if (markov1[a3][a4]>markov_threshold)
+            for (a5=0;a5<markov_csize;a5++) if (markov1[a4][a5]>markov_threshold)
+            for (a6=0;a6<markov_csize;a6++) if (markov1[a5][a6]>markov_threshold)
+            for (a7=0;a7<markov_csize;a7++) if (markov1[a6][a7]>markov_threshold)
+            for (a8=0;a8<markov_csize;a8++) if (markov1[a7][a8]>markov_threshold)
+            for (a9=0;a9<markov_csize;a9++) if (markov1[a8][a9]>markov_threshold)
+            for (a10=0;a10<markov_csize;a10++) if (markov1[a9][a10]>markov_threshold)
+            for (a11=0;a11<markov_csize;a11++) if (markov1[a10][a11]>markov_threshold)
+            for (a12=0;a12<markov_csize;a12++) if (markov1[a11][a12]>markov_threshold)
+            for (a13=0;a13<markov_csize;a13++) if (markov1[a12][a13]>markov_threshold)
+            for (a14=0;a14<markov_csize;a14++) if (markov1[a13][a14]>markov_threshold)
+            {overall++; }
+        break;
+    }
+
+    return overall;
+}
+
+static void *calculate_markov_thread(void *arg)
+{
+    int cnt;
+    uint64_t overall=0;
+    
+    for (cnt=2;cnt<=markov_max_len-3;cnt++) 
+    {
+        overall += markov_calculate_overall(cnt);
+    }
+    attack_overall_count = overall;
+    pthread_exit(NULL);
+}
+
+
+
+
+
+hash_stat ocl_spawn_threads(unsigned int num, unsigned int queue_size)
+{
+    unsigned int cnt;
+    pthread_t monitorthread;
+    pthread_t monitorinfothread;
+    pthread_mutexattr_t mutexattr;
+    pthread_t calc_thread;
+    pthread_t temp_thread;
+
+    create_hash_indexes();
+
+    pthread_mutexattr_init(&mutexattr);
+    pthread_mutexattr_settype(&mutexattr, PTHREAD_MUTEX_ADAPTIVE_NP);
+    pthread_mutexattr_setpshared(&mutexattr, PTHREAD_PROCESS_PRIVATE);
+
+
+    if (pthread_mutex_init(&listmutex, &mutexattr))
+    {
+        elog("Cannot create list mutex %s\n","");
+        return hash_err;
+    }
+    if (pthread_mutex_init(&crackedmutex, &mutexattr))
+    {
+        elog("Cannot create list mutex %s\n", "");
+        return hash_err;
+    }
+    
+    if (attack_method == attack_method_markov)
+    {
+        hlog("Markov max len: %d threshold:%d\n",markov_max_len, markov_threshold);
+        hlog("Progress indicator will be available once Markov calculations are done...\n%s","");
+        if (session_restore_flag==0) 
+        {
+    	    attack_overall_count = 1;
+    	    pthread_create(&calc_thread, NULL, calculate_markov_thread, NULL);
+    	}
+    }
+
+    hash_len = hash_plugin_hash_length();
+    /* Unless user pressed ctrl-c BEFORE we have initialized workthreads...*/
+    if (attack_over == 0) 
+    {
+	pthread_create(&monitorthread, NULL, ocl_start_monitor_thread, &cnt);
+	pthread_create(&monitorinfothread, NULL, ocl_start_monitor_info_thread, &cnt);
+	hlog("Spawned worker threads%s\n", "");
+    }
+    time1 = time(NULL);
+    pthread_create(&temp_thread, NULL, ocl_temp_thread, NULL);
+    return hash_ok;
+}
+
+
+hash_stat ocl_restore_counts(uint64_t current, uint64_t overall)
+{
+    attack_current_count_local = current;
+    attack_overall_count = overall;
+    return hash_ok;
+}
+
+
+
+#endif

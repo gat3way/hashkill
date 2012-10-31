@@ -312,6 +312,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"oracle-old")==0)) {ocl_vector=1;loops=2;}
 		if ((strcmp(get_current_plugin(),"mysql5")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"mscash")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"md5")==0)) ocl_vector=8;
 
 		/* GCN/VLIW-specific */
 		if ((strcmp(get_current_plugin(),"phpbb3")==0)&&(ocl_have_gcn)) ocl_vector=1;
@@ -386,6 +387,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"wpa")==0)&&(ocl_have_sm21)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"dmg")==0)&&(!ocl_have_sm21)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"dmg")==0)&&(ocl_have_sm21)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"md5")==0)) ocl_vector=8;
 	    }
 
 	    /* Zip (non-rule) exception for NVidia */
@@ -1367,6 +1369,8 @@ void rule_offload_add_set(callback_final_t cb, int self)
                 break;
         }
     }
+    bzero(str,32);
+    cb(str,self);
 }
 
 void rule_offload_may_add_set(callback_final_t cb, int self)
@@ -1695,6 +1699,8 @@ void rule_offload_add_cset(callback_final_t cb, int self)
                 break;
         }
     }
+    bzero(str,32);
+    cb(str,self);
 }
 
 
@@ -1883,6 +1889,8 @@ void rule_offload_add_markov(callback_final_t cb, int self)
                 break;
         }
     }
+    bzero(str,32);
+    cb(str,self);
 }
 
 
@@ -1946,6 +1954,8 @@ void rule_offload_add_numrange(callback_final_t cb, int self)
         numtostr(len,0,str);
         cb(str,self);
     }
+    bzero(str,32);
+    cb(str,self);
 }
 
 
