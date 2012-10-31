@@ -12,24 +12,23 @@
 
 
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str, uint16 salt)
+strmodify( __global uint *dst,  __global uint *input, __global uint *input1, uint16 str, uint16 salt,uint4 singlehash, uint16 salt2, __global uint *block, __global uint *eapol, __global uint *size)
 {
 __local uint inpc[64][14];
 uint SIZE;
 uint elem,tmp1;
 
 
-inpc[GLI][0] = inp[GGI*(8)+0];
-inpc[GLI][1] = inp[GGI*(8)+1];
-inpc[GLI][2] = inp[GGI*(8)+2];
-inpc[GLI][3] = inp[GGI*(8)+3];
-inpc[GLI][4] = inp[GGI*(8)+4];
-inpc[GLI][5] = inp[GGI*(8)+5];
-inpc[GLI][6] = inp[GGI*(8)+6];
-inpc[GLI][7] = inp[GGI*(8)+7];
+inpc[GLI][0] = input[GGI*(8)+0];
+inpc[GLI][1] = input[GGI*(8)+1];
+inpc[GLI][2] = input[GGI*(8)+2];
+inpc[GLI][3] = input[GGI*(8)+3];
+inpc[GLI][4] = input[GGI*(8)+4];
+inpc[GLI][5] = input[GGI*(8)+5];
+inpc[GLI][6] = input[GGI*(8)+6];
+inpc[GLI][7] = input[GGI*(8)+7];
 
-SIZE=sizein[GGI];
-size[GGI] = (SIZE+str.sF);
+SIZE = size[GGI];
 
 SET_AB(inpc[GLI],str.s0,SIZE,0);
 SET_AB(inpc[GLI],str.s1,SIZE+4,0);
@@ -46,12 +45,24 @@ dst[GGI*8+4] = inpc[GLI][4];
 dst[GGI*8+5] = inpc[GLI][5];
 dst[GGI*8+6] = inpc[GLI][6];
 dst[GGI*8+7] = inpc[GLI][7];
+
 }
 
+
+#pragma OPENCL EXTENSION cl_amd_media_ops : enable
 #define F_00_19(bb,cc,dd) (bitselect((dd),(cc),(bb)))
 #define F_20_39(bb,cc,dd)  ((bb) ^ (cc) ^ (dd))  
-#define F_40_59(bb,cc,dd) (bitselect((cc), (bb), ((dd)^(cc))))
+#define F_40_59(bb,cc,dd) (bitselect((cc),(bb),((dd)^(cc))))
 #define F_60_79(bb,cc,dd)  F_20_39((bb),(cc),(dd)) 
+#define MD5STEP_ROUND1(a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((d),(c),(b));(a) = rotate((a),s)+(b);
+#define MD5STEP_ROUND1_NULL(a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((d),(c),(b));(a) = rotate((a),s)+(b);
+#define MD5STEP_ROUND2(a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((c),(b),(d));(a) = rotate((a),s)+(b);
+#define MD5STEP_ROUND2_NULL(a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((c),(b),(d)); (a) = rotate((a),s)+(b);
+#define MD5STEP_ROUND3(a, b, c, d, AC, x, s) tmp1 = (b) ^ (c);tmp1 = tmp1 ^ (d);(a) = (a)+tmp1; (a) = (a)+(AC);(a) = (a)+(x); (a) = rotate((a),s); (a) = (a)+(b); 
+#define MD5STEP_ROUND3_NULL(a, b, c, d, AC, s)  tmp1 = (b) ^ (c);tmp1 = tmp1 ^ (d);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);
+#define MD5STEP_ROUND4(a, b, c, d, AC, x, s)  tmp1 = (~(d)); tmp1 = (b) | tmp1; tmp1 = tmp1 ^ (c); (a) = (a)+tmp1; (a) = (a)+(AC); (a) = (a)+(x); (a) = rotate((a),s); (a) = (a)+(b);  
+#define MD5STEP_ROUND4_NULL(a, b, c, d, AC, s)  tmp1 = (~(d)); tmp1 = (b) | tmp1; tmp1 = tmp1 ^ (c); (a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate((a),s); (a) = (a)+(b);
+
 
 #define Endian_Reverse32(aa) { l=(aa);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (aa)=bitselect(tmp2,tmp1,m); }
 #define ROTATE1(aa, bb, cc, dd, ee, x) (ee) = (ee) + rotate((aa),S2) + F_00_19((bb),(cc),(dd)) + (x); (ee) = (ee) + K; (bb) = rotate((bb),S3) 
@@ -61,25 +72,27 @@ dst[GGI*8+7] = inpc[GLI][7];
 #define ROTATE4_F(aa, bb, cc, dd, ee, x) (ee) = (ee) + rotate((aa),S2) + F_60_79((bb),(cc),(dd)) + (x) + K; (bb) = rotate((bb),S3)
 
 #define GLI get_local_id(0)
-
-
-#define S11 3U
-#define S12 7U
-#define S13 11U
-#define S14 19U
-#define S21 3U
-#define S22 5U
-#define S23 9U
-#define S24 13U
-#define S31 3U
-#define S32 9U 
-#define S33 11U
-#define S34 15U
-
 #define Ca 0x67452301  
 #define Cb 0xefcdab89  
 #define Cc 0x98badcfe  
 #define Cd 0x10325476  
+#define S11 7U
+#define S12 12U
+#define S13 17U
+#define S14 22U
+#define S21 5U
+#define S22 9U
+#define S23 14U
+#define S24 20U
+#define S31 4U
+#define S32 11U
+#define S33 16U
+#define S34 23U
+#define S41 6U
+#define S42 10U
+#define S43 15U
+#define S44 21U
+
 
 #define S1 1U
 #define S2 5U
@@ -89,17 +102,18 @@ dst[GGI*8+7] = inpc[GLI][7];
 #define m 0x00FF00FFU
 #define m2 0xFF00FF00U 
 
+
 #ifdef SM21
+
 
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))
-void wpa( __global uint4 *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *found, uint4 singlehash, uint16 salt, uint16 salt2, __global uint *block, __global uint *eapol)
+void prepare1( __global uint2 *dst,  __global uint *input, __global uint2 *input1, uint16 str, uint16 salt,uint4 singlehash, uint16 salt2, __global uint *block, __global uint *eapol)
 {
-
 uint2 SIZE;  
 uint ib,ic,id;  
 uint2 a,b,c,d,e,f,g,h, tmp1, tmp2,l; 
-uint2 w0, w1, w2, w3, w4, w5, w6, w7,w8,w9,w10,w11,w12,w13,w14,w16;
+uint2 w0, w1, w2, w3, w4, w5, w6, w7,w8,w9,w10,w11,w12,w13,w14,w16,w15;
 uint yl,yr,zl,zr,wl,wr;
 uint2 K;
 uint2 K0 = (uint2)0x5A827999;
@@ -111,12 +125,11 @@ uint2 H1 = (uint2)0xEFCDAB89;
 uint2 H2 = (uint2)0x98BADCFE;
 uint2 H3 = (uint2)0x10325476;
 uint2 H4 = (uint2)0xC3D2E1F0;
-uint2 w[16];
 uint2 A,B,C,D,E;
 uint2 IPA,IPB,IPC,IPD,IPE;
 uint2 OPA,OPB,OPC,OPD,OPE;
-uint2 TA,TB,TC,TD,TE;
-uint2 TTA,TTB,TTC,TTD,TTE,TTF,TTTA,TTTB,TTTC,TTTD,TTTE;
+uint2 TTA,TTB,TTC,TTD,TTE;
+
 TTA=TTB=TTC=TTD=TTE=(uint2)0;
 
 
@@ -599,8 +612,79 @@ A=A+OPA;B=B+OPB;C=C+OPC;D=D+OPD;E=E+OPE;
 TTA=A;TTB=B;TTC=C;TTD=D;TTE=E;
 
 
+input1[get_global_id(0)*2*5+0]=IPA;
+input1[get_global_id(0)*2*5+1]=IPB;
+input1[get_global_id(0)*2*5+2]=IPC;
+input1[get_global_id(0)*2*5+3]=IPD;
+input1[get_global_id(0)*2*5+4]=IPE;
+input1[get_global_id(0)*2*5+5]=OPA;
+input1[get_global_id(0)*2*5+6]=OPB;
+input1[get_global_id(0)*2*5+7]=OPC;
+input1[get_global_id(0)*2*5+8]=OPD;
+input1[get_global_id(0)*2*5+9]=OPE;
+
+dst[get_global_id(0)*3*5+0]=TTA;
+dst[get_global_id(0)*3*5+1]=TTB;
+dst[get_global_id(0)*3*5+2]=TTC;
+dst[get_global_id(0)*3*5+3]=TTD;
+dst[get_global_id(0)*3*5+4]=TTE;
+dst[get_global_id(0)*3*5+10]=TTA;
+dst[get_global_id(0)*3*5+11]=TTB;
+dst[get_global_id(0)*3*5+12]=TTC;
+dst[get_global_id(0)*3*5+13]=TTD;
+dst[get_global_id(0)*3*5+14]=TTE;
+
+}
+
+
+__kernel 
+__attribute__((reqd_work_group_size(64, 1, 1)))
+void pbkdf1( __global uint2 *dst,  __global uint2 *input, __global uint2 *input1, uint16 str, uint16 salt,uint4 singlehash, uint16 salt2, __global uint *block, __global uint *eapol)
+{
+uint2 SIZE;  
+uint ib,ic,id;  
+uint2 a,b,c,d,e,f,g,h, tmp1, tmp2,l; 
+uint2 w0, w1, w2, w3, w4, w5, w6, w7,w8,w9,w10,w11,w12,w13,w14,w16,w15;
+uint2 K;
+uint2 K0 = (uint2)0x5A827999;
+uint2 K1 = (uint2)0x6ED9EBA1;
+uint2 K2 = (uint2)0x8F1BBCDC;
+uint2 K3 = (uint2)0xCA62C1D6;
+uint2 H0 = (uint2)0x67452301;
+uint2 H1 = (uint2)0xEFCDAB89;
+uint2 H2 = (uint2)0x98BADCFE;
+uint2 H3 = (uint2)0x10325476;
+uint2 H4 = (uint2)0xC3D2E1F0;
+uint2 A,B,C,D,E;
+uint2 IPA,IPB,IPC,IPD,IPE;
+uint2 OPA,OPB,OPC,OPD,OPE;
+uint2 TTA,TTB,TTC,TTD,TTE;
+
+
+TTA=dst[get_global_id(0)*3*5+0];
+TTB=dst[get_global_id(0)*3*5+1];
+TTC=dst[get_global_id(0)*3*5+2];
+TTD=dst[get_global_id(0)*3*5+3];
+TTE=dst[get_global_id(0)*3*5+4];
+A=dst[get_global_id(0)*3*5+10];
+B=dst[get_global_id(0)*3*5+11];
+C=dst[get_global_id(0)*3*5+12];
+D=dst[get_global_id(0)*3*5+13];
+E=dst[get_global_id(0)*3*5+14];
+IPA=input1[get_global_id(0)*2*5+0];
+IPB=input1[get_global_id(0)*2*5+1];
+IPC=input1[get_global_id(0)*2*5+2];
+IPD=input1[get_global_id(0)*2*5+3];
+IPE=input1[get_global_id(0)*2*5+4];
+OPA=input1[get_global_id(0)*2*5+5];
+OPB=input1[get_global_id(0)*2*5+6];
+OPC=input1[get_global_id(0)*2*5+7];
+OPD=input1[get_global_id(0)*2*5+8];
+OPE=input1[get_global_id(0)*2*5+9];
+
+
 // We now have the first HMAC. Iterate to find the rest
-for (ic=0;ic<8190;ic++)
+for (ic=str.sA;ic<1170+str.sA;ic+=2)
 {
 
 // calculate hash sum 1
@@ -611,11 +695,13 @@ w3=D;
 w4=E;
 w5=(uint2)0x80000000;
 SIZE=(uint2)(64+20)<<3;
-A=(ic&1) ? OPA : IPA;
-B=(ic&1) ? OPB : IPB;
-C=(ic&1) ? OPC : IPC;
-D=(ic&1) ? OPD : IPD;
-E=(ic&1) ? OPE : IPE;
+
+A=IPA;
+B=IPB;
+C=IPC;
+D=IPD;
+E=IPE;
+
 
 w6=w7=w8=w9=w10=w11=w12=w13=w14=(uint2)0;
 
@@ -705,28 +791,187 @@ w9 = rotate(w6 ^ w1 ^ w12 ^ w10,S1); ROTATE4_F(D, E, A, B, C, w9);
 w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10);
 w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
 
+A+=IPA;
+B+=IPB;
+C+=IPC;
+D+=IPD;
+E+=IPE;
 
-A+=(ic&1) ? OPA : IPA;
-B+=(ic&1) ? OPB : IPB;
-C+=(ic&1) ? OPC : IPC;
-D+=(ic&1) ? OPD : IPD;
-E+=(ic&1) ? OPE : IPE;
+
+// calculate hash sum 1
+w0=A;
+w1=B;
+w2=C;
+w3=D;
+w4=E;
+w5=(uint2)0x80000000;
+SIZE=(uint2)(64+20)<<3;
+
+A=OPA;
+B=OPB;
+C=OPC;
+D=OPD;
+E=OPE;
 
 
-TTA ^= (ic&1) ? A : 0;
-TTB ^= (ic&1) ? B : 0;
-TTC ^= (ic&1) ? C : 0;
-TTD ^= (ic&1) ? D : 0;
-TTE ^= (ic&1) ? E : 0;
+w6=w7=w8=w9=w10=w11=w12=w13=w14=(uint2)0;
+
+
+K = K0;
+ROTATE1(A, B, C, D, E, w0);
+ROTATE1(E, A, B, C, D, w1);
+ROTATE1(D, E, A, B, C, w2);
+ROTATE1(C, D, E, A, B, w3);
+ROTATE1(B, C, D, E, A, w4);
+ROTATE1(A, B, C, D, E, w5);
+ROTATE1_NULL(E, A, B, C, D);
+ROTATE1_NULL(D, E, A, B, C);
+ROTATE1_NULL(C, D, E, A, B);
+ROTATE1_NULL(B, C, D, E, A);
+ROTATE1_NULL(A, B, C, D, E);
+ROTATE1_NULL(E, A, B, C, D);
+ROTATE1_NULL(D, E, A, B, C);
+ROTATE1_NULL(C, D, E, A, B);
+ROTATE1_NULL(B, C, D, E, A);
+ROTATE1(A, B, C, D, E, SIZE);  
+w16 = rotate((w13 ^ w8 ^ w2 ^ w0),S1);ROTATE1(E,A,B,C,D,w16);
+w0 = rotate((w14 ^ w9 ^ w3 ^ w1),S1);ROTATE1(D,E,A,B,C,w0); 
+w1 = rotate((SIZE ^ w10 ^ w4 ^ w2),S1); ROTATE1(C,D,E,A,B,w1); 
+w2 = rotate((w16 ^ w11 ^ w5 ^ w3),S1);  ROTATE1(B,C,D,E,A,w2); 
+K = K1;
+w3 = rotate((w0 ^ w12 ^ w6 ^ w4),S1); ROTATE2_F(A, B, C, D, E, w3);
+w4 = rotate((w1 ^ w13 ^ w7 ^ w5),S1); ROTATE2_F(E, A, B, C, D, w4);
+w5 = rotate((w2 ^ w14 ^ w8 ^ w6),S1); ROTATE2_F(D, E, A, B, C, w5);
+w6 = rotate((w3 ^ SIZE ^ w9 ^ w7),S1);ROTATE2_F(C, D, E, A, B, w6);
+w7 = rotate((w4 ^ w16 ^ w10 ^ w8),S1); ROTATE2_F(B, C, D, E, A, w7);
+w8 = rotate((w5 ^ w0 ^ w11 ^ w9),S1); ROTATE2_F(A, B, C, D, E, w8);
+w9 = rotate((w6 ^ w1 ^ w12 ^ w10),S1); ROTATE2_F(E, A, B, C, D, w9);
+w10 = rotate((w7 ^ w2 ^ w13 ^ w11),S1); ROTATE2_F(D, E, A, B, C, w10); 
+w11 = rotate((w8 ^ w3 ^ w14 ^ w12),S1); ROTATE2_F(C, D, E, A, B, w11); 
+w12 = rotate((w9 ^ w4 ^ SIZE ^ w13),S1); ROTATE2_F(B, C, D, E, A, w12);
+w13 = rotate((w10 ^ w5 ^ w16 ^ w14),S1); ROTATE2_F(A, B, C, D, E, w13);
+w14 = rotate((w11 ^ w6 ^ w0 ^ SIZE),S1); ROTATE2_F(E, A, B, C, D, w14);
+SIZE = rotate((w12 ^ w7 ^ w1 ^ w16),S1); ROTATE2_F(D, E, A, B, C, SIZE);
+w16 = rotate((w13 ^ w8 ^ w2 ^ w0),S1); ROTATE2_F(C, D, E, A, B, w16);  
+w0 = rotate(w14 ^ w9 ^ w3 ^ w1,S1); ROTATE2_F(B, C, D, E, A, w0);  
+w1 = rotate(SIZE ^ w10 ^ w4 ^ w2,S1); ROTATE2_F(A, B, C, D, E, w1);
+w2 = rotate(w16 ^ w11 ^ w5 ^ w3,S1); ROTATE2_F(E, A, B, C, D, w2); 
+w3 = rotate(w0 ^ w12 ^ w6 ^ w4,S1); ROTATE2_F(D, E, A, B, C, w3);  
+w4 = rotate(w1 ^ w13 ^ w7 ^ w5,S1);ROTATE2_F(C, D, E, A, B, w4);
+w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE2_F(B, C, D, E, A, w5);  
+K = K2;
+w6 = rotate(w3 ^ SIZE ^ w9 ^ w7, S1); ROTATE3_F(A, B, C, D, E, w6);
+w7 = rotate(w4 ^ w16 ^ w10 ^ w8, S1); ROTATE3_F(E, A, B, C, D, w7);
+w8 = rotate(w5 ^ w0 ^ w11 ^ w9, S1); ROTATE3_F(D, E, A, B, C, w8); 
+w9 = rotate(w6 ^ w1 ^ w12 ^ w10, S1); ROTATE3_F(C, D, E, A, B, w9);
+w10 = rotate(w7 ^ w2 ^ w13 ^ w11, S1); ROTATE3_F(B, C, D, E, A, w10);  
+w11 = rotate(w8 ^ w3 ^ w14 ^ w12, S1); ROTATE3_F(A, B, C, D, E, w11);  
+w12 = rotate(w9 ^ w4 ^ SIZE ^ w13, S1); ROTATE3_F(E, A, B, C, D, w12); 
+w13 = rotate(w10 ^ w5 ^ w16 ^ w14, S1); ROTATE3_F(D, E, A, B, C, w13); 
+w14 = rotate(w11 ^ w6 ^ w0 ^ SIZE, S1); ROTATE3_F(C, D, E, A, B, w14); 
+SIZE = rotate(w12 ^ w7 ^ w1 ^ w16, S1); ROTATE3_F(B, C, D, E, A, SIZE);
+w16 = rotate(w13 ^ w8 ^ w2 ^ w0, S1); ROTATE3_F(A, B, C, D, E, w16);
+w0 = rotate(w14 ^ w9 ^ w3 ^ w1, S1); ROTATE3_F(E, A, B, C, D, w0); 
+w1 = rotate(SIZE ^ w10 ^ w4 ^ w2, S1); ROTATE3_F(D, E, A, B, C, w1);
+w2 = rotate(w16 ^ w11 ^ w5 ^ w3, S1); ROTATE3_F(C, D, E, A, B, w2);
+w3 = rotate(w0 ^ w12 ^ w6 ^ w4, S1); ROTATE3_F(B, C, D, E, A, w3); 
+w4 = rotate(w1 ^ w13 ^ w7 ^ w5, S1); ROTATE3_F(A, B, C, D, E, w4); 
+w5 = rotate(w2 ^ w14 ^ w8 ^ w6, S1); ROTATE3_F(E, A, B, C, D, w5); 
+w6 = rotate(w3 ^ SIZE ^ w9 ^ w7, S1); ROTATE3_F(D, E, A, B, C, w6);
+w7 = rotate(w4 ^ w16 ^ w10 ^ w8, S1); ROTATE3_F(C, D, E, A, B, w7);
+w8 = rotate(w5 ^ w0 ^ w11 ^ w9, S1); ROTATE3_F(B, C, D, E, A, w8); 
+K = K3;
+w9 = rotate(w6 ^ w1 ^ w12 ^ w10, S1); ROTATE4_F(A, B, C, D, E, w9);
+w10 = rotate(w7 ^ w2 ^ w13 ^ w11, S1); ROTATE4_F(E, A, B, C, D, w10);  
+w11 = rotate(w8 ^ w3 ^ w14 ^ w12, S1); ROTATE4_F(D, E, A, B, C, w11);  
+w12 = rotate(w9 ^ w4 ^ SIZE ^ w13, S1); ROTATE4_F(C, D, E, A, B, w12); 
+w13 = rotate(w10 ^ w5 ^ w16 ^ w14, S1); ROTATE4_F(B, C, D, E, A, w13); 
+w14 = rotate(w11 ^ w6 ^ w0 ^ SIZE, S1); ROTATE4_F(A, B, C, D, E, w14); 
+SIZE = rotate(w12 ^ w7 ^ w1 ^ w16, S1); ROTATE4_F(E, A, B, C, D, SIZE);
+w16 = rotate(w13 ^ w8 ^ w2 ^ w0, S1); ROTATE4_F(D, E, A, B, C, w16);
+w0 = rotate(w14 ^ w9 ^ w3 ^ w1, S1); ROTATE4_F(C, D, E, A, B, w0); 
+w1 = rotate(SIZE ^ w10 ^ w4 ^ w2, S1); ROTATE4_F(B, C, D, E, A, w1);
+w2 = rotate(w16 ^ w11 ^ w5 ^ w3,S1); ROTATE4_F(A, B, C, D, E, w2); 
+w3 = rotate(w0 ^ w12 ^ w6 ^ w4,S1); ROTATE4_F(E, A, B, C, D, w3);  
+w4 = rotate(w1 ^ w13 ^ w7 ^ w5,S1); ROTATE4_F(D, E, A, B, C, w4);  
+w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE4_F(C, D, E, A, B, w5);  
+w6 = rotate(w3 ^ SIZE ^ w9 ^ w7,S1); ROTATE4_F(B, C, D, E, A, w6); 
+w7 = rotate(w4 ^ w16 ^ w10 ^ w8,S1); ROTATE4_F(A, B, C, D, E, w7); 
+w8 = rotate(w5 ^ w0 ^ w11 ^ w9,S1); ROTATE4_F(E, A, B, C, D, w8);  
+w9 = rotate(w6 ^ w1 ^ w12 ^ w10,S1); ROTATE4_F(D, E, A, B, C, w9); 
+w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10);
+w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
+
+A+=OPA;
+B+=OPB;
+C+=OPC;
+D+=OPD;
+E+=OPE;
+
+
+TTA ^= A;
+TTB ^= B;
+TTC ^= C;
+TTD ^= D;
+TTE ^= E;
+
 }
 
-TTTA=TTA;
-TTTB=TTB;
-TTTC=TTC;
-TTTD=TTD;
-TTTE=TTE;
+dst[get_global_id(0)*3*5+0]=TTA;
+dst[get_global_id(0)*3*5+1]=TTB;
+dst[get_global_id(0)*3*5+2]=TTC;
+dst[get_global_id(0)*3*5+3]=TTD;
+dst[get_global_id(0)*3*5+4]=TTE;
+dst[get_global_id(0)*3*5+10]=A;
+dst[get_global_id(0)*3*5+11]=B;
+dst[get_global_id(0)*3*5+12]=C;
+dst[get_global_id(0)*3*5+13]=D;
+dst[get_global_id(0)*3*5+14]=E;
+}
 
 
+
+
+__kernel 
+__attribute__((reqd_work_group_size(64, 1, 1)))
+void prepare2( __global uint2 *dst,  __global uint2 *input, __global uint2 *input1, uint16 str, uint16 salt,uint4 singlehash, uint16 salt2, __global uint *block, __global uint *eapol)
+{
+uint2 SIZE;  
+uint ib,ic,id;  
+uint2 a,b,c,d,e,f,g,h, tmp1, tmp2,l; 
+uint2 w0, w1, w2, w3, w4, w5, w6, w7,w8,w9,w10,w11,w12,w13,w14,w16,w15;
+uint yl,yr,zl,zr,wl,wr;
+uint2 K;
+uint2 K0 = (uint2)0x5A827999;
+uint2 K1 = (uint2)0x6ED9EBA1;
+uint2 K2 = (uint2)0x8F1BBCDC;
+uint2 K3 = (uint2)0xCA62C1D6;
+uint2 H0 = (uint2)0x67452301;
+uint2 H1 = (uint2)0xEFCDAB89;
+uint2 H2 = (uint2)0x98BADCFE;
+uint2 H3 = (uint2)0x10325476;
+uint2 H4 = (uint2)0xC3D2E1F0;
+uint2 A,B,C,D,E;
+uint2 IPA,IPB,IPC,IPD,IPE;
+uint2 OPA,OPB,OPC,OPD,OPE;
+uint2 TTA,TTB,TTC,TTD,TTE;
+
+
+TTA=dst[get_global_id(0)*3*5+0];
+TTB=dst[get_global_id(0)*3*5+1];
+TTC=dst[get_global_id(0)*3*5+2];
+TTD=dst[get_global_id(0)*3*5+3];
+TTE=dst[get_global_id(0)*3*5+4];
+IPA=input1[get_global_id(0)*2*5+0];
+IPB=input1[get_global_id(0)*2*5+1];
+IPC=input1[get_global_id(0)*2*5+2];
+IPD=input1[get_global_id(0)*2*5+3];
+IPE=input1[get_global_id(0)*2*5+4];
+OPA=input1[get_global_id(0)*2*5+5];
+OPB=input1[get_global_id(0)*2*5+6];
+OPC=input1[get_global_id(0)*2*5+7];
+OPD=input1[get_global_id(0)*2*5+8];
+OPE=input1[get_global_id(0)*2*5+9];
 
 // Second part of PBKDF2
 
@@ -852,8 +1097,6 @@ A=A+IPA;B=B+IPB;C=C+IPC;D=D+IPD;E=E+IPE;
 
 
 
-
-
 // calculate hash sum 2
 
 w0=A;
@@ -956,11 +1199,71 @@ w9 = rotate(w6 ^ w1 ^ w12 ^ w10,S1); ROTATE4_F(D, E, A, B, C, w9);
 w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10);
 w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
 A=A+OPA;B=B+OPB;C=C+OPC;D=D+OPD;E=E+OPE;
-TTA=A;TTB=B;TTC=C;
+TTA=A;TTB=B;TTC=C;TTD=D;TTE=E;
+dst[get_global_id(0)*3*5+5]=TTA;
+dst[get_global_id(0)*3*5+6]=TTB;
+dst[get_global_id(0)*3*5+7]=TTC;
+dst[get_global_id(0)*3*5+8]=TTD;
+dst[get_global_id(0)*3*5+9]=TTE;
+dst[get_global_id(0)*3*5+10]=TTA;
+dst[get_global_id(0)*3*5+11]=TTB;
+dst[get_global_id(0)*3*5+12]=TTC;
+dst[get_global_id(0)*3*5+13]=TTD;
+dst[get_global_id(0)*3*5+14]=TTE;
+}
 
 
-// We now have the first HMAC,part2. Iterate to find the rest
-for (ic=0;ic<8190;ic++)
+
+
+__kernel 
+__attribute__((reqd_work_group_size(64, 1, 1)))
+void pbkdf2( __global uint2 *dst,  __global uint2 *input, __global uint2 *input1, uint16 str, uint16 salt,uint4 singlehash, uint16 salt2, __global uint *block, __global uint *eapol)
+{
+uint2 SIZE;  
+uint ib,ic,id;  
+uint2 a,b,c,d,e,f,g,h, tmp1, tmp2,l; 
+uint2 w0, w1, w2, w3, w4, w5, w6, w7,w8,w9,w10,w11,w12,w13,w14,w16,w15;
+uint yl,yr,zl,zr,wl,wr;
+uint2 K;
+uint2 K0 = (uint2)0x5A827999;
+uint2 K1 = (uint2)0x6ED9EBA1;
+uint2 K2 = (uint2)0x8F1BBCDC;
+uint2 K3 = (uint2)0xCA62C1D6;
+uint2 H0 = (uint2)0x67452301;
+uint2 H1 = (uint2)0xEFCDAB89;
+uint2 H2 = (uint2)0x98BADCFE;
+uint2 H3 = (uint2)0x10325476;
+uint2 H4 = (uint2)0xC3D2E1F0;
+uint2 A,B,C,D,E;
+uint2 IPA,IPB,IPC,IPD,IPE;
+uint2 OPA,OPB,OPC,OPD,OPE;
+uint2 TTA,TTB,TTC,TTD,TTE;
+
+
+TTA=dst[get_global_id(0)*3*5+5];
+TTB=dst[get_global_id(0)*3*5+6];
+TTC=dst[get_global_id(0)*3*5+7];
+TTD=dst[get_global_id(0)*3*5+8];
+TTE=dst[get_global_id(0)*3*5+9];
+A=dst[get_global_id(0)*3*5+10];
+B=dst[get_global_id(0)*3*5+11];
+C=dst[get_global_id(0)*3*5+12];
+D=dst[get_global_id(0)*3*5+13];
+E=dst[get_global_id(0)*3*5+14];
+IPA=input1[get_global_id(0)*2*5+0];
+IPB=input1[get_global_id(0)*2*5+1];
+IPC=input1[get_global_id(0)*2*5+2];
+IPD=input1[get_global_id(0)*2*5+3];
+IPE=input1[get_global_id(0)*2*5+4];
+OPA=input1[get_global_id(0)*2*5+5];
+OPB=input1[get_global_id(0)*2*5+6];
+OPC=input1[get_global_id(0)*2*5+7];
+OPD=input1[get_global_id(0)*2*5+8];
+OPE=input1[get_global_id(0)*2*5+9];
+
+
+// We now have the first HMAC part2. Iterate to find the rest
+for (ic=str.sA;ic<str.sA+1170;ic+=2)
 {
 
 // calculate hash sum 1
@@ -971,11 +1274,11 @@ w3=D;
 w4=E;
 w5=(uint2)0x80000000;
 SIZE=(uint2)(64+20)<<3;
-A=(ic&1) ? OPA : IPA;
-B=(ic&1) ? OPB : IPB;
-C=(ic&1) ? OPC : IPC;
-D=(ic&1) ? OPD : IPD;
-E=(ic&1) ? OPE : IPE;
+A=IPA;
+B=IPB;
+C=IPC;
+D=IPD;
+E=IPE;
 
 w6=w7=w8=w9=w10=w11=w12=w13=w14=(uint2)0;
 
@@ -1066,18 +1369,182 @@ w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10);
 w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
 
 
-A+=(ic&1) ? OPA : IPA;
-B+=(ic&1) ? OPB : IPB;
-C+=(ic&1) ? OPC : IPC;
-D+=(ic&1) ? OPD : IPD;
-E+=(ic&1) ? OPE : IPE;
+A+=IPA;
+B+=IPB;
+C+=IPC;
+D+=IPD;
+E+=IPE;
 
 
-TTA ^= (ic&1) ? A : 0;
-TTB ^= (ic&1) ? B : 0;
-TTC ^= (ic&1) ? C : 0;
+
+
+// calculate hash sum 1
+w0=A;
+w1=B;
+w2=C;
+w3=D;
+w4=E;
+w5=(uint2)0x80000000;
+SIZE=(uint2)(64+20)<<3;
+A=OPA;
+B=OPB;
+C=OPC;
+D=OPD;
+E=OPE;
+
+w6=w7=w8=w9=w10=w11=w12=w13=w14=(uint2)0;
+
+
+K = K0;
+ROTATE1(A, B, C, D, E, w0);
+ROTATE1(E, A, B, C, D, w1);
+ROTATE1(D, E, A, B, C, w2);
+ROTATE1(C, D, E, A, B, w3);
+ROTATE1(B, C, D, E, A, w4);
+ROTATE1(A, B, C, D, E, w5);
+ROTATE1_NULL(E, A, B, C, D);
+ROTATE1_NULL(D, E, A, B, C);
+ROTATE1_NULL(C, D, E, A, B);
+ROTATE1_NULL(B, C, D, E, A);
+ROTATE1_NULL(A, B, C, D, E);
+ROTATE1_NULL(E, A, B, C, D);
+ROTATE1_NULL(D, E, A, B, C);
+ROTATE1_NULL(C, D, E, A, B);
+ROTATE1_NULL(B, C, D, E, A);
+ROTATE1(A, B, C, D, E, SIZE);  
+w16 = rotate((w13 ^ w8 ^ w2 ^ w0),S1);ROTATE1(E,A,B,C,D,w16);
+w0 = rotate((w14 ^ w9 ^ w3 ^ w1),S1);ROTATE1(D,E,A,B,C,w0); 
+w1 = rotate((SIZE ^ w10 ^ w4 ^ w2),S1); ROTATE1(C,D,E,A,B,w1); 
+w2 = rotate((w16 ^ w11 ^ w5 ^ w3),S1);  ROTATE1(B,C,D,E,A,w2); 
+K = K1;
+w3 = rotate((w0 ^ w12 ^ w6 ^ w4),S1); ROTATE2_F(A, B, C, D, E, w3);
+w4 = rotate((w1 ^ w13 ^ w7 ^ w5),S1); ROTATE2_F(E, A, B, C, D, w4);
+w5 = rotate((w2 ^ w14 ^ w8 ^ w6),S1); ROTATE2_F(D, E, A, B, C, w5);
+w6 = rotate((w3 ^ SIZE ^ w9 ^ w7),S1);ROTATE2_F(C, D, E, A, B, w6);
+w7 = rotate((w4 ^ w16 ^ w10 ^ w8),S1); ROTATE2_F(B, C, D, E, A, w7);
+w8 = rotate((w5 ^ w0 ^ w11 ^ w9),S1); ROTATE2_F(A, B, C, D, E, w8);
+w9 = rotate((w6 ^ w1 ^ w12 ^ w10),S1); ROTATE2_F(E, A, B, C, D, w9);
+w10 = rotate((w7 ^ w2 ^ w13 ^ w11),S1); ROTATE2_F(D, E, A, B, C, w10); 
+w11 = rotate((w8 ^ w3 ^ w14 ^ w12),S1); ROTATE2_F(C, D, E, A, B, w11); 
+w12 = rotate((w9 ^ w4 ^ SIZE ^ w13),S1); ROTATE2_F(B, C, D, E, A, w12);
+w13 = rotate((w10 ^ w5 ^ w16 ^ w14),S1); ROTATE2_F(A, B, C, D, E, w13);
+w14 = rotate((w11 ^ w6 ^ w0 ^ SIZE),S1); ROTATE2_F(E, A, B, C, D, w14);
+SIZE = rotate((w12 ^ w7 ^ w1 ^ w16),S1); ROTATE2_F(D, E, A, B, C, SIZE);
+w16 = rotate((w13 ^ w8 ^ w2 ^ w0),S1); ROTATE2_F(C, D, E, A, B, w16);  
+w0 = rotate(w14 ^ w9 ^ w3 ^ w1,S1); ROTATE2_F(B, C, D, E, A, w0);  
+w1 = rotate(SIZE ^ w10 ^ w4 ^ w2,S1); ROTATE2_F(A, B, C, D, E, w1);
+w2 = rotate(w16 ^ w11 ^ w5 ^ w3,S1); ROTATE2_F(E, A, B, C, D, w2); 
+w3 = rotate(w0 ^ w12 ^ w6 ^ w4,S1); ROTATE2_F(D, E, A, B, C, w3);  
+w4 = rotate(w1 ^ w13 ^ w7 ^ w5,S1);ROTATE2_F(C, D, E, A, B, w4);
+w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE2_F(B, C, D, E, A, w5);  
+K = K2;
+w6 = rotate(w3 ^ SIZE ^ w9 ^ w7, S1); ROTATE3_F(A, B, C, D, E, w6);
+w7 = rotate(w4 ^ w16 ^ w10 ^ w8, S1); ROTATE3_F(E, A, B, C, D, w7);
+w8 = rotate(w5 ^ w0 ^ w11 ^ w9, S1); ROTATE3_F(D, E, A, B, C, w8); 
+w9 = rotate(w6 ^ w1 ^ w12 ^ w10, S1); ROTATE3_F(C, D, E, A, B, w9);
+w10 = rotate(w7 ^ w2 ^ w13 ^ w11, S1); ROTATE3_F(B, C, D, E, A, w10);  
+w11 = rotate(w8 ^ w3 ^ w14 ^ w12, S1); ROTATE3_F(A, B, C, D, E, w11);  
+w12 = rotate(w9 ^ w4 ^ SIZE ^ w13, S1); ROTATE3_F(E, A, B, C, D, w12); 
+w13 = rotate(w10 ^ w5 ^ w16 ^ w14, S1); ROTATE3_F(D, E, A, B, C, w13); 
+w14 = rotate(w11 ^ w6 ^ w0 ^ SIZE, S1); ROTATE3_F(C, D, E, A, B, w14); 
+SIZE = rotate(w12 ^ w7 ^ w1 ^ w16, S1); ROTATE3_F(B, C, D, E, A, SIZE);
+w16 = rotate(w13 ^ w8 ^ w2 ^ w0, S1); ROTATE3_F(A, B, C, D, E, w16);
+w0 = rotate(w14 ^ w9 ^ w3 ^ w1, S1); ROTATE3_F(E, A, B, C, D, w0); 
+w1 = rotate(SIZE ^ w10 ^ w4 ^ w2, S1); ROTATE3_F(D, E, A, B, C, w1);
+w2 = rotate(w16 ^ w11 ^ w5 ^ w3, S1); ROTATE3_F(C, D, E, A, B, w2);
+w3 = rotate(w0 ^ w12 ^ w6 ^ w4, S1); ROTATE3_F(B, C, D, E, A, w3); 
+w4 = rotate(w1 ^ w13 ^ w7 ^ w5, S1); ROTATE3_F(A, B, C, D, E, w4); 
+w5 = rotate(w2 ^ w14 ^ w8 ^ w6, S1); ROTATE3_F(E, A, B, C, D, w5); 
+w6 = rotate(w3 ^ SIZE ^ w9 ^ w7, S1); ROTATE3_F(D, E, A, B, C, w6);
+w7 = rotate(w4 ^ w16 ^ w10 ^ w8, S1); ROTATE3_F(C, D, E, A, B, w7);
+w8 = rotate(w5 ^ w0 ^ w11 ^ w9, S1); ROTATE3_F(B, C, D, E, A, w8); 
+K = K3;
+w9 = rotate(w6 ^ w1 ^ w12 ^ w10, S1); ROTATE4_F(A, B, C, D, E, w9);
+w10 = rotate(w7 ^ w2 ^ w13 ^ w11, S1); ROTATE4_F(E, A, B, C, D, w10);  
+w11 = rotate(w8 ^ w3 ^ w14 ^ w12, S1); ROTATE4_F(D, E, A, B, C, w11);  
+w12 = rotate(w9 ^ w4 ^ SIZE ^ w13, S1); ROTATE4_F(C, D, E, A, B, w12); 
+w13 = rotate(w10 ^ w5 ^ w16 ^ w14, S1); ROTATE4_F(B, C, D, E, A, w13); 
+w14 = rotate(w11 ^ w6 ^ w0 ^ SIZE, S1); ROTATE4_F(A, B, C, D, E, w14); 
+SIZE = rotate(w12 ^ w7 ^ w1 ^ w16, S1); ROTATE4_F(E, A, B, C, D, SIZE);
+w16 = rotate(w13 ^ w8 ^ w2 ^ w0, S1); ROTATE4_F(D, E, A, B, C, w16);
+w0 = rotate(w14 ^ w9 ^ w3 ^ w1, S1); ROTATE4_F(C, D, E, A, B, w0); 
+w1 = rotate(SIZE ^ w10 ^ w4 ^ w2, S1); ROTATE4_F(B, C, D, E, A, w1);
+w2 = rotate(w16 ^ w11 ^ w5 ^ w3,S1); ROTATE4_F(A, B, C, D, E, w2); 
+w3 = rotate(w0 ^ w12 ^ w6 ^ w4,S1); ROTATE4_F(E, A, B, C, D, w3);  
+w4 = rotate(w1 ^ w13 ^ w7 ^ w5,S1); ROTATE4_F(D, E, A, B, C, w4);  
+w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE4_F(C, D, E, A, B, w5);  
+w6 = rotate(w3 ^ SIZE ^ w9 ^ w7,S1); ROTATE4_F(B, C, D, E, A, w6); 
+w7 = rotate(w4 ^ w16 ^ w10 ^ w8,S1); ROTATE4_F(A, B, C, D, E, w7); 
+w8 = rotate(w5 ^ w0 ^ w11 ^ w9,S1); ROTATE4_F(E, A, B, C, D, w8);  
+w9 = rotate(w6 ^ w1 ^ w12 ^ w10,S1); ROTATE4_F(D, E, A, B, C, w9); 
+w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10);
+w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
+
+
+A+=OPA;
+B+=OPB;
+C+=OPC;
+D+=OPD;
+E+=OPE;
+
+
+TTA ^= A;
+TTB ^= B;
+TTC ^= C;
 }
 
+
+dst[get_global_id(0)*3*5+5]=TTA;
+dst[get_global_id(0)*3*5+6]=TTB;
+dst[get_global_id(0)*3*5+7]=TTC;
+dst[get_global_id(0)*3*5+8]=TTD;
+dst[get_global_id(0)*3*5+9]=TTE;
+dst[get_global_id(0)*3*5+10]=A;
+dst[get_global_id(0)*3*5+11]=B;
+dst[get_global_id(0)*3*5+12]=C;
+dst[get_global_id(0)*3*5+13]=D;
+dst[get_global_id(0)*3*5+14]=E;
+
+}
+
+
+
+
+__kernel 
+__attribute__((reqd_work_group_size(64, 1, 1)))
+void final( __global uint4 *dst,  __global uint2 *input, __global uint2 *input1, uint16 str, uint16 salt,uint4 singlehash, uint16 salt2, __global uint *block, __global uint *eapol, global uint *found, global uint *found_ind)
+{
+uint2 SIZE;  
+uint ib,ic,id;  
+uint2 a,b,c,d,e,f,g,h, tmp1, tmp2,l; 
+uint2 w0, w1, w2, w3, w4, w5, w6, w7,w8,w9,w10,w11,w12,w13,w14,w16,w15;
+uint yl,yr,zl,zr,wl,wr;
+uint2 K;
+uint2 K0 = (uint2)0x5A827999;
+uint2 K1 = (uint2)0x6ED9EBA1;
+uint2 K2 = (uint2)0x8F1BBCDC;
+uint2 K3 = (uint2)0xCA62C1D6;
+uint2 H0 = (uint2)0x67452301;
+uint2 H1 = (uint2)0xEFCDAB89;
+uint2 H2 = (uint2)0x98BADCFE;
+uint2 H3 = (uint2)0x10325476;
+uint2 H4 = (uint2)0xC3D2E1F0;
+uint2 A,B,C,D,E;
+uint2 IPA,IPB,IPC,IPD,IPE;
+uint2 OPA,OPB,OPC,OPD,OPE;
+uint2 TTA,TTB,TTC,TTD,TTE,TTTA,TTTB,TTTC,TTTD,TTTE;
+
+
+TTTA=input1[get_global_id(0)*3*5+0];
+TTTB=input1[get_global_id(0)*3*5+1];
+TTTC=input1[get_global_id(0)*3*5+2];
+TTTD=input1[get_global_id(0)*3*5+3];
+TTTE=input1[get_global_id(0)*3*5+4];
+TTA=input1[get_global_id(0)*3*5+5];
+TTB=input1[get_global_id(0)*3*5+6];
+TTC=input1[get_global_id(0)*3*5+7];
+TTD=input1[get_global_id(0)*3*5+8];
+TTE=input1[get_global_id(0)*3*5+9];
 
 
 
@@ -2351,15 +2818,15 @@ found_ind[get_global_id(0)] = 1;
 
 #else
 
+
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))
-void wpa( __global uint4 *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *found, uint4 singlehash, uint16 salt, uint16 salt2, __global uint *block, __global uint *eapol)
+void prepare1( __global uint *dst,  __global uint *input, __global uint *input1, uint16 str, uint16 salt,uint4 singlehash, uint16 salt2, __global uint *block, __global uint *eapol)
 {
-
 uint SIZE;  
 uint ib,ic,id;  
 uint a,b,c,d,e,f,g,h, tmp1, tmp2,l; 
-uint w0, w1, w2, w3, w4, w5, w6, w7,w8,w9,w10,w11,w12,w13,w14,w16;
+uint w0, w1, w2, w3, w4, w5, w6, w7,w8,w9,w10,w11,w12,w13,w14,w16,w15;
 uint yl,yr,zl,zr,wl,wr;
 uint K;
 uint K0 = (uint)0x5A827999;
@@ -2371,12 +2838,11 @@ uint H1 = (uint)0xEFCDAB89;
 uint H2 = (uint)0x98BADCFE;
 uint H3 = (uint)0x10325476;
 uint H4 = (uint)0xC3D2E1F0;
-uint w[16];
 uint A,B,C,D,E;
 uint IPA,IPB,IPC,IPD,IPE;
 uint OPA,OPB,OPC,OPD,OPE;
-uint TA,TB,TC,TD,TE;
-uint TTA,TTB,TTC,TTD,TTE,TTF,TTTA,TTTB,TTTC,TTTD,TTTE;
+uint TTA,TTB,TTC,TTD,TTE;
+
 TTA=TTB=TTC=TTD=TTE=(uint)0;
 
 
@@ -2388,6 +2854,7 @@ e=input[get_global_id(0)*8+4];
 f=input[get_global_id(0)*8+5];
 g=input[get_global_id(0)*8+6];
 h=input[get_global_id(0)*8+7];
+
 
 
 
@@ -2850,8 +3317,79 @@ A=A+OPA;B=B+OPB;C=C+OPC;D=D+OPD;E=E+OPE;
 TTA=A;TTB=B;TTC=C;TTD=D;TTE=E;
 
 
+input1[get_global_id(0)*2*5+0]=IPA;
+input1[get_global_id(0)*2*5+1]=IPB;
+input1[get_global_id(0)*2*5+2]=IPC;
+input1[get_global_id(0)*2*5+3]=IPD;
+input1[get_global_id(0)*2*5+4]=IPE;
+input1[get_global_id(0)*2*5+5]=OPA;
+input1[get_global_id(0)*2*5+6]=OPB;
+input1[get_global_id(0)*2*5+7]=OPC;
+input1[get_global_id(0)*2*5+8]=OPD;
+input1[get_global_id(0)*2*5+9]=OPE;
+
+dst[get_global_id(0)*3*5+0]=TTA;
+dst[get_global_id(0)*3*5+1]=TTB;
+dst[get_global_id(0)*3*5+2]=TTC;
+dst[get_global_id(0)*3*5+3]=TTD;
+dst[get_global_id(0)*3*5+4]=TTE;
+dst[get_global_id(0)*3*5+10]=TTA;
+dst[get_global_id(0)*3*5+11]=TTB;
+dst[get_global_id(0)*3*5+12]=TTC;
+dst[get_global_id(0)*3*5+13]=TTD;
+dst[get_global_id(0)*3*5+14]=TTE;
+
+}
+
+
+__kernel 
+__attribute__((reqd_work_group_size(64, 1, 1)))
+void pbkdf1( __global uint *dst,  __global uint *input, __global uint *input1, uint16 str, uint16 salt,uint4 singlehash, uint16 salt2, __global uint *block, __global uint *eapol)
+{
+uint SIZE;  
+uint ib,ic,id;  
+uint a,b,c,d,e,f,g,h, tmp1, tmp2,l; 
+uint w0, w1, w2, w3, w4, w5, w6, w7,w8,w9,w10,w11,w12,w13,w14,w16,w15;
+uint K;
+uint K0 = (uint)0x5A827999;
+uint K1 = (uint)0x6ED9EBA1;
+uint K2 = (uint)0x8F1BBCDC;
+uint K3 = (uint)0xCA62C1D6;
+uint H0 = (uint)0x67452301;
+uint H1 = (uint)0xEFCDAB89;
+uint H2 = (uint)0x98BADCFE;
+uint H3 = (uint)0x10325476;
+uint H4 = (uint)0xC3D2E1F0;
+uint A,B,C,D,E;
+uint IPA,IPB,IPC,IPD,IPE;
+uint OPA,OPB,OPC,OPD,OPE;
+uint TTA,TTB,TTC,TTD,TTE;
+
+
+TTA=dst[get_global_id(0)*3*5+0];
+TTB=dst[get_global_id(0)*3*5+1];
+TTC=dst[get_global_id(0)*3*5+2];
+TTD=dst[get_global_id(0)*3*5+3];
+TTE=dst[get_global_id(0)*3*5+4];
+A=dst[get_global_id(0)*3*5+10];
+B=dst[get_global_id(0)*3*5+11];
+C=dst[get_global_id(0)*3*5+12];
+D=dst[get_global_id(0)*3*5+13];
+E=dst[get_global_id(0)*3*5+14];
+IPA=input1[get_global_id(0)*2*5+0];
+IPB=input1[get_global_id(0)*2*5+1];
+IPC=input1[get_global_id(0)*2*5+2];
+IPD=input1[get_global_id(0)*2*5+3];
+IPE=input1[get_global_id(0)*2*5+4];
+OPA=input1[get_global_id(0)*2*5+5];
+OPB=input1[get_global_id(0)*2*5+6];
+OPC=input1[get_global_id(0)*2*5+7];
+OPD=input1[get_global_id(0)*2*5+8];
+OPE=input1[get_global_id(0)*2*5+9];
+
+
 // We now have the first HMAC. Iterate to find the rest
-for (ic=0;ic<8190;ic++)
+for (ic=str.sA;ic<1170+str.sA;ic+=2)
 {
 
 // calculate hash sum 1
@@ -2862,11 +3400,13 @@ w3=D;
 w4=E;
 w5=(uint)0x80000000;
 SIZE=(uint)(64+20)<<3;
-A=(ic&1) ? OPA : IPA;
-B=(ic&1) ? OPB : IPB;
-C=(ic&1) ? OPC : IPC;
-D=(ic&1) ? OPD : IPD;
-E=(ic&1) ? OPE : IPE;
+
+A=IPA;
+B=IPB;
+C=IPC;
+D=IPD;
+E=IPE;
+
 
 w6=w7=w8=w9=w10=w11=w12=w13=w14=(uint)0;
 
@@ -2956,28 +3496,187 @@ w9 = rotate(w6 ^ w1 ^ w12 ^ w10,S1); ROTATE4_F(D, E, A, B, C, w9);
 w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10);
 w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
 
+A+=IPA;
+B+=IPB;
+C+=IPC;
+D+=IPD;
+E+=IPE;
 
-A+=(ic&1) ? OPA : IPA;
-B+=(ic&1) ? OPB : IPB;
-C+=(ic&1) ? OPC : IPC;
-D+=(ic&1) ? OPD : IPD;
-E+=(ic&1) ? OPE : IPE;
+
+// calculate hash sum 1
+w0=A;
+w1=B;
+w2=C;
+w3=D;
+w4=E;
+w5=(uint)0x80000000;
+SIZE=(uint)(64+20)<<3;
+
+A=OPA;
+B=OPB;
+C=OPC;
+D=OPD;
+E=OPE;
 
 
-TTA ^= (ic&1) ? A : 0;
-TTB ^= (ic&1) ? B : 0;
-TTC ^= (ic&1) ? C : 0;
-TTD ^= (ic&1) ? D : 0;
-TTE ^= (ic&1) ? E : 0;
+w6=w7=w8=w9=w10=w11=w12=w13=w14=(uint)0;
+
+
+K = K0;
+ROTATE1(A, B, C, D, E, w0);
+ROTATE1(E, A, B, C, D, w1);
+ROTATE1(D, E, A, B, C, w2);
+ROTATE1(C, D, E, A, B, w3);
+ROTATE1(B, C, D, E, A, w4);
+ROTATE1(A, B, C, D, E, w5);
+ROTATE1_NULL(E, A, B, C, D);
+ROTATE1_NULL(D, E, A, B, C);
+ROTATE1_NULL(C, D, E, A, B);
+ROTATE1_NULL(B, C, D, E, A);
+ROTATE1_NULL(A, B, C, D, E);
+ROTATE1_NULL(E, A, B, C, D);
+ROTATE1_NULL(D, E, A, B, C);
+ROTATE1_NULL(C, D, E, A, B);
+ROTATE1_NULL(B, C, D, E, A);
+ROTATE1(A, B, C, D, E, SIZE);  
+w16 = rotate((w13 ^ w8 ^ w2 ^ w0),S1);ROTATE1(E,A,B,C,D,w16);
+w0 = rotate((w14 ^ w9 ^ w3 ^ w1),S1);ROTATE1(D,E,A,B,C,w0); 
+w1 = rotate((SIZE ^ w10 ^ w4 ^ w2),S1); ROTATE1(C,D,E,A,B,w1); 
+w2 = rotate((w16 ^ w11 ^ w5 ^ w3),S1);  ROTATE1(B,C,D,E,A,w2); 
+K = K1;
+w3 = rotate((w0 ^ w12 ^ w6 ^ w4),S1); ROTATE2_F(A, B, C, D, E, w3);
+w4 = rotate((w1 ^ w13 ^ w7 ^ w5),S1); ROTATE2_F(E, A, B, C, D, w4);
+w5 = rotate((w2 ^ w14 ^ w8 ^ w6),S1); ROTATE2_F(D, E, A, B, C, w5);
+w6 = rotate((w3 ^ SIZE ^ w9 ^ w7),S1);ROTATE2_F(C, D, E, A, B, w6);
+w7 = rotate((w4 ^ w16 ^ w10 ^ w8),S1); ROTATE2_F(B, C, D, E, A, w7);
+w8 = rotate((w5 ^ w0 ^ w11 ^ w9),S1); ROTATE2_F(A, B, C, D, E, w8);
+w9 = rotate((w6 ^ w1 ^ w12 ^ w10),S1); ROTATE2_F(E, A, B, C, D, w9);
+w10 = rotate((w7 ^ w2 ^ w13 ^ w11),S1); ROTATE2_F(D, E, A, B, C, w10); 
+w11 = rotate((w8 ^ w3 ^ w14 ^ w12),S1); ROTATE2_F(C, D, E, A, B, w11); 
+w12 = rotate((w9 ^ w4 ^ SIZE ^ w13),S1); ROTATE2_F(B, C, D, E, A, w12);
+w13 = rotate((w10 ^ w5 ^ w16 ^ w14),S1); ROTATE2_F(A, B, C, D, E, w13);
+w14 = rotate((w11 ^ w6 ^ w0 ^ SIZE),S1); ROTATE2_F(E, A, B, C, D, w14);
+SIZE = rotate((w12 ^ w7 ^ w1 ^ w16),S1); ROTATE2_F(D, E, A, B, C, SIZE);
+w16 = rotate((w13 ^ w8 ^ w2 ^ w0),S1); ROTATE2_F(C, D, E, A, B, w16);  
+w0 = rotate(w14 ^ w9 ^ w3 ^ w1,S1); ROTATE2_F(B, C, D, E, A, w0);  
+w1 = rotate(SIZE ^ w10 ^ w4 ^ w2,S1); ROTATE2_F(A, B, C, D, E, w1);
+w2 = rotate(w16 ^ w11 ^ w5 ^ w3,S1); ROTATE2_F(E, A, B, C, D, w2); 
+w3 = rotate(w0 ^ w12 ^ w6 ^ w4,S1); ROTATE2_F(D, E, A, B, C, w3);  
+w4 = rotate(w1 ^ w13 ^ w7 ^ w5,S1);ROTATE2_F(C, D, E, A, B, w4);
+w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE2_F(B, C, D, E, A, w5);  
+K = K2;
+w6 = rotate(w3 ^ SIZE ^ w9 ^ w7, S1); ROTATE3_F(A, B, C, D, E, w6);
+w7 = rotate(w4 ^ w16 ^ w10 ^ w8, S1); ROTATE3_F(E, A, B, C, D, w7);
+w8 = rotate(w5 ^ w0 ^ w11 ^ w9, S1); ROTATE3_F(D, E, A, B, C, w8); 
+w9 = rotate(w6 ^ w1 ^ w12 ^ w10, S1); ROTATE3_F(C, D, E, A, B, w9);
+w10 = rotate(w7 ^ w2 ^ w13 ^ w11, S1); ROTATE3_F(B, C, D, E, A, w10);  
+w11 = rotate(w8 ^ w3 ^ w14 ^ w12, S1); ROTATE3_F(A, B, C, D, E, w11);  
+w12 = rotate(w9 ^ w4 ^ SIZE ^ w13, S1); ROTATE3_F(E, A, B, C, D, w12); 
+w13 = rotate(w10 ^ w5 ^ w16 ^ w14, S1); ROTATE3_F(D, E, A, B, C, w13); 
+w14 = rotate(w11 ^ w6 ^ w0 ^ SIZE, S1); ROTATE3_F(C, D, E, A, B, w14); 
+SIZE = rotate(w12 ^ w7 ^ w1 ^ w16, S1); ROTATE3_F(B, C, D, E, A, SIZE);
+w16 = rotate(w13 ^ w8 ^ w2 ^ w0, S1); ROTATE3_F(A, B, C, D, E, w16);
+w0 = rotate(w14 ^ w9 ^ w3 ^ w1, S1); ROTATE3_F(E, A, B, C, D, w0); 
+w1 = rotate(SIZE ^ w10 ^ w4 ^ w2, S1); ROTATE3_F(D, E, A, B, C, w1);
+w2 = rotate(w16 ^ w11 ^ w5 ^ w3, S1); ROTATE3_F(C, D, E, A, B, w2);
+w3 = rotate(w0 ^ w12 ^ w6 ^ w4, S1); ROTATE3_F(B, C, D, E, A, w3); 
+w4 = rotate(w1 ^ w13 ^ w7 ^ w5, S1); ROTATE3_F(A, B, C, D, E, w4); 
+w5 = rotate(w2 ^ w14 ^ w8 ^ w6, S1); ROTATE3_F(E, A, B, C, D, w5); 
+w6 = rotate(w3 ^ SIZE ^ w9 ^ w7, S1); ROTATE3_F(D, E, A, B, C, w6);
+w7 = rotate(w4 ^ w16 ^ w10 ^ w8, S1); ROTATE3_F(C, D, E, A, B, w7);
+w8 = rotate(w5 ^ w0 ^ w11 ^ w9, S1); ROTATE3_F(B, C, D, E, A, w8); 
+K = K3;
+w9 = rotate(w6 ^ w1 ^ w12 ^ w10, S1); ROTATE4_F(A, B, C, D, E, w9);
+w10 = rotate(w7 ^ w2 ^ w13 ^ w11, S1); ROTATE4_F(E, A, B, C, D, w10);  
+w11 = rotate(w8 ^ w3 ^ w14 ^ w12, S1); ROTATE4_F(D, E, A, B, C, w11);  
+w12 = rotate(w9 ^ w4 ^ SIZE ^ w13, S1); ROTATE4_F(C, D, E, A, B, w12); 
+w13 = rotate(w10 ^ w5 ^ w16 ^ w14, S1); ROTATE4_F(B, C, D, E, A, w13); 
+w14 = rotate(w11 ^ w6 ^ w0 ^ SIZE, S1); ROTATE4_F(A, B, C, D, E, w14); 
+SIZE = rotate(w12 ^ w7 ^ w1 ^ w16, S1); ROTATE4_F(E, A, B, C, D, SIZE);
+w16 = rotate(w13 ^ w8 ^ w2 ^ w0, S1); ROTATE4_F(D, E, A, B, C, w16);
+w0 = rotate(w14 ^ w9 ^ w3 ^ w1, S1); ROTATE4_F(C, D, E, A, B, w0); 
+w1 = rotate(SIZE ^ w10 ^ w4 ^ w2, S1); ROTATE4_F(B, C, D, E, A, w1);
+w2 = rotate(w16 ^ w11 ^ w5 ^ w3,S1); ROTATE4_F(A, B, C, D, E, w2); 
+w3 = rotate(w0 ^ w12 ^ w6 ^ w4,S1); ROTATE4_F(E, A, B, C, D, w3);  
+w4 = rotate(w1 ^ w13 ^ w7 ^ w5,S1); ROTATE4_F(D, E, A, B, C, w4);  
+w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE4_F(C, D, E, A, B, w5);  
+w6 = rotate(w3 ^ SIZE ^ w9 ^ w7,S1); ROTATE4_F(B, C, D, E, A, w6); 
+w7 = rotate(w4 ^ w16 ^ w10 ^ w8,S1); ROTATE4_F(A, B, C, D, E, w7); 
+w8 = rotate(w5 ^ w0 ^ w11 ^ w9,S1); ROTATE4_F(E, A, B, C, D, w8);  
+w9 = rotate(w6 ^ w1 ^ w12 ^ w10,S1); ROTATE4_F(D, E, A, B, C, w9); 
+w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10);
+w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
+
+A+=OPA;
+B+=OPB;
+C+=OPC;
+D+=OPD;
+E+=OPE;
+
+
+TTA ^= A;
+TTB ^= B;
+TTC ^= C;
+TTD ^= D;
+TTE ^= E;
+
 }
 
-TTTA=TTA;
-TTTB=TTB;
-TTTC=TTC;
-TTTD=TTD;
-TTTE=TTE;
+dst[get_global_id(0)*3*5+0]=TTA;
+dst[get_global_id(0)*3*5+1]=TTB;
+dst[get_global_id(0)*3*5+2]=TTC;
+dst[get_global_id(0)*3*5+3]=TTD;
+dst[get_global_id(0)*3*5+4]=TTE;
+dst[get_global_id(0)*3*5+10]=A;
+dst[get_global_id(0)*3*5+11]=B;
+dst[get_global_id(0)*3*5+12]=C;
+dst[get_global_id(0)*3*5+13]=D;
+dst[get_global_id(0)*3*5+14]=E;
+}
 
 
+
+
+__kernel 
+__attribute__((reqd_work_group_size(64, 1, 1)))
+void prepare2( __global uint *dst,  __global uint *input, __global uint *input1, uint16 str, uint16 salt,uint4 singlehash, uint16 salt2, __global uint *block, __global uint *eapol)
+{
+uint SIZE;  
+uint ib,ic,id;  
+uint a,b,c,d,e,f,g,h, tmp1, tmp2,l; 
+uint w0, w1, w2, w3, w4, w5, w6, w7,w8,w9,w10,w11,w12,w13,w14,w16,w15;
+uint yl,yr,zl,zr,wl,wr;
+uint K;
+uint K0 = (uint)0x5A827999;
+uint K1 = (uint)0x6ED9EBA1;
+uint K2 = (uint)0x8F1BBCDC;
+uint K3 = (uint)0xCA62C1D6;
+uint H0 = (uint)0x67452301;
+uint H1 = (uint)0xEFCDAB89;
+uint H2 = (uint)0x98BADCFE;
+uint H3 = (uint)0x10325476;
+uint H4 = (uint)0xC3D2E1F0;
+uint A,B,C,D,E;
+uint IPA,IPB,IPC,IPD,IPE;
+uint OPA,OPB,OPC,OPD,OPE;
+uint TTA,TTB,TTC,TTD,TTE;
+
+
+TTA=dst[get_global_id(0)*3*5+0];
+TTB=dst[get_global_id(0)*3*5+1];
+TTC=dst[get_global_id(0)*3*5+2];
+TTD=dst[get_global_id(0)*3*5+3];
+TTE=dst[get_global_id(0)*3*5+4];
+IPA=input1[get_global_id(0)*2*5+0];
+IPB=input1[get_global_id(0)*2*5+1];
+IPC=input1[get_global_id(0)*2*5+2];
+IPD=input1[get_global_id(0)*2*5+3];
+IPE=input1[get_global_id(0)*2*5+4];
+OPA=input1[get_global_id(0)*2*5+5];
+OPB=input1[get_global_id(0)*2*5+6];
+OPC=input1[get_global_id(0)*2*5+7];
+OPD=input1[get_global_id(0)*2*5+8];
+OPE=input1[get_global_id(0)*2*5+9];
 
 // Second part of PBKDF2
 
@@ -3103,8 +3802,6 @@ A=A+IPA;B=B+IPB;C=C+IPC;D=D+IPD;E=E+IPE;
 
 
 
-
-
 // calculate hash sum 2
 
 w0=A;
@@ -3207,11 +3904,71 @@ w9 = rotate(w6 ^ w1 ^ w12 ^ w10,S1); ROTATE4_F(D, E, A, B, C, w9);
 w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10);
 w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
 A=A+OPA;B=B+OPB;C=C+OPC;D=D+OPD;E=E+OPE;
-TTA=A;TTB=B;TTC=C;
+TTA=A;TTB=B;TTC=C;TTD=D;TTE=E;
+dst[get_global_id(0)*3*5+5]=TTA;
+dst[get_global_id(0)*3*5+6]=TTB;
+dst[get_global_id(0)*3*5+7]=TTC;
+dst[get_global_id(0)*3*5+8]=TTD;
+dst[get_global_id(0)*3*5+9]=TTE;
+dst[get_global_id(0)*3*5+10]=TTA;
+dst[get_global_id(0)*3*5+11]=TTB;
+dst[get_global_id(0)*3*5+12]=TTC;
+dst[get_global_id(0)*3*5+13]=TTD;
+dst[get_global_id(0)*3*5+14]=TTE;
+}
 
 
-// We now have the first HMAC,part2. Iterate to find the rest
-for (ic=0;ic<8190;ic++)
+
+
+__kernel 
+__attribute__((reqd_work_group_size(64, 1, 1)))
+void pbkdf2( __global uint *dst,  __global uint *input, __global uint *input1, uint16 str, uint16 salt,uint4 singlehash, uint16 salt2, __global uint *block, __global uint *eapol)
+{
+uint SIZE;  
+uint ib,ic,id;  
+uint a,b,c,d,e,f,g,h, tmp1, tmp2,l; 
+uint w0, w1, w2, w3, w4, w5, w6, w7,w8,w9,w10,w11,w12,w13,w14,w16,w15;
+uint yl,yr,zl,zr,wl,wr;
+uint K;
+uint K0 = (uint)0x5A827999;
+uint K1 = (uint)0x6ED9EBA1;
+uint K2 = (uint)0x8F1BBCDC;
+uint K3 = (uint)0xCA62C1D6;
+uint H0 = (uint)0x67452301;
+uint H1 = (uint)0xEFCDAB89;
+uint H2 = (uint)0x98BADCFE;
+uint H3 = (uint)0x10325476;
+uint H4 = (uint)0xC3D2E1F0;
+uint A,B,C,D,E;
+uint IPA,IPB,IPC,IPD,IPE;
+uint OPA,OPB,OPC,OPD,OPE;
+uint TTA,TTB,TTC,TTD,TTE;
+
+
+TTA=dst[get_global_id(0)*3*5+5];
+TTB=dst[get_global_id(0)*3*5+6];
+TTC=dst[get_global_id(0)*3*5+7];
+TTD=dst[get_global_id(0)*3*5+8];
+TTE=dst[get_global_id(0)*3*5+9];
+A=dst[get_global_id(0)*3*5+10];
+B=dst[get_global_id(0)*3*5+11];
+C=dst[get_global_id(0)*3*5+12];
+D=dst[get_global_id(0)*3*5+13];
+E=dst[get_global_id(0)*3*5+14];
+IPA=input1[get_global_id(0)*2*5+0];
+IPB=input1[get_global_id(0)*2*5+1];
+IPC=input1[get_global_id(0)*2*5+2];
+IPD=input1[get_global_id(0)*2*5+3];
+IPE=input1[get_global_id(0)*2*5+4];
+OPA=input1[get_global_id(0)*2*5+5];
+OPB=input1[get_global_id(0)*2*5+6];
+OPC=input1[get_global_id(0)*2*5+7];
+OPD=input1[get_global_id(0)*2*5+8];
+OPE=input1[get_global_id(0)*2*5+9];
+
+
+// We now have the first HMAC part2. Iterate to find the rest
+for (ic=str.sA;ic<str.sA+1170;ic+=2)
 {
 
 // calculate hash sum 1
@@ -3222,11 +3979,11 @@ w3=D;
 w4=E;
 w5=(uint)0x80000000;
 SIZE=(uint)(64+20)<<3;
-A=(ic&1) ? OPA : IPA;
-B=(ic&1) ? OPB : IPB;
-C=(ic&1) ? OPC : IPC;
-D=(ic&1) ? OPD : IPD;
-E=(ic&1) ? OPE : IPE;
+A=IPA;
+B=IPB;
+C=IPC;
+D=IPD;
+E=IPE;
 
 w6=w7=w8=w9=w10=w11=w12=w13=w14=(uint)0;
 
@@ -3317,18 +4074,182 @@ w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10);
 w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
 
 
-A+=(ic&1) ? OPA : IPA;
-B+=(ic&1) ? OPB : IPB;
-C+=(ic&1) ? OPC : IPC;
-D+=(ic&1) ? OPD : IPD;
-E+=(ic&1) ? OPE : IPE;
+A+=IPA;
+B+=IPB;
+C+=IPC;
+D+=IPD;
+E+=IPE;
 
 
-TTA ^= (ic&1) ? A : 0;
-TTB ^= (ic&1) ? B : 0;
-TTC ^= (ic&1) ? C : 0;
+
+
+// calculate hash sum 1
+w0=A;
+w1=B;
+w2=C;
+w3=D;
+w4=E;
+w5=(uint)0x80000000;
+SIZE=(uint)(64+20)<<3;
+A=OPA;
+B=OPB;
+C=OPC;
+D=OPD;
+E=OPE;
+
+w6=w7=w8=w9=w10=w11=w12=w13=w14=(uint)0;
+
+
+K = K0;
+ROTATE1(A, B, C, D, E, w0);
+ROTATE1(E, A, B, C, D, w1);
+ROTATE1(D, E, A, B, C, w2);
+ROTATE1(C, D, E, A, B, w3);
+ROTATE1(B, C, D, E, A, w4);
+ROTATE1(A, B, C, D, E, w5);
+ROTATE1_NULL(E, A, B, C, D);
+ROTATE1_NULL(D, E, A, B, C);
+ROTATE1_NULL(C, D, E, A, B);
+ROTATE1_NULL(B, C, D, E, A);
+ROTATE1_NULL(A, B, C, D, E);
+ROTATE1_NULL(E, A, B, C, D);
+ROTATE1_NULL(D, E, A, B, C);
+ROTATE1_NULL(C, D, E, A, B);
+ROTATE1_NULL(B, C, D, E, A);
+ROTATE1(A, B, C, D, E, SIZE);  
+w16 = rotate((w13 ^ w8 ^ w2 ^ w0),S1);ROTATE1(E,A,B,C,D,w16);
+w0 = rotate((w14 ^ w9 ^ w3 ^ w1),S1);ROTATE1(D,E,A,B,C,w0); 
+w1 = rotate((SIZE ^ w10 ^ w4 ^ w2),S1); ROTATE1(C,D,E,A,B,w1); 
+w2 = rotate((w16 ^ w11 ^ w5 ^ w3),S1);  ROTATE1(B,C,D,E,A,w2); 
+K = K1;
+w3 = rotate((w0 ^ w12 ^ w6 ^ w4),S1); ROTATE2_F(A, B, C, D, E, w3);
+w4 = rotate((w1 ^ w13 ^ w7 ^ w5),S1); ROTATE2_F(E, A, B, C, D, w4);
+w5 = rotate((w2 ^ w14 ^ w8 ^ w6),S1); ROTATE2_F(D, E, A, B, C, w5);
+w6 = rotate((w3 ^ SIZE ^ w9 ^ w7),S1);ROTATE2_F(C, D, E, A, B, w6);
+w7 = rotate((w4 ^ w16 ^ w10 ^ w8),S1); ROTATE2_F(B, C, D, E, A, w7);
+w8 = rotate((w5 ^ w0 ^ w11 ^ w9),S1); ROTATE2_F(A, B, C, D, E, w8);
+w9 = rotate((w6 ^ w1 ^ w12 ^ w10),S1); ROTATE2_F(E, A, B, C, D, w9);
+w10 = rotate((w7 ^ w2 ^ w13 ^ w11),S1); ROTATE2_F(D, E, A, B, C, w10); 
+w11 = rotate((w8 ^ w3 ^ w14 ^ w12),S1); ROTATE2_F(C, D, E, A, B, w11); 
+w12 = rotate((w9 ^ w4 ^ SIZE ^ w13),S1); ROTATE2_F(B, C, D, E, A, w12);
+w13 = rotate((w10 ^ w5 ^ w16 ^ w14),S1); ROTATE2_F(A, B, C, D, E, w13);
+w14 = rotate((w11 ^ w6 ^ w0 ^ SIZE),S1); ROTATE2_F(E, A, B, C, D, w14);
+SIZE = rotate((w12 ^ w7 ^ w1 ^ w16),S1); ROTATE2_F(D, E, A, B, C, SIZE);
+w16 = rotate((w13 ^ w8 ^ w2 ^ w0),S1); ROTATE2_F(C, D, E, A, B, w16);  
+w0 = rotate(w14 ^ w9 ^ w3 ^ w1,S1); ROTATE2_F(B, C, D, E, A, w0);  
+w1 = rotate(SIZE ^ w10 ^ w4 ^ w2,S1); ROTATE2_F(A, B, C, D, E, w1);
+w2 = rotate(w16 ^ w11 ^ w5 ^ w3,S1); ROTATE2_F(E, A, B, C, D, w2); 
+w3 = rotate(w0 ^ w12 ^ w6 ^ w4,S1); ROTATE2_F(D, E, A, B, C, w3);  
+w4 = rotate(w1 ^ w13 ^ w7 ^ w5,S1);ROTATE2_F(C, D, E, A, B, w4);
+w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE2_F(B, C, D, E, A, w5);  
+K = K2;
+w6 = rotate(w3 ^ SIZE ^ w9 ^ w7, S1); ROTATE3_F(A, B, C, D, E, w6);
+w7 = rotate(w4 ^ w16 ^ w10 ^ w8, S1); ROTATE3_F(E, A, B, C, D, w7);
+w8 = rotate(w5 ^ w0 ^ w11 ^ w9, S1); ROTATE3_F(D, E, A, B, C, w8); 
+w9 = rotate(w6 ^ w1 ^ w12 ^ w10, S1); ROTATE3_F(C, D, E, A, B, w9);
+w10 = rotate(w7 ^ w2 ^ w13 ^ w11, S1); ROTATE3_F(B, C, D, E, A, w10);  
+w11 = rotate(w8 ^ w3 ^ w14 ^ w12, S1); ROTATE3_F(A, B, C, D, E, w11);  
+w12 = rotate(w9 ^ w4 ^ SIZE ^ w13, S1); ROTATE3_F(E, A, B, C, D, w12); 
+w13 = rotate(w10 ^ w5 ^ w16 ^ w14, S1); ROTATE3_F(D, E, A, B, C, w13); 
+w14 = rotate(w11 ^ w6 ^ w0 ^ SIZE, S1); ROTATE3_F(C, D, E, A, B, w14); 
+SIZE = rotate(w12 ^ w7 ^ w1 ^ w16, S1); ROTATE3_F(B, C, D, E, A, SIZE);
+w16 = rotate(w13 ^ w8 ^ w2 ^ w0, S1); ROTATE3_F(A, B, C, D, E, w16);
+w0 = rotate(w14 ^ w9 ^ w3 ^ w1, S1); ROTATE3_F(E, A, B, C, D, w0); 
+w1 = rotate(SIZE ^ w10 ^ w4 ^ w2, S1); ROTATE3_F(D, E, A, B, C, w1);
+w2 = rotate(w16 ^ w11 ^ w5 ^ w3, S1); ROTATE3_F(C, D, E, A, B, w2);
+w3 = rotate(w0 ^ w12 ^ w6 ^ w4, S1); ROTATE3_F(B, C, D, E, A, w3); 
+w4 = rotate(w1 ^ w13 ^ w7 ^ w5, S1); ROTATE3_F(A, B, C, D, E, w4); 
+w5 = rotate(w2 ^ w14 ^ w8 ^ w6, S1); ROTATE3_F(E, A, B, C, D, w5); 
+w6 = rotate(w3 ^ SIZE ^ w9 ^ w7, S1); ROTATE3_F(D, E, A, B, C, w6);
+w7 = rotate(w4 ^ w16 ^ w10 ^ w8, S1); ROTATE3_F(C, D, E, A, B, w7);
+w8 = rotate(w5 ^ w0 ^ w11 ^ w9, S1); ROTATE3_F(B, C, D, E, A, w8); 
+K = K3;
+w9 = rotate(w6 ^ w1 ^ w12 ^ w10, S1); ROTATE4_F(A, B, C, D, E, w9);
+w10 = rotate(w7 ^ w2 ^ w13 ^ w11, S1); ROTATE4_F(E, A, B, C, D, w10);  
+w11 = rotate(w8 ^ w3 ^ w14 ^ w12, S1); ROTATE4_F(D, E, A, B, C, w11);  
+w12 = rotate(w9 ^ w4 ^ SIZE ^ w13, S1); ROTATE4_F(C, D, E, A, B, w12); 
+w13 = rotate(w10 ^ w5 ^ w16 ^ w14, S1); ROTATE4_F(B, C, D, E, A, w13); 
+w14 = rotate(w11 ^ w6 ^ w0 ^ SIZE, S1); ROTATE4_F(A, B, C, D, E, w14); 
+SIZE = rotate(w12 ^ w7 ^ w1 ^ w16, S1); ROTATE4_F(E, A, B, C, D, SIZE);
+w16 = rotate(w13 ^ w8 ^ w2 ^ w0, S1); ROTATE4_F(D, E, A, B, C, w16);
+w0 = rotate(w14 ^ w9 ^ w3 ^ w1, S1); ROTATE4_F(C, D, E, A, B, w0); 
+w1 = rotate(SIZE ^ w10 ^ w4 ^ w2, S1); ROTATE4_F(B, C, D, E, A, w1);
+w2 = rotate(w16 ^ w11 ^ w5 ^ w3,S1); ROTATE4_F(A, B, C, D, E, w2); 
+w3 = rotate(w0 ^ w12 ^ w6 ^ w4,S1); ROTATE4_F(E, A, B, C, D, w3);  
+w4 = rotate(w1 ^ w13 ^ w7 ^ w5,S1); ROTATE4_F(D, E, A, B, C, w4);  
+w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE4_F(C, D, E, A, B, w5);  
+w6 = rotate(w3 ^ SIZE ^ w9 ^ w7,S1); ROTATE4_F(B, C, D, E, A, w6); 
+w7 = rotate(w4 ^ w16 ^ w10 ^ w8,S1); ROTATE4_F(A, B, C, D, E, w7); 
+w8 = rotate(w5 ^ w0 ^ w11 ^ w9,S1); ROTATE4_F(E, A, B, C, D, w8);  
+w9 = rotate(w6 ^ w1 ^ w12 ^ w10,S1); ROTATE4_F(D, E, A, B, C, w9); 
+w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10);
+w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
+
+
+A+=OPA;
+B+=OPB;
+C+=OPC;
+D+=OPD;
+E+=OPE;
+
+
+TTA ^= A;
+TTB ^= B;
+TTC ^= C;
 }
 
+
+dst[get_global_id(0)*3*5+5]=TTA;
+dst[get_global_id(0)*3*5+6]=TTB;
+dst[get_global_id(0)*3*5+7]=TTC;
+dst[get_global_id(0)*3*5+8]=TTD;
+dst[get_global_id(0)*3*5+9]=TTE;
+dst[get_global_id(0)*3*5+10]=A;
+dst[get_global_id(0)*3*5+11]=B;
+dst[get_global_id(0)*3*5+12]=C;
+dst[get_global_id(0)*3*5+13]=D;
+dst[get_global_id(0)*3*5+14]=E;
+
+}
+
+
+
+
+__kernel 
+__attribute__((reqd_work_group_size(64, 1, 1)))
+void final( __global uint4 *dst,  __global uint *input, __global uint *input1, uint16 str, uint16 salt,uint4 singlehash, uint16 salt2, __global uint *block, __global uint *eapol, global uint *found, global uint *found_ind)
+{
+uint SIZE;  
+uint ib,ic,id;  
+uint a,b,c,d,e,f,g,h, tmp1, tmp2,l; 
+uint w0, w1, w2, w3, w4, w5, w6, w7,w8,w9,w10,w11,w12,w13,w14,w16,w15;
+uint yl,yr,zl,zr,wl,wr;
+uint K;
+uint K0 = (uint)0x5A827999;
+uint K1 = (uint)0x6ED9EBA1;
+uint K2 = (uint)0x8F1BBCDC;
+uint K3 = (uint)0xCA62C1D6;
+uint H0 = (uint)0x67452301;
+uint H1 = (uint)0xEFCDAB89;
+uint H2 = (uint)0x98BADCFE;
+uint H3 = (uint)0x10325476;
+uint H4 = (uint)0xC3D2E1F0;
+uint A,B,C,D,E;
+uint IPA,IPB,IPC,IPD,IPE;
+uint OPA,OPB,OPC,OPD,OPE;
+uint TTA,TTB,TTC,TTD,TTE,TTTA,TTTB,TTTC,TTTD,TTTE;
+
+
+TTTA=input1[get_global_id(0)*3*5+0];
+TTTB=input1[get_global_id(0)*3*5+1];
+TTTC=input1[get_global_id(0)*3*5+2];
+TTTD=input1[get_global_id(0)*3*5+3];
+TTTE=input1[get_global_id(0)*3*5+4];
+TTA=input1[get_global_id(0)*3*5+5];
+TTB=input1[get_global_id(0)*3*5+6];
+TTC=input1[get_global_id(0)*3*5+7];
+TTD=input1[get_global_id(0)*3*5+8];
+TTE=input1[get_global_id(0)*3*5+9];
 
 
 
@@ -4588,8 +5509,6 @@ Endian_Reverse32(D);
 
 if (((uint)(singlehash.x)!=(A))) return;
 if (((uint)(singlehash.y)!=(B))) return;
-if (((uint)(singlehash.z)!=(C))) return;
-if (((uint)(singlehash.w)!=(D))) return;
 
 dst[(get_global_id(0))] = (uint4) (A,B,C,D);
 
