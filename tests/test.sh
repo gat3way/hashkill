@@ -14,11 +14,11 @@ $COMMAND 2>output >&2 > runtest.sh </dev/console;
 RESULT=`grep "$TEST_NEEDLE" output`;
 TESTS=`expr $TESTS + 1`
 if [ ! -z "$RESULT" ]; then
-    echo -e '\E[32;40m Success'
+    echo -e '\E[32m Success'
     tput sgr0
 else
     ERRORS=`expr $ERRORS + 1`
-    echo -e '\E[31;40m FAILURE!'
+    echo -e '\E[31m FAILURE!'
     tput sgr0
 fi
 done < test.dat

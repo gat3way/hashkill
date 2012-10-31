@@ -41,6 +41,8 @@ rule apr1 single		|1 passwords|hashkill -papr1 $apr1$e0uBuPco$viwBVwsABkKXFnZeXc
 rule apr1 multi			|2 passwords|hashkill -papr1 -f apr1.hashes -r rule_num
 rule bfunix single		|1 passwords|hashkill -pbfunix $2a$05$CCCCCCCCCCCCCCCCCCCCC.E5YPO9kmyuRGyh0XouQYb4YMJKvyOeW -r rule_uu
 rule bfunix multi		|2 passwords|hashkill -pbfunix -f bfunix.hashes -r rule_num
+rule django256			|1 passwords|hashkill -pdjango256 pbkdf2_sha256$10000$BVmpZMBhRSd6$Uq33DAHOFHUED+32IIqCqm+ITU1mhsGOJ7YwFf6h+6k= -r rule_uu
+rule drupal7			|1 passwords|hashkill -pdrupal7 $S$CFURCPa.k6FAEbJPgejaW4nijv7rYgGc4dUJtChQtV4KLJTPTC/u -r rule_uu
 rule dmg			|1 passwords|hashkill -pdmg -f test-128-2.dmg -r rule_uu
 rule ipb single			|1 passwords|hashkill -pipb2 12dc7df0ddeaa120b07bd28b5d5675a7:1#Iz> -r rule_uu
 rule ipb multi			|2 passwords|hashkill -pipb2 -f ipb2.hashes -r rule_uu
@@ -107,6 +109,7 @@ rule sha1 single		|1 passwords|hashkill -psha1 77b4bfad4edd778d216fe9dfdddccafb6
 rule sha1 multi			|2 passwords|hashkill -psha1 -f sha1.hashes -r rule_num
 rule sha256 single		|1 passwords|hashkill -psha256 fad1a347ae49391f06afac56f3d83c990b362c92897cb19ec53e97693cb48ea1 -r rule_uu
 rule sha256 multi		|2 passwords|hashkill -psha256 -f sha256.hashes -r rule_num
+rule sha256unix single		|1 passwords|hashkill -psha256unix $5$LKO/Ute40T3FNF95$U0prpBQd4PloSGU0pnpM4z9wKn4vZ1.jsrzQfPqxph9 -r rule_uu
 rule sha512 single		|1 passwords|hashkill -psha512 d86b3952bb99be9b14bc0474543554441f0ad34fc2b0213f0cb4f7d0eefbdcbf9e9dc309e11d2590bad036e004cf48cce96c3677bd1e8d3a3971f844f99db9fa -r rule_uu
 rule sha512 multi		|2 passwords|hashkill -psha512 -f sha512.hashes -r rule_num
 rule sha512unix single(1)	|1 passwords|hashkill -psha512unix $6$kDKEuf1Y$z5PNHp3jPP7ocZpqCXlYK3FxJEM4eE7VN9Kw0DHUPK3MGV4zBB2xm1OL6ofaIOk892VJG7TthS6ZOG6D8GxOL0 -r rule_num
