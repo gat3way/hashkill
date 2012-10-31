@@ -306,7 +306,6 @@ static void ocl_sha256unix_crack_callback(char *line, int self)
         if (mylist->salt2[0]==1) {mylist=mylist->next;continue;}
 
 	/* setup_salt */
-	salt=strlen(mylist->salt)-4;
         unsigned char mhash[89];
         memcpy(base64,mylist->hash,88);
         b64_pton_crypt(base64,mhash);

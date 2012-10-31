@@ -375,8 +375,8 @@ int main(int argc, char *argv[])
     interactive_mode=0;
 
     /* Set AMD OpenCL secret envvars */
-    setenv("GPU_MAX_ALLOC_PERCENT","100",1);
-    setenv("GPU_USE_SYNC_OBJECTS","1",1);
+//    setenv("GPU_MAX_ALLOC_PERCENT","100",1);
+//    setenv("GPU_USE_SYNC_OBJECTS","1",1);
 
     /* See if someone tried to pipe to stdin */
     detect_pipe();
