@@ -700,7 +700,7 @@ b5=(singlehash.x >> (b&31))&1;
 b6=(singlehash.y >> (c&31))&1;
 b7=(singlehash.z >> (d&31))&1;
 if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
-if (id==0) return;
+else return;
 #endif
 
 found[0] = 1;
