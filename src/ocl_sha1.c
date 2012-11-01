@@ -2096,8 +2096,6 @@ static void ocl_sha1_crack_callback(char *line, int self)
     pthread_mutex_lock(&wthreads[self].tempmutex);
     pthread_mutex_unlock(&wthreads[self].tempmutex);
 
-    size_t nws=ocl_rule_workset[self]*wthreads[self].vectorsize;
-
     ocl_rule_opt_counts[self]++;
     if ((line[0]==0)||(ocl_rule_opt_counts[self]>=wthreads[self].vectorsize))
     {
@@ -2171,6 +2169,7 @@ static void ocl_sha1_callback(char *line, int self)
 	rule_offload_perform(ocl_sha1_crack_callback,self);
     	bzero(&rule_images[self][0],ocl_rule_workset[self]*MAX);
 	rule_counts[self][0]=-1;
+	ocl_rule_opt_counts[self]=0;
     }
     if (attack_over!=0) pthread_exit(NULL);
 }
