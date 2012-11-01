@@ -28,6 +28,8 @@
 #include <signal.h>
 #include <alloca.h>
 #include <ctype.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "err.h"
 #include "ocl-base.h"
 #include "hashinterface.h"
@@ -1939,8 +1941,6 @@ static inline void numtostr(int num, int format, char *dest)
 }
 
 
-
-
 void rule_offload_add_numrange(callback_final_t cb, int self)
 {
     int len,start,end;
@@ -1971,6 +1971,52 @@ void rule_offload_may_add_numrange(callback_final_t cb, int self)
 }
 
 
+void rule_offload_add_fastdict(callback_final_t cb, int self)
+{
+    FILE *fp=NULL;
+    char str[16];
+    char filename[1024];
+    struct stat st;
+
+    strcpy(filename,rule_optimize[self].statfile);
+    bzero(str,32);
+    if (lstat(filename,&st) != 0)
+    {
+	sprintf(filename,DATADIR"/hashkill/dict/%s",rule_optimize[self].statfile);
+        if (stat(filename,&st) != 0)
+        {
+    	    elog("Could not open dictionary: %s\n",filename);
+            exit(1);
+        }
+    }
+    fp=fopen(filename,"r");
+    if (!fp)
+    {
+        elog("Could not open dictionary: %s\n",filename);
+        exit(1);
+    }
+    while (!feof(fp))
+    {
+	bzero(str,16);
+	fgets(str,16,fp);
+	cb(str,self);
+    }
+    bzero(str,16);
+    cb(str,self);
+}
+
+
+void rule_offload_may_add_fastdict(callback_final_t cb, int self)
+{
+    char str[16];
+
+    bzero(str,16);
+    cb(str,self);
+    rule_offload_add_fastdict(cb, self);
+}
+
+
+
 
 void rule_offload_perform(callback_final_t cb, int self)
 {
@@ -1999,6 +2045,12 @@ void rule_offload_perform(callback_final_t cb, int self)
                 break;
             case optimize_may_add_numrange: 
                 rule_offload_may_add_numrange(cb,self);
+                break;
+            case optimize_add_fastdict: 
+                rule_offload_add_fastdict(cb,self);
+                break;
+            case optimize_may_add_fastdict: 
+                rule_offload_may_add_fastdict(cb,self);
                 break;
 
             default:

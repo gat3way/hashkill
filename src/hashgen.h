@@ -54,6 +54,8 @@ typedef enum optimize_type_e
     optimize_may_add_markov,	// May add markov
     optimize_add_numrange,	// Add numrange
     optimize_may_add_numrange,	// May add numrange
+    optimize_add_fastdict,	// Add fastdict
+    optimize_may_add_fastdict,	// May add fastdict
 } optimize_type_t;
 
 typedef struct optimize_s

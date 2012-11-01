@@ -453,7 +453,7 @@ static void process_table(char *line, int self)
 
     if (tok1)
     {
-	if (strstr(tok1,"reset"))
+	if (strcmp(tok1,"reset")==0)
 	{
 	    for (a=0;a<MAXCAND;a++) 
 	    {
@@ -603,7 +603,7 @@ static void parse(char *line,int self, int precalc,int mode)
     }
     
     /* We have add keyword? */
-    if (strstr(tok2,"add"))
+    if (strcmp(tok2,"add")==0)
     {
 	tok3=strtok(NULL," ");
 	if (!tok3)
@@ -784,11 +784,25 @@ static void parse(char *line,int self, int precalc,int mode)
 	}
 
 	/* is dict? */
-	else if (strstr(tok3,"dict"))
+	else if (strcmp(tok3,"dict")==0)
 	{
     	    tok4=strtok(NULL," ");
     	    update_params(tok4,mode);
     	    update_parsefn(node_add_dict,mode);
+	}
+
+	/* is fastdict? */
+	else if (strcmp(tok3,"fastdict")==0)
+	{
+    	    tok4=strtok(NULL," ");
+    	    update_params(tok4,mode);
+    	    update_parsefn(node_add_dict,mode);
+    	    if (currentlinenum[self]>0)
+    	    {
+    	        update_optimize_statfile(tok4,mode);
+    	        if (ops[0][currentlinenum[0]].mode==1) update_optimize_type(optimize_add_fastdict,mode);
+    	        else update_optimize_type(optimize_may_add_fastdict,mode);
+    	    }
 	}
 
 	/* is phrases? */
@@ -837,7 +851,7 @@ static void parse(char *line,int self, int precalc,int mode)
 
 
 	/* is pipe? */
-	else if (strstr(tok3,"pipe"))
+	else if (strcmp(tok3,"pipe")==0)
 	{
     	    tok4=strtok(NULL," ");
     	    update_params(tok4,mode);
@@ -847,13 +861,13 @@ static void parse(char *line,int self, int precalc,int mode)
 
 
 	/* is usernames? */
-	else if (strstr(tok3,"usernames"))
+	else if (strcmp(tok3,"usernames")==0)
 	{
     	    update_parsefn(node_add_usernames,mode);
 	}
 	
 	/* is passwords? */
-	else if (strstr(tok3,"passwords"))
+	else if (strcmp(tok3,"passwords")==0)
 	{
     	    update_parsefn(node_add_passwords,mode);
     	    rule_stats_available=0;
@@ -861,7 +875,7 @@ static void parse(char *line,int self, int precalc,int mode)
 
 
 	/* is binstrings? */
-	else if (strstr(tok3,"binstrings"))
+	else if (strcmp(tok3,"binstrings")==0)
 	{
     	    tok4=strtok(NULL," ");
     	    update_params(tok4,mode);
@@ -869,25 +883,25 @@ static void parse(char *line,int self, int precalc,int mode)
 	}
 
 	/* is revstr? */
-	else if (strstr(tok3,"revstr"))
+	else if (strcmp(tok3,"revstr")==0)
 	{
     	    update_parsefn(node_add_revstr,mode);
 	}
 
 	/* is samestr? */
-	else if (strstr(tok3,"samestr"))
+	else if (strcmp(tok3,"samestr")==0)
 	{
     	    update_parsefn(node_add_samestr,mode);
 	}
 
 	/* is lastchar? */
-	else if (strstr(tok3,"lastchar"))
+	else if (strcmp(tok3,"lastchar")==0)
 	{
     	    update_parsefn(node_add_lastchar,mode);
 	}
 
 	/* is str? */
-	else if (strstr(tok3,"str"))
+	else if (strcmp(tok3,"str")==0)
 	{
 	    tok4=strtok(NULL," ");
 	    update_params(tok4,mode);
@@ -895,7 +909,7 @@ static void parse(char *line,int self, int precalc,int mode)
 	}
 
 	/* is char? */
-	else if (strstr(tok3,"char"))
+	else if (strcmp(tok3,"char")==0)
 	{
     	    tok4=strtok(NULL," ");
     	    update_params(tok4,mode);
@@ -959,8 +973,8 @@ static void parse(char *line,int self, int precalc,int mode)
     }
 
 
-    /* We have add keyword? */
-    else if (strstr(tok2,"insertp"))
+    /* We have insertp keyword? */
+    else if (strcmp(tok2,"insertp")==0)
     {
 	tok3=strtok(NULL," ");
 
@@ -990,7 +1004,7 @@ static void parse(char *line,int self, int precalc,int mode)
 
 
 	/* is dict? */
-	else if (strstr(tok3,"dict"))
+	else if (strcmp(tok3,"dict")==0)
 	{
     	    tok4=strtok(NULL," ");
 	    fix_line(tok4);
@@ -999,13 +1013,13 @@ static void parse(char *line,int self, int precalc,int mode)
 	} 
 
 	/* is usernames? */
-	else if (strstr(tok3,"usernames"))
+	else if (strcmp(tok3,"usernames")==0)
 	{
     	    update_parsefn(node_insertp_usernames,mode);
 	}
 
 	/* is str? */
-	else if (strstr(tok3,"str"))
+	else if (strcmp(tok3,"str")==0)
 	{
 	    tok4=strtok(NULL," ");
     	    fix_line(tok4);
@@ -1021,12 +1035,12 @@ static void parse(char *line,int self, int precalc,int mode)
 
 
     /* We have insert keyword? */
-    else if (strstr(tok2,"insert"))
+    else if (strcmp(tok2,"insert")==0)
     {
 	tok3=strtok(NULL," ");
 
 	/* is dict? */
-	if (strstr(tok3,"dict"))
+	if (strcmp(tok3,"dict")==0)
 	{
     	    tok4=strtok(NULL," ");
     	    fix_line(tok4);
@@ -1045,18 +1059,18 @@ static void parse(char *line,int self, int precalc,int mode)
 	} 
 
 	/* is usernames? */
-	else if (strstr(tok3,"usernames"))
+	else if (strcmp(tok3,"usernames")==0)
 	{
     	    update_parsefn(node_insert_usernames,mode);
 	}
 
 	/* is passwords? */
-	else if (strstr(tok3,"passwords"))
+	else if (strcmp(tok3,"passwords")==0)
 	{
     	    update_parsefn(node_insert_passwords,mode);
 	}
 	/* is str? */
-	else if (strstr(tok3,"str"))
+	else if (strcmp(tok3,"str")==0)
 	{
 	    tok4=strtok(NULL," ");
     	    update_params(tok4,mode);
@@ -1082,7 +1096,7 @@ static void parse(char *line,int self, int precalc,int mode)
 
 
     /* We have remove keyword? */
-    else if (strstr(tok2,"remove"))
+    else if (strcmp(tok2,"remove")==0)
     {
 	tok3=strtok(NULL," ");
 
@@ -1109,7 +1123,7 @@ static void parse(char *line,int self, int precalc,int mode)
     }
 
     /* We have replace keyword? */
-    else if (strstr(tok2,"replace"))
+    else if (strcmp(tok2,"replace")==0)
     {
 	tok3=strtok(NULL," ");
 
@@ -1179,13 +1193,13 @@ static void parse(char *line,int self, int precalc,int mode)
 
 
     // deletep
-    else if (strstr(tok2,"deletep"))
+    else if (strcmp(tok2,"deletep")==0)
     {
 	update_parsefn(node_deletep,mode);
     }
 
     // trunc
-    else if (strstr(tok2,"trunc"))
+    else if (strcmp(tok2,"trunc")==0)
     {
 	tok3=strtok(NULL," ");
 	if (!tok3)
@@ -1201,7 +1215,7 @@ static void parse(char *line,int self, int precalc,int mode)
     }
 
     // upcaseat
-    else if (strstr(tok2,"upcaseat"))
+    else if (strcmp(tok2,"upcaseat")==0)
     {
 	tok3=strtok(NULL," ");
 	if (!tok3)
@@ -1216,7 +1230,7 @@ static void parse(char *line,int self, int precalc,int mode)
 	}
     }
     // lowcaseat
-    else if (strstr(tok2,"lowcaseat"))
+    else if (strcmp(tok2,"lowcaseat")==0)
     {
 	tok3=strtok(NULL," ");
 	if (!tok3)
@@ -1232,52 +1246,52 @@ static void parse(char *line,int self, int precalc,int mode)
     }
 
     // Leetify
-    else if (strstr(tok2,"leetify"))
+    else if (strcmp(tok2,"leetify")==0)
     {
 	update_parsefn(node_leetify,mode);
     }
     // Upcase
-    else if (strstr(tok2,"upcase"))
+    else if (strcmp(tok2,"upcase")==0)
     {
 	update_parsefn(node_upcase,mode);
     }
     // Lowcase
-    else if (strstr(tok2,"lowcase"))
+    else if (strcmp(tok2,"lowcase")==0)
     {
 	update_parsefn(node_lowcase,mode);
     }
     // Togglecase
-    else if (strstr(tok2,"togglecase"))
+    else if (strcmp(tok2,"togglecase")==0)
     {
 	update_parsefn(node_togglecase,mode);
     }
     // Reverse
-    else if (strstr(tok2,"reverse"))
+    else if (strcmp(tok2,"reverse")==0)
     {
 	update_parsefn(node_reverse,mode);
     }
     // Shuffle2
-    else if (strstr(tok2,"shuffle2"))
+    else if (strcmp(tok2,"shuffle2")==0)
     {
 	update_parsefn(node_shuffle2,mode);
     }
     // rot13
-    else if (strstr(tok2,"rot13"))
+    else if (strcmp(tok2,"rot13")==0)
     {
 	update_parsefn(node_rot13,mode);
     }
     // past tense
-    else if (strstr(tok2,"pasttense"))
+    else if (strcmp(tok2,"pasttense")==0)
     {
 	update_parsefn(node_pasttense,mode);
     }
     // continuous tense
-    else if (strstr(tok2,"conttense"))
+    else if (strcmp(tok2,"conttense")==0)
     {
 	update_parsefn(node_conttense,mode);
     }
     // permute
-    else if (strstr(tok2,"permute"))
+    else if (strcmp(tok2,"permute")==0)
     {
 	update_parsefn(node_permute,mode);
     }
