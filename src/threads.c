@@ -698,10 +698,10 @@ hash_stat spawn_threads(unsigned int num)
     nwthreads=0;
     for (cnt=0; cnt<num; cnt++)
     {
-	for (cnt1=0; cnt1 < vectorsize; cnt1++)
+	for (cnt1=0; cnt1 <= vectorsize; cnt1++)
 	{
-	    posix_memalign((void **)&hash_cpu[cnt].plaintext[cnt1],16, HASHFILE_MAX_PLAIN_LENGTH*2);
-	    posix_memalign((void **)&hash_cpu[cnt].result[cnt1],16, HASHFILE_MAX_PLAIN_LENGTH*2);
+	    posix_memalign((void **)&hash_cpu[cnt].plaintext[cnt1],16, 32);
+	    posix_memalign((void **)&hash_cpu[cnt].result[cnt1],16, HASHFILE_MAX_PLAIN_LENGTH);
 	    if (!hash_cpu[cnt].plaintext[cnt1])
 	    {
 		elog("Not enough memory to create thread queues (thread: %d fifo_elem: %d)", cnt, cnt1);
@@ -712,8 +712,8 @@ hash_stat spawn_threads(unsigned int num)
 		elog("Not enough memory to create thread queues (thread: %d fifo_elem: %d)", cnt, cnt1);
 		break;
 	    }
-	    bzero(hash_cpu[cnt].plaintext[cnt1],HASHFILE_MAX_PLAIN_LENGTH*2);
-	    bzero(hash_cpu[cnt].result[cnt1],HASHFILE_MAX_PLAIN_LENGTH*2);
+	    bzero(hash_cpu[cnt].plaintext[cnt1],32);
+	    bzero(hash_cpu[cnt].result[cnt1],HASHFILE_MAX_PLAIN_LENGTH);
 	}
 	wthreads[cnt].type = cpu_thread;
 	wthreads[cnt].vectorsize = vectorsize;
