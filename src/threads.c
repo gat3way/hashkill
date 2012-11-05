@@ -698,22 +698,18 @@ hash_stat spawn_threads(unsigned int num)
     nwthreads=0;
     for (cnt=0; cnt<num; cnt++)
     {
-	for (cnt1=0; cnt1 <= vectorsize; cnt1++)
+	for (cnt1=0; cnt1 < vectorsize; cnt1++)
 	{
-	    posix_memalign((void **)&hash_cpu[cnt].plaintext[cnt1],16, 32);
-	    posix_memalign((void **)&hash_cpu[cnt].result[cnt1],16, HASHFILE_MAX_PLAIN_LENGTH);
-	    if (!hash_cpu[cnt].plaintext[cnt1])
+	    if (
+		(posix_memalign((void **)&hash_cpu[cnt].plaintext[cnt1],16, 64)!=0)||
+		(posix_memalign((void **)&hash_cpu[cnt].result[cnt1],16, 128)!=0)
+	    )
 	    {
-		elog("Not enough memory to create thread queues (thread: %d fifo_elem: %d)", cnt, cnt1);
+		elog("Cannot allocate aligned memory for thread queues!%s\n","");
 		break;
 	    }
-	    if (!hash_cpu[cnt].result[cnt1])
-	    {
-		elog("Not enough memory to create thread queues (thread: %d fifo_elem: %d)", cnt, cnt1);
-		break;
-	    }
-	    bzero(hash_cpu[cnt].plaintext[cnt1],32);
-	    bzero(hash_cpu[cnt].result[cnt1],HASHFILE_MAX_PLAIN_LENGTH);
+	    bzero(hash_cpu[cnt].plaintext[cnt1],64);
+	    bzero(hash_cpu[cnt].result[cnt1],128);
 	}
 	wthreads[cnt].type = cpu_thread;
 	wthreads[cnt].vectorsize = vectorsize;
@@ -771,6 +767,7 @@ unsigned int hash_num_cpu(void)
 /* Start monitor thread */ 
 static void * start_monitor_thread(void *arg)
 {
+
     uint64_t sum;
     int cracked;
     FILE *sessionfile;
@@ -805,6 +802,7 @@ static void * start_monitor_thread(void *arg)
                 }
                 if (attack_checkpoints==1) attack_avgspeed = sum;
                 else attack_avgspeed=(attack_avgspeed*attack_checkpoints+(sum))/(attack_checkpoints+1);
+                attack_current_count+=sum;
             }
             if (attack_method==attack_method_markov)
             { 
@@ -816,6 +814,7 @@ static void * start_monitor_thread(void *arg)
                 }
                 if (attack_checkpoints==1) attack_avgspeed = sum;
                 else attack_avgspeed=(attack_avgspeed*attack_checkpoints+(sum))/(attack_checkpoints+1);
+                attack_current_count+=sum;
             }
             if (attack_method==attack_method_rule)
             {
@@ -878,7 +877,6 @@ static void * start_monitor_thread(void *arg)
             fflush(stdout);
             printf("\r\e[?25l");
             fflush(stdout);
-            attack_current_count+=sum;
 
             if (session_init_file(&sessionfile) == hash_ok)
             {
@@ -909,6 +907,7 @@ static void * start_monitor_thread(void *arg)
     }
     printf("\n");
     pthread_exit(NULL);
+
     return 0;
 }
 
@@ -1840,7 +1839,7 @@ static void cpu_rule_callback(char *line, int self)
     cur++;
     bzero(hash_cpu[self].plaintext[cur],MAX);
     strcpy(hash_cpu[self].plaintext[cur],line);
-    if ((cur==vectorsize-1)||(line[0]=0x01))
+    if ((cur==(wthreads[self].vectorsize-1))||(line[0]==0x01))
     {
         if (attack_over!=0) return;
         finalthread(self);
@@ -2098,7 +2097,6 @@ hash_stat main_thread_rule(int threads)
     mylist = hash_list;
     spawn_threads(threads);
     if (session_restore_flag==0) attack_overall_count=1;
-
 
 #ifdef HAVE_SSE2
     if (hashgen_stdout_mode==0)

@@ -563,6 +563,7 @@ static void parse(char *line,int self, int precalc,int mode)
     char *tok1, *tok2, *tok3, *tok4, *tok5;
     char *ltok1, *ltok2, *ltok3, *ltok4;
 
+    if (attack_over!=0) return;
     bzero(cline,MAXCAND*8);
     strcpy(cline,line);
     tok1=strtok(cline," ");
@@ -1518,7 +1519,7 @@ void rule_gen_parse(char *rulefile, finalfn_t callback, int max, int self)
 
 	if (line[strlen(line)-1]=='\n') line[strlen(line)-1]=0;
 	if (strlen(line)==0) continue;
-	if ((line[0]=='$')) {/*if ((self==0)&&(rule>=scheduler.currentrule))*/ printf("\n%s\n",&line[1]);continue;}
+	if ((line[0]=='$')) {printf("\n%s\n",&line[1]);continue;}
 	if ((line[0]=='#')) {continue;}
 	if (strncmp(line,"genmarkov",strlen("genmarkov"))==0) {prepare_markov_from_cracked();continue;}
 	if (strncmp(line,"table",strlen("table"))==0) {process_table(line,self);continue;}
@@ -1596,12 +1597,10 @@ void * rule_stats_thread(void *arg)
 	elog("Could not open rulefile: %s\n",prename);
 	exit(1);
     }
-    
-    while (!feof(fp))
+    bzero(lineread,MAXCAND*8);
+    while ((attack_over==0)&&(fgets(lineread,MAXCAND*8-1,fp)))
     {
 	if (attack_over!=0) return NULL;
-	bzero(lineread,MAXCAND*8);
-	if (NULL==fgets(lineread,MAXCAND*8-1,fp)) break;
         if (strstr(lineread,"::")) line1 = str_replace(lineread,"::",":\x01:");
         else line1 = lineread;
 	if (strstr(line1,": :")) line = str_replace(line1,": :",":\x02:");
@@ -1618,24 +1617,28 @@ void * rule_stats_thread(void *arg)
 
 	if (strncmp(line,"begin",5)==0) 
 	{
-	    //currentqueued=0;
+	    if (attack_over!=0) return NULL;
 	    currentlinenum[MAXRULES+2]=0;
 	    ops[MAXRULES+2][currentlinenum[MAXRULES+2]].parsefn=node_count;
 	}
 	else if (strncmp(line,"end",3)==0) 
 	{
-	    update_chainlen(5,RULE_MODE_STATS);
+	    if (attack_over!=0) return NULL;
+	    update_chainlen(2,RULE_MODE_STATS);
+	    
 	    if (session_restore_flag==0) gen_stats(MAXRULES+2);
 	}
 	else
 	{
+	    if (attack_over!=0) return NULL;
 	    if (currentlinenum[MAXRULES+2]==0)
 	    {
-		parse(line,MAXRULES+2,0,RULE_MODE_STATS);
+		if (currentlinenum[MAXRULES+2]==0) parse(line,MAXRULES+2,0,RULE_MODE_STATS);
 		currentlinenum[MAXRULES+2]=1;
 		ops[MAXRULES+2][currentlinenum[MAXRULES+2]].parsefn=node_count;
 	    }
 	}
+	bzero(lineread,MAXCAND*8);
     }
     fclose(fp);
     return NULL;
@@ -1717,10 +1720,9 @@ hash_stat rule_preprocess(char *rulename)
 	    return hash_err;
 	}
     }
-    while (!feof(fp))
+    bzero(line,MAXCAND*8);
+    while (fgets(line,MAXCAND*8-1,fp))
     {
-	bzero(line,MAXCAND*8);
-	if (NULL==fgets(line,MAXCAND*8-1,fp)) break;
 	if (strncmp(line,"include",7)==0)
 	{
 	    if (line[strlen(line)-1]=='\n') line[strlen(line)-1]=0;
@@ -1737,9 +1739,8 @@ hash_stat rule_preprocess(char *rulename)
 		hg_elog("Cannot open include rule provided: %s\n",tok1);
 		exit(1);
 	    }
-	    while (!feof(fp1))
+	    while (fgets(line1,MAXCAND*8-1,fp1))
 	    {
-		fgets(line1,MAXCAND*8-1,fp1);
 		if ((line1[0]!=0) && (line1[strlen(line1)-1]=='\n')) line[strlen(line1)-1]=0;
 		replaceopts(line1);
 		fputs(line1,prefile);
@@ -1751,6 +1752,7 @@ hash_stat rule_preprocess(char *rulename)
 	    replaceopts(line);
 	    fputs(line,prefile);
 	}
+	bzero(line,MAXCAND*8);
     }
     fclose(prefile);
 
@@ -1767,10 +1769,9 @@ hash_stat rule_preprocess(char *rulename)
 	    return hash_err;
 	}
     }
-    while (!feof(fp))
+    bzero(line,MAXCAND*8);
+    while (fgets(line,MAXCAND*8-1,fp))
     {
-	bzero(line,MAXCAND*8);
-	fgets(line,MAXCAND*8-1,fp);
 	if (line[strlen(line)-1]=='\n') line[strlen(line)-1]=0;
 
 	if (strncmp(line,"begin",5)==0) 
@@ -1783,6 +1784,7 @@ hash_stat rule_preprocess(char *rulename)
 	    rules_num++;
 	    ends++;
 	}
+	bzero(line,MAXCAND*8);
     }
     fclose(fp);
     if (begins != ends)
@@ -1805,10 +1807,9 @@ hash_stat rule_preprocess(char *rulename)
 	}
     }
 
-    while (!feof(fp))
+    bzero(line,MAXCAND*8);
+    while (fgets(line,MAXCAND*8-1,fp))
     {
-	bzero(line,MAXCAND*8);
-	fgets(line,MAXCAND*8-1,fp);
 	if (line[strlen(line)-1]=='\n') 
 	if (strlen(line)==0) continue;
 	if ((line[0]=='$')) continue;
@@ -1820,6 +1821,7 @@ hash_stat rule_preprocess(char *rulename)
 	if (strncmp(line,"table",5)==0) {rule_stats_available=0;process_table(line,63);continue;}
 	if (line[strlen(line)-1]=='\n') line[strlen(line)-1]=0;
 	parse(line,MAXCAND-1,0,RULE_MODE_PARSE);
+	bzero(line,MAXCAND*8);
     }
     fclose(fp);
     rule_current_elem=0;
