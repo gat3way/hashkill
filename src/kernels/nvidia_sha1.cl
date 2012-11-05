@@ -10,7 +10,7 @@
     ai1[elem+1] = (t1==0) ? 0 : ai2>>(32-t1);\
     }
 
-#ifdef SM21
+#ifndef SM21
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha1( __global uint4 *dst,  __global uint *inp, __global uint *size,  __global uint *found_ind, __global uint *bitmaps, __global uint *found,  uint4 singlehash, uint16 str, uint16 str1) 
 {
@@ -357,7 +357,6 @@ uint H1 = (uint)0xEFCDAB89;
 uint H2 = (uint)0x98BADCFE;
 uint H3 = (uint)0x10325476;
 uint H4 = (uint)0xC3D2E1F0;
-
 
 
 w8=w9=w10=w11=w12=w13=w14=w16=(uint)0;
