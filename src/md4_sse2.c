@@ -94,10 +94,6 @@ hash_stat MD4_SSE(char *plains[16], char *hash[16], int lens[16])
 #define udata10 ((UINT4 *)plains[9])
 #define udata11 ((UINT4 *)plains[10])
 #define udata12 ((UINT4 *)plains[11])
-#define udata13 ((UINT4 *)plains[12])
-#define udata14 ((UINT4 *)plains[13])
-#define udata15 ((UINT4 *)plains[14])
-#define udata16 ((UINT4 *)plains[15])
 
 
 
@@ -108,11 +104,7 @@ hash_stat MD4_SSE(char *plains[16], char *hash[16], int lens[16])
     AC = _mm_set1_epi32(0x5a827999);
     AD = _mm_set1_epi32(0x6ed9eba1);
 
-    for (i = 0; i < 12; i+=2)
-    {
-	plains[i][lens[i]]=0x80;
-	plains[i+1][lens[i+1]]=0x80;
-    }
+    for (i = 0; i < 12; i++) plains[i][lens[i]]=0x80;
 
     w0 = _mm_set_epi32(udata1[0],udata2[0],udata3[0],udata4[0]);
     w01 = _mm_set_epi32(udata5[0],udata6[0],udata7[0],udata8[0]);
@@ -201,11 +193,6 @@ hash_stat MD4_SSE(char *plains[16], char *hash[16], int lens[16])
 #define udigest10 ((UINT4 *)hash[9])
 #define udigest11 ((UINT4 *)hash[10])
 #define udigest12 ((UINT4 *)hash[11])
-#define udigest13 ((UINT4 *)hash[12])
-#define udigest14 ((UINT4 *)hash[13])
-#define udigest15 ((UINT4 *)hash[14])
-#define udigest16 ((UINT4 *)hash[15])
-
 
     tmp1 = _mm_set_epi32(_mm_extract_epi32(d, 3),_mm_extract_epi32(c, 3),_mm_extract_epi32(b, 3),_mm_extract_epi32(a, 3));
     _mm_store_si128((__m128i *)udigest1,tmp1);

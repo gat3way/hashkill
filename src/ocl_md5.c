@@ -2347,9 +2347,9 @@ static void ocl_md5_crack_callback(char *line, int self)
 
     if (ocl_rule_opt_counts[self]==0)
     {
-	bzero(addline1,sizeof(cl_uint16));
-	bzero(addline2,sizeof(cl_uint16));
-	bzero(addline3,sizeof(cl_uint16));
+	bzero(&addline1[self],sizeof(cl_uint16));
+	bzero(&addline2[self],sizeof(cl_uint16));
+	bzero(&addline3[self],sizeof(cl_uint16));
     }
     strcpy(addlines[self][ocl_rule_opt_counts[self]],line);
     switch (ocl_rule_opt_counts[self])
