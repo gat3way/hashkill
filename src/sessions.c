@@ -682,6 +682,7 @@ hash_stat session_write_parameters(char *plugin, attack_method_t attacktype, uin
     char buf[4096];
     int cnt;
     char *space=" ";
+    struct tm *lotime;
 
     if (get_cracked_num()==get_hashes_num()) return(hash_ok);
     main_header_node = json_object_new_object();
@@ -694,7 +695,6 @@ hash_stat session_write_parameters(char *plugin, attack_method_t attacktype, uin
 	cnt++;
     }
 
-    myclock=time(NULL);
     jobj = json_object_new_string(buf);
     json_object_object_add(main_header_node,"commandline", jobj);
     jobj = json_object_new_string(plugin);
@@ -707,7 +707,11 @@ hash_stat session_write_parameters(char *plugin, attack_method_t attacktype, uin
     json_object_object_add(main_header_node,"gpuplatform", jobj);
     jobj = json_object_new_int(hash_crack_speed);
     json_object_object_add(main_header_node,"attackspeed", jobj);
-    jobj = json_object_new_string(asctime(localtime(&myclock)));
+    myclock=time(NULL);
+    if (myclock != ((time_t) -1)) return hash_err;
+    lotime = localtime(&myclock);
+    if (!lotime) return hash_err;
+    jobj = json_object_new_string(asctime(lotime));
     json_object_object_add(main_header_node,"timestamp", jobj);
     jobj = json_object_new_string(getcwd((char *)&buf, 4095));
     json_object_object_add(main_header_node,"workdir", jobj);
