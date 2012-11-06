@@ -394,6 +394,8 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"md5")==0)) ocl_vector=8;
 		if ((strcmp(get_current_plugin(),"md4")==0)) ocl_vector=8;
 		if ((strcmp(get_current_plugin(),"sha1")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"sha256")==0)) ocl_vector=4;
 	    }
 
 	    /* Zip (non-rule) exception for NVidia */
