@@ -1345,7 +1345,6 @@ void* ocl_markov_lm_thread(void *arg)
 }
 
 
-
 /* Crack callback */
 static void ocl_lm_crack_callback(char *line, int self)
 {
@@ -1354,74 +1353,91 @@ static void ocl_lm_crack_callback(char *line, int self)
     int err;
     struct  hash_list_s  *mylist, *addlist;
     char plain[MAX];
-    cl_uint16 addline;
 
-    /* setup addline */
-    addline.s0=addline.s1=addline.s2=addline.s3=addline.s4=addline.s5=addline.s6=addline.s7=addline.sF=0;
-    addline.sF=strlen(line);
-    addline.s0=line[0]|(line[1]<<8)|(line[2]<<16)|(line[3]<<24);
-    addline.s1=line[4]|(line[5]<<8)|(line[6]<<16)|(line[7]<<24);
-    addline.s2=line[8]|(line[9]<<8)|(line[10]<<16)|(line[11]<<24);
-    addline.s3=line[12]|(line[13]<<8)|(line[14]<<16)|(line[15]<<24);
-    _clSetKernelArg(rule_kernel2[self], 4, sizeof(cl_uint16), (void*) &addline);
-
-    if (attack_over!=0) pthread_exit(NULL);
-    pthread_mutex_lock(&wthreads[self].tempmutex);
-    pthread_mutex_unlock(&wthreads[self].tempmutex);
-
-    wthreads[self].tries+=ocl_rule_workset[self]*wthreads[self].vectorsize;
-    size_t nws=ocl_rule_workset[self]*wthreads[self].vectorsize;
-    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel2[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
-    _clFinish(rule_oclqueue[self]);
-    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
-    found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
-    if (*found>0) 
+    if (ocl_rule_opt_counts[self]==0)
     {
-        _clEnqueueReadBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_TRUE, 0, ocl_rule_workset[self]*sizeof(cl_uint), rule_found_ind[self], 0, NULL, NULL);
-	for (a=0;a<ocl_rule_workset[self];a++)
-	if (rule_found_ind[self][a]==1)
-	{
-	    b=a*wthreads[self].vectorsize;
-    	    _clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, b*hash_ret_len, hash_ret_len*wthreads[self].vectorsize, rule_ptr[self]+b*hash_ret_len, 0, NULL, NULL);
-	    for (c=0;c<wthreads[self].vectorsize;c++)
-	    {
-	        e=(a)*wthreads[self].vectorsize+c;
-    	        if (hash_index[rule_ptr[self][e*hash_ret_len]&255][rule_ptr[self][e*hash_ret_len+1]&255].nodes)
-    	        {
-    	    	    mylist = hash_index[rule_ptr[self][e*hash_ret_len]&255][rule_ptr[self][e*hash_ret_len+1]&255].nodes;
-    	    	    while (mylist)
-    	    	    {
-    			if (memcmp(mylist->hash, (char *)rule_ptr[self]+(e)*hash_ret_len, hash_ret_len) == 0)
-    			{
-                    	    int flag = 0;
-                    	    strcpy(plain,&rule_images[self][0]+(e*MAX));
-                    	    strcat(plain,line);
-                    	    for (f=0;f<strlen(plain);f++) plain[f]=toupper(plain[f]);
-                    	    pthread_mutex_lock(&crackedmutex);
-                    	    addlist = cracked_list;
-                    	    while (addlist)
-                    	    {
-                    		if ( /*(strcmp(addlist->username, mylist->username) == 0) && */(memcmp(addlist->hash, mylist->hash, hash_ret_len) == 0))
-                                flag = 1;
-                    		addlist = addlist->next;
-                    	    }
-                	    pthread_mutex_unlock(&crackedmutex);
-                    	    if (flag == 0)
-                    	    {
-                    		add_cracked_list(mylist->username, mylist->hash, mylist->salt, plain);
-                    	    }
-    			}
-    			mylist = mylist->indexnext;
-    		    }
-    		}
-	    }
-	}
-	bzero(rule_found_ind[self],ocl_rule_workset[self]*sizeof(cl_uint));
-    	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*sizeof(cl_uint), rule_found_ind[self], 0, NULL, NULL);
-        *found = 0;
-        _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_buf[self], CL_FALSE, 0, 4, found, 0, NULL, NULL);
+        bzero(&addline1[self],sizeof(cl_uint16));
     }
-    _clEnqueueUnmapMemObject(rule_oclqueue[self],rule_found_buf[self],(void *)found,0,NULL,NULL);
+    strcpy(addlines[self][ocl_rule_opt_counts[self]],line);
+    switch (ocl_rule_opt_counts[self])
+    {
+        case 0:
+            addline1[self].sC=strlen(line);
+            addline1[self].s0=line[0]|(line[1]<<8)|(line[2]<<16)|(line[3]<<24);
+            addline1[self].s1=line[4]|(line[5]<<8)|(line[6]<<16)|(line[7]<<24);
+            addline1[self].s2=line[8]|(line[9]<<8)|(line[10]<<16)|(line[11]<<24);
+            addline1[self].s3=line[12]|(line[13]<<8)|(line[14]<<16)|(line[15]<<24);
+            break;
+        case 1:
+            addline1[self].sD=strlen(line);
+            addline1[self].s4=line[0]|(line[1]<<8)|(line[2]<<16)|(line[3]<<24);
+            addline1[self].s5=line[4]|(line[5]<<8)|(line[6]<<16)|(line[7]<<24);
+            addline1[self].s6=line[8]|(line[9]<<8)|(line[10]<<16)|(line[11]<<24);
+            addline1[self].s7=line[12]|(line[13]<<8)|(line[14]<<16)|(line[15]<<24);
+            break;
+    }
+    ocl_rule_opt_counts[self]++;
+    if ((line[0]==0)||(ocl_rule_opt_counts[self]>=wthreads[self].vectorsize))
+    {
+        _clSetKernelArg(rule_kernel[self], 7, sizeof(cl_uint16), (void*) &addline1[self]);
+
+	if (attack_over!=0) pthread_exit(NULL);
+	pthread_mutex_lock(&wthreads[self].tempmutex);
+	pthread_mutex_unlock(&wthreads[self].tempmutex);
+
+	wthreads[self].tries+=ocl_rule_workset[self]*ocl_rule_opt_counts[self];
+	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
+	found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
+
+        if (*found>0) 
+        {
+            _clEnqueueReadBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_TRUE, 0, ocl_rule_workset[self]*sizeof(cl_uint), rule_found_ind[self], 0, NULL, NULL);
+            for (a=0;a<ocl_rule_workset[self];a++)
+            if (rule_found_ind[self][a]==1)
+            {
+                b=a*wthreads[self].vectorsize;
+                _clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, b*hash_ret_len, hash_ret_len*wthreads[self].vectorsize, rule_ptr[self]+b*hash_ret_len, 0, NULL, NULL);
+                for (c=0;c<wthreads[self].vectorsize;c++)
+                {
+                    e=(a)*wthreads[self].vectorsize+c;
+                    if (hash_index[rule_ptr[self][e*hash_ret_len]&255][rule_ptr[self][e*hash_ret_len+1]&255].nodes)
+                    {
+                        mylist = hash_index[rule_ptr[self][e*hash_ret_len]&255][rule_ptr[self][e*hash_ret_len+1]&255].nodes;
+                        while (mylist)
+                        {
+                            if (memcmp(mylist->hash, (char *)rule_ptr[self]+(e)*hash_ret_len, hash_ret_len) == 0)
+                            {
+                                int flag = 0;
+                                strcpy(plain,&rule_images[self][0]+(a*16));
+                                strcat(plain,addlines[self][c]);
+                    		for (f=0;f<strlen(plain);f++) plain[f]=toupper(plain[f]);
+                                pthread_mutex_lock(&crackedmutex);
+                                addlist = cracked_list;
+                                while (addlist)
+                                {
+                                    if ( (strcmp(addlist->username, mylist->username) == 0) && (memcmp(addlist->hash, mylist->hash, hash_ret_len) == 0))
+                                    flag = 1;
+                                    addlist = addlist->next;
+                                }
+                                pthread_mutex_unlock(&crackedmutex);
+                                if (flag == 0)
+                                {
+                                    add_cracked_list(mylist->username, mylist->hash, mylist->salt, plain);
+                                }
+                            }
+                            mylist = mylist->indexnext;
+                        }
+                    }
+                }
+            }
+            bzero(rule_found_ind[self],ocl_rule_workset[self]*sizeof(cl_uint));
+            _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*sizeof(cl_uint), rule_found_ind[self], 0, NULL, NULL);
+            *found = 0;
+            _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_buf[self], CL_FALSE, 0, 4, found, 0, NULL, NULL);
+        }
+        _clEnqueueUnmapMemObject(rule_oclqueue[self],rule_found_buf[self],(void *)found,0,NULL,NULL);
+        ocl_rule_opt_counts[self]=0;
+    }
 }
 
 
@@ -1430,16 +1446,16 @@ static void ocl_lm_callback(char *line, int self)
 {
     rule_counts[self][0]++;
     rule_sizes[self][rule_counts[self][0]] = strlen(line);
-    strcpy(&rule_images[self][0]+(rule_counts[self][0]*MAX),line);
+    strcpy(&rule_images[self][0]+(rule_counts[self][0]*16),line);
 
-    if ((rule_counts[self][0]>=ocl_rule_workset[self]*wthreads[self].vectorsize-1)||(line[0]==0x01))
+    if ((rule_counts[self][0]>=(ocl_rule_workset[self]-1))||(line[0]==0x01))
     {
 
-	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, rule_images[self], 0, NULL, NULL);
-	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_sizes_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), rule_sizes[self], 0, NULL, NULL);
-
+	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*16, rule_images[self], 0, NULL, NULL);
+	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_sizes_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*sizeof(int), rule_sizes[self], 0, NULL, NULL);
+	ocl_rule_opt_counts[self]=0;
 	rule_offload_perform(ocl_lm_crack_callback,self);
-    	bzero(&rule_images[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
+    	bzero(&rule_images[self][0],ocl_rule_workset[self]*16);
 	rule_counts[self][0]=-1;
     }
     if (attack_over==2) pthread_exit(NULL);
@@ -1470,16 +1486,16 @@ void* ocl_rule_lm_thread(void *arg)
     if (ocl_gpu_double) ocl_rule_workset[self]*=2;
     
     rule_ptr[self] = malloc(ocl_rule_workset[self]*hash_ret_len*wthreads[self].vectorsize);
-    rule_counts[self][0]=0;
+    rule_counts[self][0]=-1;
 
     rule_kernel[self] = _clCreateKernel(program[self], "lm", &err );
-    rule_kernel2[self] = _clCreateKernel(program[self], "strmodify", &err );
 
     rule_oclqueue[self] = _clCreateCommandQueue(context[self], wthreads[self].cldeviceid, 0, &err );
     rule_buffer[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*wthreads[self].vectorsize*hash_ret_len, NULL, &err );
     rule_found_buf[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, 4, NULL, &err );
 
-    bitmaps = malloc(256*256*32*4*8);
+
+    if (!bitmaps) bitmaps = malloc(256*256*32*4*8);
     for (a=0;a<256*256*32*8;a++)
     {
         bitmaps[a]=0;
@@ -1487,30 +1503,30 @@ void* ocl_rule_lm_thread(void *arg)
 
     mylist = hash_list;
     a=0;
-    while (mylist)
+    while ((mylist)&&(mylist->hash))
     {
         memcpy(hex1,mylist->hash,hash_ret_len);
-	a++;
-	unsigned int *b_a = (unsigned int *)hex1;
-	unsigned int *b_b = (unsigned int *)&hex1[4];
-	unsigned int *b_c = (unsigned int *)&hex1[8];
-	unsigned int *b_d = (unsigned int *)&hex1[12];
-	unsigned int bind_a = (*b_a)>>10;
-	unsigned int bval_a = (1<<((*b_a)&31));
-	unsigned int bind_b = (*b_b)>>10;
-	unsigned int bval_b = (1<<((*b_b)&31));
-	unsigned int bind_c = (*b_c)>>10;
-	unsigned int bval_c = (1<<((*b_c)&31));
-	unsigned int bind_d = (*b_d)>>10;
-	unsigned int bval_d = (1<<((*b_d)&31));
-	bitmaps[bind_a] |=bval_a;
-	bitmaps[bind_b+65535*8*8] |=bval_b;
-	bitmaps[bind_c+65535*16*8] |=bval_c;
-	bitmaps[bind_d+65535*24*8] |=bval_d;
-	rule_singlehash[self].x |= (1<<((*b_b)&31));
-	rule_singlehash[self].y |= (1<<((*b_c)&31));
-	rule_singlehash[self].z |= (1<<((*b_d)&31));
-    	if (mylist) mylist = mylist->next;
+        a++;
+        unsigned int *b_a = (unsigned int *)hex1;
+        unsigned int *b_b = (unsigned int *)&hex1[4];
+        unsigned int *b_c = (unsigned int *)&hex1[8];
+        unsigned int *b_d = (unsigned int *)&hex1[12];
+        unsigned int bind_a = (*b_a)>>10;
+        unsigned int bval_a = (1<<((*b_a)&31));
+        unsigned int bind_b = (*b_b)>>10;
+        unsigned int bval_b = (1<<((*b_b)&31));
+        unsigned int bind_c = (*b_c)>>10;
+        unsigned int bval_c = (1<<((*b_c)&31));
+        unsigned int bind_d = (*b_d)>>10;
+        unsigned int bval_d = (1<<((*b_d)&31));
+        bitmaps[bind_a] |=bval_a;
+        bitmaps[bind_b+65535*8*8] |=bval_b;
+        bitmaps[bind_c+65535*16*8] |=bval_c;
+        bitmaps[bind_d+65535*24*8] |=bval_d;
+        rule_singlehash[self].x |= (1<<((*b_b)&31));
+        rule_singlehash[self].y |= (1<<((*b_c)&31));
+        rule_singlehash[self].z |= (1<<((*b_d)&31));
+        if (mylist) mylist = mylist->next;
     }
     if (a==1)
     {
@@ -1531,33 +1547,24 @@ void* ocl_rule_lm_thread(void *arg)
         _clSetKernelArg(rule_kernel[self], 6, sizeof(cl_uint4), (void*) &rule_singlehash[self]);
     }
 
+
     rule_found_ind[self]=malloc(ocl_rule_workset[self]*sizeof(cl_uint));
     bzero(rule_found_ind[self],sizeof(uint)*ocl_rule_workset[self]);
     rule_found_ind_buf[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*sizeof(cl_uint), NULL, &err );
     _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE, 0, 4, &found, 0, NULL, NULL);
-    rule_bitmaps_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_ONLY|CL_MEM_USE_HOST_PTR, 256*256*32*4*8, bitmaps, &err );
-    rule_images_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
-    rule_images2_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
-    rule_sizes_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), NULL, &err );
-    rule_sizes2_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), NULL, &err );
-    rule_sizes[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int));
-    rule_sizes2[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int));
-    rule_images[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
-    rule_images2[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
-    bzero(&rule_images[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
+    rule_bitmap_buf = _clCreateBuffer(context[self], CL_MEM_READ_ONLY|CL_MEM_USE_HOST_PTR, 256*256*32*4*8, bitmaps, &err );
+    rule_images_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*16, NULL, &err );
+    rule_sizes_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*sizeof(int), NULL, &err );
+    rule_sizes[self]=malloc(ocl_rule_workset[self]*sizeof(int));
+    rule_images[self]=malloc(ocl_rule_workset[self]*16);
+    bzero(&rule_images[self][0],ocl_rule_workset[self]*16);
+    bzero(&rule_sizes[self][0],ocl_rule_workset[self]*sizeof(cl_uint));
     _clSetKernelArg(rule_kernel[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
-    _clSetKernelArg(rule_kernel[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
-    _clSetKernelArg(rule_kernel[self], 2, sizeof(cl_mem), (void*) &rule_sizes2_buf[self]);
+    _clSetKernelArg(rule_kernel[self], 1, sizeof(cl_mem), (void*) &rule_images_buf[self]);
+    _clSetKernelArg(rule_kernel[self], 2, sizeof(cl_mem), (void*) &rule_sizes_buf[self]);
     _clSetKernelArg(rule_kernel[self], 3, sizeof(cl_mem), (void*) &rule_found_ind_buf[self]);
-    _clSetKernelArg(rule_kernel[self], 4, sizeof(cl_mem), (void*) &rule_bitmaps_buf[self]);
+    _clSetKernelArg(rule_kernel[self], 4, sizeof(cl_mem), (void*) &rule_bitmap_buf);
     _clSetKernelArg(rule_kernel[self], 5, sizeof(cl_mem), (void*) &rule_found_buf[self]);
-    _clSetKernelArg(rule_kernel2[self], 0, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
-    _clSetKernelArg(rule_kernel2[self], 1, sizeof(cl_mem), (void*) &rule_images_buf[self]);
-    _clSetKernelArg(rule_kernel2[self], 2, sizeof(cl_mem), (void*) &rule_sizes2_buf[self]);
-    _clSetKernelArg(rule_kernel2[self], 3, sizeof(cl_mem), (void*) &rule_sizes_buf[self]);
-    cl_uint16 none;
-    none.s0=none.s1=none.s2=none.s3=none.s4=none.s5=none.s6=none.s7=none.sF=0;
-    _clSetKernelArg(rule_kernel2[self], 4, sizeof(cl_uint16), (void*) &none);
     pthread_mutex_unlock(&biglock); 
 
     worker_gen(self,ocl_lm_callback);

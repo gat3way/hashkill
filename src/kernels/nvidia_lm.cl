@@ -8,48 +8,9 @@
     ai1[elem+1] = (tmp1==0) ? 0 : ai2>>(32-tmp1);\
     }
     
-#define TOUPPERCHAR(x) (((0xE0 & (x)) == 0x60) ? (x) & 0xDF : (x))
+//#define TOUPPERCHAR(x) (((0xE0 & (x)) == 0x60) ? (x) & 0xDF : (x))
+#define TOUPPERCHAR(y) ( (((y)<='z')&&((y)>='a')) ? ((y)-32) : (y))
 #define TOUPPERDWORD(x) (TOUPPERCHAR((x)&255)|((TOUPPERCHAR(((x)>>8) & 0xFF))<<8)|((TOUPPERCHAR(((x)>>16) & 0xFF))<<16)|((TOUPPERCHAR(((x)>>24) & 0xFF))<<24))
-
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str)
-{
-__local uint inpc[64][14];
-uint SIZE;
-uint elem,tmp1;
-
-
-inpc[GLI][0] = inp[GGI*(8)+0];
-inpc[GLI][1] = inp[GGI*(8)+1];
-inpc[GLI][2] = inp[GGI*(8)+2];
-inpc[GLI][3] = inp[GGI*(8)+3];
-inpc[GLI][4] = inp[GGI*(8)+4];
-inpc[GLI][5] = inp[GGI*(8)+5];
-inpc[GLI][6] = inp[GGI*(8)+6];
-inpc[GLI][7] = inp[GGI*(8)+7];
-
-SIZE=sizein[GGI];
-
-size[GGI] = (SIZE+str.sF);
-SET_AB(inpc[GLI],str.s0,SIZE,0);
-SET_AB(inpc[GLI],str.s1,SIZE+4,0);
-SET_AB(inpc[GLI],str.s2,SIZE+8,0);
-SET_AB(inpc[GLI],str.s3,SIZE+12,0);
-
-
-dst[GGI*8+0] = TOUPPERDWORD(inpc[GLI][0]);
-dst[GGI*8+1] = TOUPPERDWORD(inpc[GLI][1]);
-dst[GGI*8+2] = TOUPPERDWORD(inpc[GLI][2]);
-dst[GGI*8+3] = TOUPPERDWORD(inpc[GLI][3]);
-dst[GGI*8+4] = TOUPPERDWORD(inpc[GLI][4]);
-dst[GGI*8+5] = TOUPPERDWORD(inpc[GLI][5]);
-dst[GGI*8+6] = TOUPPERDWORD(inpc[GLI][6]);
-dst[GGI*8+7] = TOUPPERDWORD(inpc[GLI][7]);
-
-}
-
-
 #define getglobalid(a) get_global_id(a)
 
 __constant uint CDES_SPtrans[8][64]={
@@ -360,7 +321,7 @@ __constant uint cdes_skb[8][64]={
 
 #define IP(l,r) \
         { \
-        uint tt; \
+        uint2 tt; \
         PERM_OP(r,l,tt, 4,0x0f0f0f0f); \
         PERM_OP(l,r,tt,16,0x0000ffff); \
         PERM_OP(r,l,tt, 2,0x33333333); \
@@ -370,7 +331,7 @@ __constant uint cdes_skb[8][64]={
 
 #define FP(l,r) \
         { \
-        uint tt; \
+        uint2 tt; \
         PERM_OP(l,r,tt, 1,0x55555555); \
         PERM_OP(r,l,tt, 8,0x00ff00ff); \
         PERM_OP(l,r,tt, 2,0x33333333); \
@@ -383,18 +344,27 @@ __constant uint cdes_skb[8][64]={
         u=R^SS1; \
         t=R^SS2; \
         t=ROTATE(t,4); \
-        LL^=\
-        DES_SPtrans[0][(u>> 2)&0x3f]^ \
-        DES_SPtrans[2][(u>>10)&0x3f]^ \
-        DES_SPtrans[4][(u>>18)&0x3f]^ \
-        DES_SPtrans[6][(u>>26)&0x3f]^ \
-        DES_SPtrans[1][(t>> 2)&0x3f]^ \
-        DES_SPtrans[3][(t>>10)&0x3f]^ \
-        DES_SPtrans[5][(t>>18)&0x3f]^ \
-        DES_SPtrans[7][(t>>26)&0x3f]; \
-	}
+        LL.x^=\
+        DES_SPtrans[0][(u.x>> 2)&0x3f]^ \
+        DES_SPtrans[2][(u.x>>10)&0x3f]^ \
+        DES_SPtrans[4][(u.x>>18)&0x3f]^ \
+        DES_SPtrans[6][(u.x>>26)&0x3f]^ \
+        DES_SPtrans[1][(t.x>> 2)&0x3f]^ \
+        DES_SPtrans[3][(t.x>>10)&0x3f]^ \
+        DES_SPtrans[5][(t.x>>18)&0x3f]^ \
+        DES_SPtrans[7][(t.x>>26)&0x3f]; \
+        LL.y^=\
+        DES_SPtrans[0][(u.y>> 2)&0x3f]^ \
+        DES_SPtrans[2][(u.y>>10)&0x3f]^ \
+        DES_SPtrans[4][(u.y>>18)&0x3f]^ \
+        DES_SPtrans[6][(u.y>>26)&0x3f]^ \
+        DES_SPtrans[1][(t.y>> 2)&0x3f]^ \
+        DES_SPtrans[3][(t.y>>10)&0x3f]^ \
+        DES_SPtrans[5][(t.y>>18)&0x3f]^ \
+        DES_SPtrans[7][(t.y>>26)&0x3f];} 
 
-#define ROTATE(a,n)     rotate(a,(32U-n))
+
+#define ROTATE(a,n)     rotate(a,32-n)
 
 
 #define DES_ecb_encrypt_fp(data1,data2,k0,k1,k2,k3,k4,k5,k6,k7,k8,k9,k10,k11,k12,k13,k14,k15,k16,k17,k18,k19,k20,k21,k22,k23,k24,k25,k26,k27,k28,k29,k30,k31) { \
@@ -438,8 +408,8 @@ data2=r; \
 
 #define DES_ecb_encrypt_lm(output1,output2,k0,k1,k2,k3,k4,k5,k6,k7,k8,k9,k10,k11,k12,k13,k14,k15,k16,k17,k18,k19,k20,k21,k22,k23,k24,k25,k26,k27,k28,k29,k30,k31) \
 { \
-ll1=(uint)0x2153474b; \
-ll2=(uint)0x25242340; \
+ll1=(uint2)0x2153474b; \
+ll2=(uint2)0x25242340; \
 DES_encrypt1(ll1,ll2,k0,k1,k2,k3,k4,k5,k6,k7,k8,k9,k10,k11,k12,k13,k14,k15,k16,k17,k18,k19,k20,k21,k22,k23,k24,k25,k26,k27,k28,k29,k30,k31); \
 output1 = ll1; \
 output2 = ll2; \
@@ -464,8 +434,10 @@ c = ((c>>1)|(c<<27)); \
 d = ((d>>1)|(d<<27)); \
 c&=0x0fffffff; \
 d&=0x0fffffff; \
-s=des_skb[0][(c)&0x3f]|des_skb[1][((c>> 6)&0x03)|((c>> 7)&0x3c)]|des_skb[2][((c>>13)&0x0f)|((c>>14)&0x30)]|des_skb[3][((c>>20)&0x01)|((c>>21)&0x06)|((c>>22)&0x38)];  \
-t=des_skb[4][(d)&0x3f]|des_skb[5][((d>> 7)&0x03)|((d>> 8)&0x3c)]|des_skb[6][((d>>15)&0x3f)]|des_skb[7][((d>>21)&0x0f)|((d>>22)&0x30)]; \
+s.x=des_skb[0][(c.x)&0x3f]|des_skb[1][((c.x>> 6)&0x03)|((c.x>> 7)&0x3c)]|des_skb[2][((c.x>>13)&0x0f)|((c.x>>14)&0x30)]|des_skb[3][((c.x>>20)&0x01)|((c.x>>21)&0x06)|((c.x>>22)&0x38)];  \
+t.x=des_skb[4][(d.x)&0x3f]|des_skb[5][((d.x>> 7)&0x03)|((d.x>> 8)&0x3c)]|des_skb[6][((d.x>>15)&0x3f)]|des_skb[7][((d.x>>21)&0x0f)|((d.x>>22)&0x30)]; \
+s.y=des_skb[0][(c.y)&0x3f]|des_skb[1][((c.y>> 6)&0x03)|((c.y>> 7)&0x3c)]|des_skb[2][((c.y>>13)&0x0f)|((c.y>>14)&0x30)]|des_skb[3][((c.y>>20)&0x01)|((c.y>>21)&0x06)|((c.y>>22)&0x38)];  \
+t.y=des_skb[4][(d.y)&0x3f]|des_skb[5][((d.y>> 7)&0x03)|((d.y>> 8)&0x3c)]|des_skb[6][((d.y>>15)&0x3f)]|des_skb[7][((d.y>>21)&0x0f)|((d.y>>22)&0x30)]; \
 t2=((t<<16)|(s&0x0000ffff)); \
 k0=ROTATE(t2,30); \
 t2=((s>>16)|(t&0xffff0000)); \
@@ -474,8 +446,10 @@ c = ((c>>1)|(c<<27)); \
 d = ((d>>1)|(d<<27)); \
 c&=0x0fffffff; \
 d&=0x0fffffff; \
-s=des_skb[0][(c)&0x3f]|des_skb[1][((c>> 6)&0x03)|((c>> 7)&0x3c)]|des_skb[2][((c>>13)&0x0f)|((c>>14)&0x30)]|des_skb[3][((c>>20)&0x01)|((c>>21)&0x06)|((c>>22)&0x38)];  \
-t=des_skb[4][(d)&0x3f]|des_skb[5][((d>> 7)&0x03)|((d>> 8)&0x3c)]|des_skb[6][((d>>15)&0x3f)]|des_skb[7][((d>>21)&0x0f)|((d>>22)&0x30)]; \
+s.x=des_skb[0][(c.x)&0x3f]|des_skb[1][((c.x>> 6)&0x03)|((c.x>> 7)&0x3c)]|des_skb[2][((c.x>>13)&0x0f)|((c.x>>14)&0x30)]|des_skb[3][((c.x>>20)&0x01)|((c.x>>21)&0x06)|((c.x>>22)&0x38)];  \
+t.x=des_skb[4][(d.x)&0x3f]|des_skb[5][((d.x>> 7)&0x03)|((d.x>> 8)&0x3c)]|des_skb[6][((d.x>>15)&0x3f)]|des_skb[7][((d.x>>21)&0x0f)|((d.x>>22)&0x30)]; \
+s.y=des_skb[0][(c.y)&0x3f]|des_skb[1][((c.y>> 6)&0x03)|((c.y>> 7)&0x3c)]|des_skb[2][((c.y>>13)&0x0f)|((c.y>>14)&0x30)]|des_skb[3][((c.y>>20)&0x01)|((c.y>>21)&0x06)|((c.y>>22)&0x38)];  \
+t.y=des_skb[4][(d.y)&0x3f]|des_skb[5][((d.y>> 7)&0x03)|((d.y>> 8)&0x3c)]|des_skb[6][((d.y>>15)&0x3f)]|des_skb[7][((d.y>>21)&0x0f)|((d.y>>22)&0x30)]; \
 t2=((t<<16)|(s&0x0000ffff)); \
 k2=ROTATE(t2,30); \
 t2=((s>>16)|(t&0xffff0000)); \
@@ -484,8 +458,10 @@ c = ((c>>2)|(c<<26)); \
 d = ((d>>2)|(d<<26)); \
 c&=0x0fffffff; \
 d&=0x0fffffff; \
-s=des_skb[0][(c)&0x3f]|des_skb[1][((c>> 6)&0x03)|((c>> 7)&0x3c)]|des_skb[2][((c>>13)&0x0f)|((c>>14)&0x30)]|des_skb[3][((c>>20)&0x01)|((c>>21)&0x06)|((c>>22)&0x38)];  \
-t=des_skb[4][(d)&0x3f]|des_skb[5][((d>> 7)&0x03)|((d>> 8)&0x3c)]|des_skb[6][((d>>15)&0x3f)]|des_skb[7][((d>>21)&0x0f)|((d>>22)&0x30)]; \
+s.x=des_skb[0][(c.x)&0x3f]|des_skb[1][((c.x>> 6)&0x03)|((c.x>> 7)&0x3c)]|des_skb[2][((c.x>>13)&0x0f)|((c.x>>14)&0x30)]|des_skb[3][((c.x>>20)&0x01)|((c.x>>21)&0x06)|((c.x>>22)&0x38)];  \
+t.x=des_skb[4][(d.x)&0x3f]|des_skb[5][((d.x>> 7)&0x03)|((d.x>> 8)&0x3c)]|des_skb[6][((d.x>>15)&0x3f)]|des_skb[7][((d.x>>21)&0x0f)|((d.x>>22)&0x30)]; \
+s.y=des_skb[0][(c.y)&0x3f]|des_skb[1][((c.y>> 6)&0x03)|((c.y>> 7)&0x3c)]|des_skb[2][((c.y>>13)&0x0f)|((c.y>>14)&0x30)]|des_skb[3][((c.y>>20)&0x01)|((c.y>>21)&0x06)|((c.y>>22)&0x38)];  \
+t.y=des_skb[4][(d.y)&0x3f]|des_skb[5][((d.y>> 7)&0x03)|((d.y>> 8)&0x3c)]|des_skb[6][((d.y>>15)&0x3f)]|des_skb[7][((d.y>>21)&0x0f)|((d.y>>22)&0x30)]; \
 t2=((t<<16)|(s&0x0000ffff)); \
 k4=ROTATE(t2,30); \
 t2=((s>>16)|(t&0xffff0000)); \
@@ -494,8 +470,10 @@ c = ((c>>2)|(c<<26)); \
 d = ((d>>2)|(d<<26)); \
 c&=0x0fffffff; \
 d&=0x0fffffff; \
-s=des_skb[0][(c)&0x3f]|des_skb[1][((c>> 6)&0x03)|((c>> 7)&0x3c)]|des_skb[2][((c>>13)&0x0f)|((c>>14)&0x30)]|des_skb[3][((c>>20)&0x01)|((c>>21)&0x06)|((c>>22)&0x38)];  \
-t=des_skb[4][(d)&0x3f]|des_skb[5][((d>> 7)&0x03)|((d>> 8)&0x3c)]|des_skb[6][((d>>15)&0x3f)]|des_skb[7][((d>>21)&0x0f)|((d>>22)&0x30)]; \
+s.x=des_skb[0][(c.x)&0x3f]|des_skb[1][((c.x>> 6)&0x03)|((c.x>> 7)&0x3c)]|des_skb[2][((c.x>>13)&0x0f)|((c.x>>14)&0x30)]|des_skb[3][((c.x>>20)&0x01)|((c.x>>21)&0x06)|((c.x>>22)&0x38)];  \
+t.x=des_skb[4][(d.x)&0x3f]|des_skb[5][((d.x>> 7)&0x03)|((d.x>> 8)&0x3c)]|des_skb[6][((d.x>>15)&0x3f)]|des_skb[7][((d.x>>21)&0x0f)|((d.x>>22)&0x30)]; \
+s.y=des_skb[0][(c.y)&0x3f]|des_skb[1][((c.y>> 6)&0x03)|((c.y>> 7)&0x3c)]|des_skb[2][((c.y>>13)&0x0f)|((c.y>>14)&0x30)]|des_skb[3][((c.y>>20)&0x01)|((c.y>>21)&0x06)|((c.y>>22)&0x38)];  \
+t.y=des_skb[4][(d.y)&0x3f]|des_skb[5][((d.y>> 7)&0x03)|((d.y>> 8)&0x3c)]|des_skb[6][((d.y>>15)&0x3f)]|des_skb[7][((d.y>>21)&0x0f)|((d.y>>22)&0x30)]; \
 t2=((t<<16)|(s&0x0000ffff)); \
 k6=ROTATE(t2,30); \
 t2=((s>>16)|(t&0xffff0000)); \
@@ -504,8 +482,10 @@ c =  ((c>>2)|(c<<26)); \
 d =  ((d>>2)|(d<<26)); \
 c&=0x0fffffff; \
 d&=0x0fffffff; \
-s=des_skb[0][(c)&0x3f]|des_skb[1][((c>> 6)&0x03)|((c>> 7)&0x3c)]|des_skb[2][((c>>13)&0x0f)|((c>>14)&0x30)]|des_skb[3][((c>>20)&0x01)|((c>>21)&0x06)|((c>>22)&0x38)];  \
-t=des_skb[4][(d)&0x3f]|des_skb[5][((d>> 7)&0x03)|((d>> 8)&0x3c)]|des_skb[6][((d>>15)&0x3f)]|des_skb[7][((d>>21)&0x0f)|((d>>22)&0x30)]; \
+s.x=des_skb[0][(c.x)&0x3f]|des_skb[1][((c.x>> 6)&0x03)|((c.x>> 7)&0x3c)]|des_skb[2][((c.x>>13)&0x0f)|((c.x>>14)&0x30)]|des_skb[3][((c.x>>20)&0x01)|((c.x>>21)&0x06)|((c.x>>22)&0x38)];  \
+t.x=des_skb[4][(d.x)&0x3f]|des_skb[5][((d.x>> 7)&0x03)|((d.x>> 8)&0x3c)]|des_skb[6][((d.x>>15)&0x3f)]|des_skb[7][((d.x>>21)&0x0f)|((d.x>>22)&0x30)]; \
+s.y=des_skb[0][(c.y)&0x3f]|des_skb[1][((c.y>> 6)&0x03)|((c.y>> 7)&0x3c)]|des_skb[2][((c.y>>13)&0x0f)|((c.y>>14)&0x30)]|des_skb[3][((c.y>>20)&0x01)|((c.y>>21)&0x06)|((c.y>>22)&0x38)];  \
+t.y=des_skb[4][(d.y)&0x3f]|des_skb[5][((d.y>> 7)&0x03)|((d.y>> 8)&0x3c)]|des_skb[6][((d.y>>15)&0x3f)]|des_skb[7][((d.y>>21)&0x0f)|((d.y>>22)&0x30)]; \
 t2=((t<<16)|(s&0x0000ffff)); \
 k8=ROTATE(t2,30); \
 t2=((s>>16)|(t&0xffff0000)); \
@@ -514,8 +494,10 @@ c = ((c>>2)|(c<<26)); \
 d = ((d>>2)|(d<<26)); \
 c&=0x0fffffff; \
 d&=0x0fffffff; \
-s=des_skb[0][(c)&0x3f]|des_skb[1][((c>> 6)&0x03)|((c>> 7)&0x3c)]|des_skb[2][((c>>13)&0x0f)|((c>>14)&0x30)]|des_skb[3][((c>>20)&0x01)|((c>>21)&0x06)|((c>>22)&0x38)];  \
-t=des_skb[4][(d)&0x3f]|des_skb[5][((d>> 7)&0x03)|((d>> 8)&0x3c)]|des_skb[6][((d>>15)&0x3f)]|des_skb[7][((d>>21)&0x0f)|((d>>22)&0x30)]; \
+s.x=des_skb[0][(c.x)&0x3f]|des_skb[1][((c.x>> 6)&0x03)|((c.x>> 7)&0x3c)]|des_skb[2][((c.x>>13)&0x0f)|((c.x>>14)&0x30)]|des_skb[3][((c.x>>20)&0x01)|((c.x>>21)&0x06)|((c.x>>22)&0x38)];  \
+t.x=des_skb[4][(d.x)&0x3f]|des_skb[5][((d.x>> 7)&0x03)|((d.x>> 8)&0x3c)]|des_skb[6][((d.x>>15)&0x3f)]|des_skb[7][((d.x>>21)&0x0f)|((d.x>>22)&0x30)]; \
+s.y=des_skb[0][(c.y)&0x3f]|des_skb[1][((c.y>> 6)&0x03)|((c.y>> 7)&0x3c)]|des_skb[2][((c.y>>13)&0x0f)|((c.y>>14)&0x30)]|des_skb[3][((c.y>>20)&0x01)|((c.y>>21)&0x06)|((c.y>>22)&0x38)];  \
+t.y=des_skb[4][(d.y)&0x3f]|des_skb[5][((d.y>> 7)&0x03)|((d.y>> 8)&0x3c)]|des_skb[6][((d.y>>15)&0x3f)]|des_skb[7][((d.y>>21)&0x0f)|((d.y>>22)&0x30)]; \
 t2=((t<<16)|(s&0x0000ffff)); \
 k10=ROTATE(t2,30); \
 t2=((s>>16)|(t&0xffff0000)); \
@@ -524,8 +506,10 @@ c = ((c>>2)|(c<<26)); \
 d = ((d>>2)|(d<<26)); \
 c&=0x0fffffff; \
 d&=0x0fffffff; \
-s=des_skb[0][(c)&0x3f]|des_skb[1][((c>> 6)&0x03)|((c>> 7)&0x3c)]|des_skb[2][((c>>13)&0x0f)|((c>>14)&0x30)]|des_skb[3][((c>>20)&0x01)|((c>>21)&0x06)|((c>>22)&0x38)];  \
-t=des_skb[4][(d)&0x3f]|des_skb[5][((d>> 7)&0x03)|((d>> 8)&0x3c)]|des_skb[6][((d>>15)&0x3f)]|des_skb[7][((d>>21)&0x0f)|((d>>22)&0x30)]; \
+s.x=des_skb[0][(c.x)&0x3f]|des_skb[1][((c.x>> 6)&0x03)|((c.x>> 7)&0x3c)]|des_skb[2][((c.x>>13)&0x0f)|((c.x>>14)&0x30)]|des_skb[3][((c.x>>20)&0x01)|((c.x>>21)&0x06)|((c.x>>22)&0x38)];  \
+t.x=des_skb[4][(d.x)&0x3f]|des_skb[5][((d.x>> 7)&0x03)|((d.x>> 8)&0x3c)]|des_skb[6][((d.x>>15)&0x3f)]|des_skb[7][((d.x>>21)&0x0f)|((d.x>>22)&0x30)]; \
+s.y=des_skb[0][(c.y)&0x3f]|des_skb[1][((c.y>> 6)&0x03)|((c.y>> 7)&0x3c)]|des_skb[2][((c.y>>13)&0x0f)|((c.y>>14)&0x30)]|des_skb[3][((c.y>>20)&0x01)|((c.y>>21)&0x06)|((c.y>>22)&0x38)];  \
+t.y=des_skb[4][(d.y)&0x3f]|des_skb[5][((d.y>> 7)&0x03)|((d.y>> 8)&0x3c)]|des_skb[6][((d.y>>15)&0x3f)]|des_skb[7][((d.y>>21)&0x0f)|((d.y>>22)&0x30)]; \
 t2=((t<<16)|(s&0x0000ffff)); \
 k12=ROTATE(t2,30); \
 t2=((s>>16)|(t&0xffff0000)); \
@@ -534,8 +518,10 @@ c = ((c>>2)|(c<<26)); \
 d = ((d>>2)|(d<<26)); \
 c&=0x0fffffff; \
 d&=0x0fffffff; \
-s=des_skb[0][(c)&0x3f]|des_skb[1][((c>> 6)&0x03)|((c>> 7)&0x3c)]|des_skb[2][((c>>13)&0x0f)|((c>>14)&0x30)]|des_skb[3][((c>>20)&0x01)|((c>>21)&0x06)|((c>>22)&0x38)];  \
-t=des_skb[4][(d)&0x3f]|des_skb[5][((d>> 7)&0x03)|((d>> 8)&0x3c)]|des_skb[6][((d>>15)&0x3f)]|des_skb[7][((d>>21)&0x0f)|((d>>22)&0x30)]; \
+s.x=des_skb[0][(c.x)&0x3f]|des_skb[1][((c.x>> 6)&0x03)|((c.x>> 7)&0x3c)]|des_skb[2][((c.x>>13)&0x0f)|((c.x>>14)&0x30)]|des_skb[3][((c.x>>20)&0x01)|((c.x>>21)&0x06)|((c.x>>22)&0x38)];  \
+t.x=des_skb[4][(d.x)&0x3f]|des_skb[5][((d.x>> 7)&0x03)|((d.x>> 8)&0x3c)]|des_skb[6][((d.x>>15)&0x3f)]|des_skb[7][((d.x>>21)&0x0f)|((d.x>>22)&0x30)]; \
+s.y=des_skb[0][(c.y)&0x3f]|des_skb[1][((c.y>> 6)&0x03)|((c.y>> 7)&0x3c)]|des_skb[2][((c.y>>13)&0x0f)|((c.y>>14)&0x30)]|des_skb[3][((c.y>>20)&0x01)|((c.y>>21)&0x06)|((c.y>>22)&0x38)];  \
+t.y=des_skb[4][(d.y)&0x3f]|des_skb[5][((d.y>> 7)&0x03)|((d.y>> 8)&0x3c)]|des_skb[6][((d.y>>15)&0x3f)]|des_skb[7][((d.y>>21)&0x0f)|((d.y>>22)&0x30)]; \
 t2=((t<<16)|(s&0x0000ffff)); \
 k14=ROTATE(t2,30); \
 t2=((s>>16)|(t&0xffff0000)); \
@@ -544,8 +530,10 @@ c = ((c>>1)|(c<<27)); \
 d = ((d>>1)|(d<<27)); \
 c&=0x0fffffff; \
 d&=0x0fffffff; \
-s=des_skb[0][(c)&0x3f]|des_skb[1][((c>> 6)&0x03)|((c>> 7)&0x3c)]|des_skb[2][((c>>13)&0x0f)|((c>>14)&0x30)]|des_skb[3][((c>>20)&0x01)|((c>>21)&0x06)|((c>>22)&0x38)];  \
-t=des_skb[4][(d)&0x3f]|des_skb[5][((d>> 7)&0x03)|((d>> 8)&0x3c)]|des_skb[6][((d>>15)&0x3f)]|des_skb[7][((d>>21)&0x0f)|((d>>22)&0x30)]; \
+s.x=des_skb[0][(c.x)&0x3f]|des_skb[1][((c.x>> 6)&0x03)|((c.x>> 7)&0x3c)]|des_skb[2][((c.x>>13)&0x0f)|((c.x>>14)&0x30)]|des_skb[3][((c.x>>20)&0x01)|((c.x>>21)&0x06)|((c.x>>22)&0x38)];  \
+t.x=des_skb[4][(d.x)&0x3f]|des_skb[5][((d.x>> 7)&0x03)|((d.x>> 8)&0x3c)]|des_skb[6][((d.x>>15)&0x3f)]|des_skb[7][((d.x>>21)&0x0f)|((d.x>>22)&0x30)]; \
+s.y=des_skb[0][(c.y)&0x3f]|des_skb[1][((c.y>> 6)&0x03)|((c.y>> 7)&0x3c)]|des_skb[2][((c.y>>13)&0x0f)|((c.y>>14)&0x30)]|des_skb[3][((c.y>>20)&0x01)|((c.y>>21)&0x06)|((c.y>>22)&0x38)];  \
+t.y=des_skb[4][(d.y)&0x3f]|des_skb[5][((d.y>> 7)&0x03)|((d.y>> 8)&0x3c)]|des_skb[6][((d.y>>15)&0x3f)]|des_skb[7][((d.y>>21)&0x0f)|((d.y>>22)&0x30)]; \
 t2=((t<<16)|(s&0x0000ffff)); \
 k16=ROTATE(t2,30); \
 t2=((s>>16)|(t&0xffff0000)); \
@@ -554,8 +542,10 @@ c = ((c>>2)|(c<<26)); \
 d = ((d>>2)|(d<<26)); \
 c&=0x0fffffff; \
 d&=0x0fffffff; \
-s=des_skb[0][(c)&0x3f]|des_skb[1][((c>> 6)&0x03)|((c>> 7)&0x3c)]|des_skb[2][((c>>13)&0x0f)|((c>>14)&0x30)]|des_skb[3][((c>>20)&0x01)|((c>>21)&0x06)|((c>>22)&0x38)];  \
-t=des_skb[4][(d)&0x3f]|des_skb[5][((d>> 7)&0x03)|((d>> 8)&0x3c)]|des_skb[6][((d>>15)&0x3f)]|des_skb[7][((d>>21)&0x0f)|((d>>22)&0x30)]; \
+s.x=des_skb[0][(c.x)&0x3f]|des_skb[1][((c.x>> 6)&0x03)|((c.x>> 7)&0x3c)]|des_skb[2][((c.x>>13)&0x0f)|((c.x>>14)&0x30)]|des_skb[3][((c.x>>20)&0x01)|((c.x>>21)&0x06)|((c.x>>22)&0x38)];  \
+t.x=des_skb[4][(d.x)&0x3f]|des_skb[5][((d.x>> 7)&0x03)|((d.x>> 8)&0x3c)]|des_skb[6][((d.x>>15)&0x3f)]|des_skb[7][((d.x>>21)&0x0f)|((d.x>>22)&0x30)]; \
+s.y=des_skb[0][(c.y)&0x3f]|des_skb[1][((c.y>> 6)&0x03)|((c.y>> 7)&0x3c)]|des_skb[2][((c.y>>13)&0x0f)|((c.y>>14)&0x30)]|des_skb[3][((c.y>>20)&0x01)|((c.y>>21)&0x06)|((c.y>>22)&0x38)];  \
+t.y=des_skb[4][(d.y)&0x3f]|des_skb[5][((d.y>> 7)&0x03)|((d.y>> 8)&0x3c)]|des_skb[6][((d.y>>15)&0x3f)]|des_skb[7][((d.y>>21)&0x0f)|((d.y>>22)&0x30)]; \
 t2=((t<<16)|(s&0x0000ffff)); \
 k18=ROTATE(t2,30); \
 t2=((s>>16)|(t&0xffff0000)); \
@@ -564,8 +554,10 @@ c = ((c>>2)|(c<<26)); \
 d = ((d>>2)|(d<<26)); \
 c&=0x0fffffff; \
 d&=0x0fffffff; \
-s=des_skb[0][(c)&0x3f]|des_skb[1][((c>> 6)&0x03)|((c>> 7)&0x3c)]|des_skb[2][((c>>13)&0x0f)|((c>>14)&0x30)]|des_skb[3][((c>>20)&0x01)|((c>>21)&0x06)|((c>>22)&0x38)];  \
-t=des_skb[4][(d)&0x3f]|des_skb[5][((d>> 7)&0x03)|((d>> 8)&0x3c)]|des_skb[6][((d>>15)&0x3f)]|des_skb[7][((d>>21)&0x0f)|((d>>22)&0x30)]; \
+s.x=des_skb[0][(c.x)&0x3f]|des_skb[1][((c.x>> 6)&0x03)|((c.x>> 7)&0x3c)]|des_skb[2][((c.x>>13)&0x0f)|((c.x>>14)&0x30)]|des_skb[3][((c.x>>20)&0x01)|((c.x>>21)&0x06)|((c.x>>22)&0x38)];  \
+t.x=des_skb[4][(d.x)&0x3f]|des_skb[5][((d.x>> 7)&0x03)|((d.x>> 8)&0x3c)]|des_skb[6][((d.x>>15)&0x3f)]|des_skb[7][((d.x>>21)&0x0f)|((d.x>>22)&0x30)]; \
+s.y=des_skb[0][(c.y)&0x3f]|des_skb[1][((c.y>> 6)&0x03)|((c.y>> 7)&0x3c)]|des_skb[2][((c.y>>13)&0x0f)|((c.y>>14)&0x30)]|des_skb[3][((c.y>>20)&0x01)|((c.y>>21)&0x06)|((c.y>>22)&0x38)];  \
+t.y=des_skb[4][(d.y)&0x3f]|des_skb[5][((d.y>> 7)&0x03)|((d.y>> 8)&0x3c)]|des_skb[6][((d.y>>15)&0x3f)]|des_skb[7][((d.y>>21)&0x0f)|((d.y>>22)&0x30)]; \
 t2=((t<<16)|(s&0x0000ffff)); \
 k20=ROTATE(t2,30); \
 t2=((s>>16)|(t&0xffff0000)); \
@@ -574,8 +566,10 @@ c = ((c>>2)|(c<<26)); \
 d = ((d>>2)|(d<<26)); \
 c&=0x0fffffff; \
 d&=0x0fffffff; \
-s=des_skb[0][(c)&0x3f]|des_skb[1][((c>> 6)&0x03)|((c>> 7)&0x3c)]|des_skb[2][((c>>13)&0x0f)|((c>>14)&0x30)]|des_skb[3][((c>>20)&0x01)|((c>>21)&0x06)|((c>>22)&0x38)];  \
-t=des_skb[4][(d)&0x3f]|des_skb[5][((d>> 7)&0x03)|((d>> 8)&0x3c)]|des_skb[6][((d>>15)&0x3f)]|des_skb[7][((d>>21)&0x0f)|((d>>22)&0x30)]; \
+s.x=des_skb[0][(c.x)&0x3f]|des_skb[1][((c.x>> 6)&0x03)|((c.x>> 7)&0x3c)]|des_skb[2][((c.x>>13)&0x0f)|((c.x>>14)&0x30)]|des_skb[3][((c.x>>20)&0x01)|((c.x>>21)&0x06)|((c.x>>22)&0x38)];  \
+t.x=des_skb[4][(d.x)&0x3f]|des_skb[5][((d.x>> 7)&0x03)|((d.x>> 8)&0x3c)]|des_skb[6][((d.x>>15)&0x3f)]|des_skb[7][((d.x>>21)&0x0f)|((d.x>>22)&0x30)]; \
+s.y=des_skb[0][(c.y)&0x3f]|des_skb[1][((c.y>> 6)&0x03)|((c.y>> 7)&0x3c)]|des_skb[2][((c.y>>13)&0x0f)|((c.y>>14)&0x30)]|des_skb[3][((c.y>>20)&0x01)|((c.y>>21)&0x06)|((c.y>>22)&0x38)];  \
+t.y=des_skb[4][(d.y)&0x3f]|des_skb[5][((d.y>> 7)&0x03)|((d.y>> 8)&0x3c)]|des_skb[6][((d.y>>15)&0x3f)]|des_skb[7][((d.y>>21)&0x0f)|((d.y>>22)&0x30)]; \
 t2=((t<<16)|(s&0x0000ffff)); \
 k22=ROTATE(t2,30); \
 t2=((s>>16)|(t&0xffff0000)); \
@@ -584,8 +578,10 @@ c = ((c>>2)|(c<<26)); \
 d = ((d>>2)|(d<<26)); \
 c&=0x0fffffff; \
 d&=0x0fffffff; \
-s=des_skb[0][(c)&0x3f]|des_skb[1][((c>> 6)&0x03)|((c>> 7)&0x3c)]|des_skb[2][((c>>13)&0x0f)|((c>>14)&0x30)]|des_skb[3][((c>>20)&0x01)|((c>>21)&0x06)|((c>>22)&0x38)];  \
-t=des_skb[4][(d)&0x3f]|des_skb[5][((d>> 7)&0x03)|((d>> 8)&0x3c)]|des_skb[6][((d>>15)&0x3f)]|des_skb[7][((d>>21)&0x0f)|((d>>22)&0x30)]; \
+s.x=des_skb[0][(c.x)&0x3f]|des_skb[1][((c.x>> 6)&0x03)|((c.x>> 7)&0x3c)]|des_skb[2][((c.x>>13)&0x0f)|((c.x>>14)&0x30)]|des_skb[3][((c.x>>20)&0x01)|((c.x>>21)&0x06)|((c.x>>22)&0x38)];  \
+t.x=des_skb[4][(d.x)&0x3f]|des_skb[5][((d.x>> 7)&0x03)|((d.x>> 8)&0x3c)]|des_skb[6][((d.x>>15)&0x3f)]|des_skb[7][((d.x>>21)&0x0f)|((d.x>>22)&0x30)]; \
+s.y=des_skb[0][(c.y)&0x3f]|des_skb[1][((c.y>> 6)&0x03)|((c.y>> 7)&0x3c)]|des_skb[2][((c.y>>13)&0x0f)|((c.y>>14)&0x30)]|des_skb[3][((c.y>>20)&0x01)|((c.y>>21)&0x06)|((c.y>>22)&0x38)];  \
+t.y=des_skb[4][(d.y)&0x3f]|des_skb[5][((d.y>> 7)&0x03)|((d.y>> 8)&0x3c)]|des_skb[6][((d.y>>15)&0x3f)]|des_skb[7][((d.y>>21)&0x0f)|((d.y>>22)&0x30)]; \
 t2=((t<<16)|(s&0x0000ffff)); \
 k24=ROTATE(t2,30); \
 t2=((s>>16)|(t&0xffff0000)); \
@@ -594,8 +590,10 @@ c = ((c>>2)|(c<<26)); \
 d = ((d>>2)|(d<<26)); \
 c&=0x0fffffff; \
 d&=0x0fffffff; \
-s=des_skb[0][(c)&0x3f]|des_skb[1][((c>> 6)&0x03)|((c>> 7)&0x3c)]|des_skb[2][((c>>13)&0x0f)|((c>>14)&0x30)]|des_skb[3][((c>>20)&0x01)|((c>>21)&0x06)|((c>>22)&0x38)];  \
-t=des_skb[4][(d)&0x3f]|des_skb[5][((d>> 7)&0x03)|((d>> 8)&0x3c)]|des_skb[6][((d>>15)&0x3f)]|des_skb[7][((d>>21)&0x0f)|((d>>22)&0x30)]; \
+s.x=des_skb[0][(c.x)&0x3f]|des_skb[1][((c.x>> 6)&0x03)|((c.x>> 7)&0x3c)]|des_skb[2][((c.x>>13)&0x0f)|((c.x>>14)&0x30)]|des_skb[3][((c.x>>20)&0x01)|((c.x>>21)&0x06)|((c.x>>22)&0x38)];  \
+t.x=des_skb[4][(d.x)&0x3f]|des_skb[5][((d.x>> 7)&0x03)|((d.x>> 8)&0x3c)]|des_skb[6][((d.x>>15)&0x3f)]|des_skb[7][((d.x>>21)&0x0f)|((d.x>>22)&0x30)]; \
+s.y=des_skb[0][(c.y)&0x3f]|des_skb[1][((c.y>> 6)&0x03)|((c.y>> 7)&0x3c)]|des_skb[2][((c.y>>13)&0x0f)|((c.y>>14)&0x30)]|des_skb[3][((c.y>>20)&0x01)|((c.y>>21)&0x06)|((c.y>>22)&0x38)];  \
+t.y=des_skb[4][(d.y)&0x3f]|des_skb[5][((d.y>> 7)&0x03)|((d.y>> 8)&0x3c)]|des_skb[6][((d.y>>15)&0x3f)]|des_skb[7][((d.y>>21)&0x0f)|((d.y>>22)&0x30)]; \
 t2=((t<<16)|(s&0x0000ffff)); \
 k26=ROTATE(t2,30); \
 t2=((s>>16)|(t&0xffff0000)); \
@@ -604,8 +602,10 @@ c = ((c>>2)|(c<<26)); \
 d = ((d>>2)|(d<<26)); \
 c&=0x0fffffff; \
 d&=0x0fffffff; \
-s=des_skb[0][(c)&0x3f]|des_skb[1][((c>> 6)&0x03)|((c>> 7)&0x3c)]|des_skb[2][((c>>13)&0x0f)|((c>>14)&0x30)]|des_skb[3][((c>>20)&0x01)|((c>>21)&0x06)|((c>>22)&0x38)];  \
-t=des_skb[4][(d)&0x3f]|des_skb[5][((d>> 7)&0x03)|((d>> 8)&0x3c)]|des_skb[6][((d>>15)&0x3f)]|des_skb[7][((d>>21)&0x0f)|((d>>22)&0x30)]; \
+s.x=des_skb[0][(c.x)&0x3f]|des_skb[1][((c.x>> 6)&0x03)|((c.x>> 7)&0x3c)]|des_skb[2][((c.x>>13)&0x0f)|((c.x>>14)&0x30)]|des_skb[3][((c.x>>20)&0x01)|((c.x>>21)&0x06)|((c.x>>22)&0x38)];  \
+t.x=des_skb[4][(d.x)&0x3f]|des_skb[5][((d.x>> 7)&0x03)|((d.x>> 8)&0x3c)]|des_skb[6][((d.x>>15)&0x3f)]|des_skb[7][((d.x>>21)&0x0f)|((d.x>>22)&0x30)]; \
+s.y=des_skb[0][(c.y)&0x3f]|des_skb[1][((c.y>> 6)&0x03)|((c.y>> 7)&0x3c)]|des_skb[2][((c.y>>13)&0x0f)|((c.y>>14)&0x30)]|des_skb[3][((c.y>>20)&0x01)|((c.y>>21)&0x06)|((c.y>>22)&0x38)];  \
+t.y=des_skb[4][(d.y)&0x3f]|des_skb[5][((d.y>> 7)&0x03)|((d.y>> 8)&0x3c)]|des_skb[6][((d.y>>15)&0x3f)]|des_skb[7][((d.y>>21)&0x0f)|((d.y>>22)&0x30)]; \
 t2=((t<<16)|(s&0x0000ffff)); \
 k28=ROTATE(t2,30); \
 t2=((s>>16)|(t&0xffff0000)); \
@@ -614,8 +614,10 @@ c = ((c>>1)|(c<<27)); \
 d = ((d>>1)|(d<<27)); \
 c&=0x0fffffff; \
 d&=0x0fffffff; \
-s=des_skb[0][(c)&0x3f]|des_skb[1][((c>> 6)&0x03)|((c>> 7)&0x3c)]|des_skb[2][((c>>13)&0x0f)|((c>>14)&0x30)]|des_skb[3][((c>>20)&0x01)|((c>>21)&0x06)|((c>>22)&0x38)];  \
-t=des_skb[4][(d)&0x3f]|des_skb[5][((d>> 7)&0x03)|((d>> 8)&0x3c)]|des_skb[6][((d>>15)&0x3f)]|des_skb[7][((d>>21)&0x0f)|((d>>22)&0x30)]; \
+s.x=des_skb[0][(c.x)&0x3f]|des_skb[1][((c.x>> 6)&0x03)|((c.x>> 7)&0x3c)]|des_skb[2][((c.x>>13)&0x0f)|((c.x>>14)&0x30)]|des_skb[3][((c.x>>20)&0x01)|((c.x>>21)&0x06)|((c.x>>22)&0x38)];  \
+t.x=des_skb[4][(d.x)&0x3f]|des_skb[5][((d.x>> 7)&0x03)|((d.x>> 8)&0x3c)]|des_skb[6][((d.x>>15)&0x3f)]|des_skb[7][((d.x>>21)&0x0f)|((d.x>>22)&0x30)]; \
+s.y=des_skb[0][(c.y)&0x3f]|des_skb[1][((c.y>> 6)&0x03)|((c.y>> 7)&0x3c)]|des_skb[2][((c.y>>13)&0x0f)|((c.y>>14)&0x30)]|des_skb[3][((c.y>>20)&0x01)|((c.y>>21)&0x06)|((c.y>>22)&0x38)];  \
+t.y=des_skb[4][(d.y)&0x3f]|des_skb[5][((d.y>> 7)&0x03)|((d.y>> 8)&0x3c)]|des_skb[6][((d.y>>15)&0x3f)]|des_skb[7][((d.y>>21)&0x0f)|((d.y>>22)&0x30)]; \
 t2=((t<<16)|(s&0x0000ffff)); \
 k30=ROTATE(t2,30); \
 t2=((s>>16)|(t&0xffff0000)); \
@@ -626,22 +628,60 @@ k31=ROTATE(t2,26); \
 
 
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-lm( __global uint4 *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *bitmaps, __global uint *found,  uint4 singlehash) 
+lm( __global uint4 *dst,  __global uint *inp, __global uint *sizein,  __global uint *found_ind, __global uint *bitmaps, __global uint *found,  uint4 singlehash,uint16 str) 
 {
-
-
-uint w0,w1,w2,w3,w4,w5,w6,w7,chbase1,res,t0,t1,t2,t3,t4;
+uint2 w0,w1,w2,w3,w4,w5,w6,w7,chbase1,res,t0,t1,t2,t3,t4;
 uint id=0;
-uint i,j,bli1,bli2,blo11,blo12,blo21,blo22,blo31,blo32,blo41,blo42;
-uint o11,o12,o21,o22,o31,o32,o41,o42;
+uint2 i,j,bli1,bli2,blo11,blo12,blo21,blo22,blo31,blo32,blo41,blo42;
+uint2 o11,o12,o21,o22,o31,o32,o41,o42;
 uint u1,u2,u3,u4,u5,u6,u7,u8,ib,ic,ii;
-uint l,r,t,u;
-uint ll1,ll2;
-uint key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31;
-uint c,d,s; 
+uint2 l,r,t,u;
+uint2 ll1,ll2;
+uint2 key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31;
+uint2 c,d,s; 
 __local uint DES_SPtrans[8][64];
 __local uint des_skb[8][64];
+__local uint inpc[64][14];
+uint x0,x1,x2,x3,tmp1,elem;
+uint2 SIZE;
 
+
+id=get_global_id(0);
+
+SIZE=(uint2)sizein[GGI];
+x0 = inp[GGI*4+0];
+x1 = inp[GGI*4+1];
+x2 = inp[GGI*4+2];
+x3 = inp[GGI*4+3];
+
+
+inpc[GLI][0]=x0;
+inpc[GLI][1]=x1;
+inpc[GLI][2]=x2;
+inpc[GLI][3]=x3;
+SET_AB(inpc[GLI],str.s0,SIZE.s0,0);
+SET_AB(inpc[GLI],str.s1,SIZE.s0+4,0);
+SET_AB(inpc[GLI],str.s2,SIZE.s0+8,0);
+SET_AB(inpc[GLI],str.s3,SIZE.s0+12,0);
+w0.x=TOUPPERDWORD(inpc[GLI][0]);
+w1.x=TOUPPERDWORD(inpc[GLI][1]);
+w2.x=TOUPPERDWORD(inpc[GLI][2]);
+w3.x=TOUPPERDWORD(inpc[GLI][3]);
+
+
+inpc[GLI][0]=x0;
+inpc[GLI][1]=x1;
+inpc[GLI][2]=x2;
+inpc[GLI][3]=x3;
+
+SET_AB(inpc[GLI],str.s4,SIZE.s1,0);
+SET_AB(inpc[GLI],str.s5,SIZE.s1+4,0);
+SET_AB(inpc[GLI],str.s6,SIZE.s1+8,0);
+SET_AB(inpc[GLI],str.s7,SIZE.s1+12,0);
+w0.y=TOUPPERDWORD(inpc[GLI][0]);
+w1.y=TOUPPERDWORD(inpc[GLI][1]);
+w2.y=TOUPPERDWORD(inpc[GLI][2]);
+w3.y=TOUPPERDWORD(inpc[GLI][3]);
 
 
 DES_SPtrans[0][get_local_id(0)]=CDES_SPtrans[0][get_local_id(0)];
@@ -661,42 +701,41 @@ des_skb[4][get_local_id(0)]=cdes_skb[4][get_local_id(0)];
 des_skb[5][get_local_id(0)]=cdes_skb[5][get_local_id(0)];
 des_skb[6][get_local_id(0)]=cdes_skb[6][get_local_id(0)];
 des_skb[7][get_local_id(0)]=cdes_skb[7][get_local_id(0)];
-mem_fence(CLK_LOCAL_MEM_FENCE);
+barrier(CLK_LOCAL_MEM_FENCE);
 
 
-
-
-id=get_global_id(0);
-
-
-w0=input[id*8];
-w1=input[id*8+1];
-w2=input[id*8+2];
-w3=input[id*8+3];
-w4=input[id*8+4];
-w5=input[id*8+5];
-w6=input[id*8+6];
-w7=input[id*8+7];
-
-
-
-
-u1 = (((w0)&255)>>1)<<1;
-u2 = ((((w0)&255)&0x01)<<6)<<1;
-u2 |= (((w0>>8)&255)>>2)<<1;
-u3 = ((((w0>>8)&255)&0x03)<<5)<<1;
-u3 |= (((w0>>16)&255)>>3)<<1;
-u4 = ((((w0>>16)&255)&0x07)<<4)<<1;
-u4 |= (((w0>>24)&255)>>4)<<1;
-u5 = ((((w0>>24)&255)&0x0F)<<3)<<1;
-u5 |= (((w1)&255)>>5)<<1;
-u6 = ((((w1)&255)&0x1F)<<2)<<1;
-u6 |= (((w1>>8)&255)>>6)<<1;
-u7 = ((((w1>>8)&255)&0x3F)<<1)<<1;
-u7 |= (((w1>>16)&255)>>7)<<1;
-u8 = (((w1>>16)&255)&0x7F)<<1;
-t0=(u1|(u2<<8)|(u3<<16)|(u4<<24));
-t1=(uint)(u5|(u6<<8)|(u7<<16)|(u8<<24));
+u1 = (((w0.x)&255)>>1)<<1;
+u2 = ((((w0.x)&255)&0x01)<<6)<<1;
+u2 |= (((w0.x>>8)&255)>>2)<<1;
+u3 = ((((w0.x>>8)&255)&0x03)<<5)<<1;
+u3 |= (((w0.x>>16)&255)>>3)<<1;
+u4 = ((((w0.x>>16)&255)&0x07)<<4)<<1;
+u4 |= (((w0.x>>24)&255)>>4)<<1;
+u5 = ((((w0.x>>24)&255)&0x0F)<<3)<<1;
+u5 |= (((w1.x)&255)>>5)<<1;
+u6 = ((((w1.x)&255)&0x1F)<<2)<<1;
+u6 |= (((w1.x>>8)&255)>>6)<<1;
+u7 = ((((w1.x>>8)&255)&0x3F)<<1)<<1;
+u7 |= (((w1.x>>16)&255)>>7)<<1;
+u8 = (((w1.x>>16)&255)&0x7F)<<1;
+t0.x=(u1|(u2<<8)|(u3<<16)|(u4<<24));
+t1.x=(uint)(u5|(u6<<8)|(u7<<16)|(u8<<24));
+u1 = (((w0.y)&255)>>1)<<1;
+u2 = ((((w0.y)&255)&0x01)<<6)<<1;
+u2 |= (((w0.y>>8)&255)>>2)<<1;
+u3 = ((((w0.y>>8)&255)&0x03)<<5)<<1;
+u3 |= (((w0.y>>16)&255)>>3)<<1;
+u4 = ((((w0.y>>16)&255)&0x07)<<4)<<1;
+u4 |= (((w0.y>>24)&255)>>4)<<1;
+u5 = ((((w0.y>>24)&255)&0x0F)<<3)<<1;
+u5 |= (((w1.y)&255)>>5)<<1;
+u6 = ((((w1.y)&255)&0x1F)<<2)<<1;
+u6 |= (((w1.y>>8)&255)>>6)<<1;
+u7 = ((((w1.y>>8)&255)&0x3F)<<1)<<1;
+u7 |= (((w1.y>>16)&255)>>7)<<1;
+u8 = (((w1.y>>16)&255)&0x7F)<<1;
+t0.y=(u1|(u2<<8)|(u3<<16)|(u4<<24));
+t1.y=(uint)(u5|(u6<<8)|(u7<<16)|(u8<<24));
 
 bli1=t0;bli2=t1;
 DES_set_key_lm(t0,t1, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
@@ -704,27 +743,43 @@ DES_ecb_encrypt_lm(blo11,blo12, key0,key1,key2,key3,key4,key5,key6,key7,key8,key
 DES_ecb_encrypt_fp(blo11,blo12, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
 
 #ifdef SINGLE_MODE
-if ((blo11!=(uint)singlehash.x)) return;
-if ((blo12!=(uint)singlehash.y)) return;
+if (all(blo11!=(uint2)singlehash.x)) return;
+if (all(blo12!=(uint2)singlehash.y)) return;
 #endif
 
 
-u1 = (((w1>>24)&255)>>1)<<1;
-u2 = ((((w1>>24)&255)&0x01)<<6)<<1;
-u2 |= (((w2)&255)>>2)<<1;
-u3 = ((((w2)&255)&0x03)<<5)<<1;
-u3 |= (((w2>>8)&255)>>3)<<1;
-u4 = ((((w2>>8)&255)&0x07)<<4)<<1;
-u4 |= (((w2>>16)&255)>>4)<<1;
-u5 = ((((w2>>16)&255)&0x0F)<<3)<<1;
-u5 |= (((w2>>24)&255)>>5)<<1;
-u6 = ((((w2>>24)&255)&0x1F)<<2)<<1;
-u6 |= (((w3)&255)>>6)<<1;
-u7 = ((((w3)&255)&0x3F)<<1)<<1;
-u7 |= (((w3>>8)&255)>>7)<<1;
-u8 = (((w3>>8)&255)&0x7F)<<1;
-t3=(u1|(u2<<8)|(u3<<16)|(u4<<24));
-t4=(uint)(u5|(u6<<8)|(u7<<16)|(u8<<24));
+u1 = (((w1.x>>24)&255)>>1)<<1;
+u2 = ((((w1.x>>24)&255)&0x01)<<6)<<1;
+u2 |= (((w2.x)&255)>>2)<<1;
+u3 = ((((w2.x)&255)&0x03)<<5)<<1;
+u3 |= (((w2.x>>8)&255)>>3)<<1;
+u4 = ((((w2.x>>8)&255)&0x07)<<4)<<1;
+u4 |= (((w2.x>>16)&255)>>4)<<1;
+u5 = ((((w2.x>>16)&255)&0x0F)<<3)<<1;
+u5 |= (((w2.x>>24)&255)>>5)<<1;
+u6 = ((((w2.x>>24)&255)&0x1F)<<2)<<1;
+u6 |= (((w3.x)&255)>>6)<<1;
+u7 = ((((w3.x)&255)&0x3F)<<1)<<1;
+u7 |= (((w3.x>>8)&255)>>7)<<1;
+u8 = (((w3.x>>8)&255)&0x7F)<<1;
+t3.x=(u1|(u2<<8)|(u3<<16)|(u4<<24));
+t4.x=(uint)(u5|(u6<<8)|(u7<<16)|(u8<<24));
+u1 = (((w1.y>>24)&255)>>1)<<1;
+u2 = ((((w1.y>>24)&255)&0x01)<<6)<<1;
+u2 |= (((w2.y)&255)>>2)<<1;
+u3 = ((((w2.y)&255)&0x03)<<5)<<1;
+u3 |= (((w2.y>>8)&255)>>3)<<1;
+u4 = ((((w2.y>>8)&255)&0x07)<<4)<<1;
+u4 |= (((w2.y>>16)&255)>>4)<<1;
+u5 = ((((w2.y>>16)&255)&0x0F)<<3)<<1;
+u5 |= (((w2.y>>24)&255)>>5)<<1;
+u6 = ((((w2.y>>24)&255)&0x1F)<<2)<<1;
+u6 |= (((w3.y)&255)>>6)<<1;
+u7 = ((((w3.y)&255)&0x3F)<<1)<<1;
+u7 |= (((w3.y>>8)&255)>>7)<<1;
+u8 = (((w3.y>>8)&255)&0x7F)<<1;
+t3.y=(u1|(u2<<8)|(u3<<16)|(u4<<24));
+t4.y=(uint)(u5|(u6<<8)|(u7<<16)|(u8<<24));
 
 
 DES_set_key_lm(t3,t4, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
@@ -732,22 +787,27 @@ DES_ecb_encrypt_lm(blo21,blo22, key0,key1,key2,key3,key4,key5,key6,key7,key8,key
 DES_ecb_encrypt_fp(blo21,blo22, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
 
 #ifdef SINGLE_MODE
-if ((blo21!=(uint)singlehash.z)) return;
-if ((blo22!=(uint)singlehash.w)) return;
+if (all(blo21!=(uint2)singlehash.z)) return;
+if (all(blo22!=(uint2)singlehash.w)) return;
 #else
 uint b1,b2,b3,b4,b5,b6,b7;
 id = 0;
-b1=blo11;b2=blo12;b3=blo21;b4=blo22;
-b5=(singlehash.x >> (blo12&31))&1;
-b6=(singlehash.y >> (blo21&31))&1;
-b7=(singlehash.z >> (blo22&31))&1;
+b1=blo11.s0;b2=blo12.s0;b3=blo21.s0;b4=blo22.s0;
+b5=(singlehash.x >> (blo12.s0&31))&1;
+b6=(singlehash.y >> (blo21.s0&31))&1;
+b7=(singlehash.z >> (blo22.s0&31))&1;
+if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=blo11.s1;b2=blo12.s1;b3=blo21.s1;b4=blo22.s1;
+b5=(singlehash.x >> (blo12.s1&31))&1;
+b6=(singlehash.y >> (blo21.s1&31))&1;
+b7=(singlehash.z >> (blo22.s1&31))&1;
 if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
 if (id==0) return;
 #endif
 
 
-
-dst[(getglobalid(0))] = (uint4)(blo11,blo12,blo21,blo22);
+dst[(getglobalid(0)*2)] = (uint4)(blo11.x,blo12.x,blo21.x,blo22.x);
+dst[(getglobalid(0)*2)+1] = (uint4)(blo11.y,blo12.y,blo21.y,blo22.y);
 
 found[0] = 1;
 found_ind[getglobalid(0)] = 1;

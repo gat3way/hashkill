@@ -8,48 +8,11 @@
     ai1[elem+1] = (tmp1==0) ? 0 : ai2>>(32-tmp1);\
     }
     
-#define TOUPPERCHAR(x) (((0xE0 & (x)) == 0x60) ? (x) & 0xDF : (x))
+//#define TOUPPERCHAR(x) (((0xE0 & (x)) == 0x60) ? (x) & 0xDF : (x))
+#define TOUPPERCHAR(y) ( (((y)<='z')&&((y)>='a')) ? ((y)-32) : (y))
+
+
 #define TOUPPERDWORD(x) (TOUPPERCHAR((x)&255)|((TOUPPERCHAR(((x)>>8) & 0xFF))<<8)|((TOUPPERCHAR(((x)>>16) & 0xFF))<<16)|((TOUPPERCHAR(((x)>>24) & 0xFF))<<24))
-
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str)
-{
-__local uint inpc[64][14];
-uint SIZE;
-uint elem,tmp1;
-
-
-inpc[GLI][0] = inp[GGI*(8)+0];
-inpc[GLI][1] = inp[GGI*(8)+1];
-inpc[GLI][2] = inp[GGI*(8)+2];
-inpc[GLI][3] = inp[GGI*(8)+3];
-inpc[GLI][4] = inp[GGI*(8)+4];
-inpc[GLI][5] = inp[GGI*(8)+5];
-inpc[GLI][6] = inp[GGI*(8)+6];
-inpc[GLI][7] = inp[GGI*(8)+7];
-
-SIZE=sizein[GGI];
-
-size[GGI] = (SIZE+str.sF);
-SET_AB(inpc[GLI],str.s0,SIZE,0);
-SET_AB(inpc[GLI],str.s1,SIZE+4,0);
-SET_AB(inpc[GLI],str.s2,SIZE+8,0);
-SET_AB(inpc[GLI],str.s3,SIZE+12,0);
-
-
-dst[GGI*8+0] = TOUPPERDWORD(inpc[GLI][0]);
-dst[GGI*8+1] = TOUPPERDWORD(inpc[GLI][1]);
-dst[GGI*8+2] = TOUPPERDWORD(inpc[GLI][2]);
-dst[GGI*8+3] = TOUPPERDWORD(inpc[GLI][3]);
-dst[GGI*8+4] = TOUPPERDWORD(inpc[GLI][4]);
-dst[GGI*8+5] = TOUPPERDWORD(inpc[GLI][5]);
-dst[GGI*8+6] = TOUPPERDWORD(inpc[GLI][6]);
-dst[GGI*8+7] = TOUPPERDWORD(inpc[GLI][7]);
-
-}
-
-
 #define getglobalid(a) get_global_id(a)
 
 __constant uint CDES_SPtrans[8][64]={
@@ -667,10 +630,8 @@ k31=ROTATE(t2,26); \
 
 
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-lm( __global uint4 *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *bitmaps, __global uint *found,  uint4 singlehash) 
+lm( __global uint4 *dst,  __global uint *inp, __global uint *sizein,  __global uint *found_ind, __global uint *bitmaps, __global uint *found,  uint4 singlehash,uint16 str) 
 {
-
-
 uint2 w0,w1,w2,w3,w4,w5,w6,w7,chbase1,res,t0,t1,t2,t3,t4;
 uint id=0;
 uint2 i,j,bli1,bli2,blo11,blo12,blo21,blo22,blo31,blo32,blo41,blo42;
@@ -682,7 +643,47 @@ uint2 key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,
 uint2 c,d,s; 
 __local uint DES_SPtrans[8][64];
 __local uint des_skb[8][64];
+__local uint inpc[64][14];
+uint x0,x1,x2,x3,tmp1,elem;
+uint2 SIZE;
 
+
+id=get_global_id(0);
+
+SIZE=(uint2)sizein[GGI];
+x0 = inp[GGI*4+0];
+x1 = inp[GGI*4+1];
+x2 = inp[GGI*4+2];
+x3 = inp[GGI*4+3];
+
+
+inpc[GLI][0]=x0;
+inpc[GLI][1]=x1;
+inpc[GLI][2]=x2;
+inpc[GLI][3]=x3;
+SET_AB(inpc[GLI],str.s0,SIZE.s0,0);
+SET_AB(inpc[GLI],str.s1,SIZE.s0+4,0);
+SET_AB(inpc[GLI],str.s2,SIZE.s0+8,0);
+SET_AB(inpc[GLI],str.s3,SIZE.s0+12,0);
+w0.x=TOUPPERDWORD(inpc[GLI][0]);
+w1.x=TOUPPERDWORD(inpc[GLI][1]);
+w2.x=TOUPPERDWORD(inpc[GLI][2]);
+w3.x=TOUPPERDWORD(inpc[GLI][3]);
+
+
+inpc[GLI][0]=x0;
+inpc[GLI][1]=x1;
+inpc[GLI][2]=x2;
+inpc[GLI][3]=x3;
+
+SET_AB(inpc[GLI],str.s4,SIZE.s1,0);
+SET_AB(inpc[GLI],str.s5,SIZE.s1+4,0);
+SET_AB(inpc[GLI],str.s6,SIZE.s1+8,0);
+SET_AB(inpc[GLI],str.s7,SIZE.s1+12,0);
+w0.y=TOUPPERDWORD(inpc[GLI][0]);
+w1.y=TOUPPERDWORD(inpc[GLI][1]);
+w2.y=TOUPPERDWORD(inpc[GLI][2]);
+w3.y=TOUPPERDWORD(inpc[GLI][3]);
 
 
 DES_SPtrans[0][get_local_id(0)]=CDES_SPtrans[0][get_local_id(0)];
@@ -702,33 +703,7 @@ des_skb[4][get_local_id(0)]=cdes_skb[4][get_local_id(0)];
 des_skb[5][get_local_id(0)]=cdes_skb[5][get_local_id(0)];
 des_skb[6][get_local_id(0)]=cdes_skb[6][get_local_id(0)];
 des_skb[7][get_local_id(0)]=cdes_skb[7][get_local_id(0)];
-mem_fence(CLK_LOCAL_MEM_FENCE);
-
-
-
-
-id=get_global_id(0);
-
-
-w0.s0=input[id*2*8];
-w1.s0=input[id*2*8+1];
-w2.s0=input[id*2*8+2];
-w3.s0=input[id*2*8+3];
-w4.s0=input[id*2*8+4];
-w5.s0=input[id*2*8+5];
-w6.s0=input[id*2*8+6];
-w7.s0=input[id*2*8+7];
-
-w0.s1=input[id*2*8+8];
-w1.s1=input[id*2*8+9];
-w2.s1=input[id*2*8+10];
-w3.s1=input[id*2*8+11];
-w4.s1=input[id*2*8+12];
-w5.s1=input[id*2*8+13];
-w6.s1=input[id*2*8+14];
-w7.s1=input[id*2*8+15];
-
-
+barrier(CLK_LOCAL_MEM_FENCE);
 
 
 u1 = (((w0.x)&255)>>1)<<1;
@@ -833,14 +808,10 @@ if (id==0) return;
 #endif
 
 
-
 dst[(getglobalid(0)*2)] = (uint4)(blo11.x,blo12.x,blo21.x,blo22.x);
 dst[(getglobalid(0)*2)+1] = (uint4)(blo11.y,blo12.y,blo21.y,blo22.y);
 
 found[0] = 1;
 found_ind[getglobalid(0)] = 1;
-
-
-
 }
 
