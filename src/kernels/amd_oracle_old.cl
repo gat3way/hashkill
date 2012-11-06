@@ -1,4 +1,5 @@
-#define TOUPPERCHAR(x) (((0xE0 & (x)) == 0x60) ? (x) & 0xDF : (x))
+//#define TOUPPERCHAR(x) (((0xE0 & (x)) == 0x60) ? (x) & 0xDF : (x))
+#define TOUPPERCHAR(y) ( (((y)<='z')&&((y)>='a')) ? ((y)-32) : (y))
 #define TOUPPERDWORD(x) (TOUPPERCHAR((x)&255)|((TOUPPERCHAR(((x)>>8) & 0xFF))<<8)|((TOUPPERCHAR(((x)>>16) & 0xFF))<<16)|((TOUPPERCHAR(((x)>>24) & 0xFF))<<24))
 
 

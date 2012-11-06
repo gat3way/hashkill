@@ -8,7 +8,8 @@
     ai1[elem+1] = (temp1==0) ? 0 : ai2>>(32-temp1);\
     }
 
-#define TOUPPERCHAR(x) (((0xE0 & (x)) == 0x60) ? (x) & 0xDF : (x))
+//#define TOUPPERCHAR(x) (((0xE0 & (x)) == 0x60) ? (x) & 0xDF : (x))
+#define TOUPPERCHAR(y) ( (((y)<='z')&&((y)>='a')) ? ((y)-32) : (y))
 #define TOUPPERDWORD(x) (TOUPPERCHAR((x)&255)|((TOUPPERCHAR(((x)>>8) & 0xFF))<<8)|((TOUPPERCHAR(((x)>>16) & 0xFF))<<16)|((TOUPPERCHAR(((x)>>24) & 0xFF))<<24))
 
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
