@@ -272,10 +272,8 @@ Endian_Reverse32(H);
 
 #ifdef SINGLE_MODE
 id=0;
-if ((singlehash.x==A.s0)&&(singlehash.y==B.s0)&&(singlehash.z==C.s0)&&(singlehash.w==D.s0)) id = 1; 
-if ((singlehash.x==A.s1)&&(singlehash.y==B.s1)&&(singlehash.z==C.s1)&&(singlehash.w==D.s1)) id = 1; 
-if ((singlehash.x==A.s2)&&(singlehash.y==B.s2)&&(singlehash.z==C.s2)&&(singlehash.w==D.s2)) id = 1; 
-if ((singlehash.x==A.s3)&&(singlehash.y==B.s3)&&(singlehash.z==C.s3)&&(singlehash.w==D.s3)) id = 1; 
+if (all((uint4)singlehash.x!=A)) return;
+if (all((uint4)singlehash.y!=B)) return;
 if (id==0) return;
 #endif
 
