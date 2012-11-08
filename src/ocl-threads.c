@@ -317,6 +317,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"md5")==0)) ocl_vector=8;
 		if ((strcmp(get_current_plugin(),"md4")==0)) ocl_vector=8;
 		if ((strcmp(get_current_plugin(),"sha1")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"ntlm")==0)) ocl_vector=8;
 
 		/* GCN/VLIW-specific */
 		if ((strcmp(get_current_plugin(),"phpbb3")==0)&&(ocl_have_gcn)) ocl_vector=1;
@@ -395,6 +396,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"sha256")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"ntlm")==0)) ocl_vector=8;
 	    }
 
 	    /* Zip (non-rule) exception for NVidia */
@@ -562,7 +564,7 @@ hash_stat ocl_rule()
 
 	    if (((flag == 0)||(count<2))&&(salt_size<2)) hlog("Attack has O(1) complexity%s\n","");
 	    else hlog("Attack has O(N) complexity%s\n","");
-	    rule_stats_parse();
+	    if (hashgen_stdout_mode==0) rule_stats_parse();
 	    ocl_spawn_threads(0,0);
 	    ocl_supported_plugins[index].rule_routine();
 	    supported=1;
