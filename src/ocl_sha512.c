@@ -1447,7 +1447,7 @@ void* ocl_rule_sha512_thread(void *arg)
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
     ocl_rule_workset[self]=128*128*2;
-    if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=4;
+    if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=2;
     if (ocl_gpu_double) ocl_rule_workset[self]*=2;
     
     rule_ptr[self] = malloc(ocl_rule_workset[self]*hash_ret_len*wthreads[self].vectorsize);
