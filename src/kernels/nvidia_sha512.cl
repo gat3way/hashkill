@@ -3,65 +3,41 @@
 
 #define SET_AB(ai1,ai2,ii1,ii2) { \
     elem=ii1>>2; \
-    tmp1=(ii1&3)<<3; \
-    ai1[elem] = ai1[elem]|(ai2<<(tmp1)); \
-    ai1[elem+1] = (tmp1==0) ? 0 : ai2>>(32-tmp1);\
+    t1=(ii1&3)<<3; \
+    ai1[elem] = ai1[elem]|(ai2<<(t1)); \
+    ai1[elem+1] = (t1==0) ? 0 : ai2>>(32-t1);\
     }
 
 
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str)
-{
-__local uint inpc[64][14];
-uint SIZE;
-uint elem,tmp1;
+
+#ifndef GCN
+#define Endian_Reverse64(a) { (a) = ((a) & 0x00000000000000FFL) << 56 | ((a) & 0x000000000000FF00L) << 40 | \
+        		      ((a) & 0x0000000000FF0000L) << 24 | ((a) & 0x00000000FF000000L) << 8 | \
+                	      ((a) & 0x000000FF00000000L) >> 8 | ((a) & 0x0000FF0000000000L) >> 24 | \
+                    	      ((a) & 0x00FF000000000000L) >> 40 | ((a) & 0xFF00000000000000L) >> 56; }
+#else
+#define Endian_Reverse64(n)       ((n) = as_ulong(as_uchar8(n).s76543210))
+#endif
+#define ROTATE(b,x)	(((x) >> (b)) | ((x) << (64 - (b))))
+#define R(b,x) 		((x) >> (b))
+#define Ch(x,y,z)       ((z)^((x)&((y)^(z))))
+#define Maj(x,y,z)      (((x) & (y)) | ((z)&((x)|(y))))
+#define Sigma0_512(x)	(ROTATE(28, (x)) ^ ROTATE(34, (x)) ^ ROTATE(39, (x)))
+#define Sigma1_512(x)	(ROTATE(14, (x)) ^ ROTATE(18, (x)) ^ ROTATE(41, (x)))
+#define sigma0_512(x)	(ROTATE( 1, (x)) ^ ROTATE( 8, (x)) ^ R( 7,   (x)))
+#define sigma1_512(x)	(ROTATE(19, (x)) ^ ROTATE(61, (x)) ^ R( 6,   (x)))
 
 
-inpc[GLI][0] = inp[GGI*(8)+0];
-inpc[GLI][1] = inp[GGI*(8)+1];
-inpc[GLI][2] = inp[GGI*(8)+2];
-inpc[GLI][3] = inp[GGI*(8)+3];
-inpc[GLI][4] = inp[GGI*(8)+4];
-inpc[GLI][5] = inp[GGI*(8)+5];
-inpc[GLI][6] = inp[GGI*(8)+6];
-inpc[GLI][7] = inp[GGI*(8)+7];
+#define ROUND512_0_TO_15(a,b,c,d,e,f,g,h,AC,x) T1 = (h) + Sigma1_512(e) + Ch((e), (f), (g)) + AC + x; \
+	            				(d) += T1; (h) = T1 + Sigma0_512(a) + Maj((a), (b), (c))
 
-SIZE=sizein[GGI];
-size[GGI] = (SIZE+str.sF)<<3;
-
-SET_AB(inpc[GLI],str.s0,SIZE,0);
-SET_AB(inpc[GLI],str.s1,SIZE+4,0);
-SET_AB(inpc[GLI],str.s2,SIZE+8,0);
-SET_AB(inpc[GLI],str.s3,SIZE+12,0);
-
-SET_AB(inpc[GLI],0x80,(SIZE+str.sF),0);
-
-dst[GGI*8+0] = inpc[GLI][0];
-dst[GGI*8+1] = inpc[GLI][1];
-dst[GGI*8+2] = inpc[GLI][2];
-dst[GGI*8+3] = inpc[GLI][3];
-dst[GGI*8+4] = inpc[GLI][4];
-dst[GGI*8+5] = inpc[GLI][5];
-dst[GGI*8+6] = inpc[GLI][6];
-dst[GGI*8+7] = inpc[GLI][7];
+#define ROUND512_0_TO_15_NL(a,b,c,d,e,f,g,h,AC) T1 = (h) + Sigma1_512(e) + Ch((e), (f), (g)) + AC; \
+	            				(d) += T1; (h) = T1 + Sigma0_512(a) + Maj((a), (b), (c))
 
 
-}
+#define ROUND512(a,b,c,d,e,f,g,h,AC,x)  T1 = (h) + Sigma1_512(e) + Ch((e), (f), (g)) + AC + x;\
+		                	(d) += T1; (h) = T1 + Sigma0_512(a) + Maj((a), (b), (c)); 
 
-
-__kernel void  __attribute__((reqd_work_group_size(64, 1, 1))) 
-sha512( __global ulong4 *dst,  __global ulong *input, __global uint *size,  __global uint *found_ind, __global uint *bitmaps, __global uint *found,  ulong4 singlehash) 
-{
-
-
-ulong w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w16,SIZE;
-
-uint i,ib,ic,id;  
-ulong A,B,C,D,E,F,G,H,K,l,tmp1,tmp2,temp,T1;
-uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
-
-uint4 m= 0x00FF00FF;
-uint4 m2= 0xFF00FF00;
 #define Sl 8
 #define Sr 24
 
@@ -157,52 +133,93 @@ uint4 m2= 0xFF00FF00;
 
 
 
+#ifdef SM21
+__kernel void  __attribute__((reqd_work_group_size(64, 1, 1))) 
+sha512( __global ulong4 *dst,  __global uint *inp, __global uint *sizes,  __global uint *found_ind, __global uint *bitmaps, __global uint *found,  ulong4 singlehash,uint16 str) 
+{
+ulong2 w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w16,SIZE;
+uint i,ib,ic,id;  
+ulong2 A,B,C,D,E,F,G,H,K,l,tmp1,tmp2,temp,T1;
+uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
+uint x0,x1,x2,x3,x4,x5,x6,x7;
+__local uint inpc[64][14];
+ulong elem,t1,t2;
+uint2 size;
+
+
+
 id=get_global_id(0);
-SIZE=(ulong)((uint)size[id]); 
+size=(uint)sizes[GGI];
+if (size>31) size=32;
+
+x0 = inp[GGI*8+0];
+x1 = inp[GGI*8+1];
+x2 = inp[GGI*8+2];
+x3 = inp[GGI*8+3];
+x4 = inp[GGI*8+4];
+x5 = inp[GGI*8+5];
+x6 = inp[GGI*8+6];
+x7 = inp[GGI*8+7];
 
 
-w0=(ulong)input[id*4];
-w1=(ulong)input[id*4+1];
-w2=(ulong)input[id*4+2];
-w3=(ulong)input[id*4+3];
-w2=w3=w4=w5=w6=w7=w8=w9=w10=w11=w12=w13=w14=w16=(ulong)0;
-
-#define Endian_Reverse64(a) { (a) = ((a) & 0x00000000000000FFL) << 56 | ((a) & 0x000000000000FF00L) << 40 | \
-        		      ((a) & 0x0000000000FF0000L) << 24 | ((a) & 0x00000000FF000000L) << 8 | \
-                	      ((a) & 0x000000FF00000000L) >> 8 | ((a) & 0x0000FF0000000000L) >> 24 | \
-                    	      ((a) & 0x00FF000000000000L) >> 40 | ((a) & 0xFF00000000000000L) >> 56; }
-
-A=(ulong)H0;
-B=(ulong)H1;
-C=(ulong)H2;
-D=(ulong)H3;
-E=(ulong)H4;
-F=(ulong)H5;
-G=(ulong)H6;
-H=(ulong)H7;
-
-
-#define ROTATE(b,x)	(((x) >> (b)) | ((x) << (64 - (b))))
-#define R(b,x) 		((x) >> (b))
-//#define Ch(x,y,z)	(((x) & (y)) ^ ((~(x)) & (z)))
-//#define Maj(x,y,z)	(((x) & (y)) ^ ((x) & (z)) ^ ((y) & (z)))
-#define Ch(x,y,z)       ((z)^((x)&((y)^(z))))
-#define Maj(x,y,z)      (((x) & (y)) | ((z)&((x)|(y))))
-#define Sigma0_512(x)	(ROTATE(28, (x)) ^ ROTATE(34, (x)) ^ ROTATE(39, (x)))
-#define Sigma1_512(x)	(ROTATE(14, (x)) ^ ROTATE(18, (x)) ^ ROTATE(41, (x)))
-#define sigma0_512(x)	(ROTATE( 1, (x)) ^ ROTATE( 8, (x)) ^ R( 7,   (x)))
-#define sigma1_512(x)	(ROTATE(19, (x)) ^ ROTATE(61, (x)) ^ R( 6,   (x)))
+inpc[GLI][0]=x0;
+inpc[GLI][1]=x1;
+inpc[GLI][2]=x2;
+inpc[GLI][3]=x3;
+inpc[GLI][4]=x4;
+inpc[GLI][5]=x5;
+inpc[GLI][6]=x6;
+inpc[GLI][7]=x7;
+SET_AB(inpc[GLI],str.s0,size.s0,0);
+SET_AB(inpc[GLI],str.s1,size.s0+4,0);
+SET_AB(inpc[GLI],str.s2,size.s0+8,0);
+SET_AB(inpc[GLI],str.s3,size.s0+12,0);
+SET_AB(inpc[GLI],0x80,(size.s0+str.sC),0);
+w0.s0=(ulong)((inpc[GLI][0])|((ulong)inpc[GLI][1]<<32));
+w1.s0=(ulong)((inpc[GLI][2])|((ulong)inpc[GLI][3]<<32));
+w2.s0=(ulong)((inpc[GLI][4])|((ulong)inpc[GLI][5]<<32));
+w3.s0=(ulong)((inpc[GLI][6])|((ulong)inpc[GLI][7]<<32));
+size.s0 = (size.s0+str.sC)<<3;
 
 
-#define ROUND512_0_TO_15(a,b,c,d,e,f,g,h,AC,x) T1 = (h) + Sigma1_512(e) + Ch((e), (f), (g)) + AC + x; \
-	            				(d) += T1; (h) = T1 + Sigma0_512(a) + Maj((a), (b), (c))
+inpc[GLI][0]=x0;
+inpc[GLI][1]=x1;
+inpc[GLI][2]=x2;
+inpc[GLI][3]=x3;
+inpc[GLI][4]=x4;
+inpc[GLI][5]=x5;
+inpc[GLI][6]=x6;
+inpc[GLI][7]=x7;
 
-#define ROUND512_0_TO_15_NL(a,b,c,d,e,f,g,h,AC) T1 = (h) + Sigma1_512(e) + Ch((e), (f), (g)) + AC; \
-	            				(d) += T1; (h) = T1 + Sigma0_512(a) + Maj((a), (b), (c))
+SET_AB(inpc[GLI],str.s4,size.s1,0);
+SET_AB(inpc[GLI],str.s5,size.s1+4,0);
+SET_AB(inpc[GLI],str.s6,size.s1+8,0);
+SET_AB(inpc[GLI],str.s7,size.s1+12,0);
+SET_AB(inpc[GLI],0x80,(size.s1+str.sD),0);
+w0.s1=(ulong)(inpc[GLI][0])|((ulong)inpc[GLI][1]<<32);
+w1.s1=(ulong)(inpc[GLI][2])|((ulong)inpc[GLI][3]<<32);
+w2.s1=(ulong)(inpc[GLI][4])|((ulong)inpc[GLI][5]<<32);
+w3.s1=(ulong)(inpc[GLI][6])|((ulong)inpc[GLI][7]<<32);
+size.s1 = (size.s1+str.sD)<<3;
+SIZE.s0=size.s0;
+SIZE.s1=size.s1;
 
 
-#define ROUND512(a,b,c,d,e,f,g,h,AC,x)  T1 = (h) + Sigma1_512(e) + Ch((e), (f), (g)) + AC + x;\
-		                	(d) += T1; (h) = T1 + Sigma0_512(a) + Maj((a), (b), (c)); 
+
+w4=w5=w6=w7=w8=w9=w10=w11=w12=w13=w14=w16=(ulong2)0;
+
+
+
+A=(ulong2)H0;
+B=(ulong2)H1;
+C=(ulong2)H2;
+D=(ulong2)H3;
+E=(ulong2)H4;
+F=(ulong2)H5;
+G=(ulong2)H6;
+H=(ulong2)H7;
+
+
 
 
 
@@ -293,7 +310,170 @@ w9 = sigma1_512(w7)+w2+sigma0_512(w11)+w10; ROUND512(D,E,F,G,H,A,B,C,w9,AC78);
 w10 = sigma1_512(w8)+w3+sigma0_512(w12)+w11; ROUND512(C,D,E,F,G,H,A,B,w10,AC79);
 w11 = sigma1_512(w9)+w4+sigma0_512(w13)+w12; ROUND512(B,C,D,E,F,G,H,A,w11,AC80);
 
+A+=(ulong2)H0;
+B+=(ulong2)H1;
+C+=(ulong2)H2;
+D+=(ulong2)H3;
+E+=(ulong2)H4;
+F+=(ulong2)H5;
+G+=(ulong2)H6;
+H+=(ulong2)H7;
 
+Endian_Reverse64(A);
+Endian_Reverse64(B);
+Endian_Reverse64(C);
+Endian_Reverse64(D);
+Endian_Reverse64(E);
+Endian_Reverse64(F);
+Endian_Reverse64(G);
+Endian_Reverse64(H);
+
+#ifdef SINGLE_MODE
+id=0;
+if (all((ulong2)singlehash.x!=A)) return;
+if (all((ulong2)singlehash.y!=B)) return;
+id=1;
+#endif
+
+#ifndef SINGLE_MODE
+id=0;
+b1=(uint)(A.s0&0xFFFFFFFF);b2=(uint)(A.s0>>32)&0xFFFFFFFF;b3=(uint)B.s0&0xFFFFFFFF;b4=(uint)(B.s0>>32)&0xFFFFFFFF;
+b5=(singlehash.x >> (((A.s0>>32)&0xFFFFFFFF)&31))&1;
+b6=(singlehash.y >> (((B.s0)&0xFFFFFFFF)&31))&1;
+b7=(singlehash.z >> (((B.s0>>32)&0xFFFFFFFF)&31))&1;
+if ((b7) && (b5) && (b6)) if (((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1)) id=1;
+b1=(uint)(A.s1&0xFFFFFFFF);b2=(uint)(A.s1>>32)&0xFFFFFFFF;b3=(uint)B.s1&0xFFFFFFFF;b4=(uint)(B.s1>>32)&0xFFFFFFFF;
+b5=(singlehash.x >> (((A.s1>>32)&0xFFFFFFFF)&31))&1;
+b6=(singlehash.y >> (((B.s1)&0xFFFFFFFF)&31))&1;
+b7=(singlehash.z >> (((B.s1>>32)&0xFFFFFFFF)&31))&1;
+if ((b7) && (b5) && (b6)) if (((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1)) id=1;
+if (id==0) return;
+#endif
+
+found[0] = (uint)1;
+found_ind[get_global_id(0)] = (uint)1;
+
+dst[(get_global_id(0)*4)] = (ulong4)(A.s0,B.s0,C.s0,D.s0);  
+dst[(get_global_id(0)*4)+1] = (ulong4)(E.s0,F.s0,G.s0,H.s0);
+dst[(get_global_id(0)*4)+2] = (ulong4)(A.s1,B.s1,C.s1,D.s1);  
+dst[(get_global_id(0)*4)+3] = (ulong4)(E.s1,F.s1,G.s1,H.s1);
+}
+
+
+
+#else
+
+void sha512block( __global ulong4 *dst,ulong xx0,ulong xx1,ulong xx2,ulong xx3,ulong ssize,   __global uint *found_ind, __global uint *bitmaps, __global uint *found,  ulong4 singlehash,uint offset) 
+{
+ulong w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w16,SIZE;
+uint i,ib,ic,id;  
+ulong A,B,C,D,E,F,G,H,K,l,tmp1,tmp2,temp,T1;
+uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
+uint4 m= 0x00FF00FF;
+uint4 m2= 0xFF00FF00;
+
+w0=xx0;
+w1=xx1;
+w2=xx2;
+w3=xx3;
+SIZE=ssize;
+w4=w5=w6=w7=w8=w9=w10=w11=w12=w13=w14=w16=(ulong)0;
+
+A=(ulong)H0;
+B=(ulong)H1;
+C=(ulong)H2;
+D=(ulong)H3;
+E=(ulong)H4;
+F=(ulong)H5;
+G=(ulong)H6;
+H=(ulong)H7;
+
+Endian_Reverse64(w0);
+ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w0);
+Endian_Reverse64(w1);
+ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w1);
+Endian_Reverse64(w2);
+ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w2);
+Endian_Reverse64(w3);
+ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w3);
+ROUND512_0_TO_15_NL(E,F,G,H,A,B,C,D,AC5);
+ROUND512_0_TO_15_NL(D,E,F,G,H,A,B,C,AC6);
+ROUND512_0_TO_15_NL(C,D,E,F,G,H,A,B,AC7);
+ROUND512_0_TO_15_NL(B,C,D,E,F,G,H,A,AC8);
+ROUND512_0_TO_15_NL(A,B,C,D,E,F,G,H,AC9);
+ROUND512_0_TO_15_NL(H,A,B,C,D,E,F,G,AC10);
+ROUND512_0_TO_15_NL(G,H,A,B,C,D,E,F,AC11);
+ROUND512_0_TO_15_NL(F,G,H,A,B,C,D,E,AC12);
+ROUND512_0_TO_15_NL(E,F,G,H,A,B,C,D,AC13);
+ROUND512_0_TO_15_NL(D,E,F,G,H,A,B,C,AC14);
+ROUND512_0_TO_15_NL(C,D,E,F,G,H,A,B,AC15);
+ROUND512_0_TO_15(B,C,D,E,F,G,H,A,SIZE,AC16);
+
+
+w16 = sigma1_512(w14)+w9+sigma0_512(w1)+w0; ROUND512(A,B,C,D,E,F,G,H,w16,AC17);
+w0 = sigma1_512(SIZE)+w10+sigma0_512(w2)+w1; ROUND512(H,A,B,C,D,E,F,G,w0,AC18);
+w1 = sigma1_512(w16)+w11+sigma0_512(w3)+w2; ROUND512(G,H,A,B,C,D,E,F,w1,AC19);
+w2 = sigma1_512(w0)+w12+sigma0_512(w4)+w3; ROUND512(F,G,H,A,B,C,D,E,w2,AC20);
+w3 = sigma1_512(w1)+w13+sigma0_512(w5)+w4; ROUND512(E,F,G,H,A,B,C,D,w3,AC21);
+w4 = sigma1_512(w2)+w14+sigma0_512(w6)+w5; ROUND512(D,E,F,G,H,A,B,C,w4,AC22);
+w5 = sigma1_512(w3)+SIZE+sigma0_512(w7)+w6; ROUND512(C,D,E,F,G,H,A,B,w5,AC23);
+w6 = sigma1_512(w4)+w16+sigma0_512(w8)+w7; ROUND512(B,C,D,E,F,G,H,A,w6,AC24);
+w7 = sigma1_512(w5)+w0+sigma0_512(w9)+w8; ROUND512(A,B,C,D,E,F,G,H,w7,AC25);
+w8 = sigma1_512(w6)+w1+sigma0_512(w10)+w9; ROUND512(H,A,B,C,D,E,F,G,w8,AC26);
+w9 = sigma1_512(w7)+w2+sigma0_512(w11)+w10; ROUND512(G,H,A,B,C,D,E,F,w9,AC27);
+w10 = sigma1_512(w8)+w3+sigma0_512(w12)+w11; ROUND512(F,G,H,A,B,C,D,E,w10,AC28);
+w11 = sigma1_512(w9)+w4+sigma0_512(w13)+w12; ROUND512(E,F,G,H,A,B,C,D,w11,AC29);
+w12 = sigma1_512(w10)+w5+sigma0_512(w14)+w13; ROUND512(D,E,F,G,H,A,B,C,w12,AC30);
+w13 = sigma1_512(w11)+w6+sigma0_512(SIZE)+w14; ROUND512(C,D,E,F,G,H,A,B,w13,AC31);
+w14 = sigma1_512(w12)+w7+sigma0_512(w16)+SIZE; ROUND512(B,C,D,E,F,G,H,A,w14,AC32);
+SIZE = sigma1_512(w13)+w8+sigma0_512(w0)+w16; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
+w16 = sigma1_512(w14)+w9+sigma0_512(w1)+w0; ROUND512(H,A,B,C,D,E,F,G,w16,AC34);
+w0 = sigma1_512(SIZE)+w10+sigma0_512(w2)+w1; ROUND512(G,H,A,B,C,D,E,F,w0,AC35);
+w1 = sigma1_512(w16)+w11+sigma0_512(w3)+w2; ROUND512(F,G,H,A,B,C,D,E,w1,AC36);
+w2 = sigma1_512(w0)+w12+sigma0_512(w4)+w3; ROUND512(E,F,G,H,A,B,C,D,w2,AC37);
+w3 = sigma1_512(w1)+w13+sigma0_512(w5)+w4; ROUND512(D,E,F,G,H,A,B,C,w3,AC38);
+w4 = sigma1_512(w2)+w14+sigma0_512(w6)+w5; ROUND512(C,D,E,F,G,H,A,B,w4,AC39);
+w5 = sigma1_512(w3)+SIZE+sigma0_512(w7)+w6; ROUND512(B,C,D,E,F,G,H,A,w5,AC40);
+w6 = sigma1_512(w4)+w16+sigma0_512(w8)+w7; ROUND512(A,B,C,D,E,F,G,H,w6,AC41);
+w7 = sigma1_512(w5)+w0+sigma0_512(w9)+w8; ROUND512(H,A,B,C,D,E,F,G,w7,AC42);
+w8 = sigma1_512(w6)+w1+sigma0_512(w10)+w9; ROUND512(G,H,A,B,C,D,E,F,w8,AC43);
+w9 = sigma1_512(w7)+w2+sigma0_512(w11)+w10; ROUND512(F,G,H,A,B,C,D,E,w9,AC44);
+w10 = sigma1_512(w8)+w3+sigma0_512(w12)+w11; ROUND512(E,F,G,H,A,B,C,D,w10,AC45);
+w11 = sigma1_512(w9)+w4+sigma0_512(w13)+w12; ROUND512(D,E,F,G,H,A,B,C,w11,AC46);
+w12 = sigma1_512(w10)+w5+sigma0_512(w14)+w13; ROUND512(C,D,E,F,G,H,A,B,w12,AC47);
+w13 = sigma1_512(w11)+w6+sigma0_512(SIZE)+w14; ROUND512(B,C,D,E,F,G,H,A,w13,AC48);
+w14 = sigma1_512(w12)+w7+sigma0_512(w16)+SIZE; ROUND512(A,B,C,D,E,F,G,H,w14,AC49);
+SIZE = sigma1_512(w13)+w8+sigma0_512(w0)+w16; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
+w16 = sigma1_512(w14)+w9+sigma0_512(w1)+w0; ROUND512(G,H,A,B,C,D,E,F,w16,AC51);
+w0 = sigma1_512(SIZE)+w10+sigma0_512(w2)+w1; ROUND512(F,G,H,A,B,C,D,E,w0,AC52);
+w1 = sigma1_512(w16)+w11+sigma0_512(w3)+w2; ROUND512(E,F,G,H,A,B,C,D,w1,AC53);
+w2 = sigma1_512(w0)+w12+sigma0_512(w4)+w3; ROUND512(D,E,F,G,H,A,B,C,w2,AC54);
+w3 = sigma1_512(w1)+w13+sigma0_512(w5)+w4; ROUND512(C,D,E,F,G,H,A,B,w3,AC55);
+w4 = sigma1_512(w2)+w14+sigma0_512(w6)+w5; ROUND512(B,C,D,E,F,G,H,A,w4,AC56);
+w5 = sigma1_512(w3)+SIZE+sigma0_512(w7)+w6; ROUND512(A,B,C,D,E,F,G,H,w5,AC57);
+w6 = sigma1_512(w4)+w16+sigma0_512(w8)+w7; ROUND512(H,A,B,C,D,E,F,G,w6,AC58);
+w7 = sigma1_512(w5)+w0+sigma0_512(w9)+w8; ROUND512(G,H,A,B,C,D,E,F,w7,AC59);
+w8 = sigma1_512(w6)+w1+sigma0_512(w10)+w9; ROUND512(F,G,H,A,B,C,D,E,w8,AC60);
+w9 = sigma1_512(w7)+w2+sigma0_512(w11)+w10; ROUND512(E,F,G,H,A,B,C,D,w9,AC61);
+w10 = sigma1_512(w8)+w3+sigma0_512(w12)+w11; ROUND512(D,E,F,G,H,A,B,C,w10,AC62);
+w11 = sigma1_512(w9)+w4+sigma0_512(w13)+w12; ROUND512(C,D,E,F,G,H,A,B,w11,AC63);
+w12 = sigma1_512(w10)+w5+sigma0_512(w14)+w13; ROUND512(B,C,D,E,F,G,H,A,w12,AC64);
+w13 = sigma1_512(w11)+w6+sigma0_512(SIZE)+w14; ROUND512(A,B,C,D,E,F,G,H,w13,AC65);
+w14 = sigma1_512(w12)+w7+sigma0_512(w16)+SIZE; ROUND512(H,A,B,C,D,E,F,G,w14,AC66);
+SIZE = sigma1_512(w13)+w8+sigma0_512(w0)+w16; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
+w16 = sigma1_512(w14)+w9+sigma0_512(w1)+w0; ROUND512(F,G,H,A,B,C,D,E,w16,AC68);
+w0 = sigma1_512(SIZE)+w10+sigma0_512(w2)+w1; ROUND512(E,F,G,H,A,B,C,D,w0,AC69);
+w1 = sigma1_512(w16)+w11+sigma0_512(w3)+w2; ROUND512(D,E,F,G,H,A,B,C,w1,AC70);
+w2 = sigma1_512(w0)+w12+sigma0_512(w4)+w3; ROUND512(C,D,E,F,G,H,A,B,w2,AC71);
+w3 = sigma1_512(w1)+w13+sigma0_512(w5)+w4; ROUND512(B,C,D,E,F,G,H,A,w3,AC72);
+w4 = sigma1_512(w2)+w14+sigma0_512(w6)+w5; ROUND512(A,B,C,D,E,F,G,H,w4,AC73);
+w5 = sigma1_512(w3)+SIZE+sigma0_512(w7)+w6; ROUND512(H,A,B,C,D,E,F,G,w5,AC74);
+w6 = sigma1_512(w4)+w16+sigma0_512(w8)+w7; ROUND512(G,H,A,B,C,D,E,F,w6,AC75);
+w7 = sigma1_512(w5)+w0+sigma0_512(w9)+w8; ROUND512(F,G,H,A,B,C,D,E,w7,AC76);
+w8 = sigma1_512(w6)+w1+sigma0_512(w10)+w9; ROUND512(E,F,G,H,A,B,C,D,w8,AC77);
+w9 = sigma1_512(w7)+w2+sigma0_512(w11)+w10; ROUND512(D,E,F,G,H,A,B,C,w9,AC78);
+w10 = sigma1_512(w8)+w3+sigma0_512(w12)+w11; ROUND512(C,D,E,F,G,H,A,B,w10,AC79);
+w11 = sigma1_512(w9)+w4+sigma0_512(w13)+w12; ROUND512(B,C,D,E,F,G,H,A,w11,AC80);
 
 A+=(ulong)H0;
 B+=(ulong)H1;
@@ -313,14 +493,11 @@ Endian_Reverse64(F);
 Endian_Reverse64(G);
 Endian_Reverse64(H);
 
-
 #ifdef SINGLE_MODE
 id=0;
-if ((singlehash.x==A)&&(singlehash.y==B)&&(singlehash.z==C)&&(singlehash.w==D)) id = 1; 
-if (id==0) return;
-id=1;
+if (singlehash.x!=A) return;
+if (singlehash.y!=B) return;
 #endif
-
 
 #ifndef SINGLE_MODE
 id=0;
@@ -329,20 +506,86 @@ b5=(singlehash.x >> (((A>>32)&0xFFFFFFFF)&31))&1;
 b6=(singlehash.y >> (((B)&0xFFFFFFFF)&31))&1;
 b7=(singlehash.z >> (((B>>32)&0xFFFFFFFF)&31))&1;
 if ((b7) && (b5) && (b6)) if (((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1)) id=1;
-if (id==0) return;
+else return;
 #endif
-
-
-
-
 
 found[0] = (uint)1;
 found_ind[get_global_id(0)] = (uint)1;
 
-dst[(get_global_id(0)*2)] = (ulong4)(A,B,C,D);  
-dst[(get_global_id(0)*2)+1] = (ulong4)(E,F,G,H);
-
+dst[(get_global_id(0)*4)+offset] = (ulong4)(A,B,C,D);  
+dst[(get_global_id(0)*4)+offset+1] = (ulong4)(E,F,G,H);
 
 }
 
 
+__kernel void  __attribute__((reqd_work_group_size(64, 1, 1))) 
+sha512( __global ulong4 *dst,  __global uint *inp, __global uint *sizes,  __global uint *found_ind, __global uint *bitmaps, __global uint *found,  ulong4 singlehash,uint16 str) 
+{
+ulong w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w16,SIZE;
+uint i,ib,ic,id;  
+uint x0,x1,x2,x3,x4,x5,x6,x7;
+__local uint inpc[64][14];
+uint elem,t1,t2;
+uint size;
+
+
+id=get_global_id(0);
+size=sizes[id];
+if (size>31) size=32;
+
+x0 = inp[GGI*8+0];
+x1 = inp[GGI*8+1];
+x2 = inp[GGI*8+2];
+x3 = inp[GGI*8+3];
+x4 = inp[GGI*8+4];
+x5 = inp[GGI*8+5];
+x6 = inp[GGI*8+6];
+x7 = inp[GGI*8+7];
+
+
+inpc[GLI][0]=x0;
+inpc[GLI][1]=x1;
+inpc[GLI][2]=x2;
+inpc[GLI][3]=x3;
+inpc[GLI][4]=x4;
+inpc[GLI][5]=x5;
+inpc[GLI][6]=x6;
+inpc[GLI][7]=x7;
+SET_AB(inpc[GLI],str.s0,size,0);
+SET_AB(inpc[GLI],str.s1,size+4,0);
+SET_AB(inpc[GLI],str.s2,size+8,0);
+SET_AB(inpc[GLI],str.s3,size+12,0);
+SET_AB(inpc[GLI],0x80,(size+str.sC),0);
+w0=(ulong)(inpc[GLI][0])|((ulong)inpc[GLI][1]<<32);
+w1=(ulong)(inpc[GLI][2])|((ulong)inpc[GLI][3]<<32);
+w2=(ulong)(inpc[GLI][4])|((ulong)inpc[GLI][5]<<32);
+w3=(ulong)(inpc[GLI][6])|((ulong)inpc[GLI][7]<<32);
+SIZE = (size+str.sC)<<3;
+sha512block(dst,w0,w1,w2,w3,SIZE,found_ind,bitmaps,found,singlehash,0);
+
+
+inpc[GLI][0]=x0;
+inpc[GLI][1]=x1;
+inpc[GLI][2]=x2;
+inpc[GLI][3]=x3;
+inpc[GLI][4]=x4;
+inpc[GLI][5]=x5;
+inpc[GLI][6]=x6;
+inpc[GLI][7]=x7;
+
+SET_AB(inpc[GLI],str.s4,size,0);
+SET_AB(inpc[GLI],str.s5,size+4,0);
+SET_AB(inpc[GLI],str.s6,size+8,0);
+SET_AB(inpc[GLI],str.s7,size+12,0);
+SET_AB(inpc[GLI],0x80,(size+str.sD),0);
+w0=(ulong)(inpc[GLI][0])|((ulong)inpc[GLI][1]<<32);
+w1=(ulong)(inpc[GLI][2])|((ulong)inpc[GLI][3]<<32);
+w2=(ulong)(inpc[GLI][4])|((ulong)inpc[GLI][5]<<32);
+w3=(ulong)(inpc[GLI][6])|((ulong)inpc[GLI][7]<<32);
+SIZE = (size+str.sD)<<3;
+
+
+sha512block(dst,w0,w1,w2,w3,SIZE,found_ind,bitmaps,found,singlehash,2);
+
+}
+#endif

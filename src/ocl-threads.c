@@ -335,8 +335,6 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"dmg")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"rar")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"rar")==0)&&(!ocl_have_gcn)) ocl_vector=2;
-		if ((strcmp(get_current_plugin(),"sha512")==0)&&(ocl_have_gcn)) ocl_vector=1;
-		if ((strcmp(get_current_plugin(),"sha512")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"django256")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"django256")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"oracle-old")==0)) {ocl_vector=1;loops=2;}
@@ -396,6 +394,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"sha1")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"sha256")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=2;
 	    }
 
 	    /* Zip (non-rule) exception for NVidia */
