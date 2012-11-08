@@ -288,7 +288,7 @@ hash_stat load_plugin(void)
 	    
 	    /* single-hash optimization for certain plugins */
 	    cpu_optimize_single=0;
-	    if ((strcmp(get_current_plugin(),"md5")==0) || (strcmp(get_current_plugin(),"sha1")==0) || (strcmp(get_current_plugin(),"md4")==0) || (strcmp(get_current_plugin(),"ntlm")==0) || (strcmp(get_current_plugin(),"desunix")==0)) cpu_optimize_single=1;
+	    if ((strcmp(get_current_plugin(),"md5")==0) || (strcmp(get_current_plugin(),"sha1")==0) || (strcmp(get_current_plugin(),"md4")==0) || (strcmp(get_current_plugin(),"ntlm")==0) || (strcmp(get_current_plugin(),"desunix")==0) || (strcmp(get_current_plugin(),"md4")==0)) cpu_optimize_single=1;
 
 	    /* is raw? */
 	    hash_is_raw = hash_plugin_is_raw();

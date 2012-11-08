@@ -2050,13 +2050,12 @@ static void ocl_sha1_crack_callback(char *line, int self)
     int err;
     struct  hash_list_s  *mylist, *addlist;
     char plain[MAX];
-    cl_uint16 addline;
 
     if (ocl_rule_opt_counts[self]==0)
     {
-        bzero(addline1,sizeof(cl_uint16));
-        bzero(addline2,sizeof(cl_uint16));
-        bzero(addline3,sizeof(cl_uint16));
+        bzero(&addline1[self],sizeof(cl_uint16));
+        bzero(&addline2[self],sizeof(cl_uint16));
+        bzero(&addline3[self],sizeof(cl_uint16));
     }
     strcpy(addlines[self][ocl_rule_opt_counts[self]],line);
     switch (ocl_rule_opt_counts[self])
@@ -2129,7 +2128,7 @@ static void ocl_sha1_crack_callback(char *line, int self)
                     		addlist = cracked_list;
                     		while (addlist)
                     		{
-                    		    if ( /*(strcmp(addlist->username, mylist->username) == 0) && */(memcmp(addlist->hash, mylist->hash, hash_ret_len) == 0))
+                    		    if ( (strcmp(addlist->username, mylist->username) == 0) && (memcmp(addlist->hash, mylist->hash, hash_ret_len) == 0))
                             	    flag = 1;
                     		    addlist = addlist->next;
                     		}
@@ -2195,7 +2194,7 @@ void* ocl_rule_sha1_thread(void *arg)
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
     ocl_rule_workset[self]=256*256;
-    if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=4;
+    if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=2;
     if (wthreads[self].type==nv_thread) ocl_rule_workset[self]/=8;
     if (ocl_gpu_double) ocl_rule_workset[self]*=2;
     if (interactive_mode==1) ocl_rule_workset[self]/=8;

@@ -129,8 +129,8 @@ hash_stat hash_plugin_check_hash_dictionary(const char *hash, const char *passwo
     
     for (b=0;b<vectorsize;b++)
     {
-	newuser[b] = alloca(32);
-	bzero(newuser[b],32);
+	newuser[b] = alloca(64);
+	bzero(newuser[b],64);
 	sz = strlen(password[b]);
 	for (a=0;a<sz;a++)
 	{

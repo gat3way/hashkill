@@ -1318,7 +1318,6 @@ static void ocl_sha512_crack_callback(char *line, int self)
     int err;
     struct  hash_list_s  *mylist, *addlist;
     char plain[MAX];
-    uint64_t tmp1,tmp2;
 
     if (ocl_rule_opt_counts[self]==0)
     {

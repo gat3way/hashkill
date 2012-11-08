@@ -92,6 +92,7 @@ uint ocl_rule_opt_counts[HASHKILL_MAXTHREADS];
 cl_uint16 addline1[HASHKILL_MAXTHREADS];
 cl_uint16 addline2[HASHKILL_MAXTHREADS];
 cl_uint16 addline3[HASHKILL_MAXTHREADS];
+cl_ulong8 addlinel1[HASHKILL_MAXTHREADS];
 char addlines[HASHKILL_MAXTHREADS][8][MAXCAND];
 
 size_t ocl_rule_workset[HASHKILL_MAXTHREADS];

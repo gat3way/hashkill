@@ -226,6 +226,8 @@ __sha512_crypt_r (key, salt, buffer, buflen, vectorsize)
   {
     bbl[i]=0;
     bbl[i+1]=0;
+    bzero(bigbuf[i],128);
+    bzero(bigbuf[i+1],128);
   }
   
   for (cnt = 0; cnt < rounds; ++cnt)

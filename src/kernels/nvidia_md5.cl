@@ -723,7 +723,7 @@ uint elem,t1;
 
 
 id=get_global_id(0);
-size=(uint)sizein[GGI];
+size=sizein[id];
 w0 = inp[GGI*8+0];
 w1 = inp[GGI*8+1];
 w2 = inp[GGI*8+2];

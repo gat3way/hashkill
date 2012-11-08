@@ -2,7 +2,6 @@
    Copyright (C) 2007, 2009 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@redhat.com>, 2007.
-
    Optimized for speed by Milen Rangelov <gat3way@gat3way.eu>, 2010
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -53,7 +52,8 @@ static const char b64t[64] =
 
 
 /* Prototypes for local functions.  */
-char *__sha256_crypt_r (const char *key[VECTORSIZE], const char *salt, char *buffer[VECTORSIZE], int buflen[VECTORSIZE], int vectorsize);
+char *__sha256_crypt_r (const char *key[VECTORSIZE], const char *salt,
+			       char *buffer[VECTORSIZE], int buflen[VECTORSIZE], int vectorsize);
 
 
 char *
@@ -80,19 +80,19 @@ __sha256_crypt_r (key, salt, buffer, buflen, vectorsize)
   char *bigbuf[VECTORSIZE], *bigbuf2[VECTORSIZE];
   int bbl[VECTORSIZE], bbl2[VECTORSIZE];
   int i,j;
-
-
-  for (i=0;i<vectorsize;i++)
+  
+  
+  for (i=0;i<vectorsize;i++) 
   {
-    bigbuf[i]=alloca(1255);
-    bigbuf2[i]=alloca(1255);
-    alt_result[i]=alloca(255);
-    temp_result[i]=alloca(255);
+    bigbuf[i]=alloca(4255);
+    bigbuf2[i]=alloca(4255);
+    alt_result[i]=alloca(4255);
+    temp_result[i]=alloca(4255);
     buffer[i][0]=0;
     bbl[i]=0;
     bbl2[i]=0;
-    key_len[i] = strlen(key[i]);
   }
+  
 
   /* Find beginning of salt string.  The prefix should normally always
      be present.  Just in case it is not.  */
@@ -115,30 +115,28 @@ __sha256_crypt_r (key, salt, buffer, buflen, vectorsize)
     }
 
   salt_len = MIN (strcspn (salt, "$"), SALT_LEN_MAX);
-  
+  for (i=0;i<vectorsize;i++) key_len[i] = strlen(key[i]);
+
   for (i=0;i<vectorsize;i++)
-  if ((key[i] - (char *) 0) % __alignof__ (uint32_t) != 0)
+  if ((key[i] - (char *) 0) % __alignof__ (uint64_t) != 0)
     {
-      char *tmp = (char *) alloca (key_len[i] + __alignof__ (uint32_t));
+      char *tmp = (char *) alloca (key_len[i] + __alignof__ (uint64_t));
       key[i] = copied_key =
-        memcpy (tmp + __alignof__ (uint32_t)
-                - (tmp - (char *) 0) % __alignof__ (uint32_t),
+        memcpy (tmp + __alignof__ (uint64_t)
+                - (tmp - (char *) 0) % __alignof__ (uint64_t),
                 key[i], key_len[i]);
-      assert ((key[i] - (char *) 0) % __alignof__ (uint32_t) == 0);
     }
 
-  if ((salt - (char *) 0) % __alignof__ (uint32_t) != 0)
+  if ((salt - (char *) 0) % __alignof__ (uint64_t) != 0)
     {
-      char *tmp = (char *) alloca (salt_len + __alignof__ (uint32_t));
+      char *tmp = (char *) alloca (salt_len + __alignof__ (uint64_t));
       salt = copied_salt =
-        memcpy (tmp + __alignof__ (uint32_t)
-                - (tmp - (char *) 0) % __alignof__ (uint32_t),
+        memcpy (tmp + __alignof__ (uint64_t)
+                - (tmp - (char *) 0) % __alignof__ (uint64_t),
                 salt, salt_len);
-      assert ((salt - (char *) 0) % __alignof__ (uint32_t) == 0);
     }
 
 
-/* init bufs */
   
   for (i=0;i<vectorsize;i++)
   {
@@ -159,15 +157,17 @@ __sha256_crypt_r (key, salt, buffer, buflen, vectorsize)
 
   for (i=0;i<vectorsize;i++)
   {
-    for (cnt = key_len[i]; cnt > 32; cnt -= 32)
+    for (cnt = key_len[i]; cnt > 64; cnt -= 64)
     {
-	memcpy(bigbuf[i]+bbl[i], alt_result[i], 32);
-	bbl[i] += 32;
+	memcpy(bigbuf[i]+bbl[i], alt_result[i], 64);
+	bbl[i] += 64;
     }
     memcpy(bigbuf[i]+bbl[i], alt_result[i], cnt);
     bbl[i] += cnt;
+  }
 
-    for (cnt = key_len[i]; cnt > 0; cnt >>= 1)
+  for (i=0;i<vectorsize;i++)
+  for (cnt = key_len[i]; cnt > 0; cnt >>= 1)
     if ((cnt & 1) != 0)
     {
       memcpy(bigbuf[i]+bbl[i], alt_result[i], 32);
@@ -178,18 +178,16 @@ __sha256_crypt_r (key, salt, buffer, buflen, vectorsize)
       memcpy(bigbuf[i]+bbl[i], key[i], key_len[i]);
       bbl[i] += key_len[i];
     }
-  }
-  
-  hash_sha256(bigbuf, alt_result, bbl);
+  hash_sha256_unicode(bigbuf, alt_result, bbl);
   for (i=0;i<vectorsize;i++) bbl[i] = 0;
 
   for (i=0;i<vectorsize;i++)
-  for (cnt = 0; cnt < key_len; ++cnt)
+  for (cnt = 0; cnt < key_len[i]; ++cnt)
   {
     memcpy(bigbuf2[i]+bbl2[i], key[i], key_len[i]);
     bbl2[i] += key_len[i];
   }
-  hash_sha256(bigbuf2, temp_result, bbl2);
+  hash_sha256_unicode(bigbuf2, temp_result, bbl2);
   for (i=0;i<vectorsize;i++) bbl2[i] = 0;
 
 
@@ -205,14 +203,12 @@ __sha256_crypt_r (key, salt, buffer, buflen, vectorsize)
 
 
   for (i=0;i<vectorsize;i++) bbl2[i] = 0;
-  
-  for (i=0;i<vectorsize;i++)
-  for (cnt = 0; cnt < (16 + (alt_result[i][0]&255)); ++cnt)
+  for (i=0;i<vectorsize;i++) for (cnt = 0; cnt < (16 + (alt_result[i][0]&255)); ++cnt)
   {
-    memcpy((char *)(bigbuf2[i]+bbl2[i]), salt, salt_len);
+    memcpy(bigbuf2[i]+bbl2[i], salt, salt_len);
     bbl2[i] += salt_len;
   }
-  hash_sha256(bigbuf2, temp_result, bbl2);
+  hash_sha256_unicode(bigbuf2, temp_result, bbl2);
   for (i=0;i<vectorsize;i++) bbl2[i]=0;
 
 
@@ -222,11 +218,17 @@ __sha256_crypt_r (key, salt, buffer, buflen, vectorsize)
   {
     cp[i] = s_bytes[i] = alloca (salt_len);
     for (cnt = salt_len; cnt >= 32; cnt -= 32)
-    cp[i] = memcpy (cp[i], temp_result[i], 32);
+	cp[i] = memcpy (cp[i], temp_result[i], 32);
     memcpy (cp[i], temp_result[i], cnt);
   }
 
-  for (i=0;i<vectorsize;i++) bbl[i]=0;
+  for (i=0;i<vectorsize;i+=2) 
+  {
+    bbl[i]=0;
+    bbl[i+1]=0;
+  }
+
+
   for (cnt = 0; cnt < rounds; ++cnt)
   {
       if ((cnt & 1) != 0)
@@ -257,8 +259,8 @@ __sha256_crypt_r (key, salt, buffer, buflen, vectorsize)
 
       if (cnt % 7 != 0)
       {
-	for (i=0;i<vectorsize;i++)
-	{
+        for (i=0;i<vectorsize;i++)
+        {
 	    memcpy(bigbuf[i]+bbl[i], p_bytes[i], key_len[i]);
 	    bbl[i] += key_len[i];
 	}
@@ -279,28 +281,28 @@ __sha256_crypt_r (key, salt, buffer, buflen, vectorsize)
 	    bbl[i] += key_len[i];
 	}
       }
-      hash_sha256(bigbuf, alt_result, bbl);
+      hash_sha256_unicode(bigbuf, alt_result, bbl);
       for (i=0;i<vectorsize;i++) bbl[i] = 0;
   }
 
 
   /* Now we can construct the result string.  It consists of three
-     parts.  */
+     parts. */
   for (i=0;i<vectorsize;i++)
   {
-    cp[i] = __stpncpy (buffer, sha256_salt_prefix, MAX (0, buflen));
-    buflen -= sizeof (sha256_salt_prefix) - 1;
+    cp[i] = __stpncpy (buffer[i], sha256_salt_prefix, MAX (0, buflen[i]));
+    buflen[i] -= sizeof (sha256_salt_prefix) - 1;
 
     if (rounds_custom)
     {
-      int n = snprintf (cp[i], MAX (0, buflen), "%s%zu$",
+      int n = snprintf (cp[i], MAX (0, buflen[i]), "%s%zu$",
                         sha256_rounds_prefix, rounds);
       cp[i] += n;
       buflen[i] -= n;
     }
 
     cp[i] = __stpncpy (cp[i], salt, MIN ((size_t) MAX (0, buflen[i]), salt_len));
-    buflen[i] -= MIN ((size_t) MAX (0, buflen), salt_len);
+    buflen[i] -= MIN ((size_t) MAX (0, buflen[i]), salt_len);
 
     if (buflen[i] > 0)
     {
@@ -308,7 +310,8 @@ __sha256_crypt_r (key, salt, buffer, buflen, vectorsize)
       --buflen[i];
     }
 
-    void b64_from_24bit (unsigned int b2, unsigned int b1, unsigned int b0, int n)
+    void b64_from_24bit (unsigned int b2, unsigned int b1, unsigned int b0,
+                       int n)
     {
 	unsigned int w = (b2 << 16) | (b1 << 8) | b0;
 	while (n-- > 0 && buflen[i] > 0)
@@ -330,16 +333,17 @@ __sha256_crypt_r (key, salt, buffer, buflen, vectorsize)
     b64_from_24bit (alt_result[i][18], alt_result[i][28], alt_result[i][8], 4);
     b64_from_24bit (alt_result[i][9], alt_result[i][19], alt_result[i][29], 4);
     b64_from_24bit (0, alt_result[i][31], alt_result[i][30], 3);
-    
+
     if (buflen <= 0)
     {
       __set_errno (ERANGE);
       buffer[i][0] = 0;
     }
     else
-	*cp[i] = '\0';         /* Terminate the string.  */
+    *cp[i] = '\0';         /* Terminate the string.  */
   }
-
+  return NULL;
 }
+
 
 

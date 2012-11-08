@@ -2294,7 +2294,7 @@ static void ocl_md4_crack_callback(char *line, int self)
                                 addlist = cracked_list;
                                 while (addlist)
                                 {
-                                    if ( /*(strcmp(addlist->username, mylist->username) == 0) && */(memcmp(addlist->hash, mylist->hash, hash_ret_len) == 0))
+                                    if ( (strcmp(addlist->username, mylist->username) == 0) && (memcmp(addlist->hash, mylist->hash, hash_ret_len) == 0))
                                     flag = 1;
                                     addlist = addlist->next;
                                 }
@@ -2359,7 +2359,7 @@ void* ocl_rule_md4_thread(void *arg)
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
     ocl_rule_workset[self]=256*256*2;
-    if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=4;
+    if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=2;
     if (ocl_gpu_double) ocl_rule_workset[self]*=2;
 
     rule_ptr[self] = malloc(ocl_rule_workset[self]*hash_ret_len*wthreads[self].vectorsize);

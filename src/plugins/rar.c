@@ -342,7 +342,6 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     	    for (i = 0; i < 4; i++)
     		for (j = 0; j < 4; j++)
         	    digest2[i * 4 + j] = (unsigned char) (digest[i] >> (j * 8));
-	    
 	    hash_aes_set_decrypt_key(digest2, 16*8, &key);
 	    hash_aes_cbc_encrypt(header, plain, 16, &key, iv, AES_DECRYPT);
 	
@@ -389,7 +388,6 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     	    for (i = 0; i < 4; i++)
     		for (j = 0; j < 4; j++)
         	    digest2[i * 4 + j] = (unsigned char) (digest[i] >> (j * 8));
-
 
 	    fd = open("/dev/shm/outfile",O_RDONLY);
 	    memcpy(iv1,iv,16);

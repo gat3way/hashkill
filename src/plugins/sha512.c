@@ -77,7 +77,6 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     /* Hash is not 128 characters long => not a sha512 hash*/
     if (strlen(hash)!=128)
     {
-	printf("hash is %s\n",hash);
 	return hash_err;
     }
 

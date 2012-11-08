@@ -36,7 +36,7 @@ char rulesetfile[255];
 typedef struct ops_s
 {
     parsefn_t parsefn;
-    finalfn_t crack_callback;
+    char charset[128];
     int mode;
     int push;
     int start;
@@ -46,7 +46,7 @@ typedef struct ops_s
     int current;
     int chainlen;
     char params[MAXCAND*2];
-    char charset[128];
+    finalfn_t crack_callback;
 } ops_t;
 
 ops_t ops[HASHKILL_MAXTHREADS+3][MAXRULES] __attribute__((aligned(64)));;

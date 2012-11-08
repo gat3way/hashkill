@@ -2450,7 +2450,7 @@ static void ocl_md5_crack_callback(char *line, int self)
                     		addlist = cracked_list;
                     		while (addlist)
                     		{
-                    		    if ( /*(strcmp(addlist->username, mylist->username) == 0) && */(memcmp(addlist->hash, mylist->hash, hash_ret_len) == 0))
+                    		    if ( (strcmp(addlist->username, mylist->username) == 0) && (memcmp(addlist->hash, mylist->hash, hash_ret_len) == 0))
                             	    flag = 1;
                     		    addlist = addlist->next;
                     		}
