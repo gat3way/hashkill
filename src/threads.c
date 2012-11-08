@@ -725,7 +725,7 @@ hash_stat spawn_threads(unsigned int num)
     {
 	pthread_create(&monitorthread, NULL, start_monitor_thread, &cnt);
     }
-    pthread_create(&monitorinfothread, NULL, start_monitor_info_thread, &cnt);
+    if (hashgen_stdout_mode==0) pthread_create(&monitorinfothread, NULL, start_monitor_info_thread, &cnt);
     hlog("Spawned %d threads.\n",num);
     return hash_ok;
 }
@@ -784,7 +784,7 @@ static void * start_monitor_thread(void *arg)
     }
     attack_checkpoints=0;
 
-    while (attack_over != 2)
+    while ((attack_over != 2)&&(hashgen_stdout_mode==0))
     {
         sleep(3);
         attack_checkpoints++;
@@ -2152,15 +2152,16 @@ hash_stat main_thread_rule(int threads)
 	init_bitmaps();
     }
 
-    rule_stats_parse();
-    for (a=0;a<nwthreads;a++) if (wthreads[a].type==cpu_thread)
+    if (hashgen_stdout_mode==0) rule_stats_parse();
+    for (a=0;a<nwthreads;a++) if ((wthreads[a].type==cpu_thread)&&(hashgen_stdout_mode==0))
     {
         worker_thread_keys[a]=a;
         pthread_create(&crack_threads[a], NULL, cpu_rule_thread, &worker_thread_keys[a]);
     }
+
     rule_gen_parse(rule_file,cpu_rule_callback,nwthreads,SELF_THREAD);
 
-    for (a=0;a<nwthreads;a++) if (wthreads[a].type==cpu_thread) 
+    for (a=0;a<nwthreads;a++) if ((wthreads[a].type==cpu_thread)&&(hashgen_stdout_mode==0))
     {
         pthread_join(crack_threads[a], NULL);
     }

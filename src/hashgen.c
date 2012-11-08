@@ -87,7 +87,7 @@ static void update_currentlinenum(int val,int mode)
 	currentlinenum[MAXRULES+2]=val;
 	return;
     }
-    for (a=0;a<nwthreads;a++) currentlinenum[a]=val;
+    for (a=0;a<=nwthreads;a++) currentlinenum[a]=val;
     currentlinenum[SELF_THREAD]=val;
 }
 
@@ -95,7 +95,7 @@ static void update_currentlinenum_plus1()
 {
     int a;
 
-    for (a=0;a<nwthreads;a++) currentlinenum[a]++;
+    for (a=0;a<=nwthreads;a++) currentlinenum[a]++;
     currentlinenum[SELF_THREAD]++;
 }
 
@@ -103,7 +103,7 @@ static void update_currentlinenum_minus1()
 {
     int a;
 
-    for (a=0;a<nwthreads;a++) currentlinenum[a]--;
+    for (a=0;a<=nwthreads;a++) currentlinenum[a]--;
     currentlinenum[SELF_THREAD]--;
 }
 
@@ -116,7 +116,7 @@ static void update_optimize_type(int type,int mode)
 	rule_optimize[MAXRULES+2].type = type;
 	return;
     }
-    for (a=0;a<nwthreads;a++) rule_optimize[a].type = type;
+    for (a=0;a<=nwthreads;a++) rule_optimize[a].type = type;
     rule_optimize[SELF_THREAD].type = type;
 }
 
@@ -157,7 +157,7 @@ static void update_optimize_start(int start,int mode)
 	rule_optimize[MAXRULES+2].start = start;
 	return;
     }
-    for (a=0;a<nwthreads;a++) rule_optimize[a].start = start;
+    for (a=0;a<=nwthreads;a++) rule_optimize[a].start = start;
     rule_optimize[SELF_THREAD].start = start;
 }
 
@@ -170,7 +170,7 @@ static void update_optimize_end(int end,int mode)
 	rule_optimize[MAXRULES+2].end = end;
 	return;
     }
-    for (a=0;a<nwthreads;a++) rule_optimize[a].end = end;
+    for (a=0;a<=nwthreads;a++) rule_optimize[a].end = end;
     rule_optimize[SELF_THREAD].end = end;
 }
 
@@ -183,7 +183,7 @@ static void update_optimize_charset(char *charset,int mode)
 	strcpy(rule_optimize[MAXRULES+2].charset,charset);
 	return;
     }
-    for (a=0;a<nwthreads;a++) strcpy(rule_optimize[a].charset,charset);
+    for (a=0;a<=nwthreads;a++) strcpy(rule_optimize[a].charset,charset);
     strcpy(rule_optimize[SELF_THREAD].charset,charset);
 }
 
@@ -195,7 +195,7 @@ static void update_currentline(char *currentline1)
 {
     int a;
 
-    for (a=0;a<nwthreads;a++) strcpy(currentline,currentline1);
+    for (a=0;a<=nwthreads;a++) strcpy(currentline,currentline1);
     strcpy(currentline,currentline1);
 }
 
@@ -225,7 +225,7 @@ static void update_crack_callback(finalfn_t crack_callback,int mode)
 	ops[MAXRULES+2][0].crack_callback=crack_callback;
 	return;
     }
-    for (a=0;a<nwthreads;a++) ops[a][0].crack_callback=crack_callback;
+    for (a=0;a<=nwthreads;a++) ops[a][0].crack_callback=crack_callback;
     ops[SELF_THREAD][0].crack_callback=crack_callback;
 }
 
@@ -239,7 +239,7 @@ static void update_mode(int modeset,int mode)
 	ops[MAXRULES+2][currentlinenum[MAXRULES+2]].mode=modeset;
 	return;
     }
-    for (a=0;a<nwthreads;a++) ops[a][currentlinenum[a]].mode=modeset;
+    for (a=0;a<=nwthreads;a++) ops[a][currentlinenum[a]].mode=modeset;
     ops[SELF_THREAD][currentlinenum[SELF_THREAD]].mode=modeset;
 }
 
@@ -252,7 +252,7 @@ static void update_max(int max,int mode)
 	ops[MAXRULES+2][currentlinenum[MAXRULES+2]].max=max;
 	return;
     }
-    for (a=0;a<nwthreads;a++) ops[a][currentlinenum[a]].max=max;
+    for (a=0;a<=nwthreads;a++) ops[a][currentlinenum[a]].max=max;
     ops[SELF_THREAD][currentlinenum[SELF_THREAD]].max=max;
 }
 
@@ -265,7 +265,7 @@ static void update_chainlen(int chainlen,int mode)
 	ops[MAXRULES+2][0].chainlen=chainlen;
 	return;
     }
-    for (a=0;a<nwthreads;a++) ops[a][0].chainlen=chainlen;
+    for (a=0;a<=nwthreads;a++) ops[a][0].chainlen=chainlen;
     ops[SELF_THREAD][0].chainlen=chainlen;
 }
 
@@ -280,7 +280,7 @@ static void update_push(int push,int mode)
 	ops[MAXRULES+2][currentlinenum[MAXRULES+2]].push=push;
 	return;
     }
-    for (a=0;a<nwthreads;a++) ops[a][currentlinenum[a]].push=push;
+    for (a=0;a<=nwthreads;a++) ops[a][currentlinenum[a]].push=push;
     ops[SELF_THREAD][currentlinenum[SELF_THREAD]].push=push;
 }
 
@@ -293,7 +293,7 @@ static void update_start(int start,int mode)
 	ops[MAXRULES+2][currentlinenum[MAXRULES+2]].start=start;
 	return;
     }
-    for (a=0;a<nwthreads;a++) ops[a][currentlinenum[a]].start=start;
+    for (a=0;a<=nwthreads;a++) ops[a][currentlinenum[a]].start=start;
     ops[SELF_THREAD][currentlinenum[SELF_THREAD]].start=start;
 }
 
@@ -307,7 +307,7 @@ static void update_end(int end,int mode)
 	ops[MAXRULES+2][currentlinenum[MAXRULES+2]].end=end;
 	return;
     }
-    for (a=0;a<nwthreads;a++) ops[a][currentlinenum[a]].end=end;
+    for (a=0;a<=nwthreads;a++) ops[a][currentlinenum[a]].end=end;
     ops[SELF_THREAD][currentlinenum[SELF_THREAD]].end=end;
 }
 
@@ -321,7 +321,7 @@ static void update_numth(int numth,int mode)
 	ops[MAXRULES+2][currentlinenum[MAXRULES+2]].numth=numth;
 	return;
     }
-    for (a=0;a<nwthreads;a++) ops[a][currentlinenum[a]].numth=numth;
+    for (a=0;a<=nwthreads;a++) ops[a][currentlinenum[a]].numth=numth;
     ops[SELF_THREAD][currentlinenum[SELF_THREAD]].numth=numth;
 }
 
@@ -334,7 +334,7 @@ static void update_current(int current,int mode)
 	ops[MAXRULES+2][currentlinenum[MAXRULES+2]].current=current;
 	return;
     }
-    for (a=0;a<nwthreads;a++) ops[a][currentlinenum[a]].current=current;
+    for (a=0;a<=nwthreads;a++) ops[a][currentlinenum[a]].current=current;
     ops[SELF_THREAD][currentlinenum[SELF_THREAD]].current=current;
 }
 
@@ -347,7 +347,7 @@ static void update_charset(char *charset,int mode)
 	strcpy(ops[MAXRULES+2][currentlinenum[MAXRULES+2]].charset,charset);
 	return;
     }
-    for (a=0;a<nwthreads;a++) strcpy(ops[a][currentlinenum[a]].charset,charset);
+    for (a=0;a<=nwthreads;a++) strcpy(ops[a][currentlinenum[a]].charset,charset);
     strcpy(ops[SELF_THREAD][currentlinenum[SELF_THREAD]].charset,charset);
 }
 
@@ -361,7 +361,7 @@ static void update_charset_plus(char *charset,int mode)
 	strcat(ops[MAXRULES+2][currentlinenum[MAXRULES+2]].charset,charset);
 	return;
     }
-    for (a=0;a<nwthreads;a++) strcat(ops[a][currentlinenum[a]].charset,charset);
+    for (a=0;a<=nwthreads;a++) strcat(ops[a][currentlinenum[a]].charset,charset);
     strcat(ops[SELF_THREAD][currentlinenum[SELF_THREAD]].charset,charset);
 }
 
@@ -375,7 +375,7 @@ static void update_params(char *params,int mode)
 	strcpy(ops[MAXRULES+2][currentlinenum[MAXRULES+2]].params,params);
 	return;
     }
-    for (a=0;a<nwthreads;a++) strcpy(ops[a][currentlinenum[a]].params,params);
+    for (a=0;a<=nwthreads;a++) strcpy(ops[a][currentlinenum[a]].params,params);
     strcpy(ops[SELF_THREAD][currentlinenum[SELF_THREAD]].params,params);
 }
 
@@ -1417,7 +1417,7 @@ static void finalize(int self)
 {
     update_parsefn(node_final,RULE_MODE_PARSE);
 
-    if (currentlinenum[0]==1)
+    if ((currentlinenum[0]==1)&&(hashgen_stdout_mode==0))
     {
 	update_parsefn(node_queue,RULE_MODE_PARSE);
 	update_currentlinenum_plus1();
@@ -1471,7 +1471,7 @@ void worker_gen(int self, finalfn_t callback)
 void print_callback(char *line, int self)
 {
     if (attack_over>0) exit(1);
-    if (line[0]>1) printf("%s\n",line);
+    if (line[0]>1) printf("%s\n", line);
 }
 
 
@@ -1547,7 +1547,6 @@ void rule_gen_parse(char *rulefile, finalfn_t callback, int max, int self)
 	    {
 		update_currentlinenum_minus1();
 	    }
-
 	    finalize(self);
 	    if (rule>=scheduler.currentrule) gen(self);
 	    if ((hashgen_stdout_mode==0)&&(attack_over==0))
