@@ -3,90 +3,57 @@
 
 #define SET_AB(ai1,ai2,ii1,ii2) { \
     elem=ii1>>2; \
-    tmp1=(ii1&3)<<3; \
-    ai1[elem] = ai1[elem]|(ai2<<(tmp1)); \
-    ai1[elem+1] = (tmp1==0) ? 0 : ai2>>(32-tmp1);\
+    t1=(ii1&3)<<3; \
+    ai1[elem] = ai1[elem]|(ai2<<(t1)); \
+    ai1[elem+1] = (t1==0) ? 0 : ai2>>(32-t1);\
     }
 
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str)
-{
-__local uint inpc[64][14];
-uint SIZE;
-uint elem,tmp1;
-
-
-inpc[GLI][0] = inp[GGI*(8)+0];
-inpc[GLI][1] = inp[GGI*(8)+1];
-inpc[GLI][2] = inp[GGI*(8)+2];
-inpc[GLI][3] = inp[GGI*(8)+3];
-inpc[GLI][4] = inp[GGI*(8)+4];
-inpc[GLI][5] = inp[GGI*(8)+5];
-inpc[GLI][6] = inp[GGI*(8)+6];
-inpc[GLI][7] = inp[GGI*(8)+7];
-
-SIZE=sizein[GGI];
-size[GGI] = (SIZE+str.sF)<<3;
-
-SET_AB(inpc[GLI],str.s0,SIZE,0);
-SET_AB(inpc[GLI],str.s1,SIZE+4,0);
-SET_AB(inpc[GLI],str.s2,SIZE+8,0);
-SET_AB(inpc[GLI],str.s3,SIZE+12,0);
-
-SET_AB(inpc[GLI],0x80,(SIZE+str.sF),0);
-
-dst[GGI*8+0] = inpc[GLI][0];
-dst[GGI*8+1] = inpc[GLI][1];
-dst[GGI*8+2] = inpc[GLI][2];
-dst[GGI*8+3] = inpc[GLI][3];
-dst[GGI*8+4] = inpc[GLI][4];
-dst[GGI*8+5] = inpc[GLI][5];
-dst[GGI*8+6] = inpc[GLI][6];
-dst[GGI*8+7] = inpc[GLI][7];
-}
-
-
-#ifndef OLD_ATI
-#pragma OPENCL EXTENSION cl_amd_media_ops : enable
-#endif
-
+#define Ca 0x67452301U
+#define Cb 0xefcdab89U
+#define Cc 0x98badcfeU
+#define Cd 0x10325476U
+#define S11 7U
+#define S12 12U
+#define S13 17U
+#define S14 22U
+#define S21 5U
+#define S22 9U
+#define S23 14U
+#define S24 20U
+#define S31 4U
+#define S32 11U
+#define S33 16U
+#define S34 23U
+#define S41 6U
+#define S42 10U
+#define S43 15U
+#define S44 21U
+#define md5md5STEP_ROUND1(a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((d),(c),(b));(a) = rotate(a,s)+(b);
+#define md5md5STEP_ROUND1_NULL(a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((d),(c),(b));(a) = rotate(a,s)+(b);
+#define md5md5STEP_ROUND2(a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((c),(b),(d));(a) = rotate(a,s)+(b);
+#define md5md5STEP_ROUND2_NULL(a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((c),(b),(d)); (a) = rotate(a,s)+(b);
+#define md5md5STEP_ROUND3_EVEN(a, b, c, d, AC, x, s) tmp2 = (b) ^ (c);tmp1 = tmp2 ^ (d);(a) = (a)+tmp1; (a) = (a)+(AC);(a) = (a)+(x); (a) = rotate(a,s); (a) = (a)+(b); 
+#define md5md5STEP_ROUND3_NULL_EVEN(a, b, c, d, AC, s)  tmp2 = (b) ^ (c);tmp1 = tmp2 ^ (d);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);
+#define md5md5STEP_ROUND3_ODD(a, b, c, d, AC, x, s) tmp1 = tmp2 ^ (b);(a) = (a)+tmp1; (a) = (a)+(AC);(a) = (a)+(x); (a) = rotate(a,s); (a) = (a)+(b);
+#define md5md5STEP_ROUND3_NULL_ODD(a, b, c, d, AC, s)  tmp1 = tmp2 ^ (b);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);  
+#define md5md5STEP_ROUND3(a, b, c, d, AC, x, s) tmp1 = (b) ^ (c);tmp1 = tmp1 ^ (d);(a) = (a)+tmp1; (a) = (a)+(AC);(a) = (a)+(x); (a) = rotate(a,s); (a) = (a)+(b);  
+#define md5md5STEP_ROUND3_NULL(a, b, c, d, AC, s)  tmp1 = (b) ^ (c);tmp1 = tmp1 ^ (d);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);
+#define md5md5STEP_ROUND4(a, b, c, d, AC, x, s)  tmp1 = (~(d)); tmp1 = b | tmp1; tmp1 = tmp1 ^ c; (a) = (a)+tmp1; (a) = (a)+(AC); (a) = (a)+(x); (a) = rotate(a,s); (a) = (a)+(b);
+#define md5md5STEP_ROUND4_NULL(a, b, c, d, AC, s)  tmp1 = (~(d)); tmp1 = b | tmp1; tmp1 = tmp1 ^ c; (a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);
 
 
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-md5md5( __global uint4 *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *bitmaps, __global uint *found,  uint4 singlehash) 
+md5md5( __global uint4 *dst,  __global uint *inp, __global uint *sizein,  __global uint *found_ind, __global uint *bitmaps, __global uint *found,  uint4 singlehash, uint16 str, uint16 str1) 
 {
-
-
-#define Ca 0x67452301  
-#define Cb 0xefcdab89  
-#define Cc 0x98badcfe  
-#define Cd 0x10325476  
-#define S11 7  
-#define S12 12 
-#define S13 17 
-#define S14 22 
-#define S21 5  
-#define S22 9  
-#define S23 14 
-#define S24 20 
-#define S31 4  
-#define S32 11 
-#define S33 16 
-#define S34 23 
-#define S41 6  
-#define S42 10 
-#define S43 15 
-#define S44 21 
-
 uint4 SIZE;  
 uint i,ib,ic,id;  
-uint4 mOne, mCa, mCb, mCc, mCd;
-uint4 a,b,c,d, tmp1;
+uint4 mCa, mCb, mCc, mCd;
+uint4 a,b,c,d, tmp1,tmp2;
 uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
-uint4 x0,x1,x2,x3,x4,x5,x6,x7,x8,chbase1;  
-
-
+uint4 x0,x1,x2,x3,x4,x5,x6,x7,x8;  
+uint t1,elem;
+__local uint inpc[64][14];
+uint w0,w1,w2,w3,w4,w5,w6,w7;
 uint4 mAC1 = (uint4)0xd76aa478; 
 uint4 mAC2 = (uint4)0xe8c7b756; 
 uint4 mAC3 = (uint4)0x242070db; 
@@ -153,160 +120,193 @@ uint4 mAC63= (uint4)0x2ad7d2bb;
 uint4 mAC64= (uint4)0xeb86d391;
 
 
-mOne = (uint4)0xFFFFFFFF;
+id=get_global_id(0);
+SIZE=(uint4)sizein[GGI];
+w0 = inp[GGI*8+0];
+w1 = inp[GGI*8+1];
+w2 = inp[GGI*8+2];
+w3 = inp[GGI*8+3];
+w4 = inp[GGI*8+4];
+w5 = inp[GGI*8+5];
+w6 = inp[GGI*8+6];
+w7 = inp[GGI*8+7];
+
+
+inpc[GLI][0]=w0;
+inpc[GLI][1]=w1;
+inpc[GLI][2]=w2;
+inpc[GLI][3]=w3;
+inpc[GLI][4]=w4;
+inpc[GLI][5]=w5;
+inpc[GLI][6]=w6;
+inpc[GLI][7]=w7;
+SET_AB(inpc[GLI],str.s0,SIZE.s0,0);
+SET_AB(inpc[GLI],str.s1,SIZE.s0+4,0);
+SET_AB(inpc[GLI],str.s2,SIZE.s0+8,0);
+SET_AB(inpc[GLI],str.s3,SIZE.s0+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s0+str.sC),0);
+x0.s0=inpc[GLI][0];
+x1.s0=inpc[GLI][1];
+x2.s0=inpc[GLI][2];
+x3.s0=inpc[GLI][3];
+x4.s0=inpc[GLI][4];
+x5.s0=inpc[GLI][5];
+x6.s0=inpc[GLI][6];
+x7.s0=inpc[GLI][7];
+SIZE.s0 = (SIZE.s0+str.sC)<<3;
+
+
+inpc[GLI][0]=w0;
+inpc[GLI][1]=w1;
+inpc[GLI][2]=w2;
+inpc[GLI][3]=w3;
+inpc[GLI][4]=w4;
+inpc[GLI][5]=w5;
+inpc[GLI][6]=w6;
+inpc[GLI][7]=w7;
+
+SET_AB(inpc[GLI],str.s4,SIZE.s1,0);
+SET_AB(inpc[GLI],str.s5,SIZE.s1+4,0);
+SET_AB(inpc[GLI],str.s6,SIZE.s1+8,0);
+SET_AB(inpc[GLI],str.s7,SIZE.s1+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s1+str.sD),0);
+x0.s1=inpc[GLI][0];
+x1.s1=inpc[GLI][1];
+x2.s1=inpc[GLI][2];
+x3.s1=inpc[GLI][3];
+x4.s1=inpc[GLI][4];
+x5.s1=inpc[GLI][5];
+x6.s1=inpc[GLI][6];
+x7.s1=inpc[GLI][7];
+SIZE.s1 = (SIZE.s1+str.sD)<<3;
+
+
+inpc[GLI][0]=w0;
+inpc[GLI][1]=w1;
+inpc[GLI][2]=w2;
+inpc[GLI][3]=w3;
+inpc[GLI][4]=w4;
+inpc[GLI][5]=w5;
+inpc[GLI][6]=w6;
+inpc[GLI][7]=w7;
+
+SET_AB(inpc[GLI],str.s8,SIZE.s2,0);
+SET_AB(inpc[GLI],str.s9,SIZE.s2+4,0);
+SET_AB(inpc[GLI],str.sA,SIZE.s2+8,0);
+SET_AB(inpc[GLI],str.sB,SIZE.s2+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s2+str.sE),0);
+x0.s2=inpc[GLI][0];
+x1.s2=inpc[GLI][1];
+x2.s2=inpc[GLI][2];
+x3.s2=inpc[GLI][3];
+x4.s2=inpc[GLI][4];
+x5.s2=inpc[GLI][5];
+x6.s2=inpc[GLI][6];
+x7.s2=inpc[GLI][7];
+SIZE.s2 = (SIZE.s2+str.sE)<<3;
+
+
+inpc[GLI][0]=w0;
+inpc[GLI][1]=w1;
+inpc[GLI][2]=w2;
+inpc[GLI][3]=w3;
+inpc[GLI][4]=w4;
+inpc[GLI][5]=w5;
+inpc[GLI][6]=w6;
+inpc[GLI][7]=w7;
+
+SET_AB(inpc[GLI],str1.s0,SIZE.s3,0);
+SET_AB(inpc[GLI],str1.s1,SIZE.s3+4,0);
+SET_AB(inpc[GLI],str1.s2,SIZE.s3+8,0);
+SET_AB(inpc[GLI],str1.s3,SIZE.s3+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s3+str1.sC),0);
+x0.s3=inpc[GLI][0];
+x1.s3=inpc[GLI][1];
+x2.s3=inpc[GLI][2];
+x3.s3=inpc[GLI][3];
+x4.s3=inpc[GLI][4];
+x5.s3=inpc[GLI][5];
+x6.s3=inpc[GLI][6];
+x7.s3=inpc[GLI][7];
+SIZE.s3 = (SIZE.s3+str1.sC)<<3;
+
+
+
 mCa = (uint4)Ca;
 mCb = (uint4)Cb;
 mCc = (uint4)Cc;
 mCd = (uint4)Cd;
 
-id=get_global_id(0);
-SIZE.s0=size[id*4]; 
-SIZE.s1=size[id*4+1]; 
-SIZE.s2=size[id*4+2]; 
-SIZE.s3=size[id*4+3]; 
-
-
-x0.s0=input[id*4*8];
-x1.s0=input[id*4*8+1];
-x2.s0=input[id*4*8+2];
-x3.s0=input[id*4*8+3];
-x4.s0=input[id*4*8+4];
-x5.s0=input[id*4*8+5];
-x6.s0=input[id*4*8+6];
-x7.s0=input[id*4*8+7];
-x0.s1=input[id*4*8+8];
-x1.s1=input[id*4*8+9];
-x2.s1=input[id*4*8+10];
-x3.s1=input[id*4*8+11];
-x4.s1=input[id*4*8+12];
-x5.s1=input[id*4*8+13];
-x6.s1=input[id*4*8+14];
-x7.s1=input[id*4*8+15];
-x0.s2=input[id*4*8+16];
-x1.s2=input[id*4*8+17];
-x2.s2=input[id*4*8+18];
-x3.s2=input[id*4*8+19];
-x4.s2=input[id*4*8+20];
-x5.s2=input[id*4*8+21];
-x6.s2=input[id*4*8+22];
-x7.s2=input[id*4*8+23];
-x0.s3=input[id*4*8+24];
-x1.s3=input[id*4*8+25];
-x2.s3=input[id*4*8+26];
-x3.s3=input[id*4*8+27];
-x4.s3=input[id*4*8+28];
-x5.s3=input[id*4*8+29];
-x6.s3=input[id*4*8+30];
-x7.s3=input[id*4*8+31];
-
-
 a = mCa; b = mCb; c = mCc; d = mCd;
 
-#ifndef GCN
-#ifndef OLD_ATI
-#define md5md5STEP_ROUND1(f, a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((d),(c),(b));(a) = rotate(a,s)+(b);
-#define md5md5STEP_ROUND1_NULL(f, a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((d),(c),(b));(a) = rotate(a,s)+(b);
-#define md5md5STEP_ROUND1A(f, a, b, c, d, AC, x, s)  tmp1 = (c)^(d);tmp1 = tmp1 & (b);tmp1 = tmp1 ^ (d);(a) = (a)+(tmp1); (a) = (a) + (AC);(a) = (a)+(x);(a) = rotate(a,s)+(b);
-#else
-#define md5md5STEP_ROUND1(f, a, b, c, d, AC, x, s)  tmp1 = (c)^(d);tmp1 = tmp1 & (b);tmp1 = tmp1 ^ (d);(a) = (a)+(tmp1); (a) = (a) + (AC);(a) = (a)+(x);(a) = rotate(a,s);(a) = (a)+(b);
-#define md5md5STEP_ROUND1_NULL(f, a, b, c, d, AC, s)  tmp1 = (c)^(d); tmp1 = tmp1&(b); tmp1 = tmp1^(d);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);
-#define md5md5STEP_ROUND1A(f, a, b, c, d, AC, x, s)  tmp1 = (c)^(d);tmp1 = tmp1 & (b);tmp1 = tmp1 ^ (d);(a) = (a)+(tmp1); (a) = (a) + (AC);(a) = (a)+(x);(a) = rotate(a,s)+(b);
-#endif
-#else
-#define md5md5STEP_ROUND1(f, a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((d),(c),(b));(a) = rotate(a,s)+(b);
-#define md5md5STEP_ROUND1_NULL(f, a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((d),(c),(b));(a) = rotate(a,s)+(b);
-#define md5md5STEP_ROUND1A(f, a, b, c, d, AC, x, s)  tmp1 = (c)^(d);tmp1 = tmp1 & (b);tmp1 = tmp1 ^ (d);(a) = (a)+(tmp1); (a) = (a) + (AC);(a) = (a)+(x);(a) = rotate(a,s)+(b);
-#endif
 
+md5md5STEP_ROUND1(a, b, c, d, mAC1, x0, S11);
+md5md5STEP_ROUND1(d, a, b, c, mAC2, x1, S12);
+md5md5STEP_ROUND1(c, d, a, b, mAC3, x2, S13);
+md5md5STEP_ROUND1(b, c, d, a, mAC4, x3, S14);
+md5md5STEP_ROUND1(a, b, c, d, mAC5, x4, S11);  
+md5md5STEP_ROUND1(d, a, b, c, mAC6, x5, S12);  
+md5md5STEP_ROUND1(c, d, a, b, mAC7, x6, S13);  
+md5md5STEP_ROUND1(b, c, d, a, mAC8, x7, S14);  
+md5md5STEP_ROUND1_NULL(a, b, c, d, mAC9, S11);  
+md5md5STEP_ROUND1_NULL(d, a, b, c, mAC10, S12); 
+md5md5STEP_ROUND1_NULL(c, d, a, b, mAC11, S13); 
+md5md5STEP_ROUND1_NULL(b, c, d, a, mAC12, S14); 
+md5md5STEP_ROUND1_NULL(a, b, c, d, mAC13, S11); 
+md5md5STEP_ROUND1_NULL(d, a, b, c, mAC14, S12); 
+md5md5STEP_ROUND1 (c, d, a, b, mAC15, SIZE, S13);
+md5md5STEP_ROUND1_NULL(b, c, d, a, mAC16, S14); 
 
-md5md5STEP_ROUND1(F, a, b, c, d, mAC1, x0, S11);
-md5md5STEP_ROUND1(F, d, a, b, c, mAC2, x1, S12);
-md5md5STEP_ROUND1(F, c, d, a, b, mAC3, x2, S13);
-md5md5STEP_ROUND1(F, b, c, d, a, mAC4, x3, S14);
-md5md5STEP_ROUND1(F, a, b, c, d, mAC5, x4, S11);  
-md5md5STEP_ROUND1(F, d, a, b, c, mAC6, x5, S12);  
-md5md5STEP_ROUND1(F, c, d, a, b, mAC7, x6, S13);  
-md5md5STEP_ROUND1(F, b, c, d, a, mAC8, x7, S14);  
-md5md5STEP_ROUND1_NULL(F, a, b, c, d, mAC9, S11);  
-md5md5STEP_ROUND1_NULL(F, d, a, b, c, mAC10, S12); 
-md5md5STEP_ROUND1_NULL(F, c, d, a, b, mAC11, S13); 
-md5md5STEP_ROUND1_NULL(F, b, c, d, a, mAC12, S14); 
-md5md5STEP_ROUND1_NULL(F, a, b, c, d, mAC13, S11); 
-md5md5STEP_ROUND1_NULL(F, d, a, b, c, mAC14, S12); 
-md5md5STEP_ROUND1 (F, c, d, a, b, mAC15, SIZE, S13);
-md5md5STEP_ROUND1_NULL(F, b, c, d, a, mAC16, S14); 
+md5md5STEP_ROUND2 (a, b, c, d, mAC17, x1, S21); 
+md5md5STEP_ROUND2 (d, a, b, c, mAC18, x6, S22);
+md5md5STEP_ROUND2_NULL (c, d, a, b, mAC19, S23);
+md5md5STEP_ROUND2 (b, c, d, a, mAC20, x0, S24); 
+md5md5STEP_ROUND2 (a, b, c, d, mAC21, x5, S21);
+md5md5STEP_ROUND2_NULL (d, a, b, c, mAC22, S22);
+md5md5STEP_ROUND2_NULL(c, d,  a, b, mAC23, S23);
+md5md5STEP_ROUND2 (b, c, d, a, mAC24, x4, S24);
+md5md5STEP_ROUND2_NULL (a, b, c, d, mAC25, S21);
+md5md5STEP_ROUND2 (d, a, b, c, mAC26, SIZE, S22);
+md5md5STEP_ROUND2 (c, d, a, b, mAC27, x3, S23); 
+md5md5STEP_ROUND2_NULL (b, c, d, a, mAC28, S24);
+md5md5STEP_ROUND2_NULL(a, b, c, d, mAC29, S21); 
+md5md5STEP_ROUND2 (d, a, b, c, mAC30, x2, S22); 
+md5md5STEP_ROUND2 (c, d, a, b, mAC31, x7, S23);
+md5md5STEP_ROUND2_NULL(b, c, d, a, mAC32, S24); 
 
-#ifndef GCN
-#ifdef OLD_ATI
-#define md5md5STEP_ROUND2(f, a, b, c, d, AC, x, s)  tmp1 = (b) ^ (c); tmp1 = tmp1 & (d); tmp1 = tmp1 ^ (c);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = (a)+(x); (a) = rotate(a,s); (a) = (a)+(b);
-#define md5md5STEP_ROUND2_NULL(f, a, b, c, d, AC, s)  tmp1 = (b) ^ (c);tmp1 = tmp1 & (d);tmp1 = tmp1 ^ (c);(a) = (a)+tmp1;(a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);
-#else
-#define md5md5STEP_ROUND2(f, a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((c),(b),(d));(a) = rotate(a,s)+(b);
-#define md5md5STEP_ROUND2_NULL(f, a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((c),(b),(d)); (a) = rotate(a,s)+(b);
-#endif
-#else
-#define md5md5STEP_ROUND2(f, a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((c),(b),(d));(a) = rotate(a,s)+(b);
-#define md5md5STEP_ROUND2_NULL(f, a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((c),(b),(d)); (a) = rotate(a,s)+(b);
-#endif
+md5md5STEP_ROUND3_EVEN (a, b, c, d, mAC33, x5, S31); 
+md5md5STEP_ROUND3_NULL_ODD(d, a, b, c, mAC34, S32); 
+md5md5STEP_ROUND3_NULL_EVEN (c, d, a, b, mAC35, S33);
+md5md5STEP_ROUND3_ODD (b, c, d, a, mAC36, SIZE, S34);
+md5md5STEP_ROUND3_EVEN (a, b, c, d, mAC37, x1, S31); 
+md5md5STEP_ROUND3_ODD (d, a, b, c, mAC38, x4, S32);
+md5md5STEP_ROUND3_EVEN (c, d, a, b, mAC39, x7, S33);
+md5md5STEP_ROUND3_NULL_ODD (b, c, d, a, mAC40, S34);
+md5md5STEP_ROUND3_NULL_EVEN(a, b, c, d, mAC41, S31); 
+md5md5STEP_ROUND3_ODD (d, a, b, c, mAC42, x0, S32); 
+md5md5STEP_ROUND3_EVEN (c, d, a, b, mAC43, x3, S33); 
+md5md5STEP_ROUND3_ODD (b, c, d, a, mAC44, x6, S34);
+md5md5STEP_ROUND3_NULL_EVEN (a, b, c, d, mAC45, S31);
+md5md5STEP_ROUND3_NULL_ODD (d, a, b, c, mAC46, S32); 
+md5md5STEP_ROUND3_NULL_EVEN (c, d, a, b, mAC47, S33); 
+md5md5STEP_ROUND3_ODD (b, c, d, a, mAC48, x2, S34); 
 
-md5md5STEP_ROUND2 (G, a, b, c, d, mAC17, x1, S21); 
-md5md5STEP_ROUND2 (G, d, a, b, c, mAC18, x6, S22);
-md5md5STEP_ROUND2_NULL (G, c, d, a, b, mAC19, S23);
-md5md5STEP_ROUND2 (G, b, c, d, a, mAC20, x0, S24); 
-md5md5STEP_ROUND2 (G, a, b, c, d, mAC21, x5, S21);
-md5md5STEP_ROUND2_NULL (G, d, a, b, c, mAC22, S22);
-md5md5STEP_ROUND2_NULL(G, c, d,  a, b, mAC23, S23);
-md5md5STEP_ROUND2 (G, b, c, d, a, mAC24, x4, S24);
-md5md5STEP_ROUND2_NULL (G, a, b, c, d, mAC25, S21);
-md5md5STEP_ROUND2 (G, d, a, b, c, mAC26, SIZE, S22);
-md5md5STEP_ROUND2 (G, c, d, a, b, mAC27, x3, S23); 
-md5md5STEP_ROUND2_NULL (G, b, c, d, a, mAC28, S24);
-md5md5STEP_ROUND2_NULL(G, a, b, c, d, mAC29, S21); 
-md5md5STEP_ROUND2 (G, d, a, b, c, mAC30, x2, S22); 
-md5md5STEP_ROUND2 (G, c, d, a, b, mAC31, x7, S23);
-md5md5STEP_ROUND2_NULL(G, b, c, d, a, mAC32, S24); 
-
-
-#define md5md5STEP_ROUND3(f, a, b, c, d, AC, x, s) tmp1 = (b) ^ (c);tmp1 = tmp1 ^ (d);(a) = (a)+tmp1; (a) = (a)+(AC);(a) = (a)+(x); (a) = rotate(a,s); (a) = (a)+(b);  
-#define md5md5STEP_ROUND3_NULL(f, a, b, c, d, AC, s)  tmp1 = (b) ^ (c);tmp1 = tmp1 ^ (d);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);
- 
-md5md5STEP_ROUND3 (H, a, b, c, d, mAC33, x5, S31); 
-md5md5STEP_ROUND3_NULL(H, d, a, b, c, mAC34, S32); 
-md5md5STEP_ROUND3_NULL (H, c, d, a, b, mAC35, S33);
-md5md5STEP_ROUND3 (H, b, c, d, a, mAC36, SIZE, S34);
-md5md5STEP_ROUND3 (H, a, b, c, d, mAC37, x1, S31); 
-md5md5STEP_ROUND3 (H, d, a, b, c, mAC38, x4, S32);
-md5md5STEP_ROUND3 (H, c, d, a, b, mAC39, x7, S33);
-md5md5STEP_ROUND3_NULL (H, b, c, d, a, mAC40, S34);
-md5md5STEP_ROUND3_NULL(H, a, b, c, d, mAC41, S31); 
-md5md5STEP_ROUND3 (H, d, a, b, c, mAC42, x0, S32); 
-md5md5STEP_ROUND3 (H, c, d, a, b, mAC43, x3, S33); 
-md5md5STEP_ROUND3 (H, b, c, d, a, mAC44, x6, S34);
-md5md5STEP_ROUND3_NULL (H, a, b, c, d, mAC45, S31);
-md5md5STEP_ROUND3_NULL(H, d, a, b, c, mAC46, S32); 
-md5md5STEP_ROUND3_NULL(H, c, d, a, b, mAC47, S33); 
-md5md5STEP_ROUND3 (H, b, c, d, a, mAC48, x2, S34); 
-
-
-#define md5md5STEP_ROUND4(f, a, b, c, d, AC, x, s)  tmp1 = (~(d)) & mOne; tmp1 = b | tmp1; tmp1 = tmp1 ^ c; (a) = (a)+tmp1; (a) = (a)+(AC); (a) = (a)+(x); (a) = rotate(a,s); (a) = (a)+(b);
-#define md5md5STEP_ROUND4_NULL(f, a, b, c, d, AC, s)  tmp1 = (~(d)) & mOne; tmp1 = b | tmp1; tmp1 = tmp1 ^ c; (a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);
-
-md5md5STEP_ROUND4 (I, a, b, c, d, mAC49, x0, S41); 
-md5md5STEP_ROUND4 (I, d, a, b, c, mAC50, x7, S42);
-md5md5STEP_ROUND4 (I, c, d, a, b, mAC51, SIZE, S43);
-md5md5STEP_ROUND4 (I, b, c, d, a, mAC52, x5, S44);
-md5md5STEP_ROUND4_NULL(I, a, b, c, d, mAC53, S41); 
-md5md5STEP_ROUND4 (I, d, a, b, c, mAC54, x3, S42); 
-md5md5STEP_ROUND4_NULL (I, c, d, a, b, mAC55, S43);
-md5md5STEP_ROUND4 (I, b, c, d, a, mAC56, x1, S44); 
-md5md5STEP_ROUND4_NULL (I, a, b, c, d, mAC57, S41);
-md5md5STEP_ROUND4_NULL(I, d, a, b, c, mAC58, S42); 
-md5md5STEP_ROUND4 (I, c, d, a, b, mAC59, x6, S43);
-md5md5STEP_ROUND4_NULL(I, b, c, d, a, mAC60, S44); 
-md5md5STEP_ROUND4 (I, a, b, c, d, mAC61, x4, S41);
-md5md5STEP_ROUND4_NULL (I, d, a, b, c, mAC62, S42);
-md5md5STEP_ROUND4 (I, c, d, a, b, mAC63, x2, S43); 
-md5md5STEP_ROUND4_NULL (I, b, c, d, a, mAC64, S44);
+md5md5STEP_ROUND4 (a, b, c, d, mAC49, x0, S41); 
+md5md5STEP_ROUND4 (d, a, b, c, mAC50, x7, S42);
+md5md5STEP_ROUND4 (c, d, a, b, mAC51, SIZE, S43);
+md5md5STEP_ROUND4 (b, c, d, a, mAC52, x5, S44);
+md5md5STEP_ROUND4_NULL(a, b, c, d, mAC53, S41); 
+md5md5STEP_ROUND4 (d, a, b, c, mAC54, x3, S42); 
+md5md5STEP_ROUND4_NULL (c, d, a, b, mAC55, S43);
+md5md5STEP_ROUND4 (b, c, d, a, mAC56, x1, S44); 
+md5md5STEP_ROUND4_NULL (a, b, c, d, mAC57, S41);
+md5md5STEP_ROUND4_NULL(d, a, b, c, mAC58, S42); 
+md5md5STEP_ROUND4 (c, d, a, b, mAC59, x6, S43);
+md5md5STEP_ROUND4_NULL(b, c, d, a, mAC60, S44); 
+md5md5STEP_ROUND4 (a, b, c, d, mAC61, x4, S41);
+md5md5STEP_ROUND4_NULL (d, a, b, c, mAC62, S42);
+md5md5STEP_ROUND4 (c, d, a, b, mAC63, x2, S43); 
+md5md5STEP_ROUND4_NULL (b, c, d, a, mAC64, S44);
 
 a=a+mCa;b=b+mCb;c=c+mCc;d=d+mCd;
 
@@ -504,76 +504,77 @@ x8=(uint4)(0x80,0x80,0x80,0x80);
 SIZE = (uint4)(32*8,32*8,32*8,32*8);
 
 a = mCa; b = mCb; c = mCc; d = mCd;
-md5md5STEP_ROUND1(F, a, b, c, d, mAC1, x0, S11);
-md5md5STEP_ROUND1(F, d, a, b, c, mAC2, x1, S12);
-md5md5STEP_ROUND1(F, c, d, a, b, mAC3, x2, S13);
-md5md5STEP_ROUND1(F, b, c, d, a, mAC4, x3, S14);
-md5md5STEP_ROUND1(F, a, b, c, d, mAC5, x4, S11);
-md5md5STEP_ROUND1(F, d, a, b, c, mAC6, x5, S12);
-md5md5STEP_ROUND1(F, c, d, a, b, mAC7, x6, S13);
-md5md5STEP_ROUND1(F, b, c, d, a, mAC8, x7, S14);
-md5md5STEP_ROUND1(F, a, b, c, d, mAC9, x8, S11);
-md5md5STEP_ROUND1_NULL(F, d, a, b, c, mAC10, S12); 
-md5md5STEP_ROUND1_NULL(F, c, d, a, b, mAC11, S13); 
-md5md5STEP_ROUND1_NULL(F, b, c, d, a, mAC12, S14); 
-md5md5STEP_ROUND1_NULL(F, a, b, c, d, mAC13, S11); 
-md5md5STEP_ROUND1_NULL(F, d, a, b, c, mAC14, S12); 
-md5md5STEP_ROUND1 (F, c, d, a, b, mAC15, SIZE, S13);
-md5md5STEP_ROUND1_NULL(F, b, c, d, a, mAC16, S14); 
+md5md5STEP_ROUND1(a, b, c, d, mAC1, x0, S11);
+md5md5STEP_ROUND1(d, a, b, c, mAC2, x1, S12);
+md5md5STEP_ROUND1(c, d, a, b, mAC3, x2, S13);
+md5md5STEP_ROUND1(b, c, d, a, mAC4, x3, S14);
+md5md5STEP_ROUND1(a, b, c, d, mAC5, x4, S11);
+md5md5STEP_ROUND1(d, a, b, c, mAC6, x5, S12);
+md5md5STEP_ROUND1(c, d, a, b, mAC7, x6, S13);
+md5md5STEP_ROUND1(b, c, d, a, mAC8, x7, S14);
+md5md5STEP_ROUND1(a, b, c, d, mAC9, x8, S11);
+md5md5STEP_ROUND1_NULL(d, a, b, c, mAC10, S12); 
+md5md5STEP_ROUND1_NULL(c, d, a, b, mAC11, S13); 
+md5md5STEP_ROUND1_NULL(b, c, d, a, mAC12, S14); 
+md5md5STEP_ROUND1_NULL(a, b, c, d, mAC13, S11); 
+md5md5STEP_ROUND1_NULL(d, a, b, c, mAC14, S12); 
+md5md5STEP_ROUND1 (c, d, a, b, mAC15, SIZE, S13);
+md5md5STEP_ROUND1_NULL(b, c, d, a, mAC16, S14); 
 
-md5md5STEP_ROUND2 (G, a, b, c, d, mAC17, x1, S21); 
-md5md5STEP_ROUND2 (G, d, a, b, c, mAC18, x6, S22); 
-md5md5STEP_ROUND2_NULL (G, c, d, a, b, mAC19, S23);
-md5md5STEP_ROUND2 (G, b, c, d, a, mAC20, x0, S24); 
-md5md5STEP_ROUND2 (G, a, b, c, d, mAC21, x5, S21); 
-md5md5STEP_ROUND2_NULL (G, d, a, b, c, mAC22, S22);
-md5md5STEP_ROUND2_NULL(G, c, d,  a, b, mAC23, S23);
-md5md5STEP_ROUND2 (G, b, c, d, a, mAC24, x4, S24); 
-md5md5STEP_ROUND2_NULL (G, a, b, c, d, mAC25, S21);
-md5md5STEP_ROUND2 (G, d, a, b, c, mAC26, SIZE, S22);
-md5md5STEP_ROUND2 (G, c, d, a, b, mAC27, x3, S23); 
-md5md5STEP_ROUND2 (G, b, c, d, a, mAC28,x8, S24);  
-md5md5STEP_ROUND2_NULL(G, a, b, c, d, mAC29, S21); 
-md5md5STEP_ROUND2 (G, d, a, b, c, mAC30, x2, S22); 
-md5md5STEP_ROUND2 (G, c, d, a, b, mAC31, x7, S23); 
-md5md5STEP_ROUND2_NULL(G, b, c, d, a, mAC32, S24); 
+md5md5STEP_ROUND2 (a, b, c, d, mAC17, x1, S21); 
+md5md5STEP_ROUND2 (d, a, b, c, mAC18, x6, S22); 
+md5md5STEP_ROUND2_NULL (c, d, a, b, mAC19, S23);
+md5md5STEP_ROUND2 (b, c, d, a, mAC20, x0, S24); 
+md5md5STEP_ROUND2 (a, b, c, d, mAC21, x5, S21); 
+md5md5STEP_ROUND2_NULL (d, a, b, c, mAC22, S22);
+md5md5STEP_ROUND2_NULL(c, d,  a, b, mAC23, S23);
+md5md5STEP_ROUND2 (b, c, d, a, mAC24, x4, S24); 
+md5md5STEP_ROUND2_NULL (a, b, c, d, mAC25, S21);
+md5md5STEP_ROUND2 (d, a, b, c, mAC26, SIZE, S22);
+md5md5STEP_ROUND2 (c, d, a, b, mAC27, x3, S23); 
+md5md5STEP_ROUND2 (b, c, d, a, mAC28,x8, S24);  
+md5md5STEP_ROUND2_NULL(a, b, c, d, mAC29, S21); 
+md5md5STEP_ROUND2 (d, a, b, c, mAC30, x2, S22); 
+md5md5STEP_ROUND2 (c, d, a, b, mAC31, x7, S23); 
+md5md5STEP_ROUND2_NULL(b, c, d, a, mAC32, S24); 
 
-md5md5STEP_ROUND3(H, a, b, c, d, mAC33, x5, S31);  
-md5md5STEP_ROUND3(H, d, a, b, c, mAC34, x8, S32);  
-md5md5STEP_ROUND3_NULL (H, c, d, a, b, mAC35, S33);
-md5md5STEP_ROUND3 (H, b, c, d, a, mAC36, SIZE, S34);
-md5md5STEP_ROUND3 (H, a, b, c, d, mAC37, x1, S31); 
-md5md5STEP_ROUND3 (H, d, a, b, c, mAC38,x4, S32);  
-md5md5STEP_ROUND3 (H, c, d, a, b, mAC39,x7, S33);  
-md5md5STEP_ROUND3_NULL (H, b, c, d, a, mAC40, S34);
-md5md5STEP_ROUND3_NULL(H, a, b, c, d, mAC41, S31); 
-md5md5STEP_ROUND3 (H, d, a, b, c, mAC42, x0, S32); 
-md5md5STEP_ROUND3 (H, c, d, a, b, mAC43, x3, S33); 
-md5md5STEP_ROUND3 (H, b, c, d, a, mAC44,x6, S34);  
-md5md5STEP_ROUND3_NULL (H, a, b, c, d, mAC45, S31);
-md5md5STEP_ROUND3_NULL(H, d, a, b, c, mAC46, S32); 
-md5md5STEP_ROUND3_NULL(H, c, d, a, b, mAC47, S33); 
-md5md5STEP_ROUND3 (H, b, c, d, a, mAC48, x2, S34); 
-md5md5STEP_ROUND4 (I, a, b, c, d, mAC49, x0, S41); 
-md5md5STEP_ROUND4 (I, d, a, b, c, mAC50, x7, S42); 
-md5md5STEP_ROUND4 (I, c, d, a, b, mAC51, SIZE, S43);
-md5md5STEP_ROUND4 (I, b, c, d, a, mAC52, x5, S44); 
-md5md5STEP_ROUND4_NULL(I, a, b, c, d, mAC53, S41); 
-md5md5STEP_ROUND4 (I, d, a, b, c, mAC54, x3, S42); 
-md5md5STEP_ROUND4_NULL (I, c, d, a, b, mAC55, S43);
-md5md5STEP_ROUND4 (I, b, c, d, a, mAC56, x1, S44); 
-md5md5STEP_ROUND4 (I, a, b, c, d, mAC57,x8, S41);  
-md5md5STEP_ROUND4_NULL(I, d, a, b, c, mAC58, S42); 
-md5md5STEP_ROUND4 (I, c, d, a, b, mAC59, x6, S43); 
-md5md5STEP_ROUND4_NULL(I, b, c, d, a, mAC60, S44); 
-md5md5STEP_ROUND4 (I, a, b, c, d, mAC61, x4, S41); 
+md5md5STEP_ROUND3_EVEN(a, b, c, d, mAC33, x5, S31);  
+md5md5STEP_ROUND3_ODD(d, a, b, c, mAC34, x8, S32);  
+md5md5STEP_ROUND3_NULL_EVEN (c, d, a, b, mAC35, S33);
+md5md5STEP_ROUND3_ODD (b, c, d, a, mAC36, SIZE, S34);
+md5md5STEP_ROUND3_EVEN (a, b, c, d, mAC37, x1, S31); 
+md5md5STEP_ROUND3_ODD (d, a, b, c, mAC38,x4, S32);  
+md5md5STEP_ROUND3_EVEN (c, d, a, b, mAC39,x7, S33);  
+md5md5STEP_ROUND3_NULL_ODD (b, c, d, a, mAC40, S34);
+md5md5STEP_ROUND3_NULL_EVEN(a, b, c, d, mAC41, S31); 
+md5md5STEP_ROUND3_ODD (d, a, b, c, mAC42, x0, S32); 
+md5md5STEP_ROUND3_EVEN (c, d, a, b, mAC43, x3, S33); 
+md5md5STEP_ROUND3_ODD (b, c, d, a, mAC44,x6, S34);  
+md5md5STEP_ROUND3_NULL_EVEN (a, b, c, d, mAC45, S31);
+md5md5STEP_ROUND3_NULL_ODD(d, a, b, c, mAC46, S32); 
+md5md5STEP_ROUND3_NULL_EVEN(c, d, a, b, mAC47, S33); 
+md5md5STEP_ROUND3_ODD (b, c, d, a, mAC48, x2, S34); 
+
+md5md5STEP_ROUND4 (a, b, c, d, mAC49, x0, S41); 
+md5md5STEP_ROUND4 (d, a, b, c, mAC50, x7, S42); 
+md5md5STEP_ROUND4 (c, d, a, b, mAC51, SIZE, S43);
+md5md5STEP_ROUND4 (b, c, d, a, mAC52, x5, S44); 
+md5md5STEP_ROUND4_NULL(a, b, c, d, mAC53, S41); 
+md5md5STEP_ROUND4 (d, a, b, c, mAC54, x3, S42); 
+md5md5STEP_ROUND4_NULL (c, d, a, b, mAC55, S43);
+md5md5STEP_ROUND4 (b, c, d, a, mAC56, x1, S44); 
+md5md5STEP_ROUND4 (a, b, c, d, mAC57,x8, S41);  
+md5md5STEP_ROUND4_NULL(d, a, b, c, mAC58, S42); 
+md5md5STEP_ROUND4 (c, d, a, b, mAC59, x6, S43); 
+md5md5STEP_ROUND4_NULL(b, c, d, a, mAC60, S44); 
+md5md5STEP_ROUND4 (a, b, c, d, mAC61, x4, S41); 
 #ifdef SINGLE_MODE
 id=singlehash.x - mCa.s0;
 if (all((uint4)id != a)) return;
 #endif
-md5md5STEP_ROUND4_NULL (I, d, a, b, c, mAC62, S42);
-md5md5STEP_ROUND4 (I, c, d, a, b, mAC63, x2, S43); 
-md5md5STEP_ROUND4_NULL (I, b, c, d, a, mAC64, S44);
+md5md5STEP_ROUND4_NULL (d, a, b, c, mAC62, S42);
+md5md5STEP_ROUND4 (c, d, a, b, mAC63, x2, S43); 
+md5md5STEP_ROUND4_NULL (b, c, d, a, mAC64, S44);
 
 
 a=a+mCa;b=b+mCb;c=c+mCc;d=d+mCd;
@@ -581,12 +582,8 @@ a=a+mCa;b=b+mCb;c=c+mCc;d=d+mCd;
 id = 0;
 
 #ifdef SINGLE_MODE
-if ((singlehash.x==a.s0)&&(singlehash.y==b.s0)&&(singlehash.z==c.s0)&&(singlehash.w==d.s0)) id = 1; 
-if ((singlehash.x==a.s1)&&(singlehash.y==b.s1)&&(singlehash.z==c.s1)&&(singlehash.w==d.s1)) id = 1; 
-if ((singlehash.x==a.s2)&&(singlehash.y==b.s2)&&(singlehash.z==c.s2)&&(singlehash.w==d.s2)) id = 1; 
-if ((singlehash.x==a.s3)&&(singlehash.y==b.s3)&&(singlehash.z==c.s3)&&(singlehash.w==d.s3)) id = 1; 
-if (id==0) return;
-
+if (all((uint4)singlehash.x!=a)) return;
+if (all((uint4)singlehash.y!=b)) return;
 #else
 id = 0;
 b1=a.s0;b2=b.s0;b3=c.s0;b4=d.s0;
@@ -622,3 +619,5 @@ dst[(get_global_id(0)*4)+2] = (uint4)(a.s2,b.s2,c.s2,d.s2);
 dst[(get_global_id(0)*4)+3] = (uint4)(a.s3,b.s3,c.s3,d.s3);
 
 }
+
+

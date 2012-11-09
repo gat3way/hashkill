@@ -318,6 +318,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"md4")==0)) ocl_vector=8;
 		if ((strcmp(get_current_plugin(),"sha1")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"ntlm")==0)) ocl_vector=8;
+		if ((strcmp(get_current_plugin(),"md5md5")==0)) ocl_vector=4;
 
 		/* GCN/VLIW-specific */
 		if ((strcmp(get_current_plugin(),"phpbb3")==0)&&(ocl_have_gcn)) ocl_vector=1;
@@ -397,6 +398,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"sha256")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"ntlm")==0)) ocl_vector=8;
+		if ((strcmp(get_current_plugin(),"md5md5")==0)) ocl_vector=4;
 	    }
 
 	    /* Zip (non-rule) exception for NVidia */
