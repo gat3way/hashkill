@@ -1982,6 +1982,7 @@ void rule_offload_add_fastdict(callback_final_t cb, int self)
     char str[16];
     char filename[1024];
     struct stat st;
+    int len;
 
     strcpy(filename,rule_optimize[self].statfile);
     bzero(str,32);
@@ -2004,6 +2005,9 @@ void rule_offload_add_fastdict(callback_final_t cb, int self)
     {
 	bzero(str,16);
 	fgets(str,16,fp);
+	len=strlen(str)-1;
+	if (str[len]=='\n') str[len]=0;
+	if (str[len-1]=='\r') str[len-1]=0;
 	cb(str,self);
     }
     bzero(str,16);
