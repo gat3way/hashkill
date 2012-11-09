@@ -2240,7 +2240,6 @@ static void ocl_ntlm_callback(char *line, int self)
     rule_counts[self][0]++;
     rule_sizes[self][rule_counts[self][0]] = strlen(line);
     strcpy(&rule_images[self][0]+(rule_counts[self][0]*MAX),line);
-
     if ((rule_counts[self][0]>=(ocl_rule_workset[self]-1))||(line[0]==0x01))
     {
 
@@ -2279,7 +2278,7 @@ void* ocl_rule_ntlm_thread(void *arg)
     if (ocl_gpu_double) ocl_rule_workset[self]*=2;
 
     rule_ptr[self] = malloc(ocl_rule_workset[self]*hash_ret_len*wthreads[self].vectorsize);
-    rule_counts[self][0]=0;
+    rule_counts[self][0]=-1;
     rule_kernel[self] = _clCreateKernel(program[self], "ntlm", &err );
     rule_oclqueue[self] = _clCreateCommandQueue(context[self], wthreads[self].cldeviceid, 0, &err );
     rule_buffer[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*wthreads[self].vectorsize*hash_ret_len, NULL, &err );

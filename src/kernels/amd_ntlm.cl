@@ -5,7 +5,7 @@
     elem=ii1>>2; \
     t1=(ii1&3)<<3; \
     ai1[elem] = ai1[elem]|(ai2<<(t1)); \
-    ai1[elem+1] = (t1==0) ? 0 : ai2>>(32-t1);\
+    ai1[elem+1] = select((uint)(ai2>>(32U-t1)),0U,(uint)(t1==0));\
     }
 
 
@@ -429,8 +429,6 @@ w11=x11;
 w12=x12;
 w13=x13;
 w14=size;
-
-w14=SIZE;  
 
 AC = (uint)0x5a827999; 
 AD = (uint)0x6ed9eba1; 
