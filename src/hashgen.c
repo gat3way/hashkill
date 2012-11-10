@@ -1575,7 +1575,7 @@ void rule_gen_parse(char *rulefile, finalfn_t callback, int max, int self)
 	}
     }
     fclose(fp);
-    node_wait_queues();
+    if (hashgen_stdout_mode==0) node_wait_queues();
     attack_over=2;
 }
 
