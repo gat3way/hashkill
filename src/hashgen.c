@@ -1575,7 +1575,10 @@ void rule_gen_parse(char *rulefile, finalfn_t callback, int max, int self)
 	}
     }
     fclose(fp);
-    if (hashgen_stdout_mode==0) node_wait_queues();
+    if (hashgen_stdout_mode==0) 
+    {
+	while ((attack_current_count<attack_overall_count)&&(attack_over==0)) usleep(1000);
+    }
     attack_over=2;
 }
 
