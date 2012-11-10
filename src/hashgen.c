@@ -1559,6 +1559,8 @@ void rule_gen_parse(char *rulefile, finalfn_t callback, int max, int self)
 		gen(self);
 		rule_current_elem=0;
 		node_wait_queues();
+		/* That's correct, do it twice */
+		node_wait_queues();
 	    }
 	}
 	else 

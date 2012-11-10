@@ -11,7 +11,7 @@
     }
 
 
-#ifndef GCN
+#ifdef SM21
 
 __kernel void  __attribute__((reqd_work_group_size(64, 1, 1))) 
 sha256( __global uint4 *dst,  __global uint *inp, __global uint *sizein,  __global uint *found_ind, __global uint *bitmaps, __global uint *found,  uint4 singlehash,uint16 str,uint16 str1) 
@@ -276,7 +276,6 @@ Endian_Reverse32(H);
 id=0;
 if (all((uint4)singlehash.x!=A)) return;
 if (all((uint4)singlehash.y!=B)) return;
-if (id==0) return;
 #endif
 
 
@@ -309,11 +308,8 @@ if (id==0) return;
 
 
 
-if (id==1) 
-{
 found[0] = 1;
 found_ind[get_global_id(0)] = 1;
-}
 
 dst[(get_global_id(0)*8)] = (uint4)(A.s0,B.s0,C.s0,D.s0);  
 dst[(get_global_id(0)*8)+1] = (uint4)(E.s0,F.s0,G.s0,H.s0);
@@ -500,11 +496,8 @@ else return;
 #endif
 
 
-if (id==1) 
-{
 found[0] = 1;
 found_ind[get_global_id(0)] = 1;
-}
 
 dst[(get_global_id(0)*8)+offset] = (uint4)(A,B,C,D);  
 dst[(get_global_id(0)*8)+offset+1] = (uint4)(E,F,G,H);
