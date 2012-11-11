@@ -113,7 +113,7 @@ hash_stat hash_plugin_check_hash_dictionary(const char *hash, const char *passwo
     int a;
     
     for (a=0;a<vectorsize;a++) lens[a] = strlen(password[a]);
-    (void)hash_md4(password, salt2, lens,0);
+    (void)hash_md4_slow(password, salt2, lens,0);
     return hash_ok;
 }
 

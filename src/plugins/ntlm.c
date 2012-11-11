@@ -138,7 +138,7 @@ hash_stat hash_plugin_check_hash_dictionary(const char *hash, const char *passwo
 	}
 	lens[b] = sz<<1;
     }
-    (void)hash_md4((const char **)newuser, salt2, lens,0);
+    (void)hash_md4_slow((const char **)newuser, salt2, lens,0);
     return hash_ok;
 }
 
