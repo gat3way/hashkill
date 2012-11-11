@@ -3,55 +3,13 @@
 
 #define SET_AB(ai1,ai2,ii1,ii2) { \
     elem=ii1>>2; \
-    tmp1=(ii1&3)<<3; \
-    ai1[elem] = ai1[elem]|(ai2<<(tmp1)); \
-    ai1[elem+1] = (tmp1==0) ? 0 : ai2>>(32-tmp1);\
+    tt1=(ii1&3)<<3; \
+    ai1[elem] = ai1[elem]|(ai2<<(tt1)); \
+    ai1[elem+1] = (tt1==0) ? 0 : ai2>>(32-tt1);\
     }
 
 
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str, uint16 salt)
-{
-__local uint inpc[64][14];
-uint SIZE;
-uint elem,tmp1;
-
-
-inpc[GLI][0] = inp[GGI*(8)+0];
-inpc[GLI][1] = inp[GGI*(8)+1];
-inpc[GLI][2] = inp[GGI*(8)+2];
-inpc[GLI][3] = inp[GGI*(8)+3];
-inpc[GLI][4] = inp[GGI*(8)+4];
-inpc[GLI][5] = inp[GGI*(8)+5];
-inpc[GLI][6] = inp[GGI*(8)+6];
-inpc[GLI][7] = inp[GGI*(8)+7];
-
-SIZE=sizein[GGI];
-
-size[GGI] = (SIZE+str.sF);
-SET_AB(inpc[GLI],str.s0,SIZE,0);
-SET_AB(inpc[GLI],str.s1,SIZE+4,0);
-SET_AB(inpc[GLI],str.s2,SIZE+8,0);
-SET_AB(inpc[GLI],str.s3,SIZE+12,0);
-
-
-dst[GGI*8+0] = (inpc[GLI][0]);
-dst[GGI*8+1] = (inpc[GLI][1]);
-dst[GGI*8+2] = (inpc[GLI][2]);
-dst[GGI*8+3] = (inpc[GLI][3]);
-dst[GGI*8+4] = (inpc[GLI][4]);
-dst[GGI*8+5] = (inpc[GLI][5]);
-dst[GGI*8+6] = (inpc[GLI][6]);
-dst[GGI*8+7] = (inpc[GLI][7]);
-
-}
-
-
-#ifndef OLD_ATI
 #define getglobalid(a) get_global_id(0)
-#else
-#define getglobalid(a) get_global_id(0)
-#endif
 
 __constant uint CDES_SPtrans[8][64]={
 {
@@ -680,9 +638,8 @@ k31=ROTATE(t2,26); \
 
 
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-desunix( __global uint4 *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *found,  uint4 singlehash, uint16 salt) 
+desunix( __global uint4 *dst,  __global uint *inp, __global uint *sizein,  __global uint *found_ind, __global uint *found,  uint4 singlehash, uint16 salt, uint16 str) 
 {
-
 uint2 w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,chbase1,res,t0,t1;
 uint id=0;
 uint2 i,j,bli1,bli2,blo11,blo12,blo21,blo22,blo31,blo32,blo41,blo42;
@@ -694,9 +651,11 @@ uint2 ll1,ll2;
 uint2 key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31;
 uint2 c,d,s,t2,E0,E1; 
 uint2 tmpp; 
-
 __local uint DES_SPtrans[8][64];
 __local uint des_skb[8][64];
+uint tt1,elem,x0,x1;
+__local uint inpc[64][8];
+uint2 SIZE;
 
 
 DES_SPtrans[0][get_local_id(0)]=CDES_SPtrans[0][get_local_id(0)];
@@ -726,13 +685,34 @@ E1.x=salt.sF;
 E1.y=salt.sF;
 
 
+
 id=get_global_id(0);
 
-w0.s0=input[id*2*8];
-w1.s0=input[id*2*8+1];
+SIZE=(uint2)sizein[GGI];
+x0 = inp[GGI*8+0];
+x1 = inp[GGI*8+1];
 
-w0.s1=input[id*2*8+8];
-w1.s1=input[id*2*8+9];
+
+inpc[GLI][0]=x0;
+inpc[GLI][1]=x1;
+SET_AB(inpc[GLI],str.s0,SIZE.s0,0);
+SET_AB(inpc[GLI],str.s1,SIZE.s0+4,0);
+SET_AB(inpc[GLI],str.s2,SIZE.s0+8,0);
+SET_AB(inpc[GLI],str.s3,SIZE.s0+12,0);
+w0.x=(inpc[GLI][0]);
+w1.x=(inpc[GLI][1]);
+
+
+inpc[GLI][0]=x0;
+inpc[GLI][1]=x1;
+SET_AB(inpc[GLI],str.s4,SIZE.s1,0);
+SET_AB(inpc[GLI],str.s5,SIZE.s1+4,0);
+SET_AB(inpc[GLI],str.s6,SIZE.s1+8,0);
+SET_AB(inpc[GLI],str.s7,SIZE.s1+12,0);
+w0.y=(inpc[GLI][0]);
+w1.y=(inpc[GLI][1]);
+
+
 
 
 t0=rotate(w0,1);
