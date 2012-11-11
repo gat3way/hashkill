@@ -1426,7 +1426,7 @@ static void finalize(int self)
     }
 
     if (currentlinenum[0]!=0) update_chainlen(currentlinenum[0],RULE_MODE_PARSE);
-    update_currentlinenum(0,RULE_MODE_PARSE);
+    //update_currentlinenum(0,RULE_MODE_PARSE);
 }
 
 
@@ -1459,7 +1459,7 @@ void worker_gen(int self, finalfn_t callback)
     char rootstack[MAXCAND];
     bzero(rootnode,MAXCAND);
     bzero(rootstack,MAXCAND);
-    while ((ops[self][2].parsefn==NULL)&&(attack_over==0)) usleep(10000);
+    while ((ops[self][2].parsefn==NULL)&&(attack_over==0)&&(ops[self][0].chainlen==0)) usleep(10000);
     update_crack_callback(callback,RULE_MODE_PARSE);
     if ((ops[self][2].parsefn)==NULL) return;
     ops[self][2].parsefn(rootnode,rootstack,2,self);
