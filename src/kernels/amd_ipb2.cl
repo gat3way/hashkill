@@ -3,59 +3,17 @@
 
 #define SET_AB(ai1,ai2,ii1,ii2) { \
     elem=ii1>>2; \
-    temp1=(ii1&3)<<3; \
-    ai1[elem] = ai1[elem]|(ai2<<(temp1)); \
-    ai1[elem+1] = (temp1==0) ? 0 : ai2>>(32-temp1);\
+    tt1=(ii1&3)<<3; \
+    ai1[elem] = ai1[elem]|(ai2<<(tt1)); \
+    ai1[elem+1] = (tt1==0) ? 0 : ai2>>(32-tt1);\
 }
 
+
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str, uint16 salt)
+ipb2( __global uint4 *dst,  __global uint *inp, __global uint *sizein,  __global uint *found_ind, __global uint *found,  uint4 singlehash, uint16 salt, uint16 str, uint16 str1)
 {
 __local uint inpc[64][14];
-uint SIZE;
-uint elem,temp1;
-
-
-inpc[GLI][0] = inp[GGI*(8)+0];
-inpc[GLI][1] = inp[GGI*(8)+1];
-inpc[GLI][2] = inp[GGI*(8)+2];
-inpc[GLI][3] = inp[GGI*(8)+3];
-inpc[GLI][4] = inp[GGI*(8)+4];
-inpc[GLI][5] = inp[GGI*(8)+5];
-inpc[GLI][6] = inp[GGI*(8)+6];
-inpc[GLI][7] = inp[GGI*(8)+7];
-inpc[GLI][8] = 0;
-inpc[GLI][9] = 0;
-inpc[GLI][10] = 0;
-inpc[GLI][11] = 0;
-inpc[GLI][12] = 0;
-
-SIZE=sizein[GGI];
-size[GGI] = (SIZE+str.sF)<<3;
-
-SET_AB(inpc[GLI],str.s0,SIZE,0);
-SET_AB(inpc[GLI],str.s1,SIZE+4,0);
-SET_AB(inpc[GLI],str.s2,SIZE+8,0);
-SET_AB(inpc[GLI],str.s3,SIZE+12,0);
-SET_AB(inpc[GLI],0x80,(SIZE+str.sF),0);
-
-dst[GGI*8+0] = inpc[GLI][0];
-dst[GGI*8+1] = inpc[GLI][1];
-dst[GGI*8+2] = inpc[GLI][2];
-dst[GGI*8+3] = inpc[GLI][3];
-dst[GGI*8+4] = inpc[GLI][4];
-dst[GGI*8+5] = inpc[GLI][5];
-dst[GGI*8+6] = inpc[GLI][6];
-dst[GGI*8+7] = inpc[GLI][7];
-}
-
-#ifndef OLD_ATI
-#pragma OPENCL EXTENSION cl_amd_media_ops : enable
-#endif
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-ipb2( __global uint4 *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *found,  uint4 singlehash, uint16 salt)
-{
+uint elem,tt1;
 uint4 mCa= (uint4)0x67452301;
 uint4 mCb= (uint4)0xefcdab89;
 uint4 mCc= (uint4)0x98badcfe;
@@ -76,7 +34,6 @@ uint4 S41= (uint4)6;
 uint4 S42= (uint4)10;
 uint4 S43= (uint4)15;
 uint4 S44= (uint4)21;
-
 uint4 mAC1 = (uint4)0xd76aa478; 
 uint4 mAC2 = (uint4)0xe8c7b756; 
 uint4 mAC3 = (uint4)0x242070db; 
@@ -141,41 +98,24 @@ uint4 mAC61= (uint4)0xf7537e82;
 uint4 mAC62= (uint4)0xbd3af235; 
 uint4 mAC63= (uint4)0x2ad7d2bb; 
 uint4 mAC64= (uint4)0xeb86d391; 
-
-
 uint4 SIZE;  
 uint i,ib,ic,id,ie;  
 uint4 t1,t2,t3,t4;
 uint4 a,b,c,d, tmp1, tmp2; 
 uint4 x0,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15; 
 uint4 w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w15; 
+uint u0,u1,u2,u3,u4,u5,u6,u7;
 uint4 chbase1;
 uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
 
-#ifndef OLD_ATI
 #define MD5STEP_ROUND1(a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((d),(c),(b));(a) = rotate(a,s)+(b);
 #define MD5STEP_ROUND1_NULL(a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((d),(c),(b));(a) = rotate(a,s)+(b);
-#define MD5STEP_ROUND1A(a, b, c, d, AC, x, s)  tmp1 = (c)^(d);tmp1 = tmp1 & (b);tmp1 = tmp1 ^ (d);(a) = (a)+(tmp1); (a) = (a) + (AC);(a) = (a)+(x);(a) = rotate(a,s)+(b);
-#else
-#define MD5STEP_ROUND1(a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((b),(c),(d));(a) = rotate(a,s)+(b);
-#define MD5STEP_ROUND1_NULL(a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((b),(c),(d));(a) = rotate(a,s)+(b);
-#define MD5STEP_ROUND1A(a, b, c, d, AC, x, s)  tmp1 = (c)^(d);tmp1 = tmp1 & (b);tmp1 = tmp1 ^ (d);(a) = (a)+(tmp1); (a) = (a) + (AC);(a) = (a)+(x);(a) = rotate(a,s)+(b);
-#endif
-
-#ifndef OLD_ATI
 #define MD5STEP_ROUND2(a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((c),(b),(d));(a) = rotate(a,s)+(b);
 #define MD5STEP_ROUND2_NULL(a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((c),(b),(d)); (a) = rotate(a,s)+(b);
-#else
-#define MD5STEP_ROUND2(a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((d),(b),(c));(a) = rotate(a,s)+(b);
-#define MD5STEP_ROUND2_NULL(a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((d),(b),(c)); (a) = rotate(a,s)+(b);
-#endif
-
-
 #define MD5STEP_ROUND3_EVEN(a, b, c, d, AC, x, s) tmp2 = (b) ^ (c);tmp1 = tmp2 ^ (d);(a) = (a)+tmp1; (a) = (a)+(AC);(a) = (a)+(x); (a) = rotate(a,s); (a) = (a)+(b);
 #define MD5STEP_ROUND3_NULL_EVEN(a, b, c, d, AC, s)  tmp2 = (b) ^ (c);tmp1 = tmp2 ^ (d);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);
 #define MD5STEP_ROUND3_ODD(a, b, c, d, AC, x, s) tmp1 = tmp2 ^ (b);(a) = (a)+tmp1; (a) = (a)+(AC);(a) = (a)+(x); (a) = rotate(a,s); (a) = (a)+(b);  
 #define MD5STEP_ROUND3_NULL_ODD(a, b, c, d, AC, s)  tmp1 = tmp2 ^ (b);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b); 
-
 #define MD5STEP_ROUND4(a, b, c, d, AC, x, s)  tmp1 = (~(d)); tmp1 = b | tmp1; tmp1 = tmp1 ^ c; (a) = (a)+tmp1; (a) = (a)+(AC); (a) = (a)+(x); (a) = rotate(a,s); (a) = (a)+(b);  
 #define MD5STEP_ROUND4_NULL(a, b, c, d, AC, s)  tmp1 = (~(d)); tmp1 = b | tmp1; tmp1 = tmp1 ^ c; (a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);
 
@@ -452,50 +392,115 @@ b15 +=  (b15>57) ? 39 : 0;
 b16 +=  (b16>57) ? 39 : 0; 
 w7=(uint4)( b2|(b1<<8)|(b4<<16)|(b3<<24) ,b6|(b5<<8)|(b8<<16)|(b7<<24), b10|(b9<<8)|(b12<<16)|(b11<<24), b14|(b13<<8)|(b16<<16)|(b15<<24) );
 
-
-
 id=get_global_id(0);
-SIZE.s0=(size[id*4]); 
-SIZE.s1=(size[id*4+1]); 
-SIZE.s2=(size[id*4+2]); 
-SIZE.s3=(size[id*4+3]); 
+SIZE=(uint4)sizein[GGI];
+u0 = inp[GGI*8+0];
+u1 = inp[GGI*8+1];
+u2 = inp[GGI*8+2];
+u3 = inp[GGI*8+3];
+u4 = inp[GGI*8+4];
+u5 = inp[GGI*8+5];
+u6 = inp[GGI*8+6];
+u7 = inp[GGI*8+7];
 
 
-x0.s0=input[id*4*8];
-x1.s0=input[id*4*8+1];
-x2.s0=input[id*4*8+2];
-x3.s0=input[id*4*8+3];
-x4.s0=input[id*4*8+4];
-x5.s0=input[id*4*8+5];
-x6.s0=input[id*4*8+6];
-x7.s0=input[id*4*8+7];
+inpc[GLI][0]=u0;
+inpc[GLI][1]=u1;
+inpc[GLI][2]=u2;
+inpc[GLI][3]=u3;
+inpc[GLI][4]=u4;
+inpc[GLI][5]=u5;
+inpc[GLI][6]=u6;
+inpc[GLI][7]=u7;
+SET_AB(inpc[GLI],str.s0,SIZE.s0,0);
+SET_AB(inpc[GLI],str.s1,SIZE.s0+4,0);
+SET_AB(inpc[GLI],str.s2,SIZE.s0+8,0);
+SET_AB(inpc[GLI],str.s3,SIZE.s0+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s0+str.sC),0);
+x0.s0=inpc[GLI][0];
+x1.s0=inpc[GLI][1];
+x2.s0=inpc[GLI][2];
+x3.s0=inpc[GLI][3];
+x4.s0=inpc[GLI][4];
+x5.s0=inpc[GLI][5];
+x6.s0=inpc[GLI][6];
+x7.s0=inpc[GLI][7];
+SIZE.s0 = (SIZE.s0+str.sC)<<3;
 
-x0.s1=input[id*4*8+8];
-x1.s1=input[id*4*8+9];
-x2.s1=input[id*4*8+10];
-x3.s1=input[id*4*8+11];
-x4.s1=input[id*4*8+12];
-x5.s1=input[id*4*8+13];
-x6.s1=input[id*4*8+14];
-x7.s1=input[id*4*8+15];
 
-x0.s2=input[id*4*8+16];
-x1.s2=input[id*4*8+17];
-x2.s2=input[id*4*8+18];
-x3.s2=input[id*4*8+19];
-x4.s2=input[id*4*8+20];
-x5.s2=input[id*4*8+21];
-x6.s2=input[id*4*8+22];
-x7.s2=input[id*4*8+23];
+inpc[GLI][0]=u0;
+inpc[GLI][1]=u1;
+inpc[GLI][2]=u2;
+inpc[GLI][3]=u3;
+inpc[GLI][4]=u4;
+inpc[GLI][5]=u5;
+inpc[GLI][6]=u6;
+inpc[GLI][7]=u7;
+SET_AB(inpc[GLI],str.s4,SIZE.s1,0);
+SET_AB(inpc[GLI],str.s5,SIZE.s1+4,0);
+SET_AB(inpc[GLI],str.s6,SIZE.s1+8,0);
+SET_AB(inpc[GLI],str.s7,SIZE.s1+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s1+str.sD),0);
+x0.s1=inpc[GLI][0];
+x1.s1=inpc[GLI][1];
+x2.s1=inpc[GLI][2];
+x3.s1=inpc[GLI][3];
+x4.s1=inpc[GLI][4];
+x5.s1=inpc[GLI][5];
+x6.s1=inpc[GLI][6];
+x7.s1=inpc[GLI][7];
+SIZE.s1 = (SIZE.s1+str.sD)<<3;
 
-x0.s3=input[id*4*8+24];
-x1.s3=input[id*4*8+25];
-x2.s3=input[id*4*8+26];
-x3.s3=input[id*4*8+27];
-x4.s3=input[id*4*8+28];
-x5.s3=input[id*4*8+29];
-x6.s3=input[id*4*8+30];
-x7.s3=input[id*4*8+31];
+
+inpc[GLI][0]=u0;
+inpc[GLI][1]=u1;
+inpc[GLI][2]=u2;
+inpc[GLI][3]=u3;
+inpc[GLI][4]=u4;
+inpc[GLI][5]=u5;
+inpc[GLI][6]=u6;
+inpc[GLI][7]=u7;
+
+SET_AB(inpc[GLI],str.s8,SIZE.s2,0);
+SET_AB(inpc[GLI],str.s9,SIZE.s2+4,0);
+SET_AB(inpc[GLI],str.sA,SIZE.s2+8,0);
+SET_AB(inpc[GLI],str.sB,SIZE.s2+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s2+str.sE),0);
+x0.s2=inpc[GLI][0];
+x1.s2=inpc[GLI][1];
+x2.s2=inpc[GLI][2];
+x3.s2=inpc[GLI][3];
+x4.s2=inpc[GLI][4];
+x5.s2=inpc[GLI][5];
+x6.s2=inpc[GLI][6];
+x7.s2=inpc[GLI][7];
+SIZE.s2 = (SIZE.s2+str.sE)<<3;
+
+
+inpc[GLI][0]=u0;
+inpc[GLI][1]=u1;
+inpc[GLI][2]=u2;
+inpc[GLI][3]=u3;
+inpc[GLI][4]=u4;
+inpc[GLI][5]=u5;
+inpc[GLI][6]=u6;
+inpc[GLI][7]=u7;
+
+SET_AB(inpc[GLI],str1.s0,SIZE.s3,0);
+SET_AB(inpc[GLI],str1.s1,SIZE.s3+4,0);
+SET_AB(inpc[GLI],str1.s2,SIZE.s3+8,0);
+SET_AB(inpc[GLI],str1.s3,SIZE.s3+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s3+str1.sC),0);
+x0.s3=inpc[GLI][0];
+x1.s3=inpc[GLI][1];
+x2.s3=inpc[GLI][2];
+x3.s3=inpc[GLI][3];
+x4.s3=inpc[GLI][4];
+x5.s3=inpc[GLI][5];
+x6.s3=inpc[GLI][6];
+x7.s3=inpc[GLI][7];
+SIZE.s3 = (SIZE.s3+str1.sC)<<3;
+
 
 x15=(uint4)0;
 x14=SIZE;

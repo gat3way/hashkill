@@ -403,6 +403,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"joomla")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"oscommerce")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"nsldap")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"ipb2")==0)) ocl_vector=4;
 	    }
 
 	    /* Zip (non-rule) exception for NVidia */
