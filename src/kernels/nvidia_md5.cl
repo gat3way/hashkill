@@ -1,5 +1,6 @@
 #define GGI (get_global_id(0))
 #define GLI (get_local_id(0))
+#define rotate(a,b) ((a) << (b)) + ((a) >> (32-(b)))
 
 #define SET_AB(ai1,ai2,ii1,ii2) { \
     elem=ii1>>2; \

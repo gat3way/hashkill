@@ -183,7 +183,7 @@ static void thread_attack_worker_nonlinear_rule(int self)
 	    while (addlist)
 	    {
 	        if ( (strcmp(addlist->username, mylist->username) == 0) && (strcmp(addlist->hash, mylist->hash) == 0)
-		&& (strcmp(addlist->salt, mylist->salt) == 0))
+		&& (memcmp(addlist->salt, mylist->salt,salt_size) == 0))
 	        flag = 1;
 	        addlist = addlist->next;
 	    }
@@ -330,7 +330,7 @@ static void thread_attack_worker_nonlinear_bruteforce(int self)
 		while (addlist)
 		{
 	    	    if ( (strcmp(addlist->username, mylist->username) == 0) && (strcmp(addlist->hash, mylist->hash) == 0)
-			&& (strcmp(addlist->salt, mylist->salt) == 0))
+			&& (memcmp(addlist->salt, mylist->salt,salt_size) == 0))
 		    flag = 1;
 		    addlist = addlist->next;
 		}
@@ -511,7 +511,7 @@ static void thread_attack_worker_nonlinear_markov(int self)
 		while (addlist)
 		{
 	    	    if ( (strcmp(addlist->username, mylist->username) == 0) && (strcmp(addlist->hash, mylist->hash) == 0)
-			&& (strcmp(addlist->salt, mylist->salt) == 0))
+			&& (memcmp(addlist->salt, mylist->salt,salt_size) == 0))
 		    flag = 1;
 		    addlist = addlist->next;
 		}

@@ -432,7 +432,6 @@ w12=x12;
 w13=x13;
 w14=size;
 
-w14=SIZE;  
 
 AC = (uint)0x5a827999; 
 AD = (uint)0x6ed9eba1; 

@@ -553,8 +553,6 @@ verifier+=(c^(uint)salt.sB);
 }
 
 
-
-
 found[0] = 1;
 found_ind[get_global_id(0)] = 1;
 verifier+=(uint)(1);

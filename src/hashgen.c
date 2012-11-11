@@ -1579,6 +1579,9 @@ void rule_gen_parse(char *rulefile, finalfn_t callback, int max, int self)
     {
 	while ((attack_current_count<attack_overall_count)&&(attack_over==0)) usleep(1000);
 	node_wait_queues();
+	/* Block if it is to be added */
+	pthread_mutex_lock(&crackedmutex);
+	pthread_mutex_unlock(&crackedmutex);
     }
     attack_over=2;
 }
