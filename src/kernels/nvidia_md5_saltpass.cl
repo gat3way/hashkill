@@ -1,44 +1,129 @@
 #define rotate(a,b) ((a) << (b)) + ((a) >> (32-(b)))
-
-
 #define GGI (get_global_id(0))
 #define GLI (get_local_id(0))
 
 #define SET_AB(ai1,ai2,ii1,ii2) { \
     elem=ii1>>2; \
-    temp1=(ii1&3)<<3; \
-    ai1[elem] = ai1[elem]|(ai2<<(temp1)); \
-    ai1[elem+1] = (temp1==0) ? 0 : ai2>>(32-temp1);\
+    t1=(ii1&3)<<3; \
+    ai1[elem] = ai1[elem]|(ai2<<(t1)); \
+    ai1[elem+1] = (t1==0) ? 0 : ai2>>(32-t1);\
     }
 
 
+
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str, uint16 salt)
+md5_saltpass( __global uint4 *dst,  __global uint *inp, __global uint *sizein,  __global uint *found_ind,  __global uint *found,  uint4 singlehash, uint16 salt, uint16 str, uint16 str1) 
 {
-__local uint inpc[64][17];
-uint SIZE;
-uint elem,temp1;
 
+uint4 mCa= (uint4)0x67452301;
+uint4 mCb= (uint4)0xefcdab89;
+uint4 mCc= (uint4)0x98badcfe;
+uint4 mCd= (uint4)0x10325476;
+uint4 S11= (uint4)7; 
+uint4 S12= (uint4)12;
+uint4 S13= (uint4)17;
+uint4 S14= (uint4)22;
+uint4 S21= (uint4)5; 
+uint4 S22= (uint4)9; 
+uint4 S23= (uint4)14;
+uint4 S24= (uint4)20;
+uint4 S31= (uint4)4; 
+uint4 S32= (uint4)11;
+uint4 S33= (uint4)16;
+uint4 S34= (uint4)23;
+uint4 S41= (uint4)6; 
+uint4 S42= (uint4)10;
+uint4 S43= (uint4)15;
+uint4 S44= (uint4)21;
 
-inpc[GLI][0] = 0;
-inpc[GLI][1] = 0;
-inpc[GLI][2] = 0;
-inpc[GLI][3] = 0;
-inpc[GLI][4] = 0;
-inpc[GLI][5] = 0;
-inpc[GLI][6] = 0;
-inpc[GLI][7] = 0;
-inpc[GLI][8] = 0;
-inpc[GLI][9] = 0;
-inpc[GLI][10] = 0;
-inpc[GLI][11] = 0;
-inpc[GLI][12] = 0;
-inpc[GLI][13] = 0;
+uint4 mAC1 = (uint4)0xd76aa478; 
+uint4 mAC2 = (uint4)0xe8c7b756; 
+uint4 mAC3 = (uint4)0x242070db; 
+uint4 mAC4 = (uint4)0xc1bdceee; 
+uint4 mAC5 = (uint4)0xf57c0faf; 
+uint4 mAC6 = (uint4)0x4787c62a; 
+uint4 mAC7 = (uint4)0xa8304613; 
+uint4 mAC8 = (uint4)0xfd469501; 
+uint4 mAC9 = (uint4)0x698098d8; 
+uint4 mAC10= (uint4)0x8b44f7af; 
+uint4 mAC11= (uint4)0xffff5bb1; 
+uint4 mAC12= (uint4)0x895cd7be; 
+uint4 mAC13= (uint4)0x6b901122; 
+uint4 mAC14= (uint4)0xfd987193; 
+uint4 mAC15= (uint4)0xa679438e; 
+uint4 mAC16= (uint4)0x49b40821; 
+uint4 mAC17= (uint4)0xf61e2562; 
+uint4 mAC18= (uint4)0xc040b340; 
+uint4 mAC19= (uint4)0x265e5a51; 
+uint4 mAC20= (uint4)0xe9b6c7aa; 
+uint4 mAC21= (uint4)0xd62f105d; 
+uint4 mAC22= (uint4)0x02441453; 
+uint4 mAC23= (uint4)0xd8a1e681; 
+uint4 mAC24= (uint4)0xe7d3fbc8; 
+uint4 mAC25= (uint4)0x21e1cde6; 
+uint4 mAC26= (uint4)0xc33707d6; 
+uint4 mAC27= (uint4)0xf4d50d87; 
+uint4 mAC28= (uint4)0x455a14ed; 
+uint4 mAC29= (uint4)0xa9e3e905; 
+uint4 mAC30= (uint4)0xfcefa3f8; 
+uint4 mAC31= (uint4)0x676f02d9; 
+uint4 mAC32= (uint4)0x8d2a4c8a; 
+uint4 mAC33= (uint4)0xfffa3942; 
+uint4 mAC34= (uint4)0x8771f681; 
+uint4 mAC35= (uint4)0x6d9d6122; 
+uint4 mAC36= (uint4)0xfde5380c; 
+uint4 mAC37= (uint4)0xa4beea44; 
+uint4 mAC38= (uint4)0x4bdecfa9; 
+uint4 mAC39= (uint4)0xf6bb4b60; 
+uint4 mAC40= (uint4)0xbebfbc70; 
+uint4 mAC41= (uint4)0x289b7ec6; 
+uint4 mAC42= (uint4)0xeaa127fa; 
+uint4 mAC43= (uint4)0xd4ef3085; 
+uint4 mAC44= (uint4)0x04881d05; 
+uint4 mAC45= (uint4)0xd9d4d039; 
+uint4 mAC46= (uint4)0xe6db99e5; 
+uint4 mAC47= (uint4)0x1fa27cf8; 
+uint4 mAC48= (uint4)0xc4ac5665; 
+uint4 mAC49= (uint4)0xf4292244; 
+uint4 mAC50= (uint4)0x432aff97; 
+uint4 mAC51= (uint4)0xab9423a7; 
+uint4 mAC52= (uint4)0xfc93a039; 
+uint4 mAC53= (uint4)0x655b59c3; 
+uint4 mAC54= (uint4)0x8f0ccc92; 
+uint4 mAC55= (uint4)0xffeff47d; 
+uint4 mAC56= (uint4)0x85845dd1; 
+uint4 mAC57= (uint4)0x6fa87e4f; 
+uint4 mAC58= (uint4)0xfe2ce6e0; 
+uint4 mAC59= (uint4)0xa3014314; 
+uint4 mAC60= (uint4)0x4e0811a1; 
+uint4 mAC61= (uint4)0xf7537e82; 
+uint4 mAC62= (uint4)0xbd3af235; 
+uint4 mAC63= (uint4)0x2ad7d2bb; 
+uint4 mAC64= (uint4)0xeb86d391; 
+uint4 SIZE;  
+uint i,ib,ic,id,ie;  
+uint4 a,b,c,d, tmp1, tmp2; 
+uint4 x0,x1,x2,x3; 
+uint4 x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,temp; 
+uint elem,t1;
+__local uint inpc[64][24];
+uint w0,w1,w2,w3,w4,w5,w6,w7;
 
+id=get_global_id(0);
+SIZE=(uint4)sizein[GGI];
+w0 = inp[GGI*8+0];
+w1 = inp[GGI*8+1];
+w2 = inp[GGI*8+2];
+w3 = inp[GGI*8+3];
+w4 = inp[GGI*8+4];
+w5 = inp[GGI*8+5];
+w6 = inp[GGI*8+6];
+w7 = inp[GGI*8+7];
 
-SIZE=sizein[GGI];
-size[GGI] = (SIZE+salt.sF+str.sF)<<3;
-
+inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=inpc[GLI][5]=0;
+inpc[GLI][6]=inpc[GLI][7]==0;
+inpc[GLI][8]=inpc[GLI][9]=inpc[GLI][10]=inpc[GLI][11]=inpc[GLI][12]=inpc[GLI][13]=0;
+if ((SIZE.s0+str.sC+salt.sF)>56) {SIZE.s0=(uint)0;}
 SET_AB(inpc[GLI],salt.s0,0,0);
 SET_AB(inpc[GLI],salt.s1,4,0);
 SET_AB(inpc[GLI],salt.s2,8,0);
@@ -47,191 +132,169 @@ SET_AB(inpc[GLI],salt.s4,16,0);
 SET_AB(inpc[GLI],salt.s5,20,0);
 SET_AB(inpc[GLI],salt.s6,24,0);
 SET_AB(inpc[GLI],salt.s7,28,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+0],salt.sF,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+1],salt.sF+4,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+2],salt.sF+8,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+3],salt.sF+12,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+4],salt.sF+16,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+5],salt.sF+20,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+6],salt.sF+24,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+7],salt.sF+28,0);
-SET_AB(inpc[GLI],str.s0,salt.sF+SIZE,0);
-SET_AB(inpc[GLI],str.s1,salt.sF+SIZE+4,0);
-SET_AB(inpc[GLI],str.s2,salt.sF+SIZE+8,0);
-SET_AB(inpc[GLI],str.s3,salt.sF+SIZE+12,0);
-SET_AB(inpc[GLI],0x80,salt.sF+SIZE+str.sF,0);
-
-
-dst[GGI*14+0] = inpc[GLI][0];
-dst[GGI*14+1] = inpc[GLI][1];
-dst[GGI*14+2] = inpc[GLI][2];
-dst[GGI*14+3] = inpc[GLI][3];
-dst[GGI*14+4] = inpc[GLI][4];
-dst[GGI*14+5] = inpc[GLI][5];
-dst[GGI*14+6] = inpc[GLI][6];
-dst[GGI*14+7] = inpc[GLI][7];
-dst[GGI*14+8] = inpc[GLI][8];
-dst[GGI*14+9] = inpc[GLI][9];
-dst[GGI*14+10] = inpc[GLI][10];
-dst[GGI*14+11] = inpc[GLI][11];
-dst[GGI*14+12] = inpc[GLI][12];
-dst[GGI*14+13] = inpc[GLI][13];
-
-}
+SET_AB(inpc[GLI],w0,salt.sF,0);
+SET_AB(inpc[GLI],w1,salt.sF+4,0);
+SET_AB(inpc[GLI],w2,salt.sF+8,0);
+SET_AB(inpc[GLI],w3,salt.sF+12,0);
+SET_AB(inpc[GLI],w4,salt.sF+16,0);
+SET_AB(inpc[GLI],w5,salt.sF+20,0);
+SET_AB(inpc[GLI],w6,salt.sF+24,0);
+SET_AB(inpc[GLI],w7,salt.sF+28,0);
+SET_AB(inpc[GLI],str.s0,salt.sF+SIZE.s0,0);
+SET_AB(inpc[GLI],str.s1,salt.sF+SIZE.s0+4,0);
+SET_AB(inpc[GLI],str.s2,salt.sF+SIZE.s0+8,0);
+SET_AB(inpc[GLI],str.s3,salt.sF+SIZE.s0+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s0+str.sC+salt.sF),0);
+SIZE.s0 = (SIZE.s0+str.sC+salt.sF)<<3;
+x0.s0=inpc[GLI][0];
+x1.s0=inpc[GLI][1];
+x2.s0=inpc[GLI][2];
+x3.s0=inpc[GLI][3];
+x4.s0=inpc[GLI][4];
+x5.s0=inpc[GLI][5];
+x6.s0=inpc[GLI][6];
+x7.s0=inpc[GLI][7];
+x8.s0=inpc[GLI][8];
+x9.s0=inpc[GLI][9];
+x10.s0=inpc[GLI][10];
+x11.s0=inpc[GLI][11];
+x12.s0=inpc[GLI][12];
+x13.s0=inpc[GLI][13];
 
 
 
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-md5_saltpass( __global uint4 *dst,  __global uint *input, __global uint *size,  __global uint *found_ind,  __global uint *found,  uint4 singlehash, uint16 salt) 
-{
-
-uint mCa= (uint)0x67452301;
-uint mCb= (uint)0xefcdab89;
-uint mCc= (uint)0x98badcfe;
-uint mCd= (uint)0x10325476;
-uint S11= (uint)7; 
-uint S12= (uint)12;
-uint S13= (uint)17;
-uint S14= (uint)22;
-uint S21= (uint)5; 
-uint S22= (uint)9; 
-uint S23= (uint)14;
-uint S24= (uint)20;
-uint S31= (uint)4; 
-uint S32= (uint)11;
-uint S33= (uint)16;
-uint S34= (uint)23;
-uint S41= (uint)6; 
-uint S42= (uint)10;
-uint S43= (uint)15;
-uint S44= (uint)21;
-
-uint mAC1 = (uint)0xd76aa478; 
-uint mAC2 = (uint)0xe8c7b756; 
-uint mAC3 = (uint)0x242070db; 
-uint mAC4 = (uint)0xc1bdceee; 
-uint mAC5 = (uint)0xf57c0faf; 
-uint mAC6 = (uint)0x4787c62a; 
-uint mAC7 = (uint)0xa8304613; 
-uint mAC8 = (uint)0xfd469501; 
-uint mAC9 = (uint)0x698098d8; 
-uint mAC10= (uint)0x8b44f7af; 
-uint mAC11= (uint)0xffff5bb1; 
-uint mAC12= (uint)0x895cd7be; 
-uint mAC13= (uint)0x6b901122; 
-uint mAC14= (uint)0xfd987193; 
-uint mAC15= (uint)0xa679438e; 
-uint mAC16= (uint)0x49b40821; 
-uint mAC17= (uint)0xf61e2562; 
-uint mAC18= (uint)0xc040b340; 
-uint mAC19= (uint)0x265e5a51; 
-uint mAC20= (uint)0xe9b6c7aa; 
-uint mAC21= (uint)0xd62f105d; 
-uint mAC22= (uint)0x02441453; 
-uint mAC23= (uint)0xd8a1e681; 
-uint mAC24= (uint)0xe7d3fbc8; 
-uint mAC25= (uint)0x21e1cde6; 
-uint mAC26= (uint)0xc33707d6; 
-uint mAC27= (uint)0xf4d50d87; 
-uint mAC28= (uint)0x455a14ed; 
-uint mAC29= (uint)0xa9e3e905; 
-uint mAC30= (uint)0xfcefa3f8; 
-uint mAC31= (uint)0x676f02d9; 
-uint mAC32= (uint)0x8d2a4c8a; 
-uint mAC33= (uint)0xfffa3942; 
-uint mAC34= (uint)0x8771f681; 
-uint mAC35= (uint)0x6d9d6122; 
-uint mAC36= (uint)0xfde5380c; 
-uint mAC37= (uint)0xa4beea44; 
-uint mAC38= (uint)0x4bdecfa9; 
-uint mAC39= (uint)0xf6bb4b60; 
-uint mAC40= (uint)0xbebfbc70; 
-uint mAC41= (uint)0x289b7ec6; 
-uint mAC42= (uint)0xeaa127fa; 
-uint mAC43= (uint)0xd4ef3085; 
-uint mAC44= (uint)0x04881d05; 
-uint mAC45= (uint)0xd9d4d039; 
-uint mAC46= (uint)0xe6db99e5; 
-uint mAC47= (uint)0x1fa27cf8; 
-uint mAC48= (uint)0xc4ac5665; 
-uint mAC49= (uint)0xf4292244; 
-uint mAC50= (uint)0x432aff97; 
-uint mAC51= (uint)0xab9423a7; 
-uint mAC52= (uint)0xfc93a039; 
-uint mAC53= (uint)0x655b59c3; 
-uint mAC54= (uint)0x8f0ccc92; 
-uint mAC55= (uint)0xffeff47d; 
-uint mAC56= (uint)0x85845dd1; 
-uint mAC57= (uint)0x6fa87e4f; 
-uint mAC58= (uint)0xfe2ce6e0; 
-uint mAC59= (uint)0xa3014314; 
-uint mAC60= (uint)0x4e0811a1; 
-uint mAC61= (uint)0xf7537e82; 
-uint mAC62= (uint)0xbd3af235; 
-uint mAC63= (uint)0x2ad7d2bb; 
-uint mAC64= (uint)0xeb86d391; 
+inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=inpc[GLI][5]=0;
+inpc[GLI][6]=inpc[GLI][7]==0;
+inpc[GLI][8]=inpc[GLI][9]=inpc[GLI][10]=inpc[GLI][11]=inpc[GLI][12]=inpc[GLI][13]=0;
+if ((SIZE.s1+str.sD+salt.sF)>56) {SIZE.s1=(uint)0;}
+SET_AB(inpc[GLI],salt.s0,0,0);
+SET_AB(inpc[GLI],salt.s1,4,0);
+SET_AB(inpc[GLI],salt.s2,8,0);
+SET_AB(inpc[GLI],salt.s3,12,0);
+SET_AB(inpc[GLI],salt.s4,16,0);
+SET_AB(inpc[GLI],salt.s5,20,0);
+SET_AB(inpc[GLI],salt.s6,24,0);
+SET_AB(inpc[GLI],salt.s7,28,0);
+SET_AB(inpc[GLI],w0,salt.sF,0);
+SET_AB(inpc[GLI],w1,salt.sF+4,0);
+SET_AB(inpc[GLI],w2,salt.sF+8,0);
+SET_AB(inpc[GLI],w3,salt.sF+12,0);
+SET_AB(inpc[GLI],w4,salt.sF+16,0);
+SET_AB(inpc[GLI],w5,salt.sF+20,0);
+SET_AB(inpc[GLI],w6,salt.sF+24,0);
+SET_AB(inpc[GLI],w7,salt.sF+28,0);
+SET_AB(inpc[GLI],str.s4,salt.sF+SIZE.s1,0);
+SET_AB(inpc[GLI],str.s5,salt.sF+SIZE.s1+4,0);
+SET_AB(inpc[GLI],str.s6,salt.sF+SIZE.s1+8,0);
+SET_AB(inpc[GLI],str.s7,salt.sF+SIZE.s1+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s1+str.sD+salt.sF),0);
+x0.s1=inpc[GLI][0];
+x1.s1=inpc[GLI][1];
+x2.s1=inpc[GLI][2];
+x3.s1=inpc[GLI][3];
+x4.s1=inpc[GLI][4];
+x5.s1=inpc[GLI][5];
+x6.s1=inpc[GLI][6];
+x7.s1=inpc[GLI][7];
+x8.s1=inpc[GLI][8];
+x9.s1=inpc[GLI][9];
+x10.s1=inpc[GLI][10];
+x11.s1=inpc[GLI][11];
+x12.s1=inpc[GLI][12];
+x13.s1=inpc[GLI][13];
+SIZE.s1 = (SIZE.s1+str.sD+salt.sF)<<3;
 
 
-uint SIZE;  
-uint i,ib,ic,id,ie;  
-uint t1,t2,t3;
-uint a,b,c,d, tmp1, tmp2; 
-uint x0,x1,x2,x3; 
-uint x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,temp; 
-uint x[14];
-uint temp1, elem;
+inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=inpc[GLI][5]=0;
+inpc[GLI][6]=inpc[GLI][7]==0;
+inpc[GLI][8]=inpc[GLI][9]=inpc[GLI][10]=inpc[GLI][11]=inpc[GLI][12]=inpc[GLI][13]=0;
+if ((SIZE.s2+str.sE+salt.sF)>56) {SIZE.s2=(uint)0;}
+SET_AB(inpc[GLI],salt.s0,0,0);
+SET_AB(inpc[GLI],salt.s1,4,0);
+SET_AB(inpc[GLI],salt.s2,8,0);
+SET_AB(inpc[GLI],salt.s3,12,0);
+SET_AB(inpc[GLI],salt.s4,16,0);
+SET_AB(inpc[GLI],salt.s5,20,0);
+SET_AB(inpc[GLI],salt.s6,24,0);
+SET_AB(inpc[GLI],salt.s7,28,0);
+SET_AB(inpc[GLI],w0,salt.sF,0);
+SET_AB(inpc[GLI],w1,salt.sF+4,0);
+SET_AB(inpc[GLI],w2,salt.sF+8,0);
+SET_AB(inpc[GLI],w3,salt.sF+12,0);
+SET_AB(inpc[GLI],w4,salt.sF+16,0);
+SET_AB(inpc[GLI],w5,salt.sF+20,0);
+SET_AB(inpc[GLI],w6,salt.sF+24,0);
+SET_AB(inpc[GLI],w7,salt.sF+28,0);
+SET_AB(inpc[GLI],str.s8,salt.sF+SIZE.s2,0);
+SET_AB(inpc[GLI],str.s9,salt.sF+SIZE.s2+4,0);
+SET_AB(inpc[GLI],str.sA,salt.sF+SIZE.s2+8,0);
+SET_AB(inpc[GLI],str.sB,salt.sF+SIZE.s2+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s2+str.sE+salt.sF),0);
+x0.s2=inpc[GLI][0];
+x1.s2=inpc[GLI][1];
+x2.s2=inpc[GLI][2];
+x3.s2=inpc[GLI][3];
+x4.s2=inpc[GLI][4];
+x5.s2=inpc[GLI][5];
+x6.s2=inpc[GLI][6];
+x7.s2=inpc[GLI][7];
+x8.s2=inpc[GLI][8];
+x9.s2=inpc[GLI][9];
+x10.s2=inpc[GLI][10];
+x11.s2=inpc[GLI][11];
+x12.s2=inpc[GLI][12];
+x13.s2=inpc[GLI][13];
+SIZE.s2 = (SIZE.s2+str.sE+salt.sF)<<3;
 
-id=get_global_id(0);
-SIZE=(size[id]); 
 
-
-x[0]=input[id*14];
-x[1]=input[id*14+1];
-x[2]=input[id*14+2];
-x[3]=input[id*14+3];
-x[4]=input[id*14+4];
-x[5]=input[id*14+5];
-x[6]=input[id*14+6];
-x[7]=input[id*14+7];
-x[8]=input[id*14+8];
-x[9]=input[id*14+9];
-x[10]=input[id*14+10];
-x[11]=input[id*14+11];
-x[12]=input[id*14+12];
-x[13]=input[id*14+13];
-
-
-x0=x[0];
-x1=x[1];
-x2=x[2];
-x3=x[3];
-x4=x[4];
-x5=x[5];
-x6=x[6];
-x7=x[7];
-x8=x[8];
-x9=x[9];
-x10=x[10];
-x11=x[11];
-x12=x[12];
-x13=x[13];
-
+inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=inpc[GLI][5]=0;
+inpc[GLI][6]=inpc[GLI][7]==0;
+inpc[GLI][8]=inpc[GLI][9]=inpc[GLI][10]=inpc[GLI][11]=inpc[GLI][12]=inpc[GLI][13]=0;
+if ((SIZE.s3+str1.sC+salt.sF)>56) {SIZE.s3=(uint)0;}
+SET_AB(inpc[GLI],salt.s0,0,0);
+SET_AB(inpc[GLI],salt.s1,4,0);
+SET_AB(inpc[GLI],salt.s2,8,0);
+SET_AB(inpc[GLI],salt.s3,12,0);
+SET_AB(inpc[GLI],salt.s4,16,0);
+SET_AB(inpc[GLI],salt.s5,20,0);
+SET_AB(inpc[GLI],salt.s6,24,0);
+SET_AB(inpc[GLI],salt.s7,28,0);
+SET_AB(inpc[GLI],w0,salt.sF,0);
+SET_AB(inpc[GLI],w1,salt.sF+4,0);
+SET_AB(inpc[GLI],w2,salt.sF+8,0);
+SET_AB(inpc[GLI],w3,salt.sF+12,0);
+SET_AB(inpc[GLI],w4,salt.sF+16,0);
+SET_AB(inpc[GLI],w5,salt.sF+20,0);
+SET_AB(inpc[GLI],w6,salt.sF+24,0);
+SET_AB(inpc[GLI],w7,salt.sF+28,0);
+SET_AB(inpc[GLI],str1.s0,salt.sF+SIZE.s3,0);
+SET_AB(inpc[GLI],str1.s1,salt.sF+SIZE.s3+4,0);
+SET_AB(inpc[GLI],str1.s2,salt.sF+SIZE.s3+8,0);
+SET_AB(inpc[GLI],str1.s3,salt.sF+SIZE.s3+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s3+str1.sC+salt.sF),0);
+x0.s3=inpc[GLI][0];
+x1.s3=inpc[GLI][1];
+x2.s3=inpc[GLI][2];
+x3.s3=inpc[GLI][3];
+x4.s3=inpc[GLI][4];
+x5.s3=inpc[GLI][5];
+x6.s3=inpc[GLI][6];
+x7.s3=inpc[GLI][7];
+x8.s3=inpc[GLI][8];
+x9.s3=inpc[GLI][9];
+x10.s3=inpc[GLI][10];
+x11.s3=inpc[GLI][11];
+x12.s3=inpc[GLI][12];
+x13.s3=inpc[GLI][13];
+SIZE.s3 = (SIZE.s3+str1.sC+salt.sF)<<3;
 
 
 a = mCa; b = mCb; c = mCc; d = mCd;
 id=0;
-#ifndef OLD_ATI
-#define MD5STEP_ROUND1(a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((d),(c),(b));(a) = rotate(a,s)+(b);
-#define MD5STEP_ROUND1_NULL(a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((d),(c),(b));(a) = rotate(a,s)+(b);
-#define MD5STEP_ROUND2(a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((c),(b),(d));(a) = rotate(a,s)+(b);
-#define MD5STEP_ROUND2_NULL(a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((c),(b),(d)); (a) = rotate(a,s)+(b);
-#else
 #define MD5STEP_ROUND1(a, b, c, d, AC, x, s)  tmp1 = (c)^(d);tmp1 = tmp1 & (b);tmp1 = tmp1 ^ (d);(a) = (a)+(tmp1); (a) = (a) + (AC);(a) = (a)+(x);(a) = rotate(a,s);(a) = (a)+(b);  
 #define MD5STEP_ROUND1_NULL(a, b, c, d, AC, s)  tmp1 = (c)^(d); tmp1 = tmp1&(b); tmp1 = tmp1^(d);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);  
 #define MD5STEP_ROUND2(a, b, c, d, AC, x, s)  tmp1 = (b) ^ (c); tmp1 = tmp1 & (d); tmp1 = tmp1 ^ (c);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = (a)+(x); (a) = rotate(a,s); (a) = (a)+(b);
 #define MD5STEP_ROUND2_NULL(a, b, c, d, AC, s)  tmp1 = (b) ^ (c);tmp1 = tmp1 & (d);tmp1 = tmp1 ^ (c);(a) = (a)+tmp1;(a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);
-#endif
 
 MD5STEP_ROUND1(a, b, c, d, mAC1, x0, S11);  
 MD5STEP_ROUND1(d, a, b, c, mAC2, x1, S12);  
@@ -313,15 +376,18 @@ MD5STEP_ROUND4 (b, c, d, a, mAC64, x9, S44);
 
 a=a+mCa;b=b+mCb;c=c+mCc;d=d+mCd;
 
-if (((uint)singlehash.x!=a)) return;
-if (((uint)singlehash.y!=b)) return;
+if (all((uint4)singlehash.x!=a)) return;
+if (all((uint4)singlehash.y!=b)) return;
 
 
 found[0] = 1;
 found_ind[get_global_id(0)] = 1;
 
 
-dst[(get_global_id(0))] = (uint4)(a,b,c,d);
+dst[(get_global_id(0)<<2)] = (uint4)(a.s0,b.s0,c.s0,d.s0);
+dst[(get_global_id(0)<<2)+1] = (uint4)(a.s1,b.s1,c.s1,d.s1);
+dst[(get_global_id(0)<<2)+2] = (uint4)(a.s2,b.s2,c.s2,d.s2);
+dst[(get_global_id(0)<<2)+3] = (uint4)(a.s3,b.s3,c.s3,d.s3);
 
 }
 

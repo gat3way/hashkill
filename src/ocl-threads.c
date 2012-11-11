@@ -401,6 +401,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"md5md5")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"mysql5")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"joomla")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"oscommerce")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"nsldap")==0)) ocl_vector=4;
 	    }
 

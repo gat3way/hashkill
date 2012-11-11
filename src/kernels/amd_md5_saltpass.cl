@@ -3,87 +3,15 @@
 
 #define SET_AB(ai1,ai2,ii1,ii2) { \
     elem=ii1>>2; \
-    temp1=(ii1&3)<<3; \
-    ai1[elem] = ai1[elem]|(ai2<<(temp1)); \
-    ai1[elem+1] = (temp1==0) ? 0 : ai2>>(32-temp1);\
+    t1=(ii1&3)<<3; \
+    ai1[elem] = ai1[elem]|(ai2<<(t1)); \
+    ai1[elem+1] = (t1==0) ? 0 : ai2>>(32-t1);\
     }
 
 
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str, uint16 salt)
-{
-__local uint inpc[64][17];
-uint SIZE;
-uint elem,temp1;
-
-
-inpc[GLI][0] = 0;
-inpc[GLI][1] = 0;
-inpc[GLI][2] = 0;
-inpc[GLI][3] = 0;
-inpc[GLI][4] = 0;
-inpc[GLI][5] = 0;
-inpc[GLI][6] = 0;
-inpc[GLI][7] = 0;
-inpc[GLI][8] = 0;
-inpc[GLI][9] = 0;
-inpc[GLI][10] = 0;
-inpc[GLI][11] = 0;
-inpc[GLI][12] = 0;
-inpc[GLI][13] = 0;
-
-
-SIZE=sizein[GGI];
-size[GGI] = (SIZE+salt.sF+str.sF)<<3;
-
-SET_AB(inpc[GLI],salt.s0,0,0);
-SET_AB(inpc[GLI],salt.s1,4,0);
-SET_AB(inpc[GLI],salt.s2,8,0);
-SET_AB(inpc[GLI],salt.s3,12,0);
-SET_AB(inpc[GLI],salt.s4,16,0);
-SET_AB(inpc[GLI],salt.s5,20,0);
-SET_AB(inpc[GLI],salt.s6,24,0);
-SET_AB(inpc[GLI],salt.s7,28,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+0],salt.sF,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+1],salt.sF+4,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+2],salt.sF+8,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+3],salt.sF+12,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+4],salt.sF+16,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+5],salt.sF+20,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+6],salt.sF+24,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+7],salt.sF+28,0);
-SET_AB(inpc[GLI],str.s0,salt.sF+SIZE,0);
-SET_AB(inpc[GLI],str.s1,salt.sF+SIZE+4,0);
-SET_AB(inpc[GLI],str.s2,salt.sF+SIZE+8,0);
-SET_AB(inpc[GLI],str.s3,salt.sF+SIZE+12,0);
-SET_AB(inpc[GLI],0x80,salt.sF+SIZE+str.sF,0);
-
-
-dst[GGI*14+0] = inpc[GLI][0];
-dst[GGI*14+1] = inpc[GLI][1];
-dst[GGI*14+2] = inpc[GLI][2];
-dst[GGI*14+3] = inpc[GLI][3];
-dst[GGI*14+4] = inpc[GLI][4];
-dst[GGI*14+5] = inpc[GLI][5];
-dst[GGI*14+6] = inpc[GLI][6];
-dst[GGI*14+7] = inpc[GLI][7];
-dst[GGI*14+8] = inpc[GLI][8];
-dst[GGI*14+9] = inpc[GLI][9];
-dst[GGI*14+10] = inpc[GLI][10];
-dst[GGI*14+11] = inpc[GLI][11];
-dst[GGI*14+12] = inpc[GLI][12];
-dst[GGI*14+13] = inpc[GLI][13];
-
-}
-
-
-
-#ifndef OLD_ATI
-#pragma OPENCL EXTENSION cl_amd_media_ops : enable
-#endif
 
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-md5_saltpass( __global uint4 *dst,  __global uint *input, __global uint *size,  __global uint *found_ind,  __global uint *found,  uint4 singlehash, uint16 salt) 
+md5_saltpass( __global uint4 *dst,  __global uint *inp, __global uint *sizein,  __global uint *found_ind,  __global uint *found,  uint4 singlehash, uint16 salt, uint16 str, uint16 str1) 
 {
 
 uint4 mCa= (uint4)0x67452301;
@@ -171,101 +99,189 @@ uint4 mAC61= (uint4)0xf7537e82;
 uint4 mAC62= (uint4)0xbd3af235; 
 uint4 mAC63= (uint4)0x2ad7d2bb; 
 uint4 mAC64= (uint4)0xeb86d391; 
-
-
 uint4 SIZE;  
 uint i,ib,ic,id,ie;  
-uint4 t1,t2,t3;
 uint4 a,b,c,d, tmp1, tmp2; 
 uint4 x0,x1,x2,x3; 
 uint4 x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,temp; 
-uint4 x[14];
-uint temp1, elem;
+uint elem,t1;
+__local uint inpc[64][14];
+uint w0,w1,w2,w3,w4,w5,w6,w7;
 
 id=get_global_id(0);
-SIZE.s0=(size[id*4]); 
-SIZE.s1=(size[id*4+1]); 
-SIZE.s2=(size[id*4+2]); 
-SIZE.s3=(size[id*4+3]); 
+SIZE=(uint4)sizein[GGI];
+w0 = inp[GGI*8+0];
+w1 = inp[GGI*8+1];
+w2 = inp[GGI*8+2];
+w3 = inp[GGI*8+3];
+w4 = inp[GGI*8+4];
+w5 = inp[GGI*8+5];
+w6 = inp[GGI*8+6];
+w7 = inp[GGI*8+7];
 
-
-x[0].s0=input[id*4*14];
-x[1].s0=input[id*4*14+1];
-x[2].s0=input[id*4*14+2];
-x[3].s0=input[id*4*14+3];
-x[4].s0=input[id*4*14+4];
-x[5].s0=input[id*4*14+5];
-x[6].s0=input[id*4*14+6];
-x[7].s0=input[id*4*14+7];
-x[8].s0=input[id*4*14+8];
-x[9].s0=input[id*4*14+9];
-x[10].s0=input[id*4*14+10];
-x[11].s0=input[id*4*14+11];
-x[12].s0=input[id*4*14+12];
-x[13].s0=input[id*4*14+13];
-
-x[0].s1=input[id*4*14+14];
-x[1].s1=input[id*4*14+15];
-x[2].s1=input[id*4*14+16];
-x[3].s1=input[id*4*14+17];
-x[4].s1=input[id*4*14+18];
-x[5].s1=input[id*4*14+19];
-x[6].s1=input[id*4*14+20];
-x[7].s1=input[id*4*14+21];
-x[8].s1=input[id*4*14+22];
-x[9].s1=input[id*4*14+23];
-x[10].s1=input[id*4*14+24];
-x[11].s1=input[id*4*14+25];
-x[12].s1=input[id*4*14+26];
-x[13].s1=input[id*4*14+27];
-
-x[0].s2=input[id*4*14+28];
-x[1].s2=input[id*4*14+29];
-x[2].s2=input[id*4*14+30];
-x[3].s2=input[id*4*14+31];
-x[4].s2=input[id*4*14+32];
-x[5].s2=input[id*4*14+33];
-x[6].s2=input[id*4*14+34];
-x[7].s2=input[id*4*14+35];
-x[8].s2=input[id*4*14+36];
-x[9].s2=input[id*4*14+37];
-x[10].s2=input[id*4*14+38];
-x[11].s2=input[id*4*14+39];
-x[12].s2=input[id*4*14+40];
-x[13].s2=input[id*4*14+41];
-
-x[0].s3=input[id*4*14+42];
-x[1].s3=input[id*4*14+43];
-x[2].s3=input[id*4*14+44];
-x[3].s3=input[id*4*14+45];
-x[4].s3=input[id*4*14+46];
-x[5].s3=input[id*4*14+47];
-x[6].s3=input[id*4*14+48];
-x[7].s3=input[id*4*14+49];
-x[8].s3=input[id*4*14+50];
-x[9].s3=input[id*4*14+51];
-x[10].s3=input[id*4*14+52];
-x[11].s3=input[id*4*14+53];
-x[12].s3=input[id*4*14+54];
-x[13].s3=input[id*4*14+55];
+inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=inpc[GLI][5]=0;
+inpc[GLI][6]=inpc[GLI][7]==0;
+inpc[GLI][8]=inpc[GLI][9]=inpc[GLI][10]=inpc[GLI][11]=inpc[GLI][12]=inpc[GLI][13]=0;
+SET_AB(inpc[GLI],salt.s0,0,0);
+SET_AB(inpc[GLI],salt.s1,4,0);
+SET_AB(inpc[GLI],salt.s2,8,0);
+SET_AB(inpc[GLI],salt.s3,12,0);
+SET_AB(inpc[GLI],salt.s4,16,0);
+SET_AB(inpc[GLI],salt.s5,20,0);
+SET_AB(inpc[GLI],salt.s6,24,0);
+SET_AB(inpc[GLI],salt.s7,28,0);
+SET_AB(inpc[GLI],w0,salt.sF,0);
+SET_AB(inpc[GLI],w1,salt.sF+4,0);
+SET_AB(inpc[GLI],w2,salt.sF+8,0);
+SET_AB(inpc[GLI],w3,salt.sF+12,0);
+SET_AB(inpc[GLI],w4,salt.sF+16,0);
+SET_AB(inpc[GLI],w5,salt.sF+20,0);
+SET_AB(inpc[GLI],w6,salt.sF+24,0);
+SET_AB(inpc[GLI],w7,salt.sF+28,0);
+SET_AB(inpc[GLI],str.s0,salt.sF+SIZE.s0,0);
+SET_AB(inpc[GLI],str.s1,salt.sF+SIZE.s0+4,0);
+SET_AB(inpc[GLI],str.s2,salt.sF+SIZE.s0+8,0);
+SET_AB(inpc[GLI],str.s3,salt.sF+SIZE.s0+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s0+str.sC+salt.sF),0);
+SIZE.s0 = (SIZE.s0+str.sC+salt.sF)<<3;
+x0.s0=inpc[GLI][0];
+x1.s0=inpc[GLI][1];
+x2.s0=inpc[GLI][2];
+x3.s0=inpc[GLI][3];
+x4.s0=inpc[GLI][4];
+x5.s0=inpc[GLI][5];
+x6.s0=inpc[GLI][6];
+x7.s0=inpc[GLI][7];
+x8.s0=inpc[GLI][8];
+x9.s0=inpc[GLI][9];
+x10.s0=inpc[GLI][10];
+x11.s0=inpc[GLI][11];
+x12.s0=inpc[GLI][12];
+x13.s0=inpc[GLI][13];
 
 
 
-x0=x[0];
-x1=x[1];
-x2=x[2];
-x3=x[3];
-x4=x[4];
-x5=x[5];
-x6=x[6];
-x7=x[7];
-x8=x[8];
-x9=x[9];
-x10=x[10];
-x11=x[11];
-x12=x[12];
-x13=x[13];
+inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=inpc[GLI][5]=0;
+inpc[GLI][6]=inpc[GLI][7]==0;
+inpc[GLI][8]=inpc[GLI][9]=inpc[GLI][10]=inpc[GLI][11]=inpc[GLI][12]=inpc[GLI][13]=0;
+SET_AB(inpc[GLI],salt.s0,0,0);
+SET_AB(inpc[GLI],salt.s1,4,0);
+SET_AB(inpc[GLI],salt.s2,8,0);
+SET_AB(inpc[GLI],salt.s3,12,0);
+SET_AB(inpc[GLI],salt.s4,16,0);
+SET_AB(inpc[GLI],salt.s5,20,0);
+SET_AB(inpc[GLI],salt.s6,24,0);
+SET_AB(inpc[GLI],salt.s7,28,0);
+SET_AB(inpc[GLI],w0,salt.sF,0);
+SET_AB(inpc[GLI],w1,salt.sF+4,0);
+SET_AB(inpc[GLI],w2,salt.sF+8,0);
+SET_AB(inpc[GLI],w3,salt.sF+12,0);
+SET_AB(inpc[GLI],w4,salt.sF+16,0);
+SET_AB(inpc[GLI],w5,salt.sF+20,0);
+SET_AB(inpc[GLI],w6,salt.sF+24,0);
+SET_AB(inpc[GLI],w7,salt.sF+28,0);
+SET_AB(inpc[GLI],str.s4,salt.sF+SIZE.s0,0);
+SET_AB(inpc[GLI],str.s5,salt.sF+SIZE.s0+4,0);
+SET_AB(inpc[GLI],str.s6,salt.sF+SIZE.s0+8,0);
+SET_AB(inpc[GLI],str.s7,salt.sF+SIZE.s0+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s1+str.sD+salt.sF),0);
+x0.s1=inpc[GLI][0];
+x1.s1=inpc[GLI][1];
+x2.s1=inpc[GLI][2];
+x3.s1=inpc[GLI][3];
+x4.s1=inpc[GLI][4];
+x5.s1=inpc[GLI][5];
+x6.s1=inpc[GLI][6];
+x7.s1=inpc[GLI][7];
+x8.s1=inpc[GLI][8];
+x9.s1=inpc[GLI][9];
+x10.s1=inpc[GLI][10];
+x11.s1=inpc[GLI][11];
+x12.s1=inpc[GLI][12];
+x13.s1=inpc[GLI][13];
+SIZE.s1 = (SIZE.s1+str.sD+salt.sF)<<3;
 
+
+inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=inpc[GLI][5]=0;
+inpc[GLI][6]=inpc[GLI][7]==0;
+inpc[GLI][8]=inpc[GLI][9]=inpc[GLI][10]=inpc[GLI][11]=inpc[GLI][12]=inpc[GLI][13]=0;
+SET_AB(inpc[GLI],salt.s0,0,0);
+SET_AB(inpc[GLI],salt.s1,4,0);
+SET_AB(inpc[GLI],salt.s2,8,0);
+SET_AB(inpc[GLI],salt.s3,12,0);
+SET_AB(inpc[GLI],salt.s4,16,0);
+SET_AB(inpc[GLI],salt.s5,20,0);
+SET_AB(inpc[GLI],salt.s6,24,0);
+SET_AB(inpc[GLI],salt.s7,28,0);
+SET_AB(inpc[GLI],w0,salt.sF,0);
+SET_AB(inpc[GLI],w1,salt.sF+4,0);
+SET_AB(inpc[GLI],w2,salt.sF+8,0);
+SET_AB(inpc[GLI],w3,salt.sF+12,0);
+SET_AB(inpc[GLI],w4,salt.sF+16,0);
+SET_AB(inpc[GLI],w5,salt.sF+20,0);
+SET_AB(inpc[GLI],w6,salt.sF+24,0);
+SET_AB(inpc[GLI],w7,salt.sF+28,0);
+SET_AB(inpc[GLI],str.s8,salt.sF+SIZE.s0,0);
+SET_AB(inpc[GLI],str.s9,salt.sF+SIZE.s0+4,0);
+SET_AB(inpc[GLI],str.sA,salt.sF+SIZE.s0+8,0);
+SET_AB(inpc[GLI],str.sB,salt.sF+SIZE.s0+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s2+str.sE+salt.sF),0);
+x0.s2=inpc[GLI][0];
+x1.s2=inpc[GLI][1];
+x2.s2=inpc[GLI][2];
+x3.s2=inpc[GLI][3];
+x4.s2=inpc[GLI][4];
+x5.s2=inpc[GLI][5];
+x6.s2=inpc[GLI][6];
+x7.s2=inpc[GLI][7];
+x8.s2=inpc[GLI][8];
+x9.s2=inpc[GLI][9];
+x10.s2=inpc[GLI][10];
+x11.s2=inpc[GLI][11];
+x12.s2=inpc[GLI][12];
+x13.s2=inpc[GLI][13];
+SIZE.s2 = (SIZE.s2+str.sE+salt.sF)<<3;
+
+
+inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=inpc[GLI][5]=0;
+inpc[GLI][6]=inpc[GLI][7]==0;
+inpc[GLI][8]=inpc[GLI][9]=inpc[GLI][10]=inpc[GLI][11]=inpc[GLI][12]=inpc[GLI][13]=0;
+SET_AB(inpc[GLI],salt.s0,0,0);
+SET_AB(inpc[GLI],salt.s1,4,0);
+SET_AB(inpc[GLI],salt.s2,8,0);
+SET_AB(inpc[GLI],salt.s3,12,0);
+SET_AB(inpc[GLI],salt.s4,16,0);
+SET_AB(inpc[GLI],salt.s5,20,0);
+SET_AB(inpc[GLI],salt.s6,24,0);
+SET_AB(inpc[GLI],salt.s7,28,0);
+SET_AB(inpc[GLI],w0,salt.sF,0);
+SET_AB(inpc[GLI],w1,salt.sF+4,0);
+SET_AB(inpc[GLI],w2,salt.sF+8,0);
+SET_AB(inpc[GLI],w3,salt.sF+12,0);
+SET_AB(inpc[GLI],w4,salt.sF+16,0);
+SET_AB(inpc[GLI],w5,salt.sF+20,0);
+SET_AB(inpc[GLI],w6,salt.sF+24,0);
+SET_AB(inpc[GLI],w7,salt.sF+28,0);
+SET_AB(inpc[GLI],str1.s0,salt.sF+SIZE.s0,0);
+SET_AB(inpc[GLI],str1.s1,salt.sF+SIZE.s0+4,0);
+SET_AB(inpc[GLI],str1.s2,salt.sF+SIZE.s0+8,0);
+SET_AB(inpc[GLI],str1.s3,salt.sF+SIZE.s0+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s3+str1.sC+salt.sF),0);
+x0.s3=inpc[GLI][0];
+x1.s3=inpc[GLI][1];
+x2.s3=inpc[GLI][2];
+x3.s3=inpc[GLI][3];
+x4.s3=inpc[GLI][4];
+x5.s3=inpc[GLI][5];
+x6.s3=inpc[GLI][6];
+x7.s3=inpc[GLI][7];
+x8.s3=inpc[GLI][8];
+x9.s3=inpc[GLI][9];
+x10.s3=inpc[GLI][10];
+x11.s3=inpc[GLI][11];
+x12.s3=inpc[GLI][12];
+x13.s3=inpc[GLI][13];
+SIZE.s3 = (SIZE.s3+str1.sC+salt.sF)<<3;
 
 
 a = mCa; b = mCb; c = mCc; d = mCd;

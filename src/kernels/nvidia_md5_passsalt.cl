@@ -112,6 +112,7 @@ uint w0,w1,w2,w3,w4,w5,w6,w7;
 
 id=get_global_id(0);
 SIZE=(uint4)sizein[GGI];
+
 w0 = inp[GGI*8+0];
 w1 = inp[GGI*8+1];
 w2 = inp[GGI*8+2];
@@ -131,6 +132,7 @@ inpc[GLI][5]=w5;
 inpc[GLI][6]=w6;
 inpc[GLI][7]=w7;
 inpc[GLI][8]=inpc[GLI][9]=inpc[GLI][10]=inpc[GLI][11]=inpc[GLI][12]=inpc[GLI][13]=0;
+if (SIZE.s0+str.sC>24) {SIZE.s0=(uint)0;}
 SET_AB(inpc[GLI],str.s0,SIZE.s0,0);
 SET_AB(inpc[GLI],str.s1,SIZE.s0+4,0);
 SET_AB(inpc[GLI],str.s2,SIZE.s0+8,0);
@@ -169,6 +171,7 @@ inpc[GLI][5]=w5;
 inpc[GLI][6]=w6;
 inpc[GLI][7]=w7;
 inpc[GLI][8]=inpc[GLI][9]=inpc[GLI][10]=inpc[GLI][11]=inpc[GLI][12]=inpc[GLI][13]=0;
+if (SIZE.s1+str.sD>24) {SIZE.s1=(uint)0;}
 SET_AB(inpc[GLI],str.s4,SIZE.s1,0);
 SET_AB(inpc[GLI],str.s5,SIZE.s1+4,0);
 SET_AB(inpc[GLI],str.s6,SIZE.s1+8,0);
@@ -207,6 +210,7 @@ inpc[GLI][5]=w5;
 inpc[GLI][6]=w6;
 inpc[GLI][7]=w7;
 inpc[GLI][8]=inpc[GLI][9]=inpc[GLI][10]=inpc[GLI][11]=inpc[GLI][12]=inpc[GLI][13]=0;
+if (SIZE.s2+str.sE>24) SIZE.s2=(uint)0;
 SET_AB(inpc[GLI],str.s8,SIZE.s2,0);
 SET_AB(inpc[GLI],str.s9,SIZE.s2+4,0);
 SET_AB(inpc[GLI],str.sA,SIZE.s2+8,0);
@@ -245,6 +249,7 @@ inpc[GLI][5]=w5;
 inpc[GLI][6]=w6;
 inpc[GLI][7]=w7;
 inpc[GLI][8]=inpc[GLI][9]=inpc[GLI][10]=inpc[GLI][11]=inpc[GLI][12]=inpc[GLI][13]=0;
+if (SIZE.s3+str1.sC>24) SIZE.s3=(uint)0;
 SET_AB(inpc[GLI],str1.s0,SIZE.s3,0);
 SET_AB(inpc[GLI],str1.s1,SIZE.s3+4,0);
 SET_AB(inpc[GLI],str1.s2,SIZE.s3+8,0);
@@ -277,17 +282,10 @@ SIZE.s3 = (SIZE.s3+str1.sC+salt.sF)<<3;
 a = mCa; b = mCb; c = mCc; d = mCd;
 id=0;
 
-#ifndef OLD_ATI
 #define MD5STEP_ROUND1(a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((d),(c),(b));(a) = rotate(a,s)+(b);
 #define MD5STEP_ROUND1_NULL(a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((d),(c),(b));(a) = rotate(a,s)+(b);
 #define MD5STEP_ROUND2(a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((c),(b),(d));(a) = rotate(a,s)+(b);
 #define MD5STEP_ROUND2_NULL(a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((c),(b),(d)); (a) = rotate(a,s)+(b);
-#else
-#define MD5STEP_ROUND1(a, b, c, d, AC, x, s)  tmp1 = (c)^(d);tmp1 = tmp1 & (b);tmp1 = tmp1 ^ (d);(a) = (a)+(tmp1); (a) = (a) + (AC);(a) = (a)+(x);(a) = rotate(a,s);(a) = (a)+(b);  
-#define MD5STEP_ROUND1_NULL(a, b, c, d, AC, s)  tmp1 = (c)^(d); tmp1 = tmp1&(b); tmp1 = tmp1^(d);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);  
-#define MD5STEP_ROUND2(a, b, c, d, AC, x, s)  tmp1 = (b) ^ (c); tmp1 = tmp1 & (d); tmp1 = tmp1 ^ (c);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = (a)+(x); (a) = rotate(a,s); (a) = (a)+(b);
-#define MD5STEP_ROUND2_NULL(a, b, c, d, AC, s)  tmp1 = (b) ^ (c);tmp1 = tmp1 & (d);tmp1 = tmp1 ^ (c);(a) = (a)+tmp1;(a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);
-#endif
 
 MD5STEP_ROUND1(a, b, c, d, mAC1, x0, S11);  
 MD5STEP_ROUND1(d, a, b, c, mAC2, x1, S12);  

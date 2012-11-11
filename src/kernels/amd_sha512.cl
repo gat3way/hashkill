@@ -149,7 +149,7 @@ uint2 size;
 
 
 id=get_global_id(0);
-size=(uint)sizein[GGI];
+size=(uint2)sizein[GGI];
 x0 = inp[GGI*8+0];
 x1 = inp[GGI*8+1];
 x2 = inp[GGI*8+2];
