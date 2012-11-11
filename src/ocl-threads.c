@@ -408,6 +408,8 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"mscash")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"oracle11g")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"nsldaps")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"mssql-2000")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"mssql-2005")==0)) ocl_vector=4;
 	    }
 
 	    /* Zip (non-rule) exception for NVidia */

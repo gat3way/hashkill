@@ -3,99 +3,17 @@
 
 #define SET_AB(ai1,ai2,ii1,ii2) { \
     elem=ii1>>2; \
-    temp1=(ii1&3)<<3; \
-    ai1[elem] = ai1[elem]|(ai2<<(temp1)); \
-    ai1[elem+1] = (temp1==0) ? 0 : ai2>>(32-temp1);\
+    tt1=(ii1&3)<<3; \
+    ai1[elem] = ai1[elem]|(ai2<<(tt1)); \
+    ai1[elem+1] = (tt1==0) ? 0 : ai2>>(32-tt1);\
     }
 
-//#define TOUPPERCHAR(x) (((0xE0 & (x)) == 0x60) ? (x) & 0xDF : (x))
 #define TOUPPERCHAR(y) ( (((y)<='z')&&((y)>='a')) ? ((y)-32) : (y))
 #define TOUPPERDWORD(x) (TOUPPERCHAR((x)&255)|((TOUPPERCHAR(((x)>>8) & 0xFF))<<8)|((TOUPPERCHAR(((x)>>16) & 0xFF))<<16)|((TOUPPERCHAR(((x)>>24) & 0xFF))<<24))
 
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-strmodifyu( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str, uint16 salt)
-{
-__local uint inpc[64][14];
-uint SIZE;
-uint elem,temp1;
-
-
-inpc[GLI][0] = inp[GGI*(8)+0];
-inpc[GLI][1] = inp[GGI*(8)+1];
-inpc[GLI][2] = inp[GGI*(8)+2];
-inpc[GLI][3] = inp[GGI*(8)+3];
-inpc[GLI][4] = inp[GGI*(8)+4];
-inpc[GLI][5] = inp[GGI*(8)+5];
-inpc[GLI][6] = inp[GGI*(8)+6];
-inpc[GLI][7] = inp[GGI*(8)+7];
-
-SIZE=sizein[GGI];
-
-size[GGI] = (SIZE+str.sF);
-SET_AB(inpc[GLI],str.s0,SIZE,0);
-SET_AB(inpc[GLI],str.s1,SIZE+4,0);
-SET_AB(inpc[GLI],str.s2,SIZE+8,0);
-SET_AB(inpc[GLI],str.s3,SIZE+12,0);
-
-
-dst[GGI*8+0] = TOUPPERDWORD(inpc[GLI][0]);
-dst[GGI*8+1] = TOUPPERDWORD(inpc[GLI][1]);
-dst[GGI*8+2] = TOUPPERDWORD(inpc[GLI][2]);
-dst[GGI*8+3] = TOUPPERDWORD(inpc[GLI][3]);
-dst[GGI*8+4] = TOUPPERDWORD(inpc[GLI][4]);
-dst[GGI*8+5] = TOUPPERDWORD(inpc[GLI][5]);
-dst[GGI*8+6] = TOUPPERDWORD(inpc[GLI][6]);
-dst[GGI*8+7] = TOUPPERDWORD(inpc[GLI][7]);
-
-}
 
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str, uint16 salt)
-{
-__local uint inpc[64][13];
-uint SIZE;
-uint elem,temp1;
-
-
-inpc[GLI][0] = inp[GGI*(8)+0];
-inpc[GLI][1] = inp[GGI*(8)+1];
-inpc[GLI][2] = inp[GGI*(8)+2];
-inpc[GLI][3] = inp[GGI*(8)+3];
-inpc[GLI][4] = inp[GGI*(8)+4];
-inpc[GLI][5] = inp[GGI*(8)+5];
-inpc[GLI][6] = inp[GGI*(8)+6];
-inpc[GLI][7] = inp[GGI*(8)+7];
-inpc[GLI][8] = 0;
-inpc[GLI][9] = 0;
-inpc[GLI][10] = 0;
-inpc[GLI][11] = 0;
-inpc[GLI][12] = 0;
-
-SIZE=sizein[GGI];
-size[GGI] = (SIZE+str.sF);
-
-SET_AB(inpc[GLI],str.s0,SIZE,0);
-SET_AB(inpc[GLI],str.s1,SIZE+4,0);
-SET_AB(inpc[GLI],str.s2,SIZE+8,0);
-SET_AB(inpc[GLI],str.s3,SIZE+12,0);
-
-
-dst[GGI*8+0] = inpc[GLI][0];
-dst[GGI*8+1] = inpc[GLI][1];
-dst[GGI*8+2] = inpc[GLI][2];
-dst[GGI*8+3] = inpc[GLI][3];
-dst[GGI*8+4] = inpc[GLI][4];
-dst[GGI*8+5] = inpc[GLI][5];
-dst[GGI*8+6] = inpc[GLI][6];
-dst[GGI*8+7] = inpc[GLI][7];
-
-}
-
-
-
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-sha1_passsalt( __global uint4 *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *found,  uint4 singlehash, uint16 salt) 
+sha1_passsalt( __global uint4 *dst,  __global uint *inp, __global uint *sizein,  __global uint *found_ind, __global uint *found,  uint4 singlehash, uint16 salt, uint16 str, uint16 str1) 
 {
 
 uint4 w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w16; 
@@ -105,8 +23,11 @@ uint4 A,B,C,D,E,K,l,tmp1,tmp2, SIZE,TSIZE;
 uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
 uint4 w[12];
 uint elem,temp1;
-uint t1,t2,t3;
-__local uint inpc[64][17];
+uint t1,t2,t3,tt1;
+__local uint inpc[64][24];
+uint x0,x1,x2,x3,x4,x5,x6,x7;
+uint y0,y1,y2,y3,y4,y5,y6,y7,y8,y9,y10,y11,y12,y13;
+
 
 #define m 0x00FF00FF
 #define m2 0xFF00FF00 
@@ -120,55 +41,89 @@ uint4 K0 = (uint4)0x5A827999;
 uint4 K1 = (uint4)0x6ED9EBA1;
 uint4 K2 = (uint4)0x8F1BBCDC;
 uint4 K3 = (uint4)0xCA62C1D6;
-
 uint4 H0 = (uint4)0x67452301;
 uint4 H1 = (uint4)0xEFCDAB89;
 uint4 H2 = (uint4)0x98BADCFE;
 uint4 H3 = (uint4)0x10325476;
 uint4 H4 = (uint4)0xC3D2E1F0;
 
+
 id=get_global_id(0);
-SIZE.s0=(size[id*4]);
-SIZE.s1=(size[id*4+1]);
-SIZE.s2=(size[id*4+2]); 
-SIZE.s3=(size[id*4+3]); 
+SIZE=(uint4)sizein[GGI];
+if ((SIZE.s0+str.sC)>23) str.sC=0;
+if ((SIZE.s1+str.sD)>23) str.sD=0;
+if ((SIZE.s2+str.sE)>23) str.sE=0;
+if ((SIZE.s3+str1.sC)>23) str1.sC=0;
+if (all(SIZE>(uint4)23)) SIZE=(uint4)0;
+x0 = TOUPPERDWORD(inp[GGI*8+0]);
+x1 = TOUPPERDWORD(inp[GGI*8+1]);
+x2 = TOUPPERDWORD(inp[GGI*8+2]);
+x3 = TOUPPERDWORD(inp[GGI*8+3]);
+x4 = TOUPPERDWORD(inp[GGI*8+4]);
+x5 = TOUPPERDWORD(inp[GGI*8+5]);
+x6 = TOUPPERDWORD(inp[GGI*8+6]);
+x7 = TOUPPERDWORD(inp[GGI*8+7]);
 
-TSIZE=(SIZE*2);
-SIZE=(TSIZE+(uint4)salt.sF)<<3;
 
-
-t1=input[GGI*(4*8)+0];
+inpc[GLI][0]=x0;
+inpc[GLI][1]=x1;
+inpc[GLI][2]=x2;
+inpc[GLI][3]=x3;
+inpc[GLI][4]=x4;
+inpc[GLI][5]=x5;
+inpc[GLI][6]=x6;
+inpc[GLI][7]=x7;
+SET_AB(inpc[GLI],TOUPPERDWORD(str.s0),SIZE.s0,0);
+SET_AB(inpc[GLI],TOUPPERDWORD(str.s1),SIZE.s0+4,0);
+SET_AB(inpc[GLI],TOUPPERDWORD(str.s2),SIZE.s0+8,0);
+SET_AB(inpc[GLI],TOUPPERDWORD(str.s3),SIZE.s0+12,0);
+y0=inpc[GLI][0];
+y1=inpc[GLI][1];
+y2=inpc[GLI][2];
+y3=inpc[GLI][3];
+y4=inpc[GLI][4];
+y5=inpc[GLI][5];
+y6=inpc[GLI][6];
+y7=inpc[GLI][7];
+y8=inpc[GLI][8];
+y9=inpc[GLI][9];
+y10=inpc[GLI][10];
+y11=inpc[GLI][11];
+y12=inpc[GLI][12];
+y13=inpc[GLI][13];
+t1=y0;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][0] = t2;
 inpc[GLI][1] = t3;
-t1=input[GGI*(4*8)+1];
+t1=y1;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][2] = t2;
 inpc[GLI][3] = t3;
-t1=input[GGI*(4*8)+2];
+t1=y2;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][4] = t2;
 inpc[GLI][5] = t3;
-t1=input[GGI*(4*8)+3];
+t1=y3;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][6] = t2;
 inpc[GLI][7] = t3;
-t1=input[GGI*(4*8)+4];
+t1=y4;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][8] = t2;
 inpc[GLI][9] = t3;
-t1=input[GGI*(4*8)+5];
+t1=y5;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][10] = t2;
 inpc[GLI][11] = t3;
 inpc[GLI][12] = 0;
 inpc[GLI][13] = 0;
+TSIZE.s0=(SIZE.s0+str.sC)*2;
 SET_AB(inpc[GLI],salt.s0,TSIZE.s0,0);
 SET_AB(inpc[GLI],salt.s1,TSIZE.s0+4,0);
 SET_AB(inpc[GLI],salt.s2,TSIZE.s0+8,0);
@@ -178,53 +133,82 @@ SET_AB(inpc[GLI],salt.s5,TSIZE.s0+20,0);
 SET_AB(inpc[GLI],salt.s6,TSIZE.s0+24,0);
 SET_AB(inpc[GLI],salt.s7,TSIZE.s0+28,0);
 SET_AB(inpc[GLI],0x80,(TSIZE.s0+salt.sF),0);
-w0.s0 = inpc[GLI][0];
-w1.s0 = inpc[GLI][1];
-w2.s0 = inpc[GLI][2];
-w3.s0 = inpc[GLI][3];
-w4.s0 = inpc[GLI][4];
-w5.s0 = inpc[GLI][5];
-w6.s0 = inpc[GLI][6];
-w7.s0 = inpc[GLI][7];
-w8.s0 = inpc[GLI][8];
-w9.s0 = inpc[GLI][9];
-w10.s0 = inpc[GLI][10];
-w11.s0 = inpc[GLI][11];
-w12.s0 = inpc[GLI][12];
-w13.s0 = inpc[GLI][13];
+w0.s0=inpc[GLI][0];
+w1.s0=inpc[GLI][1];
+w2.s0=inpc[GLI][2];
+w3.s0=inpc[GLI][3];
+w4.s0=inpc[GLI][4];
+w5.s0=inpc[GLI][5];
+w6.s0=inpc[GLI][6];
+w7.s0=inpc[GLI][7];
+w8.s0=inpc[GLI][8];
+w9.s0=inpc[GLI][9];
+w10.s0=inpc[GLI][10];
+w11.s0=inpc[GLI][11];
+w12.s0=inpc[GLI][12];
+w13.s0=inpc[GLI][13];
+SIZE.s0 = (TSIZE.s0+salt.sF)<<3;
 
-t1=input[GGI*(4*8)+8];
+
+inpc[GLI][0]=x0;
+inpc[GLI][1]=x1;
+inpc[GLI][2]=x2;
+inpc[GLI][3]=x3;
+inpc[GLI][4]=x4;
+inpc[GLI][5]=x5;
+inpc[GLI][6]=x6;
+inpc[GLI][7]=x7;
+SET_AB(inpc[GLI],TOUPPERDWORD(str.s4),SIZE.s1,0);
+SET_AB(inpc[GLI],TOUPPERDWORD(str.s5),SIZE.s1+4,0);
+SET_AB(inpc[GLI],TOUPPERDWORD(str.s6),SIZE.s1+8,0);
+SET_AB(inpc[GLI],TOUPPERDWORD(str.s7),SIZE.s1+12,0);
+y0=inpc[GLI][0];
+y1=inpc[GLI][1];
+y2=inpc[GLI][2];
+y3=inpc[GLI][3];
+y4=inpc[GLI][4];
+y5=inpc[GLI][5];
+y6=inpc[GLI][6];
+y7=inpc[GLI][7];
+y8=inpc[GLI][8];
+y9=inpc[GLI][9];
+y10=inpc[GLI][10];
+y11=inpc[GLI][11];
+y12=inpc[GLI][12];
+y13=inpc[GLI][13];
+t1=y0;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][0] = t2;
 inpc[GLI][1] = t3;
-t1=input[GGI*(4*8)+9];
+t1=y1;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][2] = t2;
 inpc[GLI][3] = t3;
-t1=input[GGI*(4*8)+10];
+t1=y2;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][4] = t2;
 inpc[GLI][5] = t3;
-t1=input[GGI*(4*8)+11];
+t1=y3;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][6] = t2;
 inpc[GLI][7] = t3;
-t1=input[GGI*(4*8)+12];
+t1=y4;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][8] = t2;
 inpc[GLI][9] = t3;
-t1=input[GGI*(4*8)+13];
+t1=y5;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][10] = t2;
 inpc[GLI][11] = t3;
 inpc[GLI][12] = 0;
 inpc[GLI][13] = 0;
+TSIZE.s1=(SIZE.s1+str.sD)*2;
 SET_AB(inpc[GLI],salt.s0,TSIZE.s1,0);
 SET_AB(inpc[GLI],salt.s1,TSIZE.s1+4,0);
 SET_AB(inpc[GLI],salt.s2,TSIZE.s1+8,0);
@@ -234,53 +218,82 @@ SET_AB(inpc[GLI],salt.s5,TSIZE.s1+20,0);
 SET_AB(inpc[GLI],salt.s6,TSIZE.s1+24,0);
 SET_AB(inpc[GLI],salt.s7,TSIZE.s1+28,0);
 SET_AB(inpc[GLI],0x80,(TSIZE.s1+salt.sF),0);
-w0.s1 = inpc[GLI][0];
-w1.s1 = inpc[GLI][1];
-w2.s1 = inpc[GLI][2];
-w3.s1 = inpc[GLI][3];
-w4.s1 = inpc[GLI][4];
-w5.s1 = inpc[GLI][5];
-w6.s1 = inpc[GLI][6];
-w7.s1 = inpc[GLI][7];
-w8.s1 = inpc[GLI][8];
-w9.s1 = inpc[GLI][9];
-w10.s1 = inpc[GLI][10];
-w11.s1 = inpc[GLI][11];
-w12.s1 = inpc[GLI][12];
-w13.s1 = inpc[GLI][13];
+w0.s1=inpc[GLI][0];
+w1.s1=inpc[GLI][1];
+w2.s1=inpc[GLI][2];
+w3.s1=inpc[GLI][3];
+w4.s1=inpc[GLI][4];
+w5.s1=inpc[GLI][5];
+w6.s1=inpc[GLI][6];
+w7.s1=inpc[GLI][7];
+w8.s1=inpc[GLI][8];
+w9.s1=inpc[GLI][9];
+w10.s1=inpc[GLI][10];
+w11.s1=inpc[GLI][11];
+w12.s1=inpc[GLI][12];
+w13.s1=inpc[GLI][13];
+SIZE.s1 = (TSIZE.s1+salt.sF)<<3;
 
-t1=input[GGI*(4*8)+16];
+
+inpc[GLI][0]=x0;
+inpc[GLI][1]=x1;
+inpc[GLI][2]=x2;
+inpc[GLI][3]=x3;
+inpc[GLI][4]=x4;
+inpc[GLI][5]=x5;
+inpc[GLI][6]=x6;
+inpc[GLI][7]=x7;
+SET_AB(inpc[GLI],TOUPPERDWORD(str.s8),SIZE.s2,0);
+SET_AB(inpc[GLI],TOUPPERDWORD(str.s9),SIZE.s2+4,0);
+SET_AB(inpc[GLI],TOUPPERDWORD(str.sA),SIZE.s2+8,0);
+SET_AB(inpc[GLI],TOUPPERDWORD(str.sB),SIZE.s2+12,0);
+y0=inpc[GLI][0];
+y1=inpc[GLI][1];
+y2=inpc[GLI][2];
+y3=inpc[GLI][3];
+y4=inpc[GLI][4];
+y5=inpc[GLI][5];
+y6=inpc[GLI][6];
+y7=inpc[GLI][7];
+y8=inpc[GLI][8];
+y9=inpc[GLI][9];
+y10=inpc[GLI][10];
+y11=inpc[GLI][11];
+y12=inpc[GLI][12];
+y13=inpc[GLI][13];
+t1=y0;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][0] = t2;
 inpc[GLI][1] = t3;
-t1=input[GGI*(4*8)+17];
+t1=y1;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][2] = t2;
 inpc[GLI][3] = t3;
-t1=input[GGI*(4*8)+18];
+t1=y2;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][4] = t2;
 inpc[GLI][5] = t3;
-t1=input[GGI*(4*8)+19];
+t1=y3;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][6] = t2;
 inpc[GLI][7] = t3;
-t1=input[GGI*(4*8)+20];
+t1=y4;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][8] = t2;
 inpc[GLI][9] = t3;
-t1=input[GGI*(4*8)+21];
+t1=y5;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][10] = t2;
 inpc[GLI][11] = t3;
 inpc[GLI][12] = 0;
 inpc[GLI][13] = 0;
+TSIZE.s2=(SIZE.s2+str.sD)*2;
 SET_AB(inpc[GLI],salt.s0,TSIZE.s2,0);
 SET_AB(inpc[GLI],salt.s1,TSIZE.s2+4,0);
 SET_AB(inpc[GLI],salt.s2,TSIZE.s2+8,0);
@@ -290,53 +303,83 @@ SET_AB(inpc[GLI],salt.s5,TSIZE.s2+20,0);
 SET_AB(inpc[GLI],salt.s6,TSIZE.s2+24,0);
 SET_AB(inpc[GLI],salt.s7,TSIZE.s2+28,0);
 SET_AB(inpc[GLI],0x80,(TSIZE.s2+salt.sF),0);
-w0.s2 = inpc[GLI][0];
-w1.s2 = inpc[GLI][1];
-w2.s2 = inpc[GLI][2];
-w3.s2 = inpc[GLI][3];
-w4.s2 = inpc[GLI][4];
-w5.s2 = inpc[GLI][5];
-w6.s2 = inpc[GLI][6];
-w7.s2 = inpc[GLI][7];
-w8.s2 = inpc[GLI][8];
-w9.s2 = inpc[GLI][9];
-w10.s2 = inpc[GLI][10];
-w11.s2 = inpc[GLI][11];
-w12.s2 = inpc[GLI][12];
-w13.s2 = inpc[GLI][13];
+w0.s2=inpc[GLI][0];
+w1.s2=inpc[GLI][1];
+w2.s2=inpc[GLI][2];
+w3.s2=inpc[GLI][3];
+w4.s2=inpc[GLI][4];
+w5.s2=inpc[GLI][5];
+w6.s2=inpc[GLI][6];
+w7.s2=inpc[GLI][7];
+w8.s2=inpc[GLI][8];
+w9.s2=inpc[GLI][9];
+w10.s2=inpc[GLI][10];
+w11.s2=inpc[GLI][11];
+w12.s2=inpc[GLI][12];
+w13.s2=inpc[GLI][13];
+SIZE.s2 = (TSIZE.s2+salt.sF)<<3;
 
-t1=input[GGI*(4*8)+24];
+
+
+inpc[GLI][0]=x0;
+inpc[GLI][1]=x1;
+inpc[GLI][2]=x2;
+inpc[GLI][3]=x3;
+inpc[GLI][4]=x4;
+inpc[GLI][5]=x5;
+inpc[GLI][6]=x6;
+inpc[GLI][7]=x7;
+SET_AB(inpc[GLI],TOUPPERDWORD(str1.s0),SIZE.s3,0);
+SET_AB(inpc[GLI],TOUPPERDWORD(str1.s1),SIZE.s3+4,0);
+SET_AB(inpc[GLI],TOUPPERDWORD(str1.s2),SIZE.s3+8,0);
+SET_AB(inpc[GLI],TOUPPERDWORD(str1.s3),SIZE.s3+12,0);
+y0=inpc[GLI][0];
+y1=inpc[GLI][1];
+y2=inpc[GLI][2];
+y3=inpc[GLI][3];
+y4=inpc[GLI][4];
+y5=inpc[GLI][5];
+y6=inpc[GLI][6];
+y7=inpc[GLI][7];
+y8=inpc[GLI][8];
+y9=inpc[GLI][9];
+y10=inpc[GLI][10];
+y11=inpc[GLI][11];
+y12=inpc[GLI][12];
+y13=inpc[GLI][13];
+t1=y0;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][0] = t2;
 inpc[GLI][1] = t3;
-t1=input[GGI*(4*8)+25];
+t1=y1;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][2] = t2;
 inpc[GLI][3] = t3;
-t1=input[GGI*(4*8)+26];
+t1=y2;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][4] = t2;
 inpc[GLI][5] = t3;
-t1=input[GGI*(4*8)+27];
+t1=y3;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][6] = t2;
 inpc[GLI][7] = t3;
-t1=input[GGI*(4*8)+28];
+t1=y4;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][8] = t2;
 inpc[GLI][9] = t3;
-t1=input[GGI*(4*8)+29];
+t1=y5;
 t2=(((t1)&255))|(((t1>>8)&255)<<16);
 t3=(((t1>>16)&255))|(((t1>>24)&255)<<16);
 inpc[GLI][10] = t2;
 inpc[GLI][11] = t3;
 inpc[GLI][12] = 0;
 inpc[GLI][13] = 0;
+TSIZE.s3=(SIZE.s3+str1.sC)*2;
 SET_AB(inpc[GLI],salt.s0,TSIZE.s3,0);
 SET_AB(inpc[GLI],salt.s1,TSIZE.s3+4,0);
 SET_AB(inpc[GLI],salt.s2,TSIZE.s3+8,0);
@@ -346,21 +389,21 @@ SET_AB(inpc[GLI],salt.s5,TSIZE.s3+20,0);
 SET_AB(inpc[GLI],salt.s6,TSIZE.s3+24,0);
 SET_AB(inpc[GLI],salt.s7,TSIZE.s3+28,0);
 SET_AB(inpc[GLI],0x80,(TSIZE.s3+salt.sF),0);
-w0.s3 = inpc[GLI][0];
-w1.s3 = inpc[GLI][1];
-w2.s3 = inpc[GLI][2];
-w3.s3 = inpc[GLI][3];
-w4.s3 = inpc[GLI][4];
-w5.s3 = inpc[GLI][5];
-w6.s3 = inpc[GLI][6];
-w7.s3 = inpc[GLI][7];
-w8.s3 = inpc[GLI][8];
-w9.s3 = inpc[GLI][9];
-w10.s3 = inpc[GLI][10];
-w11.s3 = inpc[GLI][11];
-w12.s3 = inpc[GLI][12];
-w13.s3 = inpc[GLI][13];
-
+w0.s3=inpc[GLI][0];
+w1.s3=inpc[GLI][1];
+w2.s3=inpc[GLI][2];
+w3.s3=inpc[GLI][3];
+w4.s3=inpc[GLI][4];
+w5.s3=inpc[GLI][5];
+w6.s3=inpc[GLI][6];
+w7.s3=inpc[GLI][7];
+w8.s3=inpc[GLI][8];
+w9.s3=inpc[GLI][9];
+w10.s3=inpc[GLI][10];
+w11.s3=inpc[GLI][11];
+w12.s3=inpc[GLI][12];
+w13.s3=inpc[GLI][13];
+SIZE.s3 = (TSIZE.s3+salt.sF)<<3;
 
 
 w14=w16=(uint4)0;
