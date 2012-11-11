@@ -1316,12 +1316,12 @@ hash_stat add_cracked_list(char *username, char *hash, char *salt, char *salt2)
     if (salt)
     {
 	temp_list->salt = malloc(salt_size);
-	strcpy(temp_list->salt, salt);
+	memcpy(temp_list->salt, salt,salt_size);
     }
     if (salt2)
     {
 	temp_list->salt2 = malloc(MAX_PLAIN);
-	strcpy(temp_list->salt2, salt2);
+	memcpy(temp_list->salt2, salt2,MAX_PLAIN);
     }
     pthread_mutex_unlock(&crackedmutex);
 

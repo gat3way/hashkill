@@ -4365,6 +4365,7 @@ void node_dequeue(char *line, char *stack,int lind,int self)
 	    char endline[MAX];
 	    endline[0]=1;
 	    endline[1]=0;
+	    ops[self][0].crack_callback(line,self);
 	    ops[self][0].crack_callback(endline,self);
 	}
 	else
@@ -4445,7 +4446,7 @@ void node_wait_queues()
     int flag=1;
     int a;
 
-    while ((flag==1)&&(attack_over==0)&&(attack_current_count!=attack_overall_count))
+    while ((flag==1)&&(attack_over==0))
     {
 	flag=0;
 	for (a=0;a<nwthreads;a++) if (rule_queue[a].pushready>0) flag=1;

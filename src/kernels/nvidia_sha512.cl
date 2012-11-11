@@ -149,8 +149,8 @@ uint2 size;
 
 
 id=get_global_id(0);
-size=(uint)sizes[GGI];
-if (size>31) size=32;
+size=(uint2)sizes[GGI];
+if (size.s0>31) size=(uint2)32;
 
 x0 = inp[GGI*8+0];
 x1 = inp[GGI*8+1];

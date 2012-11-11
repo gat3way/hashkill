@@ -1411,10 +1411,8 @@ static void ocl_sha512_callback(char *line, int self)
     rule_counts[self][0]++;
     rule_sizes[self][rule_counts[self][0]] = strlen(line);
     strcpy(&rule_images[self][0]+(rule_counts[self][0]*MAX),line);
-
     if ((rule_counts[self][0]>=(ocl_rule_workset[self]-1))||(line[0]==0x01))
     {
-
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*MAX, rule_images[self], 0, NULL, NULL);
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_sizes_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*sizeof(int), rule_sizes[self], 0, NULL, NULL);
 	ocl_rule_opt_counts[self]=0;
