@@ -414,6 +414,50 @@ if (all((uint8)id != a)) return;
 
 MD5STEP_ROUND4_NULL (d, a, b, c, mAC62, S42); 
 MD5STEP_ROUND4 (c, d, a, b, mAC63, x2, S43);  
+#ifndef SINGLE_MODE
+id = 0;
+b1=a.s0;b2=b.s0;b3=c.s0;b4=d.s0;
+b5=(singlehash.x >> (b.s0&31))&1;
+b6=(singlehash.y >> (c.s0&31))&1;
+b7=(singlehash.z >> (d.s0&31))&1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=a.s1;b2=b.s1;b3=c.s1;b4=d.s1;
+b5=(singlehash.x >> (b.s1&31))&1;
+b6=(singlehash.y >> (c.s1&31))&1;
+b7=(singlehash.z >> (d.s1&31))&1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=a.s2;b2=b.s2;b3=c.s2;b4=d.s2;
+b5=(singlehash.x >> (b.s2&31))&1;
+b6=(singlehash.y >> (c.s2&31))&1;
+b7=(singlehash.z >> (d.s2&31))&1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=a.s3;b2=b.s3;b3=c.s3;b4=d.s3;
+b5=(singlehash.x >> (b.s3&31))&1;
+b6=(singlehash.y >> (c.s3&31))&1;
+b7=(singlehash.z >> (d.s3&31))&1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=a.s4;b2=b.s4;b3=c.s4;b4=d.s4;
+b5=(singlehash.x >> (b.s4&31))&1;
+b6=(singlehash.y >> (c.s4&31))&1;
+b7=(singlehash.z >> (d.s4&31))&1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=a.s5;b2=b.s5;b3=c.s5;b4=d.s5;
+b5=(singlehash.x >> (b.s5&31))&1;
+b6=(singlehash.y >> (c.s5&31))&1;
+b7=(singlehash.z >> (d.s5&31))&1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=a.s6;b2=b.s6;b3=c.s6;b4=d.s6;
+b5=(singlehash.x >> (b.s6&31))&1;
+b6=(singlehash.y >> (c.s6&31))&1;
+b7=(singlehash.z >> (d.s6&31))&1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=a.s7;b2=b.s7;b3=c.s7;b4=d.s7;
+b5=(singlehash.x >> (b.s7&31))&1;
+b6=(singlehash.y >> (c.s7&31))&1;
+b7=(singlehash.z >> (d.s7&31))&1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+if (id==0) return;
+#endif
 MD5STEP_ROUND4_NULL (b, c, d, a, mAC64, S44); 
 
 a=a+mCa;
@@ -426,50 +470,6 @@ id = 0;
 #ifdef SINGLE_MODE
 if (all((uint8)singlehash.x!=a)) return;
 if (all((uint8)singlehash.y!=b)) return;
-
-#else
-id = 0;
-b1=a.s0;b2=b.s0;b3=c.s0;b4=d.s0;
-b5=(singlehash.x >> (b.s0&31))&1;
-b6=(singlehash.y >> (c.s0&31))&1;
-b7=(singlehash.z >> (d.s0&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
-b1=a.s1;b2=b.s1;b3=c.s1;b4=d.s1;
-b5=(singlehash.x >> (b.s1&31))&1;
-b6=(singlehash.y >> (c.s1&31))&1;
-b7=(singlehash.z >> (d.s1&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
-b1=a.s2;b2=b.s2;b3=c.s2;b4=d.s2;
-b5=(singlehash.x >> (b.s2&31))&1;
-b6=(singlehash.y >> (c.s2&31))&1;
-b7=(singlehash.z >> (d.s2&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
-b1=a.s3;b2=b.s3;b3=c.s3;b4=d.s3;
-b5=(singlehash.x >> (b.s3&31))&1;
-b6=(singlehash.y >> (c.s3&31))&1;
-b7=(singlehash.z >> (d.s3&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
-b1=a.s4;b2=b.s4;b3=c.s4;b4=d.s4;
-b5=(singlehash.x >> (b.s4&31))&1;
-b6=(singlehash.y >> (c.s4&31))&1;
-b7=(singlehash.z >> (d.s4&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
-b1=a.s5;b2=b.s5;b3=c.s5;b4=d.s5;
-b5=(singlehash.x >> (b.s5&31))&1;
-b6=(singlehash.y >> (c.s5&31))&1;
-b7=(singlehash.z >> (d.s5&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
-b1=a.s6;b2=b.s6;b3=c.s6;b4=d.s6;
-b5=(singlehash.x >> (b.s6&31))&1;
-b6=(singlehash.y >> (c.s6&31))&1;
-b7=(singlehash.z >> (d.s6&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
-b1=a.s7;b2=b.s7;b3=c.s7;b4=d.s7;
-b5=(singlehash.x >> (b.s7&31))&1;
-b6=(singlehash.y >> (c.s7&31))&1;
-b7=(singlehash.z >> (d.s7&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
-if (id==0) return;
 #endif
 
 found[0] = 1;
@@ -681,6 +681,15 @@ if (((uint)id != a)) return;
 
 MD5STEP_ROUND4_NULL (d, a, b, c, mAC62, S42); 
 MD5STEP_ROUND4 (c, d, a, b, mAC63, x2, S43);  
+#ifndef SINGLE_MODE
+id = 0;
+b1=a;b2=b;b3=c;b4=d;
+b5=(singlehash.x >> (b&31))&1;
+b6=(singlehash.y >> (c&31))&1;
+b7=(singlehash.z >> (d&31))&1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+else return;
+#endif
 MD5STEP_ROUND4_NULL (b, c, d, a, mAC64, S44); 
 
 a=a+mCa;
@@ -693,15 +702,6 @@ id = 0;
 #ifdef SINGLE_MODE
 if (((uint)singlehash.x!=a)) return;
 if (((uint)singlehash.y!=b)) return;
-
-#else
-id = 0;
-b1=a;b2=b;b3=c;b4=d;
-b5=(singlehash.x >> (b&31))&1;
-b6=(singlehash.y >> (c&31))&1;
-b7=(singlehash.z >> (d&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
-else return;
 #endif
 
 found[0] = 1;

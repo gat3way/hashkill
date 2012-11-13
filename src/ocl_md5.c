@@ -480,6 +480,11 @@ void* ocl_bruteforce_md5_thread(void *arg)
 	unsigned int *b_b = (unsigned int *)&hex1[4];
 	unsigned int *b_c = (unsigned int *)&hex1[8];
 	unsigned int *b_d = (unsigned int *)&hex1[12];
+        *b_a=(*b_a-0x67452301);
+        *b_b=(*b_b-0xefcdab89);
+        *b_c=(*b_c-0x98badcfe);
+        *b_d=(*b_d-0x10325476);
+        REVERSE_MD5STEP(*b_b, *b_c, *b_d, *b_a, 0,      S44, AC64);
 	unsigned int bind_a = (*b_a)>>10;
 	unsigned int bval_a = (1<<((*b_a)&31));
 	unsigned int bind_b = (*b_b)>>10;
@@ -1552,6 +1557,11 @@ void* ocl_markov_md5_thread(void *arg)
 	unsigned int *b_b = (unsigned int *)&hex1[4];
 	unsigned int *b_c = (unsigned int *)&hex1[8];
 	unsigned int *b_d = (unsigned int *)&hex1[12];
+        *b_a=(*b_a-0x67452301);
+        *b_b=(*b_b-0xefcdab89);
+        *b_c=(*b_c-0x98badcfe);
+        *b_d=(*b_d-0x10325476);
+        REVERSE_MD5STEP(*b_b, *b_c, *b_d, *b_a, 0,      S44, AC64);
 	unsigned int bind_a = (*b_a)>>10;
 	unsigned int bval_a = (1<<((*b_a)&31));
 	unsigned int bind_b = (*b_b)>>10;
@@ -2545,6 +2555,11 @@ void* ocl_rule_md5_thread(void *arg)
 	unsigned int *b_b = (unsigned int *)&hex1[4];
 	unsigned int *b_c = (unsigned int *)&hex1[8];
 	unsigned int *b_d = (unsigned int *)&hex1[12];
+        *b_a=(*b_a-0x67452301);
+        *b_b=(*b_b-0xefcdab89);
+        *b_c=(*b_c-0x98badcfe);
+        *b_d=(*b_d-0x10325476);
+        REVERSE_MD5STEP(*b_b, *b_c, *b_d, *b_a, 0,      S44, AC64);
 	unsigned int bind_a = (*b_a)>>10;
 	unsigned int bval_a = (1<<((*b_a)&31));
 	unsigned int bind_b = (*b_b)>>10;

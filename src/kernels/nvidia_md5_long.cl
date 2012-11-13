@@ -197,25 +197,21 @@ MD5STEP_ROUND4_NULL(b, c, d, a, mAC60, S44);
 MD5STEP_ROUND4_NULL (a, b, c, d, mAC61, S41);
 MD5STEP_ROUND4_NULL (d, a, b, c, mAC62, S42);
 MD5STEP_ROUND4_NULL (c, d, a, b, mAC63, S43);
-MD5STEP_ROUND4_NULL (b, c, d, a, mAC64, S44);
-
-
-a=a+(uint)0x67452301;b=b+(uint)0xefcdab89;c=c+(uint)0x98badcfe;d=d+(uint)0x10325476;
-
-
-
 #ifndef SINGLE_MODE
 uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
-
 uint id=1;
 id = 0;
 b1=a;b2=b;b3=c;b4=d;
 b5=(singlehash.x >> (b&31))&1;
 b6=(singlehash.y >> (c&31))&1;
 b7=(singlehash.z >> (d&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+if (((b7) & (b5) & (b6)) && ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
 if (id==0) return;
 #endif
+MD5STEP_ROUND4_NULL (b, c, d, a, mAC64, S44);
+
+a=a+(uint)0x67452301;b=b+(uint)0xefcdab89;c=c+(uint)0x98badcfe;d=d+(uint)0x10325476;
+
 
 
 #ifndef SM10
@@ -426,25 +422,22 @@ MD5STEP_ROUND4_NULL(b, c, d, a, mAC60, S44);
 MD5STEP_ROUND4_NULL (a, b, c, d, mAC61, S41);
 MD5STEP_ROUND4_NULL (d, a, b, c, mAC62, S42);
 MD5STEP_ROUND4 (c, d, a, b, mAC63-mAC3, x2, S43);
-MD5STEP_ROUND4_NULL (b, c, d, a, mAC64, S44);
-
-
-a=a+(uint)0x67452301;b=b+(uint)0xefcdab89;c=c+(uint)0x98badcfe;d=d+(uint)0x10325476;
-
-
-
 #ifndef SINGLE_MODE
 uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
-
 uint id=1;
 id = 0;
 b1=a;b2=b;b3=c;b4=d;
 b5=(singlehash.x >> (b&31))&1;
 b6=(singlehash.y >> (c&31))&1;
 b7=(singlehash.z >> (d&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+if (((b7) & (b5) & (b6)) && ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
 if (id==0) return;
 #endif
+MD5STEP_ROUND4_NULL (b, c, d, a, mAC64, S44);
+
+
+a=a+(uint)0x67452301;b=b+(uint)0xefcdab89;c=c+(uint)0x98badcfe;d=d+(uint)0x10325476;
+
 
 #ifndef SM10
 uint res = atomic_inc(found);
@@ -1092,37 +1085,36 @@ MD5STEP_ROUND4_NULL(b, c, d, a, mAC60, S44);
 MD5STEP_ROUND4_NULL (a, b, c, d, mAC61, S41);
 MD5STEP_ROUND4_NULL (d, a, b, c, mAC62, S42);
 MD5STEP_ROUND4_NULL (c, d, a, b, mAC63, S43);
-MD5STEP_ROUND4_NULL (b, c, d, a, mAC64, S44);
-
-a=a+(uint4)0x67452301;b=b+(uint4)0xefcdab89;c=c+(uint4)0x98badcfe;d=d+(uint4)0x10325476;
-
 #ifndef SINGLE_MODE
 uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
-
 uint id=1;
 id = 0;
 b1=a.s0;b2=b.s0;b3=c.s0;b4=d.s0;
 b5=(singlehash.x >> (b.s0&31))&1;
 b6=(singlehash.y >> (c.s0&31))&1;
 b7=(singlehash.z >> (d.s0&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+if (((b7) & (b5) & (b6)) && ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
 b1=a.s1;b2=b.s1;b3=c.s1;b4=d.s1;
 b5=(singlehash.x >> (b.s1&31))&1;
 b6=(singlehash.y >> (c.s1&31))&1;
 b7=(singlehash.z >> (d.s1&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+if (((b7) & (b5) & (b6)) && ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
 b1=a.s2;b2=b.s2;b3=c.s2;b4=d.s2;
 b5=(singlehash.x >> (b.s2&31))&1;
 b6=(singlehash.y >> (c.s2&31))&1;
 b7=(singlehash.z >> (d.s2&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+if (((b7) & (b5) & (b6)) && ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
 b1=a.s3;b2=b.s3;b3=c.s3;b4=d.s3;
 b5=(singlehash.x >> (b.s3&31))&1;
 b6=(singlehash.y >> (c.s3&31))&1;
 b7=(singlehash.z >> (d.s3&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+if (((b7) & (b5) & (b6)) && ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
 if (id==0) return;
 #endif
+MD5STEP_ROUND4_NULL (b, c, d, a, mAC64, S44);
+
+a=a+(uint4)0x67452301;b=b+(uint4)0xefcdab89;c=c+(uint4)0x98badcfe;d=d+(uint4)0x10325476;
+
 
 #ifndef SM10
 uint res = atomic_inc(found);
@@ -1341,40 +1333,36 @@ MD5STEP_ROUND4_NULL(b, c, d, a, mAC60, S44);
 MD5STEP_ROUND4_NULL (a, b, c, d, mAC61, S41);
 MD5STEP_ROUND4_NULL (d, a, b, c, mAC62, S42);
 MD5STEP_ROUND4 (c, d, a, b, mAC63-mAC3, x2, S43);
-MD5STEP_ROUND4_NULL (b, c, d, a, mAC64, S44);
-
-
-a=a+(uint4)0x67452301;b=b+(uint4)0xefcdab89;c=c+(uint4)0x98badcfe;d=d+(uint4)0x10325476;
-
-
-
 #ifndef SINGLE_MODE
 uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
-
 uint id=1;
 id = 0;
 b1=a.s0;b2=b.s0;b3=c.s0;b4=d.s0;
 b5=(singlehash.x >> (b.s0&31))&1;
 b6=(singlehash.y >> (c.s0&31))&1;
 b7=(singlehash.z >> (d.s0&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+if (((b7) & (b5) & (b6)) && ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
 b1=a.s1;b2=b.s1;b3=c.s1;b4=d.s1;
 b5=(singlehash.x >> (b.s1&31))&1;
 b6=(singlehash.y >> (c.s1&31))&1;
 b7=(singlehash.z >> (d.s1&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+if (((b7) & (b5) & (b6)) && ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
 b1=a.s2;b2=b.s2;b3=c.s2;b4=d.s2;
 b5=(singlehash.x >> (b.s2&31))&1;
 b6=(singlehash.y >> (c.s2&31))&1;
 b7=(singlehash.z >> (d.s2&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+if (((b7) & (b5) & (b6)) && ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
 b1=a.s3;b2=b.s3;b3=c.s3;b4=d.s3;
 b5=(singlehash.x >> (b.s3&31))&1;
 b6=(singlehash.y >> (c.s3&31))&1;
 b7=(singlehash.z >> (d.s3&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+if (((b7) & (b5) & (b6)) && ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
 if (id==0) return;
 #endif
+MD5STEP_ROUND4_NULL (b, c, d, a, mAC64, S44);
+
+a=a+(uint4)0x67452301;b=b+(uint4)0xefcdab89;c=c+(uint4)0x98badcfe;d=d+(uint4)0x10325476;
+
 
 #ifndef SM10
 uint res = atomic_inc(found);
