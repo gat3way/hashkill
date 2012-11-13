@@ -1,6 +1,4 @@
 #define rotate(a,b) ((a) << (b)) + ((a) >> (32-(b)))
-
-
 #define GGI (get_global_id(0))
 #define GLI (get_local_id(0))
 
@@ -13,32 +11,52 @@
 
 
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str, uint16 salt)
+sha1_saltpass( __global uint4 *dst,  __global uint *inp, __global uint *sizein,  __global uint *found_ind, __global uint *found,  uint4 singlehash, uint16 salt, uint16 str, uint16 str1) 
 {
-__local uint inpc[64][17];
-uint SIZE;
+
+uint4 SIZE;  
+uint i,ib,ic,id,ie;  
+uint4 t1,t2,t3;
+uint4 A,B,C,D,E,K;
+uint4 tmp1, l,tmp2,chbase1; 
+uint4 w0,w1,w2,w3; 
+uint4 w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w16,temp; 
+#define m 0x00FF00FF
+#define m2 0xFF00FF00 
+uint x0,x1,x2,x3,x4,x5,x6,x7;
+__local uint inpc[64][24];
 uint elem,temp1;
+uint4 K0 = (uint4)0x5A827999;
+uint4 K1 = (uint4)0x6ED9EBA1;
+uint4 K2 = (uint4)0x8F1BBCDC;
+uint4 K3 = (uint4)0xCA62C1D6;
+uint4 H0 = (uint4)0x67452301;
+uint4 H1 = (uint4)0xEFCDAB89;
+uint4 H2 = (uint4)0x98BADCFE;
+uint4 H3 = (uint4)0x10325476;
+uint4 H4 = (uint4)0xC3D2E1F0;
+#define S1 1
+#define S2 5
+#define S3 30  
+#define Sl 8
+#define Sr 24  
 
 
-inpc[GLI][0] = 0;
-inpc[GLI][1] = 0;
-inpc[GLI][2] = 0;
-inpc[GLI][3] = 0;
-inpc[GLI][4] = 0;
-inpc[GLI][5] = 0;
-inpc[GLI][6] = 0;
-inpc[GLI][7] = 0;
-inpc[GLI][8] = 0;
-inpc[GLI][9] = 0;
-inpc[GLI][10] = 0;
-inpc[GLI][11] = 0;
-inpc[GLI][12] = 0;
-inpc[GLI][13] = 0;
+id=get_global_id(0);
+SIZE=(uint4)sizein[GGI];
+x0 = inp[GGI*8+0];
+x1 = inp[GGI*8+1];
+x2 = inp[GGI*8+2];
+x3 = inp[GGI*8+3];
+x4 = inp[GGI*8+4];
+x5 = inp[GGI*8+5];
+x6 = inp[GGI*8+6];
+x7 = inp[GGI*8+7];
 
-
-SIZE=sizein[GGI];
-size[GGI] = (SIZE+salt.sF+str.sF)<<3;
-
+inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=inpc[GLI][5]=0;
+inpc[GLI][6]=inpc[GLI][7]==0;
+inpc[GLI][8]=inpc[GLI][9]=inpc[GLI][10]=inpc[GLI][11]=inpc[GLI][12]=inpc[GLI][13]=0;
+if ((SIZE.s0+str.sC+salt.sF)>56) {SIZE.s0=(uint)0;}
 SET_AB(inpc[GLI],salt.s0,0,0);
 SET_AB(inpc[GLI],salt.s1,4,0);
 SET_AB(inpc[GLI],salt.s2,8,0);
@@ -47,90 +65,164 @@ SET_AB(inpc[GLI],salt.s4,16,0);
 SET_AB(inpc[GLI],salt.s5,20,0);
 SET_AB(inpc[GLI],salt.s6,24,0);
 SET_AB(inpc[GLI],salt.s7,28,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+0],salt.sF,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+1],salt.sF+4,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+2],salt.sF+8,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+3],salt.sF+12,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+4],salt.sF+16,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+5],salt.sF+20,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+6],salt.sF+24,0);
-SET_AB(inpc[GLI],inp[GGI*(8)+7],salt.sF+28,0);
-SET_AB(inpc[GLI],str.s0,salt.sF+SIZE,0);
-SET_AB(inpc[GLI],str.s1,salt.sF+SIZE+4,0);
-SET_AB(inpc[GLI],str.s2,salt.sF+SIZE+8,0);
-SET_AB(inpc[GLI],str.s3,salt.sF+SIZE+12,0);
-SET_AB(inpc[GLI],0x80,salt.sF+SIZE+str.sF,0);
+SET_AB(inpc[GLI],x0,salt.sF,0);
+SET_AB(inpc[GLI],x1,salt.sF+4,0);
+SET_AB(inpc[GLI],x2,salt.sF+8,0);
+SET_AB(inpc[GLI],x3,salt.sF+12,0);
+SET_AB(inpc[GLI],x4,salt.sF+16,0);
+SET_AB(inpc[GLI],x5,salt.sF+20,0);
+SET_AB(inpc[GLI],x6,salt.sF+24,0);
+SET_AB(inpc[GLI],x7,salt.sF+28,0);
+SET_AB(inpc[GLI],str.s0,salt.sF+SIZE.s0,0);
+SET_AB(inpc[GLI],str.s1,salt.sF+SIZE.s0+4,0);
+SET_AB(inpc[GLI],str.s2,salt.sF+SIZE.s0+8,0);
+SET_AB(inpc[GLI],str.s3,salt.sF+SIZE.s0+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s0+str.sC+salt.sF),0);
+SIZE.s0 = (SIZE.s0+str.sC+salt.sF)<<3;
+w0.s0=inpc[GLI][0];
+w1.s0=inpc[GLI][1];
+w2.s0=inpc[GLI][2];
+w3.s0=inpc[GLI][3];
+w4.s0=inpc[GLI][4];
+w5.s0=inpc[GLI][5];
+w6.s0=inpc[GLI][6];
+w7.s0=inpc[GLI][7];
+w8.s0=inpc[GLI][8];
+w9.s0=inpc[GLI][9];
+w10.s0=inpc[GLI][10];
+w11.s0=inpc[GLI][11];
+w12.s0=inpc[GLI][12];
+w13.s0=inpc[GLI][13];
 
 
-dst[GGI*14+0] = inpc[GLI][0];
-dst[GGI*14+1] = inpc[GLI][1];
-dst[GGI*14+2] = inpc[GLI][2];
-dst[GGI*14+3] = inpc[GLI][3];
-dst[GGI*14+4] = inpc[GLI][4];
-dst[GGI*14+5] = inpc[GLI][5];
-dst[GGI*14+6] = inpc[GLI][6];
-dst[GGI*14+7] = inpc[GLI][7];
-dst[GGI*14+8] = inpc[GLI][8];
-dst[GGI*14+9] = inpc[GLI][9];
-dst[GGI*14+10] = inpc[GLI][10];
-dst[GGI*14+11] = inpc[GLI][11];
-dst[GGI*14+12] = inpc[GLI][12];
-dst[GGI*14+13] = inpc[GLI][13];
 
-}
-
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-sha1_saltpass( __global uint *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *found,  uint4 singlehash, uint16 salt) 
-{
-
-uint SIZE;  
-uint i,ib,ic,id,ie;  
-uint t1,t2,t3;
-uint A,B,C,D,E,K;
-uint tmp1, l,tmp2,chbase1; 
-uint w0,w1,w2,w3; 
-uint w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w16,temp; 
-#define m 0x00FF00FFU
-#define m2 0xFF00FF00U 
-
-uint K0 = (uint)0x5A827999;
-uint K1 = (uint)0x6ED9EBA1;
-uint K2 = (uint)0x8F1BBCDC;
-uint K3 = (uint)0xCA62C1D6;
-
-uint H0 = (uint)0x67452301;
-uint H1 = (uint)0xEFCDAB89;
-uint H2 = (uint)0x98BADCFE;
-uint H3 = (uint)0x10325476;
-uint H4 = (uint)0xC3D2E1F0;
-#define S1 1U
-#define S2 5U
-#define S3 30U  
-#define Sl 8U
-#define Sr 24U  
+inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=inpc[GLI][5]=0;
+inpc[GLI][6]=inpc[GLI][7]==0;
+inpc[GLI][8]=inpc[GLI][9]=inpc[GLI][10]=inpc[GLI][11]=inpc[GLI][12]=inpc[GLI][13]=0;
+if ((SIZE.s1+str.sD+salt.sF)>56) {SIZE.s1=(uint)0;}
+SET_AB(inpc[GLI],salt.s0,0,0);
+SET_AB(inpc[GLI],salt.s1,4,0);
+SET_AB(inpc[GLI],salt.s2,8,0);
+SET_AB(inpc[GLI],salt.s3,12,0);
+SET_AB(inpc[GLI],salt.s4,16,0);
+SET_AB(inpc[GLI],salt.s5,20,0);
+SET_AB(inpc[GLI],salt.s6,24,0);
+SET_AB(inpc[GLI],salt.s7,28,0);
+SET_AB(inpc[GLI],x0,salt.sF,0);
+SET_AB(inpc[GLI],x1,salt.sF+4,0);
+SET_AB(inpc[GLI],x2,salt.sF+8,0);
+SET_AB(inpc[GLI],x3,salt.sF+12,0);
+SET_AB(inpc[GLI],x4,salt.sF+16,0);
+SET_AB(inpc[GLI],x5,salt.sF+20,0);
+SET_AB(inpc[GLI],x6,salt.sF+24,0);
+SET_AB(inpc[GLI],x7,salt.sF+28,0);
+SET_AB(inpc[GLI],str.s4,salt.sF+SIZE.s0,0);
+SET_AB(inpc[GLI],str.s5,salt.sF+SIZE.s0+4,0);
+SET_AB(inpc[GLI],str.s6,salt.sF+SIZE.s0+8,0);
+SET_AB(inpc[GLI],str.s7,salt.sF+SIZE.s0+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s1+str.sD+salt.sF),0);
+w0.s1=inpc[GLI][0];
+w1.s1=inpc[GLI][1];
+w2.s1=inpc[GLI][2];
+w3.s1=inpc[GLI][3];
+w4.s1=inpc[GLI][4];
+w5.s1=inpc[GLI][5];
+w6.s1=inpc[GLI][6];
+w7.s1=inpc[GLI][7];
+w8.s1=inpc[GLI][8];
+w9.s1=inpc[GLI][9];
+w10.s1=inpc[GLI][10];
+w11.s1=inpc[GLI][11];
+w12.s1=inpc[GLI][12];
+w13.s1=inpc[GLI][13];
+SIZE.s1 = (SIZE.s1+str.sD+salt.sF)<<3;
 
 
-id=get_global_id(0);
-SIZE=(size[id]); 
+inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=inpc[GLI][5]=0;
+inpc[GLI][6]=inpc[GLI][7]==0;
+inpc[GLI][8]=inpc[GLI][9]=inpc[GLI][10]=inpc[GLI][11]=inpc[GLI][12]=inpc[GLI][13]=0;
+if ((SIZE.s2+str.sE+salt.sF)>56) {SIZE.s2=(uint)0;}
+SET_AB(inpc[GLI],salt.s0,0,0);
+SET_AB(inpc[GLI],salt.s1,4,0);
+SET_AB(inpc[GLI],salt.s2,8,0);
+SET_AB(inpc[GLI],salt.s3,12,0);
+SET_AB(inpc[GLI],salt.s4,16,0);
+SET_AB(inpc[GLI],salt.s5,20,0);
+SET_AB(inpc[GLI],salt.s6,24,0);
+SET_AB(inpc[GLI],salt.s7,28,0);
+SET_AB(inpc[GLI],x0,salt.sF,0);
+SET_AB(inpc[GLI],x1,salt.sF+4,0);
+SET_AB(inpc[GLI],x2,salt.sF+8,0);
+SET_AB(inpc[GLI],x3,salt.sF+12,0);
+SET_AB(inpc[GLI],x4,salt.sF+16,0);
+SET_AB(inpc[GLI],x5,salt.sF+20,0);
+SET_AB(inpc[GLI],x6,salt.sF+24,0);
+SET_AB(inpc[GLI],x7,salt.sF+28,0);
+SET_AB(inpc[GLI],str.s8,salt.sF+SIZE.s0,0);
+SET_AB(inpc[GLI],str.s9,salt.sF+SIZE.s0+4,0);
+SET_AB(inpc[GLI],str.sA,salt.sF+SIZE.s0+8,0);
+SET_AB(inpc[GLI],str.sB,salt.sF+SIZE.s0+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s2+str.sE+salt.sF),0);
+w0.s2=inpc[GLI][0];
+w1.s2=inpc[GLI][1];
+w2.s2=inpc[GLI][2];
+w3.s2=inpc[GLI][3];
+w4.s2=inpc[GLI][4];
+w5.s2=inpc[GLI][5];
+w6.s2=inpc[GLI][6];
+w7.s2=inpc[GLI][7];
+w8.s2=inpc[GLI][8];
+w9.s2=inpc[GLI][9];
+w10.s2=inpc[GLI][10];
+w11.s2=inpc[GLI][11];
+w12.s2=inpc[GLI][12];
+w13.s2=inpc[GLI][13];
+SIZE.s2 = (SIZE.s2+str.sE+salt.sF)<<3;
 
 
-w0=input[id*14];
-w1=input[id*14+1];
-w2=input[id*14+2];
-w3=input[id*14+3];
-w4=input[id*14+4];
-w5=input[id*14+5];
-w6=input[id*14+6];
-w7=input[id*14+7];
-w8=input[id*14+8];
-w9=input[id*14+9];
-w10=input[id*14+10];
-w11=input[id*14+11];
-w12=input[id*14+12];
-w13=input[id*14+13];
+inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=inpc[GLI][5]=0;
+inpc[GLI][6]=inpc[GLI][7]==0;
+inpc[GLI][8]=inpc[GLI][9]=inpc[GLI][10]=inpc[GLI][11]=inpc[GLI][12]=inpc[GLI][13]=0;
+if ((SIZE.s3+str1.sC+salt.sF)>56) {SIZE.s3=(uint)0;}
+SET_AB(inpc[GLI],salt.s0,0,0);
+SET_AB(inpc[GLI],salt.s1,4,0);
+SET_AB(inpc[GLI],salt.s2,8,0);
+SET_AB(inpc[GLI],salt.s3,12,0);
+SET_AB(inpc[GLI],salt.s4,16,0);
+SET_AB(inpc[GLI],salt.s5,20,0);
+SET_AB(inpc[GLI],salt.s6,24,0);
+SET_AB(inpc[GLI],salt.s7,28,0);
+SET_AB(inpc[GLI],x0,salt.sF,0);
+SET_AB(inpc[GLI],x1,salt.sF+4,0);
+SET_AB(inpc[GLI],x2,salt.sF+8,0);
+SET_AB(inpc[GLI],x3,salt.sF+12,0);
+SET_AB(inpc[GLI],x4,salt.sF+16,0);
+SET_AB(inpc[GLI],x5,salt.sF+20,0);
+SET_AB(inpc[GLI],x6,salt.sF+24,0);
+SET_AB(inpc[GLI],x7,salt.sF+28,0);
+SET_AB(inpc[GLI],str1.s0,salt.sF+SIZE.s0,0);
+SET_AB(inpc[GLI],str1.s1,salt.sF+SIZE.s0+4,0);
+SET_AB(inpc[GLI],str1.s2,salt.sF+SIZE.s0+8,0);
+SET_AB(inpc[GLI],str1.s3,salt.sF+SIZE.s0+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s3+str1.sC+salt.sF),0);
+w0.s3=inpc[GLI][0];
+w1.s3=inpc[GLI][1];
+w2.s3=inpc[GLI][2];
+w3.s3=inpc[GLI][3];
+w4.s3=inpc[GLI][4];
+w5.s3=inpc[GLI][5];
+w6.s3=inpc[GLI][6];
+w7.s3=inpc[GLI][7];
+w8.s3=inpc[GLI][8];
+w9.s3=inpc[GLI][9];
+w10.s3=inpc[GLI][10];
+w11.s3=inpc[GLI][11];
+w12.s3=inpc[GLI][12];
+w13.s3=inpc[GLI][13];
+SIZE.s3 = (SIZE.s3+str1.sC+salt.sF)<<3;
 
-w14=w16=(uint)0;
+
+w14=w16=(uint4)0;
 
 A=H0;  
 B=H1;  
@@ -265,7 +357,7 @@ w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE4_F(C, D, E, A, B, w5);
 w6 = rotate(w3 ^ SIZE ^ w9 ^ w7,S1); ROTATE4_F(B, C, D, E, A, w6); 
 w7 = rotate(w4 ^ w16 ^ w10 ^ w8,S1); ROTATE4_F(A, B, C, D, E, w7); 
 #ifdef SINGLE_MODE
-//if (all((uint)singlehash.y != E)) return;
+//if (all((uint4)singlehash.y != E)) return;
 #endif
 w8 = rotate(w5 ^ w0 ^ w11 ^ w9,S1); ROTATE4_F(E, A, B, C, D, w8);  
 w9 = rotate(w6 ^ w1 ^ w12 ^ w10,S1); ROTATE4_F(D, E, A, B, C, w9); 
@@ -281,18 +373,18 @@ Endian_Reverse32(C);
 Endian_Reverse32(D);
 Endian_Reverse32(E);
 
-if (((uint)singlehash.x!=A)) return;
-if (((uint)singlehash.z!=C)) return;
+if (all((uint4)singlehash.x!=A)) return;
+if (all((uint4)singlehash.z!=C)) return;
 
 
 found[0] = 1;
 found_ind[get_global_id(0)] = 1;
 
-dst[(get_global_id(0)*5)] = (uint)(A);  
-dst[(get_global_id(0)*5)+1] = (uint)(B);
-dst[(get_global_id(0)*5)+2] = (uint)(C);
-dst[(get_global_id(0)*5)+3] = (uint)(D);
-dst[(get_global_id(0)*5)+4] = (uint)(E);
+dst[(get_global_id(0)*5)] = (uint4)(A.s0,B.s0,C.s0,D.s0);  
+dst[(get_global_id(0)*5)+1] = (uint4)(E.s0,A.s1,B.s1,C.s1);
+dst[(get_global_id(0)*5)+2] = (uint4)(D.s1,E.s1,A.s2,B.s2);
+dst[(get_global_id(0)*5)+3] = (uint4)(C.s2,D.s2,E.s2,A.s3);
+dst[(get_global_id(0)*5)+4] = (uint4)(B.s3,C.s3,D.s3,E.s3);
 
 
 }
