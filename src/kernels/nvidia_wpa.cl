@@ -48,7 +48,6 @@ dst[GGI*8+7] = inpc[GLI][7];
 }
 
 
-#pragma OPENCL EXTENSION cl_amd_media_ops : enable
 #define F_00_19(bb,cc,dd) (bitselect((dd),(cc),(bb)))
 #define F_20_39(bb,cc,dd)  ((bb) ^ (cc) ^ (dd))  
 #define F_40_59(bb,cc,dd) (bitselect((cc),(bb),((dd)^(cc))))
@@ -69,6 +68,8 @@ dst[GGI*8+7] = inpc[GLI][7];
 #define ROTATE2_F(aa, bb, cc, dd, ee, x) (ee) = (ee) + rotate((aa),S2) + F_20_39((bb),(cc),(dd)) + (x) + K; (bb) = rotate((bb),S3) 
 #define ROTATE3_F(aa, bb, cc, dd, ee, x) (ee) = (ee) + rotate((aa),S2) + F_40_59((bb),(cc),(dd)) + (x) + K; (bb) = rotate((bb),S3)
 #define ROTATE4_F(aa, bb, cc, dd, ee, x) (ee) = (ee) + rotate((aa),S2) + F_60_79((bb),(cc),(dd)) + (x) + K; (bb) = rotate((bb),S3)
+
+
 
 #define GLI get_local_id(0)
 #define Ca 0x67452301  

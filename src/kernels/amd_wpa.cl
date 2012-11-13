@@ -47,8 +47,6 @@ dst[GGI*8+7] = inpc[GLI][7];
 }
 
 
-#ifndef OLD_ATI
-#pragma OPENCL EXTENSION cl_amd_media_ops : enable
 #define F_00_19(bb,cc,dd) (bitselect((dd),(cc),(bb)))
 #define F_20_39(bb,cc,dd)  ((bb) ^ (cc) ^ (dd))  
 #define F_40_59(bb,cc,dd) (bitselect((cc),(bb),((dd)^(cc))))
@@ -61,20 +59,6 @@ dst[GGI*8+7] = inpc[GLI][7];
 #define MD5STEP_ROUND3_NULL(a, b, c, d, AC, s)  tmp1 = (b) ^ (c);tmp1 = tmp1 ^ (d);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);
 #define MD5STEP_ROUND4(a, b, c, d, AC, x, s)  tmp1 = (~(d)); tmp1 = (b) | tmp1; tmp1 = tmp1 ^ (c); (a) = (a)+tmp1; (a) = (a)+(AC); (a) = (a)+(x); (a) = rotate((a),s); (a) = (a)+(b);  
 #define MD5STEP_ROUND4_NULL(a, b, c, d, AC, s)  tmp1 = (~(d)); tmp1 = (b) | tmp1; tmp1 = tmp1 ^ (c); (a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate((a),s); (a) = (a)+(b);
-#else
-#define F_00_19(bb,cc,dd)  ((((cc) ^ (dd)) & (bb)) ^ (dd))
-#define F_20_39(bb,cc,dd)  ((cc) ^ (bb) ^ (dd))  
-#define F_40_59(bb,cc,dd)  (((bb) & (cc)) | (((bb)|(cc)) & (dd)))  
-#define F_60_79(bb,cc,dd)  F_20_39(bb,cc,dd) 
-#define MD5STEP_ROUND1(a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((d),(c),(b));(a) = rotate(a,s)+(b);
-#define MD5STEP_ROUND1_NULL(a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((d),(c),(b));(a) = rotate(a,s)+(b);
-#define MD5STEP_ROUND2(a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((c),(b),(d));(a) = rotate(a,s)+(b);
-#define MD5STEP_ROUND2_NULL(a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((c),(b),(d)); (a) = rotate(a,s)+(b);
-#define MD5STEP_ROUND3(a, b, c, d, AC, x, s) tmp1 = (b) ^ (c);tmp1 = tmp1 ^ (d);(a) = (a)+tmp1; (a) = (a)+(AC);(a) = (a)+(x); (a) = rotate((a),s); (a) = (a)+(b); 
-#define MD5STEP_ROUND3_NULL(a, b, c, d, AC, s)  tmp1 = (b) ^ (c);tmp1 = tmp1 ^ (d);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);
-#define MD5STEP_ROUND4(a, b, c, d, AC, x, s)  tmp1 = (~(d)); tmp1 = (b) | tmp1; tmp1 = tmp1 ^ (c); (a) = (a)+tmp1; (a) = (a)+(AC); (a) = (a)+(x); (a) = rotate((a),s); (a) = (a)+(b);  
-#define MD5STEP_ROUND4_NULL(a, b, c, d, AC, s)  tmp1 = (~(d)); tmp1 = (b) | tmp1; tmp1 = tmp1 ^ (c); (a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate((a),s); (a) = (a)+(b);
-#endif
 
 
 #define Endian_Reverse32(aa) { l=(aa);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (aa)=bitselect(tmp2,tmp1,m); }
