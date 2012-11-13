@@ -733,8 +733,6 @@ w17=(((w[8]>>16)&255)<<8)|(((w[8]>>24)&255)<<24);
 
 salt.sE=((SIZE))-1;
 
-
-
 DES_SPtrans[0][get_local_id(0)]=CDES_SPtrans[0][get_local_id(0)];
 DES_SPtrans[1][get_local_id(0)]=CDES_SPtrans[1][get_local_id(0)];
 DES_SPtrans[2][get_local_id(0)]=CDES_SPtrans[2][get_local_id(0)];
@@ -1023,14 +1021,15 @@ DES_ecb_encrypt_orcl(t0,t1,blo11,blo12,  key0,key1,key2,key3,key4,key5,key6,key7
 }
 
 
-
-
-dst[(getglobalid(0))] = (uint2)(blo11,blo12);
 if ((blo11!=(uint)singlehash.x)) return;
 if ((blo12!=(uint)singlehash.y)) return;
 
-
 found[0] = 1;
 found_ind[getglobalid(0)] = 1;
+
+
+dst[(getglobalid(0))] = (uint2)(blo11,blo12);
+
+
 
 }
