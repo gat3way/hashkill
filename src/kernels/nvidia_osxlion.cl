@@ -3,64 +3,26 @@
 
 #define SET_AB(ai1,ai2,ii1,ii2) { \
     elem=ii1>>2; \
-    tmp1=(ii1&3)<<3; \
-    ai1[elem] = ai1[elem]|(ai2<<(tmp1)); \
-    ai1[elem+1] = (tmp1==0) ? 0 : ai2>>(32-tmp1);\
+    t1=(ii1&3)<<3; \
+    ai1[elem] = ai1[elem]|(ai2<<(t1)); \
+    ai1[elem+1] = (t1==0) ? 0 : ai2>>(32-t1);\
     }
 
 
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str,ulong salt)
-{
-__local uint inpc[64][14];
-uint SIZE;
-uint elem,tmp1;
-
-
-inpc[GLI][0] = inp[GGI*(8)+0];
-inpc[GLI][1] = inp[GGI*(8)+1];
-inpc[GLI][2] = inp[GGI*(8)+2];
-inpc[GLI][3] = inp[GGI*(8)+3];
-inpc[GLI][4] = inp[GGI*(8)+4];
-inpc[GLI][5] = inp[GGI*(8)+5];
-inpc[GLI][6] = inp[GGI*(8)+6];
-inpc[GLI][7] = inp[GGI*(8)+7];
-
-SIZE=sizein[GGI];
-size[GGI] = (SIZE+str.sF);
-
-SET_AB(inpc[GLI],str.s0,SIZE,0);
-SET_AB(inpc[GLI],str.s1,SIZE+4,0);
-SET_AB(inpc[GLI],str.s2,SIZE+8,0);
-SET_AB(inpc[GLI],str.s3,SIZE+12,0);
-
-SET_AB(inpc[GLI],0x80,(SIZE+str.sF),0);
-
-dst[GGI*8+0] = inpc[GLI][0];
-dst[GGI*8+1] = inpc[GLI][1];
-dst[GGI*8+2] = inpc[GLI][2];
-dst[GGI*8+3] = inpc[GLI][3];
-dst[GGI*8+4] = inpc[GLI][4];
-dst[GGI*8+5] = inpc[GLI][5];
-dst[GGI*8+6] = inpc[GLI][6];
-dst[GGI*8+7] = inpc[GLI][7];
-
-
-}
 
 __kernel void  __attribute__((reqd_work_group_size(64, 1, 1))) 
-osxlion( __global ulong4 *dst,  __global uint *input, __global uint *size,  __global uint *found_ind,  __global uint *found,  ulong4 singlehash,ulong salt) 
+osxlion( __global ulong4 *dst,  __global uint *inp, __global uint *sizein,  __global uint *found_ind,  __global uint *found,  ulong4 singlehash,ulong salt, uint16 str) 
 {
-
-
-ulong w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w16,SIZE;
-
+ulong2 w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w16,SIZE;
 uint i,ib,ic,id;  
-ulong A,B,C,D,E,F,G,H,K,l,tmp1,tmp2,temp,T1;
+ulong2 A,B,C,D,E,F,G,H,K,l,tmp1,tmp2,temp,T1;
 uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
+ulong2 u0,u1,u2,u3;
+__local uint inpc[64][14];
+uint elem,t1;
+uint x0,x1,x2,x3,x4,x5,x6,x7,x8;
+uint2 size;
 
-uint4 m= 0x00FF00FF;
-uint4 m2= 0xFF00FF00;
 #define Sl 8
 #define Sr 24
 
@@ -155,27 +117,69 @@ uint4 m2= 0xFF00FF00;
 #define AC80 0x6c44198c4a475817L
 
 
-
 id=get_global_id(0);
-SIZE=(ulong)(size[id]+4)<<3; 
+size=(uint2)sizein[GGI]+4;
+x0 = inp[GGI*8+0];
+x1 = inp[GGI*8+1];
+x2 = inp[GGI*8+2];
+x3 = inp[GGI*8+3];
+x4 = inp[GGI*8+4];
+x5 = inp[GGI*8+5];
+x6 = inp[GGI*8+6];
+x7 = inp[GGI*8+7];
+inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=0;
+inpc[GLI][5]=inpc[GLI][6]=inpc[GLI][7]=inpc[GLI][3]=inpc[GLI][8]=0;
+
+inpc[GLI][0]=salt;
+inpc[GLI][1]=x0;
+inpc[GLI][2]=x1;
+inpc[GLI][3]=x2;
+inpc[GLI][4]=x3;
+inpc[GLI][5]=x4;
+inpc[GLI][6]=x5;
+inpc[GLI][7]=x6;
+inpc[GLI][8]=x7;
+SET_AB(inpc[GLI],str.s0,size.s0,0);
+SET_AB(inpc[GLI],str.s1,size.s0+4,0);
+SET_AB(inpc[GLI],str.s2,size.s0+8,0);
+SET_AB(inpc[GLI],str.s3,size.s0+12,0);
+SET_AB(inpc[GLI],0x80,(size.s0+str.sC),0);
+w0.s0=(ulong)((inpc[GLI][0])|((ulong)inpc[GLI][1]<<32));
+w1.s0=(ulong)((inpc[GLI][2])|((ulong)inpc[GLI][3]<<32));
+w2.s0=(ulong)((inpc[GLI][4])|((ulong)inpc[GLI][5]<<32));
+w3.s0=(ulong)((inpc[GLI][6])|((ulong)inpc[GLI][7]<<32));
+w4.s0=(ulong)((inpc[GLI][8])|((ulong)inpc[GLI][9]<<32));
+size.s0 = (size.s0+str.sC)<<3;
 
 
-w0=input[id*8];
-w0=w0<<32;
-w0|=salt;
-w1=input[id*8+2];
-w1=w1<<32;
-w1|=input[id*8+1];
-w2=input[id*8+4];
-w2=w2<<32;
-w2|=input[id*8+3];
-w3=input[id*8+6];
-w3=w3<<32;
-w3|=input[id*8+5];
+inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=0;
+inpc[GLI][5]=inpc[GLI][6]=inpc[GLI][7]=inpc[GLI][3]=inpc[GLI][8]=0;
+inpc[GLI][0]=salt;
+inpc[GLI][1]=x0;
+inpc[GLI][2]=x1;
+inpc[GLI][3]=x2;
+inpc[GLI][4]=x3;
+inpc[GLI][5]=x4;
+inpc[GLI][6]=x5;
+inpc[GLI][7]=x6;
+inpc[GLI][8]=x7;
+SET_AB(inpc[GLI],str.s4,size.s1,0);
+SET_AB(inpc[GLI],str.s5,size.s1+4,0);
+SET_AB(inpc[GLI],str.s6,size.s1+8,0);
+SET_AB(inpc[GLI],str.s7,size.s1+12,0);
+SET_AB(inpc[GLI],0x80,(size.s1+str.sD),0);
+w0.s1=(ulong)(inpc[GLI][0])|((ulong)inpc[GLI][1]<<32);
+w1.s1=(ulong)(inpc[GLI][2])|((ulong)inpc[GLI][3]<<32);
+w2.s1=(ulong)(inpc[GLI][4])|((ulong)inpc[GLI][5]<<32);
+w3.s1=(ulong)(inpc[GLI][6])|((ulong)inpc[GLI][7]<<32);
+w4.s1=(ulong)(inpc[GLI][8])|((ulong)inpc[GLI][9]<<32);
+size.s1 = (size.s1+str.sD)<<3;
+SIZE.s0=size.s0;
+SIZE.s1=size.s1;
 
 
 
-w4=w5=w6=w7=w8=w9=w10=w11=w12=w13=w14=w16=(ulong)0;
+w5=w6=w7=w8=w9=w10=w11=w12=w13=w14=w16=(ulong2)0;
 
 #ifndef GCN
 #define Endian_Reverse64(a) { (a) = ((a) & 0x00000000000000FFL) << 56 | ((a) & 0x000000000000FF00L) << 40 | \
@@ -186,14 +190,14 @@ w4=w5=w6=w7=w8=w9=w10=w11=w12=w13=w14=w16=(ulong)0;
 #define Endian_Reverse64(n)       {n.x = as_ulong(as_uchar8(n.x).s76543210);n.y = as_ulong(as_uchar8(n.y).s76543210);}
 #endif
 
-A=(ulong)H0;
-B=(ulong)H1;
-C=(ulong)H2;
-D=(ulong)H3;
-E=(ulong)H4;
-F=(ulong)H5;
-G=(ulong)H6;
-H=(ulong)H7;
+A=(ulong2)H0;
+B=(ulong2)H1;
+C=(ulong2)H2;
+D=(ulong2)H3;
+E=(ulong2)H4;
+F=(ulong2)H5;
+G=(ulong2)H6;
+H=(ulong2)H7;
 
 
 #define ROTATE(b,x)	(((x) >> (b)) | ((x) << (64 - (b))))
@@ -229,7 +233,8 @@ Endian_Reverse64(w2);
 ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w2);
 Endian_Reverse64(w3);
 ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w3);
-ROUND512_0_TO_15_NL(E,F,G,H,A,B,C,D,AC5);
+Endian_Reverse64(w3);
+ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w4);
 ROUND512_0_TO_15_NL(D,E,F,G,H,A,B,C,AC6);
 ROUND512_0_TO_15_NL(C,D,E,F,G,H,A,B,AC7);
 ROUND512_0_TO_15_NL(B,C,D,E,F,G,H,A,AC8);
@@ -304,21 +309,21 @@ w5 = sigma1_512(w3)+SIZE+sigma0_512(w7)+w6; ROUND512(H,A,B,C,D,E,F,G,w5,AC74);
 w6 = sigma1_512(w4)+w16+sigma0_512(w8)+w7; ROUND512(G,H,A,B,C,D,E,F,w6,AC75);
 w7 = sigma1_512(w5)+w0+sigma0_512(w9)+w8; ROUND512(F,G,H,A,B,C,D,E,w7,AC76);
 w8 = sigma1_512(w6)+w1+sigma0_512(w10)+w9; ROUND512(E,F,G,H,A,B,C,D,w8,AC77);
-if (((ulong)singlehash.w!=D)) return;
+if (all((ulong2)singlehash.w!=D)) return;
 w9 = sigma1_512(w7)+w2+sigma0_512(w11)+w10; ROUND512(D,E,F,G,H,A,B,C,w9,AC78);
 w10 = sigma1_512(w8)+w3+sigma0_512(w12)+w11; ROUND512(C,D,E,F,G,H,A,B,w10,AC79);
 w11 = sigma1_512(w9)+w4+sigma0_512(w13)+w12; ROUND512(B,C,D,E,F,G,H,A,w11,AC80);
 
 
 
-A+=(ulong)H0;
-B+=(ulong)H1;
-C+=(ulong)H2;
-D+=(ulong)H3;
-E+=(ulong)H4;
-F+=(ulong)H5;
-G+=(ulong)H6;
-H+=(ulong)H7;
+A+=(ulong2)H0;
+B+=(ulong2)H1;
+C+=(ulong2)H2;
+D+=(ulong2)H3;
+E+=(ulong2)H4;
+F+=(ulong2)H5;
+G+=(ulong2)H6;
+H+=(ulong2)H7;
 
 Endian_Reverse64(A);
 Endian_Reverse64(B);
@@ -329,14 +334,16 @@ Endian_Reverse64(F);
 Endian_Reverse64(G);
 Endian_Reverse64(H);
 
-if (all((ulong)singlehash.x!=A)) return;
+if (all((ulong2)singlehash.x!=A)) return;
 
 
 found[0] = (uint)1;
 found_ind[get_global_id(0)] = (uint)1;
 
-dst[(get_global_id(0)*2)] = (ulong4)(A,B,C,D);  
-dst[(get_global_id(0)*2)+1] = (ulong4)(E,F,G,H);
+dst[(get_global_id(0)*4)] = (ulong4)(A.s0,B.s0,C.s0,D.s0);  
+dst[(get_global_id(0)*4)+1] = (ulong4)(E.s0,F.s0,G.s0,H.s0);
+dst[(get_global_id(0)*4)+2] = (ulong4)(A.s1,B.s1,C.s1,D.s1);  
+dst[(get_global_id(0)*4)+3] = (ulong4)(E.s1,F.s1,G.s1,H.s1);
 
 
 }

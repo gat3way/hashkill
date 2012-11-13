@@ -259,7 +259,6 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"desunix")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"phpbb3")==0)) ocl_vector=4;
-		//if ((strcmp(get_current_plugin(),"md5unix")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"osx-old")==0)) ocl_vector=4;
@@ -319,6 +318,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"sha1")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"ntlm")==0)) ocl_vector=8;
 		if ((strcmp(get_current_plugin(),"md5md5")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=1;
 
 		/* GCN/VLIW-specific */
 		if ((strcmp(get_current_plugin(),"phpbb3")==0)&&(ocl_have_gcn)) ocl_vector=1;
@@ -339,7 +339,6 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"rar")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"django256")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"django256")==0)&&(!ocl_have_gcn)) ocl_vector=2;
-		if ((strcmp(get_current_plugin(),"oracle-old")==0)) {ocl_vector=1;loops=2;}
 	    }
 
 
@@ -410,6 +409,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"nsldaps")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"mssql-2000")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"mssql-2005")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
 	    }
 
 	    /* Zip (non-rule) exception for NVidia */
