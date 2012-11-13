@@ -445,11 +445,12 @@ static void process_table(char *line, int self)
     char *tok1, *tok2;
     int a;
     char line1[MAXCAND*4];
+    char *saveptr;
 
     strcpy(line1,line);
     line1[strlen(line1)-1]=0;
-    tok1=strtok(line," ");
-    tok1=strtok(NULL," ");
+    tok1=strtok_r(line," ",&saveptr);
+    tok1=strtok_r(NULL," ",&saveptr);
 
     if (tok1)
     {
@@ -464,7 +465,7 @@ static void process_table(char *line, int self)
 	}
 	else 
 	{
-	    tok2=strtok(NULL," ");
+	    tok2=strtok_r(NULL," ",&saveptr);
 	    if (!tok2)
 	    {
 		hg_elog("Line '%s' : bad table command arguments\n",line1);
@@ -562,11 +563,12 @@ static void parse(char *line,int self, int precalc,int mode)
     char cline[MAXCAND*8];
     char *tok1, *tok2, *tok3, *tok4, *tok5;
     char *ltok1, *ltok2, *ltok3, *ltok4;
+    char *saveptr;
 
     if (attack_over!=0) return;
     bzero(cline,MAXCAND*8);
     strcpy(cline,line);
-    tok1=strtok(cline," ");
+    tok1=strtok_r(cline," ",&saveptr);
     update_currentline(line);
     update_optimize_type(optimize_none,mode);
     update_optimize_charset("",mode);
@@ -582,7 +584,7 @@ static void parse(char *line,int self, int precalc,int mode)
     if (strcmp(tok1,"push")==0) 
     {
 	update_push(1,mode);
-	tok1=strtok(NULL," ");
+	tok1=strtok_r(NULL," ",&saveptr);
     }
     else update_push(0,mode);
 
@@ -596,7 +598,7 @@ static void parse(char *line,int self, int precalc,int mode)
     if (strcmp(tok1,"may")==0) update_mode(0,mode);
     else update_mode(1,mode);
 
-    tok2=strtok(NULL," ");
+    tok2=strtok_r(NULL," ",&saveptr);
     if (tok2==NULL)
     {
 	hg_elog("Error: line: %s not valid!\n",currentline);
@@ -606,7 +608,7 @@ static void parse(char *line,int self, int precalc,int mode)
     /* We have add keyword? */
     if (strcmp(tok2,"add")==0)
     {
-	tok3=strtok(NULL," ");
+	tok3=strtok_r(NULL," ",&saveptr);
 	if (!tok3)
 	{
 	    hg_elog("Error: line: %s not valid!\n",currentline);
@@ -615,17 +617,17 @@ static void parse(char *line,int self, int precalc,int mode)
 	/* is cset? */
 	if (strcmp(tok3,"cset")==0)
 	{
-    	    tok4=strtok(NULL," ");
+    	    tok4=strtok_r(NULL," ",&saveptr);
     	    if (tok4)
     	    {
     		fix_line(tok4);
-    		ltok1=strtok(tok4,":");
+    		ltok1=strtok_r(tok4,":",&saveptr);
     		update_start(atoi(ltok1),mode);
     		update_optimize_start(atoi(ltok1),mode);
-    		ltok2=strtok(NULL,":");
+    		ltok2=strtok_r(NULL,":",&saveptr);
     		update_end(atoi(ltok2),mode);
     		update_optimize_end(atoi(ltok2),mode);
-    		ltok3=strtok(NULL,":");
+    		ltok3=strtok_r(NULL,":",&saveptr);
     		if (strcmp(ltok3,"lalpha")==0) update_charset(lalpha,mode);
     		if (strcmp(ltok3,"ualpha")==0) update_charset(ualpha,mode);
     		if (strcmp(ltok3,"alpha")==0) update_charset(alpha,mode);
@@ -642,7 +644,7 @@ static void parse(char *line,int self, int precalc,int mode)
     		if (strcmp(ltok3,"ucons")==0) update_charset(ucons,mode);
     		if (strcmp(ltok3,"uvowels")==0) update_charset(uvowels,mode);
 
-    		ltok4=strtok(NULL,":");
+    		ltok4=strtok_r(NULL,":",&saveptr);
     		if (ltok4) update_charset_plus(ltok4,mode);
     		update_params(tok4,mode);
     		update_parsefn(node_add_cset,mode);
@@ -662,17 +664,17 @@ static void parse(char *line,int self, int precalc,int mode)
 	/* is set? */
 	else if (strcmp(tok3,"set")==0)
 	{
-    	    tok4=strtok(NULL," ");
+    	    tok4=strtok_r(NULL," ",&saveptr);
     	    if (tok4)
     	    {
     		fix_line(tok4);
-    		ltok1=strtok(tok4,":");
+    		ltok1=strtok_r(tok4,":",&saveptr);
     		update_start(atoi(ltok1),mode);
     		update_optimize_start(atoi(ltok1),mode);
-    		ltok2=strtok(NULL,":");
+    		ltok2=strtok_r(NULL,":",&saveptr);
     		update_end(atoi(ltok2),mode);
     		update_optimize_end(atoi(ltok2),mode);
-    		ltok3=strtok(NULL,":");
+    		ltok3=strtok_r(NULL,":",&saveptr);
     		if (strcmp(ltok3,"lalpha")==0) update_charset(lalpha,mode);
     		if (strcmp(ltok3,"ualpha")==0) update_charset(ualpha,mode);
     		if (strcmp(ltok3,"alpha")==0) update_charset(alpha,mode);
@@ -689,7 +691,7 @@ static void parse(char *line,int self, int precalc,int mode)
     		if (strcmp(ltok3,"uvowels")==0) update_charset(uvowels,mode);
     		if (strcmp(ltok3,"none")==0) update_charset(none,mode);
 
-    		ltok4=strtok(NULL,":");
+    		ltok4=strtok_r(NULL,":",&saveptr);
     		if (ltok4) update_charset_plus(ltok4,mode);
     		update_params(tok4,mode);
     		update_parsefn(node_add_set,mode);
@@ -709,11 +711,11 @@ static void parse(char *line,int self, int precalc,int mode)
 	/* is markov? */
 	else if (strcmp(tok3,"markov")==0)
 	{
-    	    tok4=strtok(NULL," ");
+    	    tok4=strtok_r(NULL," ",&saveptr);
     	    if (tok4)
     	    {
     		fix_line(tok4);
-    		ltok1=strtok(tok4,":");
+    		ltok1=strtok_r(tok4,":",&saveptr);
 		if (!ltok1)
     		{
     		    hg_elog("Missing markov start! (line:%s) \n",currentline);
@@ -721,7 +723,7 @@ static void parse(char *line,int self, int precalc,int mode)
     		}
     		update_start(atoi(ltok1),mode);
     		update_optimize_start(atoi(ltok1),mode);
-    		ltok2=strtok(NULL,":");
+    		ltok2=strtok_r(NULL,":",&saveptr);
     		if (!ltok2)
     		{
     		    hg_elog("Missing markov max len! (line:%s) \n",currentline);
@@ -732,13 +734,13 @@ static void parse(char *line,int self, int precalc,int mode)
     		{
     		    hg_elog("Markov max len cannot exceed 8! (%s)\n",currentline);
     		}
-    		ltok3=strtok(NULL,":");
+    		ltok3=strtok_r(NULL,":",&saveptr);
     		if (ltok3) 
     		{
     		    update_params(ltok3,mode);
     		    update_optimize_statfile(ltok3,mode);
     		}
-		ltok4=strtok(NULL,":");
+		ltok4=strtok_r(NULL,":",&saveptr);
 		if (ltok4) 
 		{
 		    update_optimize_threshold(atoi(ltok4),mode);
@@ -757,18 +759,18 @@ static void parse(char *line,int self, int precalc,int mode)
 	/* is numrange? */
 	else if (strcmp(tok3,"numrange")==0)
 	{
-    	    tok4=strtok(NULL," ");
+    	    tok4=strtok_r(NULL," ",&saveptr);
     	    if (tok4)
     	    {
     		fix_line(tok4);
-    		ltok1=strtok(tok4,":");
+    		ltok1=strtok_r(tok4,":",&saveptr);
 		if (!ltok1)
     		{
     		    hg_elog("Missing numrange start (line:%s) \n",currentline);
     		}
 		update_start(atoi(ltok1),mode);
 		update_optimize_start(atoi(ltok1),mode);
-    		ltok2=strtok(NULL,":");
+    		ltok2=strtok_r(NULL,":",&saveptr);
     		if (!ltok2)
     		{
     		    hg_elog("Missing numrange end (line:%s) \n",currentline);
@@ -787,7 +789,7 @@ static void parse(char *line,int self, int precalc,int mode)
 	/* is dict? */
 	else if (strcmp(tok3,"dict")==0)
 	{
-    	    tok4=strtok(NULL," ");
+    	    tok4=strtok_r(NULL," ",&saveptr);
     	    update_params(tok4,mode);
     	    update_parsefn(node_add_dict,mode);
 	}
@@ -795,7 +797,7 @@ static void parse(char *line,int self, int precalc,int mode)
 	/* is fastdict? */
 	else if (strcmp(tok3,"fastdict")==0)
 	{
-    	    tok4=strtok(NULL," ");
+    	    tok4=strtok_r(NULL," ",&saveptr);
     	    update_params(tok4,mode);
     	    update_parsefn(node_add_dict,mode);
     	    if (currentlinenum[self]>0)
@@ -809,18 +811,18 @@ static void parse(char *line,int self, int precalc,int mode)
 	/* is phrases? */
 	else if (strcmp(tok3,"phrases")==0)
 	{
-    	    tok4=strtok(NULL," ");
+    	    tok4=strtok_r(NULL," ",&saveptr);
     	    if (tok4)
     	    {
     		fix_line(tok4);
-    		ltok1=strtok(tok4,":");
+    		ltok1=strtok_r(tok4,":",&saveptr);
 		if (!ltok1)
     		{
     		    hg_elog("Missing phrase dictionary! (line:%s) \n",currentline);
     		    exit(1);
     		}
     		update_params(ltok1,mode);
-    		ltok2=strtok(NULL,":");
+    		ltok2=strtok_r(NULL,":",&saveptr);
     		if (ltok2==NULL) 
     		{
     		    hg_elog("Missing phrase separator! (line:%s) \n",currentline);
@@ -832,14 +834,14 @@ static void parse(char *line,int self, int precalc,int mode)
     		    else if (strcmp(ltok2,"none")==0) update_charset("",mode);
     		    else update_charset(ltok2,mode);
     		}
-    		ltok3=strtok(NULL,":");
+    		ltok3=strtok_r(NULL,":",&saveptr);
 		if (!ltok3)
     		{
     		    hg_elog("Missing phrase min words! (line:%s) \n",currentline);
     		    exit(1);
     		}
     		update_start(atoi(ltok3),mode);
-    		ltok4=strtok(NULL,":");
+    		ltok4=strtok_r(NULL,":",&saveptr);
 		if (!ltok4)
     		{
     		    hg_elog("Missing phrase max words! (line:%s) \n",currentline);
@@ -854,7 +856,7 @@ static void parse(char *line,int self, int precalc,int mode)
 	/* is pipe? */
 	else if (strcmp(tok3,"pipe")==0)
 	{
-    	    tok4=strtok(NULL," ");
+    	    tok4=strtok_r(NULL," ",&saveptr);
     	    update_params(tok4,mode);
     	    update_parsefn(node_add_pipe,mode);
     	    rule_stats_available=0;
@@ -878,7 +880,7 @@ static void parse(char *line,int self, int precalc,int mode)
 	/* is binstrings? */
 	else if (strcmp(tok3,"binstrings")==0)
 	{
-    	    tok4=strtok(NULL," ");
+    	    tok4=strtok_r(NULL," ",&saveptr);
     	    update_params(tok4,mode);
     	    update_parsefn(node_add_binstrings,mode);
 	}
@@ -904,7 +906,7 @@ static void parse(char *line,int self, int precalc,int mode)
 	/* is str? */
 	else if (strcmp(tok3,"str")==0)
 	{
-	    tok4=strtok(NULL," ");
+	    tok4=strtok_r(NULL," ",&saveptr);
 	    update_params(tok4,mode);
     	    update_parsefn(node_add_str,mode);
 	}
@@ -912,7 +914,7 @@ static void parse(char *line,int self, int precalc,int mode)
 	/* is char? */
 	else if (strcmp(tok3,"char")==0)
 	{
-    	    tok4=strtok(NULL," ");
+    	    tok4=strtok_r(NULL," ",&saveptr);
     	    update_params(tok4,mode);
     	    update_parsefn(node_add_char,mode);
 	}
@@ -925,19 +927,19 @@ static void parse(char *line,int self, int precalc,int mode)
 
     else if (strcmp(tok2,"delete")==0)
     {
-	tok3=strtok(NULL," ");
+	tok3=strtok_r(NULL," ",&saveptr);
 
 	/* is char? */
 	if (strcmp(tok3,"char")==0)
 	{
-	    tok4=strtok(NULL," ");
+	    tok4=strtok_r(NULL," ",&saveptr);
     	    if (tok4)
     	    {
     		fix_line(tok4);
-    		ltok1=strtok(tok4,":");
+    		ltok1=strtok_r(tok4,":",&saveptr);
     		if (!ltok1) hg_elog("Line %d (%s): Bad arguments!\n",currentlinenum[self], line);
     		update_start(atoi(ltok1),mode);
-    		ltok2=strtok(NULL,":");
+    		ltok2=strtok_r(NULL,":",&saveptr);
     		if (!ltok2) hg_elog("Line %d (%s): Bad arguments!\n",currentlinenum[self], line);
     		update_end(atoi(ltok2),mode);
     		update_parsefn(node_delete_char,mode);
@@ -950,7 +952,7 @@ static void parse(char *line,int self, int precalc,int mode)
 	/* is match? */
 	else if (strcmp(tok3,"match")==0)
 	{
-	    tok4=strtok(NULL," ");
+	    tok4=strtok_r(NULL," ",&saveptr);
     	    if (tok4)
     	    {
     		fix_line(tok4);
@@ -977,23 +979,23 @@ static void parse(char *line,int self, int precalc,int mode)
     /* We have insertp keyword? */
     else if (strcmp(tok2,"insertp")==0)
     {
-	tok3=strtok(NULL," ");
+	tok3=strtok_r(NULL," ",&saveptr);
 
 	/* is numrange? */
 	if (strcmp(tok3,"numrange")==0)
 	{
-    	    tok4=strtok(NULL," ");
+    	    tok4=strtok_r(NULL," ",&saveptr);
     	    if (tok4)
     	    {
     		fix_line(tok4);
-    		ltok1=strtok(tok4,":");
+    		ltok1=strtok_r(tok4,":",&saveptr);
 		if (!ltok1)
     		{
     		    hg_elog("Missing numrange start (line:%s) \n",currentline);
     		}
 		update_start(atoi(ltok1),mode);
     		
-    		ltok2=strtok(NULL,":");
+    		ltok2=strtok_r(NULL,":",&saveptr);
     		if (!ltok2)
     		{
     		    hg_elog("Missing numrange end (line:%s) \n",currentline);
@@ -1007,7 +1009,7 @@ static void parse(char *line,int self, int precalc,int mode)
 	/* is dict? */
 	else if (strcmp(tok3,"dict")==0)
 	{
-    	    tok4=strtok(NULL," ");
+    	    tok4=strtok_r(NULL," ",&saveptr);
 	    fix_line(tok4);
     	    update_params(tok4,mode);
     	    update_parsefn(node_insertp_dict,mode);
@@ -1022,7 +1024,7 @@ static void parse(char *line,int self, int precalc,int mode)
 	/* is str? */
 	else if (strcmp(tok3,"str")==0)
 	{
-	    tok4=strtok(NULL," ");
+	    tok4=strtok_r(NULL," ",&saveptr);
     	    fix_line(tok4);
     	    update_params(tok4,mode);
     	    update_parsefn(node_insertp_str,mode);
@@ -1038,15 +1040,15 @@ static void parse(char *line,int self, int precalc,int mode)
     /* We have insert keyword? */
     else if (strcmp(tok2,"insert")==0)
     {
-	tok3=strtok(NULL," ");
+	tok3=strtok_r(NULL," ",&saveptr);
 
 	/* is dict? */
 	if (strcmp(tok3,"dict")==0)
 	{
-    	    tok4=strtok(NULL," ");
+    	    tok4=strtok_r(NULL," ",&saveptr);
     	    fix_line(tok4);
     	    update_params(tok4,mode);
-    	    tok4=strtok(NULL," ");
+    	    tok4=strtok_r(NULL," ",&saveptr);
     	    if (tok4)
     	    {
     		update_start(atoi(tok4),mode);
@@ -1073,9 +1075,9 @@ static void parse(char *line,int self, int precalc,int mode)
 	/* is str? */
 	else if (strcmp(tok3,"str")==0)
 	{
-	    tok4=strtok(NULL," ");
+	    tok4=strtok_r(NULL," ",&saveptr);
     	    update_params(tok4,mode);
-    	    tok4=strtok(NULL," ");
+    	    tok4=strtok_r(NULL," ",&saveptr);
     	    if (tok4)
     	    {
     		update_start(atoi(tok4),mode);
@@ -1099,12 +1101,12 @@ static void parse(char *line,int self, int precalc,int mode)
     /* We have remove keyword? */
     else if (strcmp(tok2,"remove")==0)
     {
-	tok3=strtok(NULL," ");
+	tok3=strtok_r(NULL," ",&saveptr);
 
 	/* is match? */
 	if (strcmp(tok3,"match")==0)
 	{
-    	    tok4=strtok(NULL," ");
+    	    tok4=strtok_r(NULL," ",&saveptr);
     	    if (tok4)
     	    {
 		update_params(tok4,mode);
@@ -1126,7 +1128,7 @@ static void parse(char *line,int self, int precalc,int mode)
     /* We have replace keyword? */
     else if (strcmp(tok2,"replace")==0)
     {
-	tok3=strtok(NULL," ");
+	tok3=strtok_r(NULL," ",&saveptr);
 
 	/* is table? */
 	if (strcmp(tok3,"table")==0)
@@ -1136,12 +1138,12 @@ static void parse(char *line,int self, int precalc,int mode)
 
 	else if (strcmp(tok3,"str")==0)
 	{
-    	    tok4=strtok(NULL," ");
+    	    tok4=strtok_r(NULL," ",&saveptr);
     	    if (tok4)
     	    {
     		fix_line(tok4);
     		update_params(tok4,mode);
-    		tok5=strtok(NULL," ");
+    		tok5=strtok_r(NULL," ",&saveptr);
     		if (tok5)
     		{
     		    update_charset(tok5,mode);
@@ -1162,12 +1164,12 @@ static void parse(char *line,int self, int precalc,int mode)
 
 	else if (strcmp(tok3,"dict")==0)
 	{
-    	    tok4=strtok(NULL," ");
+    	    tok4=strtok_r(NULL," ",&saveptr);
     	    if (tok4)
     	    {
     		fix_line(tok4);
     		update_params(tok4,mode);
-    		tok5=strtok(NULL," ");
+    		tok5=strtok_r(NULL," ",&saveptr);
     		if (tok5)
     		{
     		    update_charset(tok5,mode);
@@ -1202,7 +1204,7 @@ static void parse(char *line,int self, int precalc,int mode)
     // trunc
     else if (strcmp(tok2,"trunc")==0)
     {
-	tok3=strtok(NULL," ");
+	tok3=strtok_r(NULL," ",&saveptr);
 	if (!tok3)
 	{
 	    hg_elog("Line '%s': Missing length \n",line);
@@ -1218,7 +1220,7 @@ static void parse(char *line,int self, int precalc,int mode)
     // upcaseat
     else if (strcmp(tok2,"upcaseat")==0)
     {
-	tok3=strtok(NULL," ");
+	tok3=strtok_r(NULL," ",&saveptr);
 	if (!tok3)
 	{
 	    hg_elog("Line '%s': Missing position \n",line);
@@ -1233,7 +1235,7 @@ static void parse(char *line,int self, int precalc,int mode)
     // lowcaseat
     else if (strcmp(tok2,"lowcaseat")==0)
     {
-	tok3=strtok(NULL," ");
+	tok3=strtok_r(NULL," ",&saveptr);
 	if (!tok3)
 	{
 	    hg_elog("Line '%s': Missing position \n",line);
@@ -1299,18 +1301,18 @@ static void parse(char *line,int self, int precalc,int mode)
     // genham
     else if (strcmp(tok2,"genham")==0)
     {
-    	tok3=strtok(NULL," ");
+    	tok3=strtok_r(NULL," ",&saveptr);
     	if (!tok3)
     	{
     	    hg_elog("Missing Hamming distance! (line:%s) \n",currentline);
     	    exit(1);
     	}
     	update_start(atoi(tok3),mode);
-    	tok4=strtok(NULL,":");
+    	tok4=strtok_r(NULL,":",&saveptr);
     	if (tok4)
     	{
     	    fix_line(tok4);
-    	    ltok3=strtok(tok4,":");
+    	    ltok3=strtok_r(tok4,":",&saveptr);
     	    if (strcmp(ltok3,"lalpha")==0) update_charset(lalpha,mode);
     	    if (strcmp(ltok3,"ualpha")==0) update_charset(ualpha,mode);
     	    if (strcmp(ltok3,"alpha")==0) update_charset(alpha,mode);
@@ -1327,7 +1329,7 @@ static void parse(char *line,int self, int precalc,int mode)
     	    if (strcmp(ltok3,"uvowels")==0) update_charset(uvowels,mode);
     	    if (strcmp(ltok3,"none")==0) update_charset(none,mode);
 
-    	    ltok4=strtok(NULL,":");
+    	    ltok4=strtok_r(NULL,":",&saveptr);
     	    if (ltok4) update_charset_plus(ltok4,mode);
     	}
     	update_parsefn(node_genham,mode);
@@ -1335,18 +1337,18 @@ static void parse(char *line,int self, int precalc,int mode)
     // genlev
     else if (strcmp(tok2,"genlev")==0)
     {
-    	tok3=strtok(NULL,":");
+    	tok3=strtok_r(NULL,":",&saveptr);
     	if (!tok3)
     	{
     	    hg_elog("Missing Levenshtein distance! (line:%s) \n",currentline);
     	    exit(1);
     	}
     	update_start(atoi(tok3),mode);
-    	tok4=strtok(NULL,":");
+    	tok4=strtok_r(NULL,":",&saveptr);
     	if (tok4)
     	{
     	    fix_line(tok4);
-    	    ltok3=strtok(tok4,":");
+    	    ltok3=strtok_r(tok4,":",&saveptr);
     	    if (strcmp(ltok3,"lalpha")==0) update_charset(lalpha,mode);
     	    if (strcmp(ltok3,"ualpha")==0) update_charset(ualpha,mode);
     	    if (strcmp(ltok3,"alpha")==0) update_charset(alpha,mode);
@@ -1363,7 +1365,7 @@ static void parse(char *line,int self, int precalc,int mode)
     	    if (strcmp(ltok3,"uvowels")==0) update_charset(uvowels,mode);
     	    if (strcmp(ltok3,"none")==0) update_charset(none,mode);
 
-    	    ltok4=strtok(NULL,":");
+    	    ltok4=strtok_r(NULL,":",&saveptr);
     	    if (ltok4) update_charset_plus(ltok4,mode);
     	}
     	update_parsefn(node_genlev,mode);
@@ -1371,18 +1373,18 @@ static void parse(char *line,int self, int precalc,int mode)
     // genlevdam
     else if (strcmp(tok2,"genlevdam")==0)
     {
-    	tok3=strtok(NULL,":");
+    	tok3=strtok_r(NULL,":",&saveptr);
     	if (!tok3)
     	{
     	    hg_elog("Missing Levenshtein-Damerau distance! (line:%s) \n",currentline);
     	    exit(1);
     	}
     	update_start(atoi(tok3),mode);
-    	tok4=strtok(NULL,":");
+    	tok4=strtok_r(NULL,":",&saveptr);
     	if (tok4)
     	{
     	    fix_line(tok4);
-    	    ltok3=strtok(tok4,":");
+    	    ltok3=strtok_r(tok4,":",&saveptr);
     	    if (strcmp(ltok3,"lalpha")==0) update_charset(lalpha,mode);
     	    if (strcmp(ltok3,"ualpha")==0) update_charset(ualpha,mode);
     	    if (strcmp(ltok3,"alpha")==0) update_charset(alpha,mode);
@@ -1399,7 +1401,7 @@ static void parse(char *line,int self, int precalc,int mode)
     	    if (strcmp(ltok3,"uvowels")==0) update_charset(uvowels,mode);
     	    if (strcmp(ltok3,"none")==0) update_charset(none,mode);
 
-    	    ltok4=strtok(NULL,":");
+    	    ltok4=strtok_r(NULL,":",&saveptr);
     	    if (ltok4) update_charset_plus(ltok4,mode);
     	}
     	update_parsefn(node_genlevdam,mode);
@@ -1700,7 +1702,7 @@ hash_stat rule_preprocess(char *rulename)
     int begins;
     int ends;
     char *tok1;
-
+    char *saveptr;
 
     rules_num=0;
     begins=ends=0;
@@ -1730,8 +1732,8 @@ hash_stat rule_preprocess(char *rulename)
 	if (strncmp(line,"include",7)==0)
 	{
 	    if (line[strlen(line)-1]=='\n') line[strlen(line)-1]=0;
-	    tok1=strtok(line," ");
-	    tok1=strtok(NULL," ");
+	    tok1=strtok_r(line," ",&saveptr);
+	    tok1=strtok_r(NULL," ",&saveptr);
 	    if (!tok1)
 	    {
 		hg_elog("No include rule provided: %s\n",line);
