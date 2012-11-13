@@ -12,96 +12,170 @@
 
 
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str, uint16 salt)
+osx_old( __global uint4 *dst,  __global uint *inp, __global uint *sizein,  __global uint *found_ind, __global uint *found,  uint4 singlehash, uint16 salt, uint16 str, uint16 str1) 
 {
-__local uint inpc[64][14];
-uint SIZE;
-uint elem,temp1;
-
-
-inpc[GLI][0] = inp[GGI*(8)+0];
-inpc[GLI][1] = inp[GGI*(8)+1];
-inpc[GLI][2] = inp[GGI*(8)+2];
-inpc[GLI][3] = inp[GGI*(8)+3];
-inpc[GLI][4] = inp[GGI*(8)+4];
-inpc[GLI][5] = inp[GGI*(8)+5];
-inpc[GLI][6] = inp[GGI*(8)+6];
-inpc[GLI][7] = inp[GGI*(8)+7];
-inpc[GLI][8] = 0;
-inpc[GLI][9] = 0;
-inpc[GLI][10] = 0;
-inpc[GLI][11] = 0;
-inpc[GLI][12] = 0;
-
-SIZE=sizein[GGI];
-size[GGI] = (SIZE+str.sF);
-
-SET_AB(inpc[GLI],str.s0,SIZE,0);
-SET_AB(inpc[GLI],str.s1,SIZE+4,0);
-SET_AB(inpc[GLI],str.s2,SIZE+8,0);
-SET_AB(inpc[GLI],str.s3,SIZE+12,0);
-SET_AB(inpc[GLI],0x80,(SIZE+str.sF),0);
-
-dst[GGI*8+0] = inpc[GLI][0];
-dst[GGI*8+1] = inpc[GLI][1];
-dst[GGI*8+2] = inpc[GLI][2];
-dst[GGI*8+3] = inpc[GLI][3];
-dst[GGI*8+4] = inpc[GLI][4];
-dst[GGI*8+5] = inpc[GLI][5];
-dst[GGI*8+6] = inpc[GLI][6];
-dst[GGI*8+7] = inpc[GLI][7];
-
-}
-
-
-
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-osx_old( __global uint *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *found,  uint4 singlehash, uint16 salt) 
-{
-
-uint w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w16; 
-
+uint4 w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w16; 
 uint i,ib,ic,id,ie;  
-uint A,B,C,D,E,K,l,tmp1,tmp2, SIZE,TSIZE; 
+uint4 A,B,C,D,E,K,l,tmp1,tmp2, SIZE,TSIZE; 
 uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
 uint elem,temp1;
+__local uint inpc[64][14];
+uint x0,x1,x2,x3,x4,x5,x6,x7,x8;
+uint4 size;
 
-#define m 0x00FF00FFU
-#define m2 0xFF00FF00U 
-#define S1 1U
-#define S2 5U
-#define S3 30U  
-#define Sl 8U
-#define Sr 24U  
+#define m 0x00FF00FF
+#define m2 0xFF00FF00 
+#define S1 1
+#define S2 5
+#define S3 30  
+#define Sl 8
+#define Sr 24  
 
-uint K0 = (uint)0x5A827999;
-uint K1 = (uint)0x6ED9EBA1;
-uint K2 = (uint)0x8F1BBCDC;
-uint K3 = (uint)0xCA62C1D6;
+uint4 K0 = (uint4)0x5A827999;
+uint4 K1 = (uint4)0x6ED9EBA1;
+uint4 K2 = (uint4)0x8F1BBCDC;
+uint4 K3 = (uint4)0xCA62C1D6;
+uint4 H0 = (uint4)0x67452301;
+uint4 H1 = (uint4)0xEFCDAB89;
+uint4 H2 = (uint4)0x98BADCFE;
+uint4 H3 = (uint4)0x10325476;
+uint4 H4 = (uint4)0xC3D2E1F0;
 
-uint H0 = (uint)0x67452301;
-uint H1 = (uint)0xEFCDAB89;
-uint H2 = (uint)0x98BADCFE;
-uint H3 = (uint)0x10325476;
-uint H4 = (uint)0xC3D2E1F0;
+
 
 id=get_global_id(0);
-SIZE=(size[id]);
+size=(uint4)sizein[GGI]+4;
+x0 = inp[GGI*8+0];
+x1 = inp[GGI*8+1];
+x2 = inp[GGI*8+2];
+x3 = inp[GGI*8+3];
+x4 = inp[GGI*8+4];
+x5 = inp[GGI*8+5];
+x6 = inp[GGI*8+6];
+x7 = inp[GGI*8+7];
+inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=0;
+inpc[GLI][5]=inpc[GLI][6]=inpc[GLI][7]=inpc[GLI][3]=inpc[GLI][8]=0;
 
-TSIZE=(SIZE);
-SIZE=(TSIZE+4)<<3;
+inpc[GLI][0]=salt.s0;
+inpc[GLI][1]=x0;
+inpc[GLI][2]=x1;
+inpc[GLI][3]=x2;
+inpc[GLI][4]=x3;
+inpc[GLI][5]=x4;
+inpc[GLI][6]=x5;
+inpc[GLI][7]=x6;
+inpc[GLI][8]=x7;
+SET_AB(inpc[GLI],str.s0,size.s0,0);
+SET_AB(inpc[GLI],str.s1,size.s0+4,0);
+SET_AB(inpc[GLI],str.s2,size.s0+8,0);
+SET_AB(inpc[GLI],str.s3,size.s0+12,0);
+SET_AB(inpc[GLI],0x80,(size.s0+str.sC),0);
+w0.s0=inpc[GLI][0];
+w1.s0=inpc[GLI][1];
+w2.s0=inpc[GLI][2];
+w3.s0=inpc[GLI][3];
+w4.s0=inpc[GLI][4];
+w5.s0=inpc[GLI][5];
+w6.s0=inpc[GLI][6];
+w7.s0=inpc[GLI][7];
+w8.s0=inpc[GLI][8];
+size.s0 = (size.s0+str.sC)<<3;
 
-w0=(uint)salt.s0;
-w1=input[id*8];
-w2=input[id*8+1];
-w3=input[id*8+2];
-w4=input[id*8+3];
-w5=input[id*8+4];
-w6=input[id*8+5];
-w7=input[id*8+6];
-w8=input[id*8+7];
-w9=w10=w11=w12=w13=w14=w16=(uint)0;
+
+inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=0;
+inpc[GLI][5]=inpc[GLI][6]=inpc[GLI][7]=inpc[GLI][3]=inpc[GLI][8]=0;
+inpc[GLI][0]=salt.s0;
+inpc[GLI][1]=x0;
+inpc[GLI][2]=x1;
+inpc[GLI][3]=x2;
+inpc[GLI][4]=x3;
+inpc[GLI][5]=x4;
+inpc[GLI][6]=x5;
+inpc[GLI][7]=x6;
+inpc[GLI][8]=x7;
+SET_AB(inpc[GLI],str.s4,size.s1,0);
+SET_AB(inpc[GLI],str.s5,size.s1+4,0);
+SET_AB(inpc[GLI],str.s6,size.s1+8,0);
+SET_AB(inpc[GLI],str.s7,size.s1+12,0);
+SET_AB(inpc[GLI],0x80,(size.s1+str.sD),0);
+w0.s1=inpc[GLI][0];
+w1.s1=inpc[GLI][1];
+w2.s1=inpc[GLI][2];
+w3.s1=inpc[GLI][3];
+w4.s1=inpc[GLI][4];
+w5.s1=inpc[GLI][5];
+w6.s1=inpc[GLI][6];
+w7.s1=inpc[GLI][7];
+w8.s1=inpc[GLI][8];
+size.s1 = (size.s1+str.sD)<<3;
+SIZE.s0=size.s0;
+SIZE.s1=size.s1;
+
+
+inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=0;
+inpc[GLI][5]=inpc[GLI][6]=inpc[GLI][7]=inpc[GLI][3]=inpc[GLI][8]=0;
+inpc[GLI][0]=salt.s0;
+inpc[GLI][1]=x0;
+inpc[GLI][2]=x1;
+inpc[GLI][3]=x2;
+inpc[GLI][4]=x3;
+inpc[GLI][5]=x4;
+inpc[GLI][6]=x5;
+inpc[GLI][7]=x6;
+inpc[GLI][8]=x7;
+SET_AB(inpc[GLI],str.s8,size.s2,0);
+SET_AB(inpc[GLI],str.s9,size.s2+4,0);
+SET_AB(inpc[GLI],str.sA,size.s2+8,0);
+SET_AB(inpc[GLI],str.sB,size.s2+12,0);
+SET_AB(inpc[GLI],0x80,(size.s2+str.sE),0);
+w0.s2=inpc[GLI][0];
+w1.s2=inpc[GLI][1];
+w2.s2=inpc[GLI][2];
+w3.s2=inpc[GLI][3];
+w4.s2=inpc[GLI][4];
+w5.s2=inpc[GLI][5];
+w6.s2=inpc[GLI][6];
+w7.s2=inpc[GLI][7];
+w8.s2=inpc[GLI][8];
+size.s2 = (size.s2+str.sE)<<3;
+
+
+inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=0;
+inpc[GLI][5]=inpc[GLI][6]=inpc[GLI][7]=inpc[GLI][3]=inpc[GLI][8]=0;
+inpc[GLI][0]=salt.s0;
+inpc[GLI][1]=x0;
+inpc[GLI][2]=x1;
+inpc[GLI][3]=x2;
+inpc[GLI][4]=x3;
+inpc[GLI][5]=x4;
+inpc[GLI][6]=x5;
+inpc[GLI][7]=x6;
+inpc[GLI][8]=x7;
+SET_AB(inpc[GLI],str1.s0,size.s3,0);
+SET_AB(inpc[GLI],str1.s1,size.s3+4,0);
+SET_AB(inpc[GLI],str1.s2,size.s3+8,0);
+SET_AB(inpc[GLI],str1.s3,size.s3+12,0);
+SET_AB(inpc[GLI],0x80,(size.s3+str1.sC),0);
+w0.s3=inpc[GLI][0];
+w1.s3=inpc[GLI][1];
+w2.s3=inpc[GLI][2];
+w3.s3=inpc[GLI][3];
+w4.s3=inpc[GLI][4];
+w5.s3=inpc[GLI][5];
+w6.s3=inpc[GLI][6];
+w7.s3=inpc[GLI][7];
+w8.s3=inpc[GLI][8];
+size.s3 = (size.s3+str1.sC)<<3;
+
+
+SIZE.s0=size.s0;
+SIZE.s1=size.s1;
+SIZE.s2=size.s2;
+SIZE.s3=size.s3;
+
+
+
+w9=w10=w11=w12=w13=w14=w16=(uint4)0;
 
 A=H0;  
 B=H1;  
@@ -109,11 +183,10 @@ C=H2;
 D=H3;  
 E=H4;  
 
-#define F_00_19(b,c,d)  ((((c) ^ (d)) & (b)) ^ (d))
+#define F_00_19(b,c,d) (bitselect(d,c,b))
 #define F_20_39(b,c,d)  ((b) ^ (c) ^ (d))  
-#define F_40_59(b,c,d)  (((b) & (c)) | (((b)|(c)) & (d)))  
+#define F_40_59(b,c,d) (bitselect(c,b,(d^c)))
 #define F_60_79(b,c,d)  F_20_39(b,c,d) 
-
 #define Endian_Reverse32(aa) { l=(aa);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (aa)=bitselect(tmp2,tmp1,m); }
 #define ROTATE1(a, b, c, d, e, x) e = e + rotate(a,S2) + F_00_19(b,c,d) + x; e = e + K; b = rotate(b,S3) 
 #define ROTATE1_NULL(a, b, c, d, e)  e = e + rotate(a,S2) + F_00_19(b,c,d) + K; b = rotate(b,S3)
@@ -142,7 +215,7 @@ ROTATE1(E, A, B, C, D, w6);
 Endian_Reverse32(w7);  
 ROTATE1(D, E, A, B, C, w7);
 Endian_Reverse32(w8);  
-ROTATE1(C, D, E, A, B, w8);
+ROTATE1_NULL(C, D, E, A, B);
 ROTATE1_NULL(B, C, D, E, A);
 ROTATE1_NULL(A, B, C, D, E);
 ROTATE1_NULL(E, A, B, C, D);
@@ -236,19 +309,19 @@ Endian_Reverse32(D);
 Endian_Reverse32(E);
 
 
-id=0;
-if ((singlehash.z!=C)&&(singlehash.w!=D)) return; 
+if (all((uint4)singlehash.z!=C)) return;
+if (all((uint4)singlehash.w!=D)) return;
 
 
 
 found[0] = 1;
 found_ind[get_global_id(0)] = 1;
 
-dst[(get_global_id(0)*5)] = (uint)(A);  
-dst[(get_global_id(0)*5)+1] = (uint)(B);
-dst[(get_global_id(0)*5)+2] = (uint)(C);
-dst[(get_global_id(0)*5)+3] = (uint)(D);
-dst[(get_global_id(0)*5)+4] = (uint)(E);
+dst[(get_global_id(0)*5)] = (uint4)(A.s0,B.s0,C.s0,D.s0);  
+dst[(get_global_id(0)*5)+1] = (uint4)(E.s0,A.s1,B.s1,C.s1);
+dst[(get_global_id(0)*5)+2] = (uint4)(D.s1,E.s1,A.s2,B.s2);
+dst[(get_global_id(0)*5)+3] = (uint4)(C.s2,D.s2,E.s2,A.s3);
+dst[(get_global_id(0)*5)+4] = (uint4)(B.s3,C.s3,D.s3,E.s3);
 
 }  
 
