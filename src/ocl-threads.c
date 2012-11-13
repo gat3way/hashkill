@@ -411,6 +411,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"mssql-2005")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"osx-old")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"pixmd5")==0)) ocl_vector=4;
 	    }
 
 	    /* Zip (non-rule) exception for NVidia */

@@ -9,54 +9,14 @@
     }
 
 
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str)
-{
-__local uint inpc[64][14];
-uint SIZE;
-uint elem,temp1;
-
-
-inpc[GLI][0] = inp[GGI*(8)+0];
-inpc[GLI][1] = inp[GGI*(8)+1];
-inpc[GLI][2] = inp[GGI*(8)+2];
-inpc[GLI][3] = inp[GGI*(8)+3];
-inpc[GLI][4] = inp[GGI*(8)+4];
-inpc[GLI][5] = inp[GGI*(8)+5];
-inpc[GLI][6] = inp[GGI*(8)+6];
-inpc[GLI][7] = inp[GGI*(8)+7];
-inpc[GLI][8] = 0;
-inpc[GLI][9] = 0;
-inpc[GLI][10] = 0;
-inpc[GLI][11] = 0;
-inpc[GLI][12] = 0;
-
-SIZE=sizein[GGI];
-size[GGI] = (SIZE+str.sF);
-
-SET_AB(inpc[GLI],str.s0,SIZE,0);
-SET_AB(inpc[GLI],str.s1,SIZE+4,0);
-SET_AB(inpc[GLI],str.s2,SIZE+8,0);
-SET_AB(inpc[GLI],str.s3,SIZE+12,0);
-
-
-dst[GGI*8+0] = inpc[GLI][0];
-dst[GGI*8+1] = inpc[GLI][1];
-dst[GGI*8+2] = inpc[GLI][2];
-dst[GGI*8+3] = inpc[GLI][3];
-dst[GGI*8+4] = inpc[GLI][4];
-dst[GGI*8+5] = inpc[GLI][5];
-dst[GGI*8+6] = inpc[GLI][6];
-dst[GGI*8+7] = inpc[GLI][7];
-
-}
 
 
 __kernel  
 void  __attribute__((reqd_work_group_size(64, 1, 1)))
-pixmd5( __global uint4 *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *bitmaps, __global uint *found,  uint4 singlehash)
+pixmd5( __global uint4 *dst,  __global uint *inp, __global uint *sizein,  __global uint *found_ind, __global uint *bitmaps, __global uint *found,  uint4 singlehash, uint16 str, uint16 str1)
 {
-
+__local uint inpc[64][14];
+uint elem,temp1;
 uint4 mCa= (uint4)0x67452301;
 uint4 mCb= (uint4)0xefcdab89;
 uint4 mCc= (uint4)0x98badcfe;
@@ -77,7 +37,6 @@ uint4 S41= (uint4)6;
 uint4 S42= (uint4)10;
 uint4 S43= (uint4)15;
 uint4 S44= (uint4)21;
-
 uint4 SIZE;  
 uint i,ib,ic,id,t1,t2;  
 uint4 mOne;
@@ -85,6 +44,7 @@ uint4 a,b,c,d, tmp1, tmp2;
 uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
 uint4 x0,x1,x2,x3,x4,x5,x6,x7,x8;  
 uint4 chbase1;
+uint w0,w1,w2,w3,w4,w5,w6,w7;
 
 uint4 mAC1 = (uint4)0xd76aa478; 
 uint4 mAC2 = (uint4)0xe8c7b756; 
@@ -152,41 +112,108 @@ uint4 mAC63= (uint4)0x2ad7d2bb;
 uint4 mAC64= (uint4)0xeb86d391;
 
 
+id=get_global_id(0);
+SIZE=(uint4)sizein[GGI];
+w0 = inp[GGI*8+0];
+w1 = inp[GGI*8+1];
+w2 = inp[GGI*8+2];
+w3 = inp[GGI*8+3];
+
+
+inpc[GLI][0]=w0;
+inpc[GLI][1]=w1;
+inpc[GLI][2]=w2;
+inpc[GLI][3]=w3;
+inpc[GLI][4]=w4;
+inpc[GLI][5]=w5;
+inpc[GLI][6]=w6;
+inpc[GLI][7]=w7;
+SET_AB(inpc[GLI],str.s0,SIZE.s0,0);
+SET_AB(inpc[GLI],str.s1,SIZE.s0+4,0);
+SET_AB(inpc[GLI],str.s2,SIZE.s0+8,0);
+SET_AB(inpc[GLI],str.s3,SIZE.s0+12,0);
+x0.s0=inpc[GLI][0];
+x1.s0=inpc[GLI][1];
+x2.s0=inpc[GLI][2];
+x3.s0=inpc[GLI][3];
+SIZE.s0 = (SIZE.s0+str.sC)<<3;
+
+
+inpc[GLI][0]=w0;
+inpc[GLI][1]=w1;
+inpc[GLI][2]=w2;
+inpc[GLI][3]=w3;
+inpc[GLI][4]=w4;
+inpc[GLI][5]=w5;
+inpc[GLI][6]=w6;
+inpc[GLI][7]=w7;
+
+SET_AB(inpc[GLI],str.s4,SIZE.s1,0);
+SET_AB(inpc[GLI],str.s5,SIZE.s1+4,0);
+SET_AB(inpc[GLI],str.s6,SIZE.s1+8,0);
+SET_AB(inpc[GLI],str.s7,SIZE.s1+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s1+str.sD),0);
+x0.s1=inpc[GLI][0];
+x1.s1=inpc[GLI][1];
+x2.s1=inpc[GLI][2];
+x3.s1=inpc[GLI][3];
+SIZE.s1 = (SIZE.s1+str.sD)<<3;
+
+
+inpc[GLI][0]=w0;
+inpc[GLI][1]=w1;
+inpc[GLI][2]=w2;
+inpc[GLI][3]=w3;
+inpc[GLI][4]=w4;
+inpc[GLI][5]=w5;
+inpc[GLI][6]=w6;
+inpc[GLI][7]=w7;
+
+SET_AB(inpc[GLI],str.s8,SIZE.s2,0);
+SET_AB(inpc[GLI],str.s9,SIZE.s2+4,0);
+SET_AB(inpc[GLI],str.sA,SIZE.s2+8,0);
+SET_AB(inpc[GLI],str.sB,SIZE.s2+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s2+str.sE),0);
+x0.s2=inpc[GLI][0];
+x1.s2=inpc[GLI][1];
+x2.s2=inpc[GLI][2];
+x3.s2=inpc[GLI][3];
+SIZE.s2 = (SIZE.s2+str.sE)<<3;
+
+
+inpc[GLI][0]=w0;
+inpc[GLI][1]=w1;
+inpc[GLI][2]=w2;
+inpc[GLI][3]=w3;
+inpc[GLI][4]=w4;
+inpc[GLI][5]=w5;
+inpc[GLI][6]=w6;
+inpc[GLI][7]=w7;
+
+SET_AB(inpc[GLI],str1.s0,SIZE.s3,0);
+SET_AB(inpc[GLI],str1.s1,SIZE.s3+4,0);
+SET_AB(inpc[GLI],str1.s2,SIZE.s3+8,0);
+SET_AB(inpc[GLI],str1.s3,SIZE.s3+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s3+str1.sC),0);
+x0.s3=inpc[GLI][0];
+x1.s3=inpc[GLI][1];
+x2.s3=inpc[GLI][2];
+x3.s3=inpc[GLI][3];
+SIZE.s3 = (SIZE.s3+str1.sC)<<3;
+
+
 ic = 16;
 id = ic<<3; 
 SIZE = (uint4)id; 
-
-id = get_global_id(0);
-x0.s0=input[(id*4*8)];
-x1.s0=input[(id*4*8)+1];
-x2.s0=input[(id*4*8)+2];
-x3.s0=input[(id*4*8)+3];
-x0.s1=input[(id*4*8)+8];
-x1.s1=input[(id*4*8)+9];
-x2.s1=input[(id*4*8)+10];
-x3.s1=input[(id*4*8)+11];
-x0.s2=input[(id*4*8)+16];
-x1.s2=input[(id*4*8)+17];
-x2.s2=input[(id*4*8)+18];
-x3.s2=input[(id*4*8)+19];
-x0.s3=input[(id*4*8)+24];
-x1.s3=input[(id*4*8)+25];
-x2.s3=input[(id*4*8)+26];
-x3.s3=input[(id*4*8)+27];
 x4=(uint4)0x80;
+
 
 
 a = mCa; b = mCb; c = mCc; d = mCd;
 
-#ifndef OLD_ATI
 #define pixmd5STEP_ROUND1(f, a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((d),(c),(b));(a) = rotate(a,s)+(b);
 #define pixmd5STEP_ROUND1_NULL(f, a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((d),(c),(b));(a) = rotate(a,s)+(b);
 #define pixmd5STEP_ROUND1A(f, a, b, c, d, AC, x, s)  tmp1 = (c)^(d);tmp1 = tmp1 & (b);tmp1 = tmp1 ^ (d);(a) = (a)+(tmp1); (a) = (a) + (AC);(a) = (a)+(x);(a) = rotate(a,s)+(b);
-#else
-#define pixmd5STEP_ROUND1(f, a, b, c, d, AC, x, s)  tmp1 = (c)^(d);tmp1 = tmp1 & (b);tmp1 = tmp1 ^ (d);(a) = (a)+(tmp1); (a) = (a) + (AC);(a) = (a)+(x);(a) = rotate(a,s);(a) = (a)+(b);
-#define pixmd5STEP_ROUND1_NULL(f, a, b, c, d, AC, s)  tmp1 = (c)^(d); tmp1 = tmp1&(b); tmp1 = tmp1^(d);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);
-#define pixmd5STEP_ROUND1A(f, a, b, c, d, AC, x, s)  tmp1 = (c)^(d);tmp1 = tmp1 & (b);tmp1 = tmp1 ^ (d);(a) = (a)+(tmp1); (a) = (a) + (AC);(a) = (a)+(x);(a) = rotate(a,s)+(b);
-#endif
 
 pixmd5STEP_ROUND1(F, a, b, c, d, mAC1, x0, S11);
 pixmd5STEP_ROUND1(F, d, a, b, c, mAC2, x1, S12);
@@ -205,19 +232,8 @@ pixmd5STEP_ROUND1_NULL(F, d, a, b, c, mAC14, S12);
 pixmd5STEP_ROUND1 (F, c, d, a, b, mAC15, SIZE, S13);
 pixmd5STEP_ROUND1_NULL(F, b, c, d, a, mAC16, S14); 
 
-#ifndef GCN
-#ifdef OLD_ATI
-#define pixmd5STEP_ROUND2(f, a, b, c, d, AC, x, s)  tmp1 = (b) ^ (c); tmp1 = tmp1 & (d); tmp1 = tmp1 ^ (c);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = (a)+(x); (a) = rotate(a,s); (a) = (a)+(b);
-#define pixmd5STEP_ROUND2_NULL(f, a, b, c, d, AC, s)  tmp1 = (b) ^ (c);tmp1 = tmp1 & (d);tmp1 = tmp1 ^ (c);(a) = (a)+tmp1;(a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);
-#else
 #define pixmd5STEP_ROUND2(f, a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((c),(b),(d));(a) = rotate(a,s)+(b);
 #define pixmd5STEP_ROUND2_NULL(f, a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((c),(b),(d)); (a) = rotate(a,s)+(b);
-#endif
-#else
-#define pixmd5STEP_ROUND2(f, a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((c),(b),(d));(a) = rotate(a,s)+(b);
-#define pixmd5STEP_ROUND2_NULL(f, a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((c),(b),(d)); (a) = rotate(a,s)+(b);
-#endif
-
 
 pixmd5STEP_ROUND2 (G, a, b, c, d, mAC17, x1, S21); 
 pixmd5STEP_ROUND2_NULL (G, d, a, b, c, mAC18, S22);

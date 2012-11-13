@@ -1,6 +1,4 @@
-#define rotate(x,y) ((x) << (y)) + ((x) >> (32-(y)))
-
-
+#define rotate(a,b) ((a) << (b)) + ((a) >> (32-(b)))
 #define GGI (get_global_id(0))
 #define GLI (get_local_id(0))
 
@@ -12,172 +10,209 @@
     }
 
 
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str)
-{
-__local uint inpc[64][14];
-uint SIZE;
-uint elem,temp1;
-
-
-inpc[GLI][0] = inp[GGI*(8)+0];
-inpc[GLI][1] = inp[GGI*(8)+1];
-inpc[GLI][2] = inp[GGI*(8)+2];
-inpc[GLI][3] = inp[GGI*(8)+3];
-inpc[GLI][4] = inp[GGI*(8)+4];
-inpc[GLI][5] = inp[GGI*(8)+5];
-inpc[GLI][6] = inp[GGI*(8)+6];
-inpc[GLI][7] = inp[GGI*(8)+7];
-inpc[GLI][8] = 0;
-inpc[GLI][9] = 0;
-inpc[GLI][10] = 0;
-inpc[GLI][11] = 0;
-inpc[GLI][12] = 0;
-
-SIZE=sizein[GGI];
-size[GGI] = (SIZE+str.sF);
-
-SET_AB(inpc[GLI],str.s0,SIZE,0);
-SET_AB(inpc[GLI],str.s1,SIZE+4,0);
-SET_AB(inpc[GLI],str.s2,SIZE+8,0);
-SET_AB(inpc[GLI],str.s3,SIZE+12,0);
-
-
-dst[GGI*8+0] = inpc[GLI][0];
-dst[GGI*8+1] = inpc[GLI][1];
-dst[GGI*8+2] = inpc[GLI][2];
-dst[GGI*8+3] = inpc[GLI][3];
-dst[GGI*8+4] = inpc[GLI][4];
-dst[GGI*8+5] = inpc[GLI][5];
-dst[GGI*8+6] = inpc[GLI][6];
-dst[GGI*8+7] = inpc[GLI][7];
-
-}
-
-
 __kernel  
 void  __attribute__((reqd_work_group_size(64, 1, 1)))
-pixmd5( __global uint4 *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *bitmaps, __global uint *found,  uint4 singlehash)
+pixmd5( __global uint4 *dst,  __global uint *inp, __global uint *sizein,  __global uint *found_ind, __global uint *bitmaps, __global uint *found,  uint4 singlehash, uint16 str, uint16 str1)
 {
-
-uint mCa= (uint)0x67452301;
-uint mCb= (uint)0xefcdab89;
-uint mCc= (uint)0x98badcfe;
-uint mCd= (uint)0x10325476;
-uint S11= (uint)7; 
-uint S12= (uint)12;
-uint S13= (uint)17;
-uint S14= (uint)22;
-uint S21= (uint)5; 
-uint S22= (uint)9; 
-uint S23= (uint)14;
-uint S24= (uint)20;
-uint S31= (uint)4; 
-uint S32= (uint)11;
-uint S33= (uint)16;
-uint S34= (uint)23;
-uint S41= (uint)6; 
-uint S42= (uint)10;
-uint S43= (uint)15;
-uint S44= (uint)21;
-
-uint SIZE;  
+__local uint inpc[64][14];
+uint elem,temp1;
+uint4 mCa= (uint4)0x67452301;
+uint4 mCb= (uint4)0xefcdab89;
+uint4 mCc= (uint4)0x98badcfe;
+uint4 mCd= (uint4)0x10325476;
+uint4 S11= (uint4)7; 
+uint4 S12= (uint4)12;
+uint4 S13= (uint4)17;
+uint4 S14= (uint4)22;
+uint4 S21= (uint4)5; 
+uint4 S22= (uint4)9; 
+uint4 S23= (uint4)14;
+uint4 S24= (uint4)20;
+uint4 S31= (uint4)4; 
+uint4 S32= (uint4)11;
+uint4 S33= (uint4)16;
+uint4 S34= (uint4)23;
+uint4 S41= (uint4)6; 
+uint4 S42= (uint4)10;
+uint4 S43= (uint4)15;
+uint4 S44= (uint4)21;
+uint4 SIZE;  
 uint i,ib,ic,id,t1,t2;  
-uint mOne;
-uint a,b,c,d, tmp1, tmp2; 
+uint4 mOne;
+uint4 a,b,c,d, tmp1, tmp2; 
 uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
-uint x0,x1,x2,x3,x4,x5,x6,x7,x8;  
-uint chbase1;
+uint4 x0,x1,x2,x3,x4,x5,x6,x7,x8;  
+uint4 chbase1;
+uint w0,w1,w2,w3,w4,w5,w6,w7;
 
-uint mAC1 = (uint)0xd76aa478; 
-uint mAC2 = (uint)0xe8c7b756; 
-uint mAC3 = (uint)0x242070db; 
-uint mAC4 = (uint)0xc1bdceee; 
-uint mAC5 = (uint)0xf57c0faf; 
-uint mAC6 = (uint)0x4787c62a; 
-uint mAC7 = (uint)0xa8304613; 
-uint mAC8 = (uint)0xfd469501; 
-uint mAC9 = (uint)0x698098d8; 
-uint mAC10= (uint)0x8b44f7af; 
-uint mAC11= (uint)0xffff5bb1; 
-uint mAC12= (uint)0x895cd7be; 
-uint mAC13= (uint)0x6b901122; 
-uint mAC14= (uint)0xfd987193; 
-uint mAC15= (uint)0xa679438e; 
-uint mAC16= (uint)0x49b40821; 
-uint mAC17= (uint)0xf61e2562; 
-uint mAC18= (uint)0xc040b340; 
-uint mAC19= (uint)0x265e5a51; 
-uint mAC20= (uint)0xe9b6c7aa; 
-uint mAC21= (uint)0xd62f105d; 
-uint mAC22= (uint)0x02441453; 
-uint mAC23= (uint)0xd8a1e681; 
-uint mAC24= (uint)0xe7d3fbc8; 
-uint mAC25= (uint)0x21e1cde6; 
-uint mAC26= (uint)0xc33707d6; 
-uint mAC27= (uint)0xf4d50d87; 
-uint mAC28= (uint)0x455a14ed; 
-uint mAC29= (uint)0xa9e3e905; 
-uint mAC30= (uint)0xfcefa3f8; 
-uint mAC31= (uint)0x676f02d9; 
-uint mAC32= (uint)0x8d2a4c8a; 
-uint mAC33= (uint)0xfffa3942; 
-uint mAC34= (uint)0x8771f681; 
-uint mAC35= (uint)0x6d9d6122; 
-uint mAC36= (uint)0xfde5380c; 
-uint mAC37= (uint)0xa4beea44; 
-uint mAC38= (uint)0x4bdecfa9; 
-uint mAC39= (uint)0xf6bb4b60; 
-uint mAC40= (uint)0xbebfbc70; 
-uint mAC41= (uint)0x289b7ec6; 
-uint mAC42= (uint)0xeaa127fa; 
-uint mAC43= (uint)0xd4ef3085; 
-uint mAC44= (uint)0x04881d05; 
-uint mAC45= (uint)0xd9d4d039; 
-uint mAC46= (uint)0xe6db99e5; 
-uint mAC47= (uint)0x1fa27cf8; 
-uint mAC48= (uint)0xc4ac5665; 
-uint mAC49= (uint)0xf4292244; 
-uint mAC50= (uint)0x432aff97; 
-uint mAC51= (uint)0xab9423a7; 
-uint mAC52= (uint)0xfc93a039; 
-uint mAC53= (uint)0x655b59c3; 
-uint mAC54= (uint)0x8f0ccc92; 
-uint mAC55= (uint)0xffeff47d; 
-uint mAC56= (uint)0x85845dd1; 
-uint mAC57= (uint)0x6fa87e4f; 
-uint mAC58= (uint)0xfe2ce6e0; 
-uint mAC59= (uint)0xa3014314; 
-uint mAC60= (uint)0x4e0811a1; 
-uint mAC61= (uint)0xf7537e82; 
-uint mAC62= (uint)0xbd3af235; 
-uint mAC63= (uint)0x2ad7d2bb; 
-uint mAC64= (uint)0xeb86d391;
+uint4 mAC1 = (uint4)0xd76aa478; 
+uint4 mAC2 = (uint4)0xe8c7b756; 
+uint4 mAC3 = (uint4)0x242070db; 
+uint4 mAC4 = (uint4)0xc1bdceee; 
+uint4 mAC5 = (uint4)0xf57c0faf; 
+uint4 mAC6 = (uint4)0x4787c62a; 
+uint4 mAC7 = (uint4)0xa8304613; 
+uint4 mAC8 = (uint4)0xfd469501; 
+uint4 mAC9 = (uint4)0x698098d8; 
+uint4 mAC10= (uint4)0x8b44f7af; 
+uint4 mAC11= (uint4)0xffff5bb1; 
+uint4 mAC12= (uint4)0x895cd7be; 
+uint4 mAC13= (uint4)0x6b901122; 
+uint4 mAC14= (uint4)0xfd987193; 
+uint4 mAC15= (uint4)0xa679438e; 
+uint4 mAC16= (uint4)0x49b40821; 
+uint4 mAC17= (uint4)0xf61e2562; 
+uint4 mAC18= (uint4)0xc040b340; 
+uint4 mAC19= (uint4)0x265e5a51; 
+uint4 mAC20= (uint4)0xe9b6c7aa; 
+uint4 mAC21= (uint4)0xd62f105d; 
+uint4 mAC22= (uint4)0x02441453; 
+uint4 mAC23= (uint4)0xd8a1e681; 
+uint4 mAC24= (uint4)0xe7d3fbc8; 
+uint4 mAC25= (uint4)0x21e1cde6; 
+uint4 mAC26= (uint4)0xc33707d6; 
+uint4 mAC27= (uint4)0xf4d50d87; 
+uint4 mAC28= (uint4)0x455a14ed; 
+uint4 mAC29= (uint4)0xa9e3e905; 
+uint4 mAC30= (uint4)0xfcefa3f8; 
+uint4 mAC31= (uint4)0x676f02d9; 
+uint4 mAC32= (uint4)0x8d2a4c8a; 
+uint4 mAC33= (uint4)0xfffa3942; 
+uint4 mAC34= (uint4)0x8771f681; 
+uint4 mAC35= (uint4)0x6d9d6122; 
+uint4 mAC36= (uint4)0xfde5380c; 
+uint4 mAC37= (uint4)0xa4beea44; 
+uint4 mAC38= (uint4)0x4bdecfa9; 
+uint4 mAC39= (uint4)0xf6bb4b60; 
+uint4 mAC40= (uint4)0xbebfbc70; 
+uint4 mAC41= (uint4)0x289b7ec6; 
+uint4 mAC42= (uint4)0xeaa127fa; 
+uint4 mAC43= (uint4)0xd4ef3085; 
+uint4 mAC44= (uint4)0x04881d05; 
+uint4 mAC45= (uint4)0xd9d4d039; 
+uint4 mAC46= (uint4)0xe6db99e5; 
+uint4 mAC47= (uint4)0x1fa27cf8; 
+uint4 mAC48= (uint4)0xc4ac5665; 
+uint4 mAC49= (uint4)0xf4292244; 
+uint4 mAC50= (uint4)0x432aff97; 
+uint4 mAC51= (uint4)0xab9423a7; 
+uint4 mAC52= (uint4)0xfc93a039; 
+uint4 mAC53= (uint4)0x655b59c3; 
+uint4 mAC54= (uint4)0x8f0ccc92; 
+uint4 mAC55= (uint4)0xffeff47d; 
+uint4 mAC56= (uint4)0x85845dd1; 
+uint4 mAC57= (uint4)0x6fa87e4f; 
+uint4 mAC58= (uint4)0xfe2ce6e0; 
+uint4 mAC59= (uint4)0xa3014314; 
+uint4 mAC60= (uint4)0x4e0811a1; 
+uint4 mAC61= (uint4)0xf7537e82; 
+uint4 mAC62= (uint4)0xbd3af235; 
+uint4 mAC63= (uint4)0x2ad7d2bb; 
+uint4 mAC64= (uint4)0xeb86d391;
+
+
+id=get_global_id(0);
+SIZE=(uint4)sizein[GGI];
+w0 = inp[GGI*8+0];
+w1 = inp[GGI*8+1];
+w2 = inp[GGI*8+2];
+w3 = inp[GGI*8+3];
+
+
+inpc[GLI][0]=w0;
+inpc[GLI][1]=w1;
+inpc[GLI][2]=w2;
+inpc[GLI][3]=w3;
+inpc[GLI][4]=w4;
+inpc[GLI][5]=w5;
+inpc[GLI][6]=w6;
+inpc[GLI][7]=w7;
+SET_AB(inpc[GLI],str.s0,SIZE.s0,0);
+SET_AB(inpc[GLI],str.s1,SIZE.s0+4,0);
+SET_AB(inpc[GLI],str.s2,SIZE.s0+8,0);
+SET_AB(inpc[GLI],str.s3,SIZE.s0+12,0);
+x0.s0=inpc[GLI][0];
+x1.s0=inpc[GLI][1];
+x2.s0=inpc[GLI][2];
+x3.s0=inpc[GLI][3];
+SIZE.s0 = (SIZE.s0+str.sC)<<3;
+
+
+inpc[GLI][0]=w0;
+inpc[GLI][1]=w1;
+inpc[GLI][2]=w2;
+inpc[GLI][3]=w3;
+inpc[GLI][4]=w4;
+inpc[GLI][5]=w5;
+inpc[GLI][6]=w6;
+inpc[GLI][7]=w7;
+
+SET_AB(inpc[GLI],str.s4,SIZE.s1,0);
+SET_AB(inpc[GLI],str.s5,SIZE.s1+4,0);
+SET_AB(inpc[GLI],str.s6,SIZE.s1+8,0);
+SET_AB(inpc[GLI],str.s7,SIZE.s1+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s1+str.sD),0);
+x0.s1=inpc[GLI][0];
+x1.s1=inpc[GLI][1];
+x2.s1=inpc[GLI][2];
+x3.s1=inpc[GLI][3];
+SIZE.s1 = (SIZE.s1+str.sD)<<3;
+
+
+inpc[GLI][0]=w0;
+inpc[GLI][1]=w1;
+inpc[GLI][2]=w2;
+inpc[GLI][3]=w3;
+inpc[GLI][4]=w4;
+inpc[GLI][5]=w5;
+inpc[GLI][6]=w6;
+inpc[GLI][7]=w7;
+
+SET_AB(inpc[GLI],str.s8,SIZE.s2,0);
+SET_AB(inpc[GLI],str.s9,SIZE.s2+4,0);
+SET_AB(inpc[GLI],str.sA,SIZE.s2+8,0);
+SET_AB(inpc[GLI],str.sB,SIZE.s2+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s2+str.sE),0);
+x0.s2=inpc[GLI][0];
+x1.s2=inpc[GLI][1];
+x2.s2=inpc[GLI][2];
+x3.s2=inpc[GLI][3];
+SIZE.s2 = (SIZE.s2+str.sE)<<3;
+
+
+inpc[GLI][0]=w0;
+inpc[GLI][1]=w1;
+inpc[GLI][2]=w2;
+inpc[GLI][3]=w3;
+inpc[GLI][4]=w4;
+inpc[GLI][5]=w5;
+inpc[GLI][6]=w6;
+inpc[GLI][7]=w7;
+
+SET_AB(inpc[GLI],str1.s0,SIZE.s3,0);
+SET_AB(inpc[GLI],str1.s1,SIZE.s3+4,0);
+SET_AB(inpc[GLI],str1.s2,SIZE.s3+8,0);
+SET_AB(inpc[GLI],str1.s3,SIZE.s3+12,0);
+SET_AB(inpc[GLI],0x80,(SIZE.s3+str1.sC),0);
+x0.s3=inpc[GLI][0];
+x1.s3=inpc[GLI][1];
+x2.s3=inpc[GLI][2];
+x3.s3=inpc[GLI][3];
+SIZE.s3 = (SIZE.s3+str1.sC)<<3;
 
 
 ic = 16;
 id = ic<<3; 
-SIZE = (uint)id; 
+SIZE = (uint4)id; 
+x4=(uint4)0x80;
 
-id = get_global_id(0);
-x0=input[(id*8)];
-x1=input[(id*8)+1];
-x2=input[(id*8)+2];
-x3=input[(id*8)+3];
-x4=(uint)0x80;
 
 
 a = mCa; b = mCb; c = mCc; d = mCd;
 
-#ifndef OLD_ATI
 #define pixmd5STEP_ROUND1(f, a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((d),(c),(b));(a) = rotate(a,s)+(b);
 #define pixmd5STEP_ROUND1_NULL(f, a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((d),(c),(b));(a) = rotate(a,s)+(b);
 #define pixmd5STEP_ROUND1A(f, a, b, c, d, AC, x, s)  tmp1 = (c)^(d);tmp1 = tmp1 & (b);tmp1 = tmp1 ^ (d);(a) = (a)+(tmp1); (a) = (a) + (AC);(a) = (a)+(x);(a) = rotate(a,s)+(b);
-#else
-#define pixmd5STEP_ROUND1(f, a, b, c, d, AC, x, s)  tmp1 = (c)^(d);tmp1 = tmp1 & (b);tmp1 = tmp1 ^ (d);(a) = (a)+(tmp1); (a) = (a) + (AC);(a) = (a)+(x);(a) = rotate(a,s);(a) = (a)+(b);
-#define pixmd5STEP_ROUND1_NULL(f, a, b, c, d, AC, s)  tmp1 = (c)^(d); tmp1 = tmp1&(b); tmp1 = tmp1^(d);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);
-#define pixmd5STEP_ROUND1A(f, a, b, c, d, AC, x, s)  tmp1 = (c)^(d);tmp1 = tmp1 & (b);tmp1 = tmp1 ^ (d);(a) = (a)+(tmp1); (a) = (a) + (AC);(a) = (a)+(x);(a) = rotate(a,s)+(b);
-#endif
 
 pixmd5STEP_ROUND1(F, a, b, c, d, mAC1, x0, S11);
 pixmd5STEP_ROUND1(F, d, a, b, c, mAC2, x1, S12);
@@ -196,19 +231,8 @@ pixmd5STEP_ROUND1_NULL(F, d, a, b, c, mAC14, S12);
 pixmd5STEP_ROUND1 (F, c, d, a, b, mAC15, SIZE, S13);
 pixmd5STEP_ROUND1_NULL(F, b, c, d, a, mAC16, S14); 
 
-#ifndef GCN
-#ifdef OLD_ATI
-#define pixmd5STEP_ROUND2(f, a, b, c, d, AC, x, s)  tmp1 = (b) ^ (c); tmp1 = tmp1 & (d); tmp1 = tmp1 ^ (c);(a) = (a)+tmp1; (a) = (a)+(AC); (a) = (a)+(x); (a) = rotate(a,s); (a) = (a)+(b);
-#define pixmd5STEP_ROUND2_NULL(f, a, b, c, d, AC, s)  tmp1 = (b) ^ (c);tmp1 = tmp1 & (d);tmp1 = tmp1 ^ (c);(a) = (a)+tmp1;(a) = (a)+(AC); (a) = rotate(a,s); (a) = (a)+(b);
-#else
 #define pixmd5STEP_ROUND2(f, a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((c),(b),(d));(a) = rotate(a,s)+(b);
 #define pixmd5STEP_ROUND2_NULL(f, a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((c),(b),(d)); (a) = rotate(a,s)+(b);
-#endif
-#else
-#define pixmd5STEP_ROUND2(f, a, b, c, d, AC, x, s)  (a)=(a)+(AC)+(x)+bitselect((c),(b),(d));(a) = rotate(a,s)+(b);
-#define pixmd5STEP_ROUND2_NULL(f, a, b, c, d, AC, s)  (a)=(a)+(AC)+bitselect((c),(b),(d)); (a) = rotate(a,s)+(b);
-#endif
-
 
 pixmd5STEP_ROUND2 (G, a, b, c, d, mAC17, x1, S21); 
 pixmd5STEP_ROUND2_NULL (G, d, a, b, c, mAC18, S22);
@@ -274,23 +298,38 @@ pixmd5STEP_ROUND4 (I, c, d, a, b, mAC63, x2, S43);
 pixmd5STEP_ROUND4_NULL (I, b, c, d, a, mAC64, S44);
 
 a=a+mCa;b=b+mCb;c=c+mCc;d=d+mCd;
-a&=(uint)0x00FFFFFF;
-b&=(uint)0x00FFFFFF;
-c&=(uint)0x00FFFFFF;
-d&=(uint)0x00FFFFFF;
+a&=(uint4)0x00FFFFFF;
+b&=(uint4)0x00FFFFFF;
+c&=(uint4)0x00FFFFFF;
+d&=(uint4)0x00FFFFFF;
 
 
 #ifdef SINGLE_MODE
-if (((uint)singlehash.x!=a)) return;
-if (((uint)singlehash.y!=b)) return;
-if (((uint)singlehash.z!=c)) return;
-if (((uint)singlehash.w!=d)) return;
+if (all((uint4)singlehash.x!=a)) return;
+if (all((uint4)singlehash.y!=b)) return;
+if (all((uint4)singlehash.z!=c)) return;
+if (all((uint4)singlehash.w!=d)) return;
 #else
 id = 0;
-b1=a;b2=b;b3=c;b4=d;
-b5=(singlehash.x >> (b&31))&1;
-b6=(singlehash.y >> (c&31))&1;
-b7=(singlehash.z >> (d&31))&1;
+b1=a.s0;b2=b.s0;b3=c.s0;b4=d.s0;
+b5=(singlehash.x >> (b.s0&31))&1;
+b6=(singlehash.y >> (c.s0&31))&1;
+b7=(singlehash.z >> (d.s0&31))&1;
+if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=a.s1;b2=b.s1;b3=c.s1;b4=d.s1;
+b5=(singlehash.x >> (b.s1&31))&1;
+b6=(singlehash.y >> (c.s1&31))&1;
+b7=(singlehash.z >> (d.s1&31))&1;
+if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=a.s2;b2=b.s2;b3=c.s2;b4=d.s2;
+b5=(singlehash.x >> (b.s2&31))&1;
+b6=(singlehash.y >> (c.s2&31))&1;
+b7=(singlehash.z >> (d.s2&31))&1;
+if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=a.s3;b2=b.s3;b3=c.s3;b4=d.s3;
+b5=(singlehash.x >> (b.s3&31))&1;
+b6=(singlehash.y >> (c.s3&31))&1;
+b7=(singlehash.z >> (d.s3&31))&1;
 if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
 if (id==0) return;
 #endif
@@ -300,7 +339,10 @@ found[0] = 1;
 found_ind[get_global_id(0)] = 1;
 
 
-dst[(get_global_id(0))] = (uint4)(a,b,c,d);
+dst[(get_global_id(0)*4)] = (uint4)(a.s0,b.s0,c.s0,d.s0);
+dst[(get_global_id(0)*4)+1] = (uint4)(a.s1,b.s1,c.s1,d.s1);
+dst[(get_global_id(0)*4)+2] = (uint4)(a.s2,b.s2,c.s2,d.s2);
+dst[(get_global_id(0)*4)+3] = (uint4)(a.s3,b.s3,c.s3,d.s3);
 
 }
 
