@@ -347,7 +347,7 @@ hash_stat ocl_get_device()
 	    {
 		if ((strcmp(get_current_plugin(),"oracle-old")==0)) {loops=1;ocl_vector=1;}
 		if ((strcmp(get_current_plugin(),"rar")==0)) ocl_vector=1;
-		if ((strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"osxlion")==0)) {ocl_vector=1;loops=1;}
 		if ((strcmp(get_current_plugin(),"mscash")==0)) {loops=2;ocl_vector=1;}
 		if ((strcmp(get_current_plugin(),"oracle11g")==0)) {ocl_vector=1;loops=2;}
 		if ((strcmp(get_current_plugin(),"smf")==0)) {ocl_vector=1;loops=2;}
@@ -364,7 +364,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"oracle11g")==0)) {ocl_vector=4;loops=1;}
 		if ((strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=1;
-		if ((strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"osxlion")==0)) {ocl_vector=2;loops=1;}
 		if ((strcmp(get_current_plugin(),"zip")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"mscash")==0)) {loops=1;ocl_vector=8;}
 		if ((strcmp(get_current_plugin(),"smf")==0)) {ocl_vector=4;loops=1;}

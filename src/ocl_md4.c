@@ -446,6 +446,13 @@ void* ocl_bruteforce_md4_thread(void *arg)
 	unsigned int *b_b = (unsigned int *)&hex1[4];
 	unsigned int *b_c = (unsigned int *)&hex1[8];
 	unsigned int *b_d = (unsigned int *)&hex1[12];
+        *b_a=(*b_a-Ca);
+        *b_b=(*b_b-Cb);
+        *b_c=(*b_c-Cc);
+        *b_d=(*b_d-Cd);
+        REVERSE_MD4STEP_ROUND3 (*b_b, *b_c, *b_d, *b_a, 0,      S34);
+        REVERSE_MD4STEP_ROUND3 (*b_c, *b_d, *b_a, *b_b, 0,      S33);    //w7
+        REVERSE_MD4STEP_ROUND3 (*b_d, *b_a, *b_b, *b_c, 0,      S32);
 	unsigned int bind_a = (*b_a)>>10;
 	unsigned int bval_a = (1<<((*b_a)&31));
 	unsigned int bind_b = (*b_b)>>10;
@@ -1447,6 +1454,13 @@ void* ocl_markov_md4_thread(void *arg)
 	unsigned int *b_b = (unsigned int *)&hex1[4];
 	unsigned int *b_c = (unsigned int *)&hex1[8];
 	unsigned int *b_d = (unsigned int *)&hex1[12];
+        *b_a=(*b_a-Ca);
+        *b_b=(*b_b-Cb);
+        *b_c=(*b_c-Cc);
+        *b_d=(*b_d-Cd);
+        REVERSE_MD4STEP_ROUND3 (*b_b, *b_c, *b_d, *b_a, 0,      S34);
+        REVERSE_MD4STEP_ROUND3 (*b_c, *b_d, *b_a, *b_b, 0,      S33);    //w7
+        REVERSE_MD4STEP_ROUND3 (*b_d, *b_a, *b_b, *b_c, 0,      S32);
 	unsigned int bind_a = (*b_a)>>10;
 	unsigned int bval_a = (1<<((*b_a)&31));
 	unsigned int bind_b = (*b_b)>>10;
@@ -2386,6 +2400,13 @@ void* ocl_rule_md4_thread(void *arg)
 	unsigned int *b_b = (unsigned int *)&hex1[4];
 	unsigned int *b_c = (unsigned int *)&hex1[8];
 	unsigned int *b_d = (unsigned int *)&hex1[12];
+        *b_a=(*b_a-Ca);
+        *b_b=(*b_b-Cb);
+        *b_c=(*b_c-Cc);
+        *b_d=(*b_d-Cd);
+        REVERSE_MD4STEP_ROUND3 (*b_b, *b_c, *b_d, *b_a, 0,      S34);
+        REVERSE_MD4STEP_ROUND3 (*b_c, *b_d, *b_a, *b_b, 0,      S33);    //w7
+        REVERSE_MD4STEP_ROUND3 (*b_d, *b_a, *b_b, *b_c, 0,      S32);
 	unsigned int bind_a = (*b_a)>>10;
 	unsigned int bval_a = (1<<((*b_a)&31));
 	unsigned int bind_b = (*b_b)>>10;

@@ -447,6 +447,11 @@ void* ocl_bruteforce_ntlm_thread(void *arg)
 	unsigned int *b_b = (unsigned int *)&hex1[4];
 	unsigned int *b_c = (unsigned int *)&hex1[8];
 	unsigned int *b_d = (unsigned int *)&hex1[12];
+    	*b_a=(*b_a-Ca);
+    	*b_b=(*b_b-Cb);
+    	*b_c=(*b_c-Cc);
+    	*b_d=(*b_d-Cd);
+    	REVERSE_MD4STEP_ROUND3 (*b_b, *b_c, *b_d, *b_a, 0,      S34);
 	unsigned int bind_a = (*b_a)>>10;
 	unsigned int bval_a = (1<<((*b_a)&31));
 	unsigned int bind_b = (*b_b)>>10;
@@ -1399,6 +1404,11 @@ void* ocl_markov_ntlm_thread(void *arg)
 	unsigned int *b_b = (unsigned int *)&hex1[4];
 	unsigned int *b_c = (unsigned int *)&hex1[8];
 	unsigned int *b_d = (unsigned int *)&hex1[12];
+    	*b_a=(*b_a-Ca);
+    	*b_b=(*b_b-Cb);
+    	*b_c=(*b_c-Cc);
+    	*b_d=(*b_d-Cd);
+    	REVERSE_MD4STEP_ROUND3 (*b_b, *b_c, *b_d, *b_a, 0,      S34);
 	unsigned int bind_a = (*b_a)>>10;
 	unsigned int bval_a = (1<<((*b_a)&31));
 	unsigned int bind_b = (*b_b)>>10;
@@ -2300,6 +2310,11 @@ void* ocl_rule_ntlm_thread(void *arg)
 	unsigned int *b_b = (unsigned int *)&hex1[4];
 	unsigned int *b_c = (unsigned int *)&hex1[8];
 	unsigned int *b_d = (unsigned int *)&hex1[12];
+    	*b_a=(*b_a-Ca);
+    	*b_b=(*b_b-Cb);
+    	*b_c=(*b_c-Cc);
+    	*b_d=(*b_d-Cd);
+    	REVERSE_MD4STEP_ROUND3 (*b_b, *b_c, *b_d, *b_a, 0,      S34);
 	unsigned int bind_a = (*b_a)>>10;
 	unsigned int bval_a = (1<<((*b_a)&31));
 	unsigned int bind_b = (*b_b)>>10;
@@ -2328,6 +2343,11 @@ void* ocl_rule_ntlm_thread(void *arg)
         memcpy(&rule_singlehash[self].z, hex1, 4);
         memcpy(hex1,mylist->hash+12,4);
         memcpy(&rule_singlehash[self].w, hex1, 4);
+    	rule_singlehash[self].x=(rule_singlehash[self].x-Ca);
+    	rule_singlehash[self].y=(rule_singlehash[self].y-Cb);
+    	rule_singlehash[self].z=(rule_singlehash[self].z-Cc);
+    	rule_singlehash[self].w=(rule_singlehash[self].w-Cd);
+    	REVERSE_MD4STEP_ROUND3 (rule_singlehash[self].y, rule_singlehash[self].z, rule_singlehash[self].w, rule_singlehash[self].x, 0,      S34);
         _clSetKernelArg(rule_kernel[self], 6, sizeof(cl_uint4), (void*) &rule_singlehash[self]);
     }
     else 
