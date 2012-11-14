@@ -214,34 +214,29 @@ w9 = rotate(w6 ^ w1 ^ w12 ^ w10,S1); ROTATE4_F(D, E, A, B, C, w9);   //C=...., E
 w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10); //B=...., D=rot(D,30)
 w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11); //A=...., C=rot(C,30)
 
-
 #ifdef SINGLE_MODE
 tmp1 = (uint)(singlehash.z)^C;
 tmp2 = (uint)(singlehash.w)^D;
 if ((tmp2*tmp1)) return;
 #endif
-
-
-A=A+H0;B=B+H1;C=C+H2;D=D+H3;E=E+H4;
-
-
-Endian_Reverse32(A);
-Endian_Reverse32(B);
-Endian_Reverse32(C);
-Endian_Reverse32(D);
-Endian_Reverse32(E);
-
-
 #ifndef SINGLE_MODE
 id=0;
 b1=A;b2=B;b3=C;b4=D;
 b5=(singlehash.x >> (B&31))&1;
 b6=(singlehash.y >> (C&31))&1;
 b7=(singlehash.z >> (D&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && (
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && (
 (bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
 if (id==0) return;
 #endif
+
+A=A+H0;B=B+H1;C=C+H2;D=D+H3;E=E+H4;
+
+Endian_Reverse32(A);
+Endian_Reverse32(B);
+Endian_Reverse32(C);
+Endian_Reverse32(D);
+Endian_Reverse32(E);
 
 
 #ifndef SM10
@@ -477,28 +472,24 @@ tmp1 = (uint)(singlehash.z)^C;
 tmp2 = (uint)(singlehash.w)^D;
 if ((tmp2*tmp1)) return;
 #endif
-
-
-A=A+H0;B=B+H1;C=C+H2;D=D+H3;E=E+H4;
-
-
-Endian_Reverse32(A);
-Endian_Reverse32(B);
-Endian_Reverse32(C);
-Endian_Reverse32(D);
-Endian_Reverse32(E);
-
-
 #ifndef SINGLE_MODE
 id=0;
 b1=A;b2=B;b3=C;b4=D;
 b5=(singlehash.x >> (B&31))&1;
 b6=(singlehash.y >> (C&31))&1;
 b7=(singlehash.z >> (D&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && (
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && (
 (bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
 if (id==0) return;
 #endif
+
+A=A+H0;B=B+H1;C=C+H2;D=D+H3;E=E+H4;
+
+Endian_Reverse32(A);
+Endian_Reverse32(B);
+Endian_Reverse32(C);
+Endian_Reverse32(D);
+Endian_Reverse32(E);
 
 
 #ifndef SM10
@@ -897,45 +888,40 @@ tmp1 = (uint4)(singlehash.z)^C;
 tmp2 = (uint4)(singlehash.w)^D;
 if ((tmp2.w*tmp2.y*tmp2.z*tmp2.x*tmp1.w*tmp1.y*tmp1.z*tmp1.x)) return;
 #endif
-
-
-A=A+H0;B=B+H1;C=C+H2;D=D+H3;E=E+H4;
-
-
-Endian_Reverse32(A);
-Endian_Reverse32(B);
-Endian_Reverse32(C);
-Endian_Reverse32(D);
-Endian_Reverse32(E);
-
-
 #ifndef SINGLE_MODE
 id=0;
 b1=A.s0;b2=B.s0;b3=C.s0;b4=D.s0;
 b5=(singlehash.x >> (B.s0&31))&1;
 b6=(singlehash.y >> (C.s0&31))&1;
 b7=(singlehash.z >> (D.s0&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && (
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && (
 (bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
 b1=A.s1;b2=B.s1;b3=C.s1;b4=D.s1;
 b5=(singlehash.x >> (B.s1&31))&1;
 b6=(singlehash.y >> (C.s1&31))&1;
 b7=(singlehash.z >> (D.s1&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && (
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && (
 (bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
 b1=A.s2;b2=B.s2;b3=C.s2;b4=D.s2;
 b5=(singlehash.x >> (B.s2&31))&1;
 b6=(singlehash.y >> (C.s2&31))&1;
 b7=(singlehash.z >> (D.s2&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
 b1=A.s3;b2=B.s3;b3=C.s3;b4=D.s3;
 b5=(singlehash.x >> (B.s3&31))&1;
 b6=(singlehash.y >> (C.s3&31))&1;
 b7=(singlehash.z >> (D.s3&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
 if (id==0) return;
 #endif
 
+A=A+H0;B=B+H1;C=C+H2;D=D+H3;E=E+H4;
+
+Endian_Reverse32(A);
+Endian_Reverse32(B);
+Endian_Reverse32(C);
+Endian_Reverse32(D);
+Endian_Reverse32(E);
 
 
 #ifndef SM10
@@ -1175,10 +1161,34 @@ tmp1 = (uint4)(singlehash.z)^C;
 tmp2 = (uint4)(singlehash.w)^D;
 if ((tmp2.w*tmp2.y*tmp2.z*tmp2.x*tmp1.w*tmp1.y*tmp1.z*tmp1.x)) return;
 #endif
-
+#ifndef SINGLE_MODE
+id=0;
+b1=A.s0;b2=B.s0;b3=C.s0;b4=D.s0;
+b5=(singlehash.x >> (B.s0&31))&1;
+b6=(singlehash.y >> (C.s0&31))&1;
+b7=(singlehash.z >> (D.s0&31))&1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && (
+(bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=A.s1;b2=B.s1;b3=C.s1;b4=D.s1;
+b5=(singlehash.x >> (B.s1&31))&1;
+b6=(singlehash.y >> (C.s1&31))&1;
+b7=(singlehash.z >> (D.s1&31))&1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && (
+(bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=A.s2;b2=B.s2;b3=C.s2;b4=D.s2;
+b5=(singlehash.x >> (B.s2&31))&1;
+b6=(singlehash.y >> (C.s2&31))&1;
+b7=(singlehash.z >> (D.s2&31))&1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=A.s3;b2=B.s3;b3=C.s3;b4=D.s3;
+b5=(singlehash.x >> (B.s3&31))&1;
+b6=(singlehash.y >> (C.s3&31))&1;
+b7=(singlehash.z >> (D.s3&31))&1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
+if (id==0) return;
+#endif
 
 A=A+H0;B=B+H1;C=C+H2;D=D+H3;E=E+H4;
-
 
 Endian_Reverse32(A);
 Endian_Reverse32(B);
@@ -1186,33 +1196,6 @@ Endian_Reverse32(C);
 Endian_Reverse32(D);
 Endian_Reverse32(E);
 
-
-#ifndef SINGLE_MODE
-id=0;
-b1=A.s0;b2=B.s0;b3=C.s0;b4=D.s0;
-b5=(singlehash.x >> (B.s0&31))&1;
-b6=(singlehash.y >> (C.s0&31))&1;
-b7=(singlehash.z >> (D.s0&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && (
-(bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
-b1=A.s1;b2=B.s1;b3=C.s1;b4=D.s1;
-b5=(singlehash.x >> (B.s1&31))&1;
-b6=(singlehash.y >> (C.s1&31))&1;
-b7=(singlehash.z >> (D.s1&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && (
-(bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
-b1=A.s2;b2=B.s2;b3=C.s2;b4=D.s2;
-b5=(singlehash.x >> (B.s2&31))&1;
-b6=(singlehash.y >> (C.s2&31))&1;
-b7=(singlehash.z >> (D.s2&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
-b1=A.s3;b2=B.s3;b3=C.s3;b4=D.s3;
-b5=(singlehash.x >> (B.s3&31))&1;
-b6=(singlehash.y >> (C.s3&31))&1;
-b7=(singlehash.z >> (D.s3&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1) ) id=1;
-if (id==0) return;
-#endif
 
 
 #ifndef SM10
