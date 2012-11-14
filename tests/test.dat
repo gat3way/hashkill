@@ -23,7 +23,7 @@ bforce ntlm single		|1 passwords|hashkill -pntlm 32ED87BDB5FDC5E9CBA88547376818D
 bforce ntlm multi		|2 passwords|hashkill -pntlm -f ntlm.hashes -b1:6:num
 bforce oracle-old single	|1 passwords|hashkill -poracle-old usrx:8D52A07FF0A0243D -b1:6:num
 bforce oracle11g single		|1 passwords|hashkill -poracle11g u0-oracle11:1BC4A42664A043523F68D6D108CAAA036D8ABC72176AE86143D7111BD442 -b1:6:num
-bforce osxlion single		|1 passwords|hashkill bb0489df7b073e715f19f83fd52d08ede24243554450f7159dd65c100298a5820525b55320f48182491b72b4c4ba50d7b0e281c1d98e06591a5e9c6167f42a742f0359c7 -posxlion -b 8:8:pasword
+bforce osxlion single		|1 passwords|hashkill bb0489df7b073e715f19f83fd52d08ede24243554450f7159dd65c100298a5820525b55320f48182491b72b4c4ba50d7b0e281c1d98e06591a5e9c6167f42a742f0359c7 -posxlion -b8:8:none:pasword
 bforce osx-old single		|1 passwords|hashkill -posx-old 52726E30D61AAB40F06B1E5F6B3CE9D87D170DB79C3E76DE -b1:6:num
 bforce pixmd5 multi		|2 passwords|hashkill -ppixmd5 -f pixmd5.hashes -b1:7:num
 bforce pixmd5 single		|1 passwords|hashkill -ppixmd5 u0-pixmd5:UwiM/pkFcM.xYc8s -b1:7:num
