@@ -1,10 +1,8 @@
 #define rotate(x,y) ((x) << (y)) + ((x) >> (32-(y)))
 
-
 #ifndef SM21
 
 #define getglobalid(a) (mad24(get_group_id(0), 64U, get_local_id(0)))
-
 
 void sha256_long1( __global uint *hashes, const uint4 input, const uint size,  __global uint4 *plains, __global uint *bitmaps, __global uint *found,  uint4 singlehash, uint x0) 
 {
@@ -155,14 +153,20 @@ w10=S1(w8)+w3+S0(w12)+w11; P(D, E, F, G, H, A, B, C, w10, 0xA4506CEBU);
 w11=S1(w9)+w4+S0(w13)+w12; P(C, D, E, F, G, H, A, B, w11, 0xBEF9A3F7U);
 w12=S1(w10)+w5+S0(w14)+w13; P(B, C, D, E, F, G, H, A, w12, 0xC67178F2U);
 
-
-
 #ifdef SINGLE_MODE
 id=0;
 if (((uint)singlehash.x!=A)) return;
 if (((uint)singlehash.y!=B)) return;
 #endif
-
+#ifndef SINGLE_MODE
+id = 0;
+b1=A;b2=B;b3=C;b4=D;
+b5=(singlehash.x >> (B&31))&1;
+b6=(singlehash.y >> (C&31))&1;
+b7=(singlehash.z >> (D&31))&1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+if (id==0) return;
+#endif
 
 A=A+(uint)H0;
 B=B+(uint)H1;
@@ -173,8 +177,6 @@ F=F+(uint)H5;
 G=G+(uint)H6;
 H=H+(uint)H7;
 
-
-
 Endian_Reverse32(A);
 Endian_Reverse32(B);
 Endian_Reverse32(C);
@@ -184,17 +186,6 @@ Endian_Reverse32(F);
 Endian_Reverse32(G);
 Endian_Reverse32(H);
 
-
-
-#ifndef SINGLE_MODE
-id = 0;
-b1=A;b2=B;b3=C;b4=D;
-b5=(singlehash.x >> (B&31))&1;
-b6=(singlehash.y >> (C&31))&1;
-b7=(singlehash.z >> (D&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
-if (id==0) return;
-#endif
 
 Endian_Reverse32(x0);
 Endian_Reverse32(x1);
@@ -483,12 +474,34 @@ w10=S1(w8)+w3+S0(w12)+w11; P(D, E, F, G, H, A, B, C, w10, 0xA4506CEB);
 w11=S1(w9)+w4+S0(w13)+w12; P(C, D, E, F, G, H, A, B, w11, 0xBEF9A3F7);
 w12=S1(w10)+w5+S0(w14)+w13; P(B, C, D, E, F, G, H, A, w12, 0xC67178F2);
 
-
-
 #ifdef SINGLE_MODE
 id=0;
 if (all((uint4)singlehash.x!=A)) return;
 if (all((uint4)singlehash.y!=B)) return;
+#endif
+#ifndef SINGLE_MODE
+id = 0;
+b1=A.s0;b2=B.s0;b3=C.s0;b4=D.s0;
+b5=(singlehash.x >> (B.s0&31))&1;
+b6=(singlehash.y >> (C.s0&31))&1;
+b7=(singlehash.z >> (D.s0&31))&1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=A.s1;b2=B.s1;b3=C.s1;b4=D.s1;
+b5=(singlehash.x >> (B.s1&31))&1;
+b6=(singlehash.y >> (C.s1&31))&1;
+b7=(singlehash.z >> (D.s1&31))&1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=A.s2;b2=B.s2;b3=C.s2;b4=D.s2;
+b5=(singlehash.x >> (B.s2&31))&1;
+b6=(singlehash.y >> (C.s2&31))&1;
+b7=(singlehash.z >> (D.s2&31))&1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+b1=A.s3;b2=B.s3;b3=C.s3;b4=D.s3;
+b5=(singlehash.x >> (B.s3&31))&1;
+b6=(singlehash.y >> (C.s3&31))&1;
+b7=(singlehash.z >> (D.s3&31))&1;
+if (((b7) & (b5) & (b6)) &&  ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
+if (id==0) return;
 #endif
 
 
@@ -501,8 +514,6 @@ F=F+(uint4)H5;
 G=G+(uint4)H6;
 H=H+(uint4)H7;
 
-
-
 Endian_Reverse32(A);
 Endian_Reverse32(B);
 Endian_Reverse32(C);
@@ -512,30 +523,6 @@ Endian_Reverse32(F);
 Endian_Reverse32(G);
 Endian_Reverse32(H);
 
-#ifndef SINGLE_MODE
-id = 0;
-b1=A.s0;b2=B.s0;b3=C.s0;b4=D.s0;
-b5=(singlehash.x >> (B.s0&31))&1;
-b6=(singlehash.y >> (C.s0&31))&1;
-b7=(singlehash.z >> (D.s0&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
-b1=A.s1;b2=B.s1;b3=C.s1;b4=D.s1;
-b5=(singlehash.x >> (B.s1&31))&1;
-b6=(singlehash.y >> (C.s1&31))&1;
-b7=(singlehash.z >> (D.s1&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
-b1=A.s2;b2=B.s2;b3=C.s2;b4=D.s2;
-b5=(singlehash.x >> (B.s2&31))&1;
-b6=(singlehash.y >> (C.s2&31))&1;
-b7=(singlehash.z >> (D.s2&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
-b1=A.s3;b2=B.s3;b3=C.s3;b4=D.s3;
-b5=(singlehash.x >> (B.s3&31))&1;
-b6=(singlehash.y >> (C.s3&31))&1;
-b7=(singlehash.z >> (D.s3&31))&1;
-if ((b7) && (b5) && (b6)) if ( ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*8*65535)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*8*65535)+(b4>>10)]>>(b4&31))&1) ) id=1;
-if (id==0) return;
-#endif
 
 #ifndef SM10
 uint res = atomic_inc(found);

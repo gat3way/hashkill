@@ -451,6 +451,14 @@ void* ocl_bruteforce_sha256_thread(void *arg)
 	unsigned int *b_b = (unsigned int *)&hex1[4];
 	unsigned int *b_c = (unsigned int *)&hex1[8];
 	unsigned int *b_d = (unsigned int *)&hex1[12];
+        REV(*b_a);
+        REV(*b_b);
+        REV(*b_c);
+        REV(*b_d);
+        *b_a -= H0;
+        *b_b -= H1;
+        *b_c -= H2;
+        *b_d -= H3;
 	unsigned int bind_a = (*b_a)>>10;
 	unsigned int bval_a = (1<<((*b_a)&31));
 	unsigned int bind_b = (*b_b)>>10;
@@ -1004,6 +1012,14 @@ void* ocl_markov_sha256_thread(void *arg)
 	unsigned int *b_b = (unsigned int *)&hex1[4];
 	unsigned int *b_c = (unsigned int *)&hex1[8];
 	unsigned int *b_d = (unsigned int *)&hex1[12];
+        REV(*b_a);
+        REV(*b_b);
+        REV(*b_c);
+        REV(*b_d);
+        *b_a -= H0;
+        *b_b -= H1;
+        *b_c -= H2;
+        *b_d -= H3;
 	unsigned int bind_a = (*b_a)>>10;
 	unsigned int bval_a = (1<<((*b_a)&31));
 	unsigned int bind_b = (*b_b)>>10;
@@ -1587,12 +1603,21 @@ void* ocl_rule_sha256_thread(void *arg)
     a=0;
     while (mylist)
     {
+        unsigned int tmp, tmp1, tmp2;
         memcpy(hex1,mylist->hash,hash_ret_len);
 	a++;
 	unsigned int *b_a = (unsigned int *)hex1;
 	unsigned int *b_b = (unsigned int *)&hex1[4];
 	unsigned int *b_c = (unsigned int *)&hex1[8];
 	unsigned int *b_d = (unsigned int *)&hex1[12];
+        REV(*b_a);
+        REV(*b_b);
+        REV(*b_c);
+        REV(*b_d);
+        *b_a -= H0;
+        *b_b -= H1;
+        *b_c -= H2;
+        *b_d -= H3;
 	unsigned int bind_a = (*b_a)>>10;
 	unsigned int bval_a = (1<<((*b_a)&31));
 	unsigned int bind_b = (*b_b)>>10;
