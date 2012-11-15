@@ -339,12 +339,12 @@ b1=(uint)(A.s0&0xFFFFFFFF);b2=(uint)(A.s0>>32)&0xFFFFFFFF;b3=(uint)B.s0&0xFFFFFF
 b5=(singlehash.x >> (((A.s0>>32)&0xFFFFFFFF)&31))&1;
 b6=(singlehash.y >> (((B.s0)&0xFFFFFFFF)&31))&1;
 b7=(singlehash.z >> (((B.s0>>32)&0xFFFFFFFF)&31))&1;
-if ((b7) && (b5) && (b6)) if (((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1)) id=1;
+if (((b7) & (b5) & (b6)) && ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1)) id=1;
 b1=(uint)(A.s1&0xFFFFFFFF);b2=(uint)(A.s1>>32)&0xFFFFFFFF;b3=(uint)B.s1&0xFFFFFFFF;b4=(uint)(B.s1>>32)&0xFFFFFFFF;
 b5=(singlehash.x >> (((A.s1>>32)&0xFFFFFFFF)&31))&1;
 b6=(singlehash.y >> (((B.s1)&0xFFFFFFFF)&31))&1;
 b7=(singlehash.z >> (((B.s1>>32)&0xFFFFFFFF)&31))&1;
-if ((b7) && (b5) && (b6)) if (((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1)) id=1;
+if (((b7) & (b5) & (b6)) && ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1)) id=1;
 if (id==0) return;
 #endif
 
@@ -503,7 +503,7 @@ b1=(uint)(A&0xFFFFFFFF);b2=(uint)(A>>32)&0xFFFFFFFF;b3=(uint)B&0xFFFFFFFF;b4=(ui
 b5=(singlehash.x >> (((A>>32)&0xFFFFFFFF)&31))&1;
 b6=(singlehash.y >> (((B)&0xFFFFFFFF)&31))&1;
 b7=(singlehash.z >> (((B>>32)&0xFFFFFFFF)&31))&1;
-if ((b7) && (b5) && (b6)) if (((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1)) id=1;
+if (((b7) & (b5) & (b6)) && ((bitmaps[b1>>10]>>(b1&31))&1) && ((bitmaps[65535*8*8+(b2>>10)]>>(b2&31))&1) && ((bitmaps[(16*65535*8)+(b3>>10)]>>(b3&31))&1) && ((bitmaps[(24*65535*8)+(b4>>10)]>>(b4&31))&1)) id=1;
 else return;
 #endif
 
