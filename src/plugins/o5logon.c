@@ -125,12 +125,12 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     int len;
 
     hex2str(raw_salt, (char *)salt, 20);
-    len=strlen(password[a]);
+    len=strlen(password[0]);
     for (a=0;a<vectorsize;a++)
     {
-        saltpass[a]=alloca(48);
+        saltpass[a]=alloca(32);
         key[a]=alloca(24);
-        memset(saltpass[a],0,48);
+        memset(saltpass[a],0,32);
         memcpy(saltpass[a], password[a],len);
         lens[a]=len;
         memcpy(saltpass[a]+lens[a], raw_salt, 10);
