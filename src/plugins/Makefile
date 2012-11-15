@@ -3,7 +3,7 @@ ifneq ($(DESTDIR),"")
 endif
 
 
-CFLAGS += -Wall -I../ -shared  -O3 -fpic  -fomit-frame-pointer -funroll-loops -minline-all-stringops  -momit-leaf-frame-pointer 
+CFLAGS += -Wall -I../ -shared -g -O3 -fpic  -fomit-frame-pointer -funroll-loops -minline-all-stringops  -momit-leaf-frame-pointer 
 #CFLAGS = -Wall -I../ -shared  -O2 -fpic  -fomit-frame-pointer -minline-all-stringops  -Wall -funroll-loops -m32
 
 
@@ -17,7 +17,7 @@ all: plugin_md5 plugin_md5md5 plugin_joomla plugin_sha1 plugin_smf plugin_md4 \
      plugin_pixmd5 plugin_sl3 plugin_ripemd160 plugin_sha1sha1 plugin_lm plugin_oracle-old \
      plugin_nsldap plugin_nsldaps plugin_sapg plugin_mscash plugin_mediawiki plugin_zip plugin_osxlion \
      plugin_mscash2 plugin_wpa plugin_rar plugin_dmg plugin_osx-old plugin_bfunix plugin_drupal7 \
-     plugin_django256 plugin_sha256unix
+     plugin_django256 plugin_sha256unix plugin_o5logon
  
      #plugin_bitcoin  plugin_mysql-old
 
@@ -171,6 +171,8 @@ plugin_drupal7:
 plugin_django256:
 	@if [ ! -e django256.so ]; then  $(CC)  plugin.c django256.c base64.c -o django256.so $(CFLAGS) $(LDFLAGS)  ;fi
 
+plugin_o5logon:
+	@if [ ! -e o5logon.so ]; then  $(CC)  plugin.c o5logon.c -o o5logon.so $(CFLAGS) $(LDFLAGS)  ;fi
 
 
 
