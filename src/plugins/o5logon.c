@@ -116,7 +116,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     char *saltpass[VECTORSIZE];
     int a;
     char *key[VECTORSIZE] = {0};
-    unsigned char iv[8] = {0};
+    unsigned char iv[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     unsigned char plaintext[64];
     int isok = hash_err;
     char raw_salt[10];
@@ -131,7 +131,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     {
         saltpass[a]=alloca(32);
         key[a]=alloca(24);
-        memset(key[a],0,24);
+        memset(key[a]+20,0,4);
         memset(saltpass[a],0,32);
         memcpy(saltpass[a], password[a],len);
         lens[a]=len;
@@ -160,7 +160,7 @@ hash_stat hash_plugin_check_hash_dictionary(const char *hash, const char *passwo
     char *saltpass[VECTORSIZE];
     int a;
     char *key[VECTORSIZE] = {0};
-    unsigned char iv[8] = {0};
+    unsigned char iv[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     unsigned char plaintext[64];
     int isok = hash_err;
     char raw_salt[10];
@@ -173,7 +173,7 @@ hash_stat hash_plugin_check_hash_dictionary(const char *hash, const char *passwo
     {
         saltpass[a]=alloca(48);
         key[a]=alloca(24);
-        memset(key[a],0,24);
+        memset(key[a]+20,0,4);
         memset(saltpass[a],0,48);
         strcpy(saltpass[a], password[a]);
         lens[a]=strlen(password[a]);
