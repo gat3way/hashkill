@@ -116,7 +116,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     char *saltpass[VECTORSIZE];
     int a;
     char *key[VECTORSIZE] = {0};
-    unsigned char iv[24] = {0};
+    unsigned char iv[8] = {0};
     unsigned char plaintext[64];
     int isok = hash_err;
     char raw_salt[10];
@@ -125,6 +125,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     int len;
 
     hex2str(raw_salt, (char *)salt, 20);
+
     len=strlen(password[0]);
     for (a=0;a<vectorsize;a++)
     {
@@ -159,7 +160,7 @@ hash_stat hash_plugin_check_hash_dictionary(const char *hash, const char *passwo
     char *saltpass[VECTORSIZE];
     int a;
     char *key[VECTORSIZE] = {0};
-    unsigned char iv[24] = {0};
+    unsigned char iv[8] = {0};
     unsigned char plaintext[64];
     int isok = hash_err;
     char raw_salt[10];
@@ -183,7 +184,6 @@ hash_stat hash_plugin_check_hash_dictionary(const char *hash, const char *passwo
     hash_sha1_slow((const char **)saltpass,key,lens);
     for (a=0;a<vectorsize;a++)
     {
-
 	hash_aes_set_decrypt_key((unsigned char *)key[a], 192, &akey);
 	hash_aes_cbc_encrypt((unsigned char *)hash+16, plaintext+16, 32, &akey, iv, AES_DECRYPT);
         if (memcmp(plaintext+40, "\x08\x08\x08\x08\x08\x08\x08\x08", 8) == 0) 
