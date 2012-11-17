@@ -920,7 +920,7 @@ barrier(CLK_LOCAL_MEM_FENCE);
 
 
 
-/* Initial key caching for AES-192 */
+/* Initial key  for AES-192 */
 Endian_Reverse32(x0);
 rk0=x0;
 Endian_Reverse32(x1);
