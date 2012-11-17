@@ -232,6 +232,10 @@ hash_stat ocl_bruteforce_django256(void);
 hash_stat ocl_markov_django256(void);
 hash_stat ocl_rule_django256(void);
 
+/* o5logon plugin support */
+hash_stat ocl_bruteforce_o5logon(void);
+hash_stat ocl_markov_o5logon(void);
+hash_stat ocl_rule_o5logon(void);
 
 
 /* supported plugins struct array*/
