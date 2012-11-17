@@ -88,6 +88,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"drupal7",&ocl_bruteforce_drupal7, &ocl_markov_drupal7, &ocl_rule_drupal7},
                             {1,"django256",&ocl_bruteforce_django256, &ocl_markov_django256, &ocl_rule_django256},
                             {1,"sha256unix",&ocl_bruteforce_sha256unix, &ocl_markov_sha256unix, &ocl_rule_sha256unix},
+                            {1,"o5logon",&ocl_bruteforce_o5logon, &ocl_markov_o5logon, &ocl_rule_o5logon},
                             {0, "", NULL, NULL, NULL}
                         };
 
@@ -319,6 +320,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"ntlm")==0)) ocl_vector=8;
 		if ((strcmp(get_current_plugin(),"md5md5")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"o5logon")==0)) ocl_vector=4;
 
 		/* GCN/VLIW-specific */
 		if ((strcmp(get_current_plugin(),"phpbb3")==0)&&(ocl_have_gcn)) ocl_vector=1;
@@ -414,6 +416,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"pixmd5")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"smf")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"vbulletin")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"o5logon")==0)) ocl_vector=4;
 	    }
 
 	    /* Zip (non-rule) exception for NVidia */
