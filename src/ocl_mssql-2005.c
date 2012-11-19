@@ -2180,7 +2180,7 @@ hash_stat ocl_rule_mssql_2005(void)
             bzero(pbuf,100);
             char kernelfile[255];
             _clGetDeviceInfo(device[wthreads[i].deviceid], CL_DEVICE_NAME, sizeof(pbuf),pbuf, NULL );
-    	    sprintf(kernelfile,"%s/hashkill/kernels/amd_sha1_passsaltu__%s.bin",DATADIR,pbuf);
+    	    sprintf(kernelfile,"%s/hashkill/kernels/amd_sha1_passsaltul__%s.bin",DATADIR,pbuf);
 
     	    char *ofname = kernel_decompress(kernelfile);
             if (!ofname) return hash_err;
@@ -2225,7 +2225,7 @@ hash_stat ocl_rule_mssql_2005(void)
             if ((compute_capability_major==2)&&(compute_capability_minor==0)) sprintf(pbuf,"sm20");
             if ((compute_capability_major==2)&&(compute_capability_minor==1)) sprintf(pbuf,"sm21");
 	    if ((compute_capability_major==3)&&(compute_capability_minor==0)) sprintf(pbuf,"sm30");
-    	    sprintf(kernelfile,"%s/hashkill/kernels/nvidia_sha1_passsaltu__%s.ptx",DATADIR,pbuf);
+    	    sprintf(kernelfile,"%s/hashkill/kernels/nvidia_sha1_passsaltul__%s.ptx",DATADIR,pbuf);
 
     	    char *ofname = kernel_decompress(kernelfile);
             if (!ofname) return hash_err;
