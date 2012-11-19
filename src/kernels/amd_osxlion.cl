@@ -233,7 +233,7 @@ Endian_Reverse64(w2);
 ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w2);
 Endian_Reverse64(w3);
 ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w3);
-Endian_Reverse64(w3);
+Endian_Reverse64(w4);
 ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w4);
 ROUND512_0_TO_15_NL(D,E,F,G,H,A,B,C,AC6);
 ROUND512_0_TO_15_NL(C,D,E,F,G,H,A,B,AC7);
