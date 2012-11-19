@@ -237,6 +237,10 @@ hash_stat ocl_bruteforce_o5logon(void);
 hash_stat ocl_markov_o5logon(void);
 hash_stat ocl_rule_o5logon(void);
 
+/* mssql-2012 plugin support */
+hash_stat ocl_bruteforce_mssql_2012(void);
+hash_stat ocl_markov_mssql_2012(void);
+hash_stat ocl_rule_mssql_2012(void);
 
 /* supported plugins struct array*/
 struct ocl_supported_plugins_s

@@ -89,6 +89,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"django256",&ocl_bruteforce_django256, &ocl_markov_django256, &ocl_rule_django256},
                             {1,"sha256unix",&ocl_bruteforce_sha256unix, &ocl_markov_sha256unix, &ocl_rule_sha256unix},
                             {1,"o5logon",&ocl_bruteforce_o5logon, &ocl_markov_o5logon, &ocl_rule_o5logon},
+                            {1,"mssql-2012",&ocl_bruteforce_mssql_2012, &ocl_markov_mssql_2012, &ocl_rule_mssql_2012},
                             {0, "", NULL, NULL, NULL}
                         };
 
@@ -254,6 +255,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"smf")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"vbulletin")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"pixmd5")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"mssql-2012")==0)) {ocl_vector=1;loops=1;}
 		if ((strcmp(get_current_plugin(),"mssql-2000")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"mssql-2005")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
@@ -275,6 +277,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"smf")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"mssql-2000")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"mssql-2005")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"mssql-2012")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"lm")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"desunix")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"sha512")==0)) loops=1;
@@ -299,6 +302,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"oracle11g")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"mssql-2000")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"mssql-2005")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"mssql-2012")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"nsldaps")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"vbulletin")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"joomla")==0)) ocl_vector=4;
@@ -411,6 +415,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"nsldaps")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"mssql-2000")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"mssql-2005")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"mssql-2012")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"osx-old")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"pixmd5")==0)) ocl_vector=4;

@@ -130,7 +130,8 @@ am_hashkill_OBJECTS = hashkill-ocl-base.$(OBJEXT) \
 	hashkill-ocl_bfunix.$(OBJEXT) hashkill-ocl_drupal7.$(OBJEXT) \
 	hashkill-ocl_zip.$(OBJEXT) hashkill-ocl_django256.$(OBJEXT) \
 	hashkill-ocl_sha256unix.$(OBJEXT) \
-	hashkill-ocl_o5logon.$(OBJEXT)
+	hashkill-ocl_o5logon.$(OBJEXT) \
+	hashkill-ocl_mssql-2012.$(OBJEXT)
 hashkill_OBJECTS = $(am_hashkill_OBJECTS)
 hashkill_DEPENDENCIES = libtargets.la
 hashkill_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -346,7 +347,7 @@ ocl_joomla.c ocl_oscommerce.c ocl_ipb2.c ocl_vbulletin.c ocl_smf.c ocl_oracle11g
 ocl_mssql-2005.c ocl_nsldaps.c ocl_osx-old.c ocl_osxlion.c ocl_desunix.c ocl_oracle-old.c  ocl_mscash.c \
 ocl_pixmd5.c ocl_phpbb3.c ocl_wordpress.c ocl_md5unix.c ocl_sha512unix.c ocl_mscash2.c ocl_apr1.c ocl_wpa.c \
 ocl_dmg.c unrargpu.c ocl_rar.c ocl_bfunix.c ocl_drupal7.c ocl_zip.c ocl_django256.c ocl_sha256unix.c \
-ocl_o5logon.c
+ocl_o5logon.c ocl_mssql-2012.c
 
 
 # forced static linkage below
@@ -527,6 +528,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_mscash2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_mssql-2000.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_mssql-2005.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_mssql-2012.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_mysql5.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_nsldap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_nsldaps.Po@am__quote@
@@ -1563,6 +1565,20 @@ hashkill-ocl_o5logon.obj: ocl_o5logon.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_o5logon.c' object='hashkill-ocl_o5logon.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_o5logon.obj `if test -f 'ocl_o5logon.c'; then $(CYGPATH_W) 'ocl_o5logon.c'; else $(CYGPATH_W) '$(srcdir)/ocl_o5logon.c'; fi`
+
+hashkill-ocl_mssql-2012.o: ocl_mssql-2012.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_mssql-2012.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_mssql-2012.Tpo -c -o hashkill-ocl_mssql-2012.o `test -f 'ocl_mssql-2012.c' || echo '$(srcdir)/'`ocl_mssql-2012.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_mssql-2012.Tpo $(DEPDIR)/hashkill-ocl_mssql-2012.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_mssql-2012.c' object='hashkill-ocl_mssql-2012.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_mssql-2012.o `test -f 'ocl_mssql-2012.c' || echo '$(srcdir)/'`ocl_mssql-2012.c
+
+hashkill-ocl_mssql-2012.obj: ocl_mssql-2012.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_mssql-2012.obj -MD -MP -MF $(DEPDIR)/hashkill-ocl_mssql-2012.Tpo -c -o hashkill-ocl_mssql-2012.obj `if test -f 'ocl_mssql-2012.c'; then $(CYGPATH_W) 'ocl_mssql-2012.c'; else $(CYGPATH_W) '$(srcdir)/ocl_mssql-2012.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_mssql-2012.Tpo $(DEPDIR)/hashkill-ocl_mssql-2012.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_mssql-2012.c' object='hashkill-ocl_mssql-2012.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_mssql-2012.obj `if test -f 'ocl_mssql-2012.c'; then $(CYGPATH_W) 'ocl_mssql-2012.c'; else $(CYGPATH_W) '$(srcdir)/ocl_mssql-2012.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
