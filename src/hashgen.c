@@ -62,8 +62,10 @@ static int is_preprocess;
 static FILE *prefile;
 static char prename[1024];
 extern char **environ;
-
 static char currentline[1024];
+
+
+static char startstring[HASHKILL_MAXTHREADS][256];
 
 
 static void fix_line(char *line)
@@ -1442,6 +1444,7 @@ static void gen(int self)
     char rootstack[MAXCAND];
     bzero(rootnode,MAXCAND);
     bzero(rootstack,MAXCAND);
+    strcpy(rootnode,startstring[self]);
     ops[0][0].parsefn(rootnode,rootstack,0,SELF_THREAD);
 }
 
@@ -1533,6 +1536,7 @@ void rule_gen_parse(char *rulefile, finalfn_t callback, int max, int self)
 	    //currentqueued=0;
 	    update_currentlinenum(0,RULE_MODE_PARSE);
 	    update_parsefn(node_print_stdout,RULE_MODE_PARSE);
+	    bzero(startstring[self],256);
 	}
 	else if (strncmp(line,"end",3)==0) 
 	{
@@ -1565,15 +1569,22 @@ void rule_gen_parse(char *rulefile, finalfn_t callback, int max, int self)
 	}
 	else 
 	{
-	    if ((hashgen_stdout_mode==0)&&(currentlinenum[0]==1))
+	    parse(line,self,0,RULE_MODE_PARSE);
+	    if ((ops[self][currentlinenum[self]].parsefn==node_add_str)&&(currentlinenum[self]==0)&&(hashgen_stdout_mode==0))
+	    {
+		strcpy(startstring[self],ops[self][0].params);
+	    }
+	    else
+	    {
+		update_currentlinenum_plus1();
+	    }
+	    if ((hashgen_stdout_mode==0)&&(currentlinenum[self]==1))
 	    {
 		update_parsefn(node_queue,RULE_MODE_PARSE);
 		update_currentlinenum_plus1();
 		update_parsefn(node_dequeue,RULE_MODE_PARSE);
 		update_currentlinenum_plus1();
 	    }
-	    parse(line,self,0,RULE_MODE_PARSE);
-	    update_currentlinenum_plus1();
 	}
     }
     fclose(fp);
