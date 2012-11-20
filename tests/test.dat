@@ -17,6 +17,7 @@ bforce joomla single		|1 passwords|hashkill -pjoomla 23f56a87ce0127c7aa671fedbf3
 bforce mscash single		|1 passwords|hashkill -pmscash test:809d2555499622c7ea28657a51438bdd -b1:6:num
 bforce mssql-2000 single	|1 passwords|hashkill -pmssql-2000 0x010077393477CB2764D565692A0DE0D5308C3E19FEE51223EC1ACB2764D565692A0DE0D5308C3E19FEE51223EC1A -b1:6:num
 bforce mssql-2005 single	|1 passwords|hashkill -pmssql-2005 0x01004D53456421450CD84AB5AF29A49A90BDBC1AFB0EFBDAF259 -b1:6:num
+bforce mssql-2012 single	|1 passwords|hashkill -pmssql-2012 0x02006BF4AB05873FF0C8A4AFD1DC5912CBFDEF62E0520A3353B04E1184F05C873C9C76BBADDEAAC1E9948C7B6ABFFD62BFEFD7139F17F6AFE10BE0FEE7A178644623067C2423  -b1:6:none:carlos
 bforce mysql5 single		|1 passwords|hashkill -pmysql5 *00a51f3f48415c7d4e8908980d443c29c69b60c9 -b1:7:num
 bforce mysql5 multi		|2 passwords|hashkill -pmysql5 -f mysql5.hashes -b1:7:num
 bforce ntlm single		|1 passwords|hashkill -pntlm 32ED87BDB5FDC5E9CBA88547376818D4 -b1:6:num
@@ -25,6 +26,7 @@ bforce oracle-old single	|1 passwords|hashkill -poracle-old usrx:8D52A07FF0A0243
 bforce oracle11g single		|1 passwords|hashkill -poracle11g u0-oracle11:1BC4A42664A043523F68D6D108CAAA036D8ABC72176AE86143D7111BD442 -b1:6:num
 bforce osxlion single		|1 passwords|hashkill bb0489df7b073e715f19f83fd52d08ede24243554450f7159dd65c100298a5820525b55320f48182491b72b4c4ba50d7b0e281c1d98e06591a5e9c6167f42a742f0359c7 -posxlion -b8:8:none:pasword
 bforce osx-old single		|1 passwords|hashkill -posx-old 52726E30D61AAB40F06B1E5F6B3CE9D87D170DB79C3E76DE -b1:6:num
+bforce o5logon single (CPU only)|1 passwords|hashkill -po5logon scott:3EF40ED16638DBCB1FD78631593DEF619CAD1AB829D5AFB16E2E9C593CDA5E862A9D602F6FB056B117B2347DAA1ED908:426697369B80D9E3817B -b1:6:lalpha
 bforce pixmd5 multi		|2 passwords|hashkill -ppixmd5 -f pixmd5.hashes -b1:7:num
 bforce pixmd5 single		|1 passwords|hashkill -ppixmd5 u0-pixmd5:UwiM/pkFcM.xYc8s -b1:7:num
 bforce sha1 multi		|2 passwords|hashkill -psha1 -f sha1.hashes -b1:7:num
@@ -61,6 +63,7 @@ rule md5 multi			|2 passwords|hashkill -pmd5 -f md5.hashes -r rule_num
 rule md5md5 single		|1 passwords|hashkill -pmd5md5 67fd5228d4d10b171ce9041123506cd9 -r rule_uu
 rule md5md5 multi		|2 passwords|hashkill -pmd5md5 -f md5md5.hashes -r rule_num
 rule joomla single		|1 passwords|hashkill -pjoomla 23f56a87ce0127c7aa671fedbf3da946:test -r rule_uu
+rule o5logon single 		|1 passwords|hashkill -po5logon scott:3EF40ED16638DBCB1FD78631593DEF619CAD1AB829D5AFB16E2E9C593CDA5E862A9D602F6FB056B117B2347DAA1ED908:426697369B80D9E3817B -r rule_uu
 rule oscommerce single		|1 passwords|hashkill -poscommerce ff33138bca048e77e7865bab923535ae:test -r rule_uu
 rule md5unix single(1)		|1 passwords|hashkill -pmd5unix $1$FwpixhKX$g1W0FGO0ZMFk9qfKZratH0 -r rule_num
 rule md5unix single(2)		|1 passwords|hashkill -pmd5unix $1$4Kt5RedS$0QyGCX9.Xb0UrSaZW.vDD1 -r rule_num
@@ -81,6 +84,7 @@ rule mscash single		|1 passwords|hashkill -pmscash a:f0e4edfbd7cca0909780e8e775b
 rule mscash2 single		|1 passwords|hashkill -pmscash2 bin:343f81934056541b8a71e5529d97ec13 -r rule_uu
 rule mssql-2000 single		|1 passwords|hashkill -pmssql-2000 u0-mssql:0x010050763758677B45B44BF19C04A3E48FF8E8E4070CDF6B74F5677B45B44BF19C04A3E48FF8E8E4070CDF6B74F5: -r rule_uu
 rule mssql-2005 single		|1 passwords|hashkill -pmssql-2005 u0-mssql05:0x0100413141558103A191EC7FD06EBCD158253C29B0AF9C248512 -r rule_uu
+rule mssql-2012 single		|1 passwords|hashkill -pmssql-2012 0x02006BF4AB05873FF0C8A4AFD1DC5912CBFDEF62E0520A3353B04E1184F05C873C9C76BBADDEAAC1E9948C7B6ABFFD62BFEFD7139F17F6AFE10BE0FEE7A178644623067C2423 -r rule_uu
 rule mysql5 single		|1 passwords|hashkill -pmysql5 *4ecbf78048d01cf4c7fdc36f37f9e5f0297c84d0 -r rule_uu
 rule mysql5 multi		|2 passwords|hashkill -pmysql5 -f mysql5.hashes -r rule_num
 rule ntlm single		|1 passwords|hashkill -pntlm ceb4a53eab759a7b5da77a864c89969f -r rule_uu
