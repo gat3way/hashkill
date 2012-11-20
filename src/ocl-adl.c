@@ -111,7 +111,15 @@ int setup_adl(void)
     int libfound=0;
 
 
-    hlog("Temperature threshold set to %d degrees C\n",ocl_gpu_tempthreshold);
+    if (ocl_gpu_tempthreshold)
+    {
+	hlog("Temperature threshold set to %d degrees C\n",ocl_gpu_tempthreshold);
+    }
+    else
+    {
+	hlog("Thermal monitoring disabled.\n%s","");
+	return 3;
+    }
     // Probe ADL
     dll = dlopen( "libatiadlxx.so", RTLD_LAZY|RTLD_GLOBAL);
     if (!dll)
@@ -237,6 +245,7 @@ void adl_getstats(void)
     ADLPMActivity activity;
     ADLTemperature temperature;
 
+    if (!ocl_gpu_tempthreshold) return;
 
     //ADL_Overdrive5_CurrentActivity_Get = (ADL_OVERDRIVE5_CURRENTACTIVITY_GET) GetProcAddress(dll,"ADL_Overdrive5_CurrentActivity_Get");
     if (!ADL_Overdrive5_CurrentActivity_Get)
@@ -311,6 +320,9 @@ void do_adl(void)
     int cnt,curdev,realcnt=0,a,realdev=0;
     ADLPMActivity activity;
     ADLTemperature temperature;
+
+    if (!ocl_gpu_tempthreshold) return;
+
     //ADL_Overdrive5_CurrentActivity_Get = (ADL_OVERDRIVE5_CURRENTACTIVITY_GET) GetProcAddress(dll,"ADL_Overdrive5_CurrentActivity_Get");
     if (!ADL_Overdrive5_CurrentActivity_Get)
     {
