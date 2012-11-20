@@ -266,6 +266,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"osx-old")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"zip")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"o5logon")==0)) {ocl_vector=1;loops=1;}
 	    }
 	    /* GCN loops hacks */
 	    if (loops==4)
@@ -286,6 +287,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"oracle11g")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"mscash")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"oracle-old")==0)) loops=1;
+		if ((strcmp(get_current_plugin(),"o5logon")==0)) {ocl_vector=1;loops=1;}
 	    }
 
 	    /* AMD rule quirks */

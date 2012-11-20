@@ -128,7 +128,7 @@ x5 = inp[GGI*8+5];
 x6 = inp[GGI*8+6];
 x7 = inp[GGI*8+7];
 inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=0;
-inpc[GLI][5]=inpc[GLI][6]=inpc[GLI][7]=inpc[GLI][3]=inpc[GLI][8]=0;
+inpc[GLI][5]=inpc[GLI][6]=inpc[GLI][7]=inpc[GLI][8]=inpc[GLI][9]=0;
 
 inpc[GLI][0]=salt;
 inpc[GLI][1]=x0;
@@ -153,7 +153,7 @@ size.s0 = (size.s0+str.sC)<<3;
 
 
 inpc[GLI][0]=inpc[GLI][1]=inpc[GLI][2]=inpc[GLI][3]=inpc[GLI][4]=0;
-inpc[GLI][5]=inpc[GLI][6]=inpc[GLI][7]=inpc[GLI][3]=inpc[GLI][8]=0;
+inpc[GLI][5]=inpc[GLI][6]=inpc[GLI][7]=inpc[GLI][8]=inpc[GLI][9]=0;
 inpc[GLI][0]=salt;
 inpc[GLI][1]=x0;
 inpc[GLI][2]=x1;

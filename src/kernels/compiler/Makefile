@@ -77,6 +77,7 @@ build:
 	@if [ ! -e amd_sha256unix__Juniper.bin ]; then ./amd-compiler amd_sha256unix n ;fi
 	@if [ ! -e amd_test__Juniper.bin ]; then ./amd-compiler amd_test n ;fi
 	@if [ ! -e amd_o5logon__Juniper.bin ]; then ./amd-compiler amd_o5logon n ;fi
+	@if [ ! -e amd_o5logon_long__Juniper.bin ]; then ./amd-compiler amd_o5logon_long n ;fi
 	@if [ ! -e amd_sha512_passsaltu__Juniper.bin ]; then ./amd-compiler amd_sha512_passsaltu n ;fi
 	@if [ ! -e amd_sha512_passsaltu_long__Juniper.bin ]; then ./amd-compiler amd_sha512_passsaltu_long n ;fi
 	# NVidia
@@ -144,6 +145,7 @@ build:
 	@if [ ! -e nvidia_django256__sm10.ptx ]; then ./nvidia-compiler nvidia_django256 n ;fi
 	@if [ ! -e nvidia_sha256unix__sm10.ptx ]; then ./nvidia-compiler nvidia_sha256unix n ;fi
 	@if [ ! -e nvidia_o5logon__sm10.ptx ]; then ./nvidia-compiler nvidia_o5logon n ;fi
+	@if [ ! -e nvidia_o5logon_long__sm10.ptx ]; then ./nvidia-compiler nvidia_o5logon_long n ;fi
 	@if [ ! -e nvidia_sha512_passsaltu__sm10.ptx ]; then ./nvidia-compiler nvidia_sha512_passsaltu n ;fi
 	@if [ ! -e nvidia_sha512_passsaltu_long__sm10.ptx ]; then ./nvidia-compiler nvidia_sha512_passsaltu_long n ;fi
 
