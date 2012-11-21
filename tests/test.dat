@@ -141,3 +141,9 @@ rule wpa (WPA2) single		|1 passwords|hashkill -pwpa -f out.hcap -r rule_uu
 rule zip (old) single		|1 passwords|hashkill -pzip -f test.zip -r rule_uu
 rule zip (AES128) single	|1 passwords|hashkill -pzip -f test-128.zip -r rule_uu
 rule zip (AES256) single	|1 passwords|hashkill -pzip -f test-256.zip -r rule_uu
+rule privkey (CPU only!)	|1 passwords|hashkill -pprivkey -f id_rsa -r rule_uu
+rule sapg (CPU only!)		|1 passwords|hashkill -psapg DDIC:6066CD3147915331EC4C602847D27A75EB3E8F0A -r rule_uu
+rule sha1sha1 (CPU only!)	|1 passwords|hashkill 8f92d5ff9d7f5e8094ab5f9053fc1f1d42be0c74 -psha1sha1 -r rule_uu
+rule mediawiki (CPU only!)	|1 passwords|hashkill B:761:3ae7c8e25addfd82544c0c0b1ca8f5e4 -pmediawiki -r rule_uu
+rule ripemd160 (CPU only!)	|1 passwords|hashkill -pripemd160 2c08e8f5884750a7b99f6f2f342fc638db25ff31 -r rule_uu
+
