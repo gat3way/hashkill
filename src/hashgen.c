@@ -1540,6 +1540,19 @@ void rule_gen_parse(char *rulefile, finalfn_t callback, int max, int self)
 	}
 	else if (strncmp(line,"end",3)==0) 
 	{
+	    /* Handle the single "add str" case */
+	    if ((hashgen_stdout_mode==0)&&(currentlinenum[self]==0)&&(startstring[self][0]!=0))
+	    {
+		update_parsefn(node_add_str,RULE_MODE_PARSE);
+		strcpy(ops[self][0].params,startstring[self]);
+		bzero(startstring[self],256);
+		update_currentlinenum_plus1();
+		update_parsefn(node_queue,RULE_MODE_PARSE);
+		update_currentlinenum_plus1();
+		update_parsefn(node_dequeue,RULE_MODE_PARSE);
+		update_currentlinenum_plus1();
+	    }
+	    /* No rules at all? */
 	    if (currentlinenum[0]==0)
 	    {
 		update_parsefn(node_queue_end,RULE_MODE_PARSE);
@@ -1570,6 +1583,7 @@ void rule_gen_parse(char *rulefile, finalfn_t callback, int max, int self)
 	else 
 	{
 	    parse(line,self,0,RULE_MODE_PARSE);
+	    /* Handle the bad "add str" ... case */
 	    if ((ops[self][currentlinenum[self]].parsefn==node_add_str)&&(currentlinenum[self]==0)&&(hashgen_stdout_mode==0))
 	    {
 		strcpy(startstring[self],ops[self][0].params);
