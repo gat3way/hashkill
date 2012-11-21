@@ -60,11 +60,13 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     tempstr2 = strtok(NULL,":");
     if (tempstr2)
     {
+	if (strlen(tempstr2)!=16) return hash_err;
 	(void)hash_add_username(tempstr);
 	(void)hash_add_hash(tempstr2,0);
     }
     else
     {
+	if (strlen(tempstr)!=16) return hash_err;
 	(void)hash_add_username("PIX enable pwd");
 	(void)hash_add_hash(tempstr,0);
     }

@@ -51,10 +51,10 @@ char * hash_plugin_detailed(void)
 
 hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 {
-    char username[128];
-    char *hash = alloca(128);
+    char username[256];
+    char *hash = alloca(256);
     char line[HASHFILE_MAX_LINE_LENGTH];
-    char *line2 = alloca(128);
+    char *line2 = alloca(256);
     char *temp_str;
     int len;
     
@@ -68,7 +68,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     temp_str = strtok(NULL,":");
     if (!temp_str)
     {
-	temp_str = alloca(128);
+	temp_str = alloca(256);
 	strcpy(temp_str,username);
 	strcpy(username,"N/A");
     }
