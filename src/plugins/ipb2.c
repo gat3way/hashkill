@@ -66,6 +66,11 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     {
 	strcpy(hash, temp_str);
     }
+    // Definitely not a salted hash
+    else
+    {
+	return hash_err;
+    }
     temp_str=strtok(NULL,":");
     if (temp_str) 
     {
