@@ -589,20 +589,18 @@ int main(int argc, char *argv[])
     }
 
 
-    if (pflag==0) 
-    {
-        set_current_plugin("md5");
-        if (load_plugin()==hash_err)
-        {
-    	    elog("Cannot load default plugin (%s)\n","md5");
-    	    exit(EXIT_FAILURE);
-    	}
-    }
-
     if (fvalue) 
     {
 	strncpy(hashlist_file,fvalue,254);
 	hashlist_file[254] = 0;
+	if (pflag==0) 
+	{
+	    if (detect_plugin(DATADIR"/hashkill/plugins",hashlist_file,NULL) == hash_err)
+	    {
+    		elog("Cannot detect hash type%s\n","");
+    		exit(EXIT_FAILURE);
+	    }
+	}
 	(void)load_hashes_file(fvalue);
     }
 
@@ -610,6 +608,14 @@ int main(int argc, char *argv[])
     /* Do we have argument (hash)? */
     if (argv[optind]) 
     {
+	if (pflag==0) 
+	{
+	    if (detect_plugin(DATADIR"/hashkill/plugins",NULL,argv[optind])==hash_err)
+	    {
+    		elog("Cannot detect hash type%s\n","");
+    		exit(EXIT_FAILURE);
+	    }
+	}
 	strncpy(hash_cmdline,argv[optind],255);
 	if (load_single_hash(argv[optind]) == hash_err)
 	{

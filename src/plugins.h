@@ -33,7 +33,7 @@ int  (*hash_plugin_is_raw)(void);
 int  (*hash_plugin_is_special)(void);
 void  (*get_vector_size)(int size);
 int  (*get_salt_size)(void);
-
+hash_stat detect_plugin(char *plugindir, char *file, char *hash);
 
 /* plugin summary functions */
 hash_stat print_plugins_summary(char *plugindir);

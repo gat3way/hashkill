@@ -39,6 +39,10 @@
 
 /* Global variables */
 static char currentplugin[HASHFILE_MAX_LINE_LENGTH];	// current plugin in use
+/* detecting is just a flag which controls whether load_plugin() reused by detect_plugin() will print out smth */
+static int detecting=0;
+/* dlhandle used */
+static void *dlhandle;
 
 
 /* Function prototypes */
@@ -47,15 +51,13 @@ void print_plugin_detailed(char *plugin);
 char *get_current_plugin(void);
 void set_current_plugin(const char *plugin);
 hash_stat load_plugin(void);
-
-
+hash_stat detect_plugin(char *plugindir,char *file, char *hash);
 
 
 
 /* Print info on all available plugins */
 hash_stat print_plugins_summary(char *plugindir)
 {
-    void *dlhandle;
     char * (*hash_plugin_summary)(void);
     struct dirent **dentrylist;
     char soname[1024];
@@ -107,7 +109,6 @@ hash_stat print_plugins_summary(char *plugindir)
 void print_plugin_detailed(char *plugin)
 {
     char soname[1024];
-    void *dlhandle;
     char * (*hash_plugin_detailed)(void);
 
     snprintf(soname,1024,"%s/hashkill/plugins/%s.so",DATADIR, plugin);
@@ -144,7 +145,6 @@ void set_current_plugin(const char *plugin)
 hash_stat load_plugin(void)
 {
     char soname[1024];
-    void *dlhandle;
 
     snprintf(soname,1024,"%s/hashkill/plugins/%s.so", DATADIR, get_current_plugin());
     dlhandle=dlopen(soname,RTLD_LAZY);
@@ -167,7 +167,7 @@ hash_stat load_plugin(void)
 	
 	if ( (!hash_plugin_parse_hash) || (!hash_plugin_check_hash) || (!hash_plugin_hash_length) || (!get_vector_size) || (!get_salt_size))
 	{
-	    elog("Plugin %s does not export all the necessary functions!\n", get_current_plugin());
+	    if (!detecting) elog("Plugin %s does not export all the necessary functions!\n", get_current_plugin());
 	    return hash_err;
 	}
 	salt_size = get_salt_size();
@@ -292,20 +292,177 @@ hash_stat load_plugin(void)
 
 	    /* is raw? */
 	    hash_is_raw = hash_plugin_is_raw();
-	    hlog("Plugin \'%s\' loaded successfully\n",get_current_plugin());
+	    if (!detecting) hlog("Plugin \'%s\' loaded successfully\n",get_current_plugin());
 	}
 	else 
 	{
-	    elog("Plugin \'%s\' could not be loaded\n",get_current_plugin());
+	    if (!detecting) elog("Plugin \'%s\' could not be loaded\n",get_current_plugin());
 	    dlclose(dlhandle);
 	    return hash_err;
 	}
     }
     else 
     {
-	elog("Cannot open plugin library: %s\n",soname);
+	if (!detecting) elog("Cannot open plugin library: %s\n",soname);
 	return hash_err;
     }
     return hash_ok;
 }
 
+/* Unload plugin */
+void unload_plugin()
+{
+    dlclose(dlhandle);
+}
+
+
+/* Detect plugin */
+hash_stat detect_plugin(char *plugindir,char *file, char *hash)
+{
+    struct dirent **dentrylist;
+    char soname[1024];
+    DIR *dir;
+    int count=-1,i=0;
+    char line[1024];
+    FILE *fd;
+    char *preferred_plugins[] = { "ntlm","sha1","md5","lm","sha256","sha512",NULL };
+
+    /* We are now detecting plugins, don't be verbose */
+    detecting=1;
+
+    /* TODO: First, check the preferred plugins */
+
+
+
+    /* Is a cmdline hash? */
+    i=0;
+    if (hash)
+    {
+	dir=opendir(plugindir);
+	if (!dir)
+	{
+	    elog("Cannot open plugins dir: %s", plugindir);
+	    return hash_err;
+	}
+	closedir(dir);
+	count = scandir(plugindir, &dentrylist, 0, alphasort);
+	do
+	{
+	    if (strstr(dentrylist[i]->d_name, ".so"))
+	    {
+		strcpy(soname,dentrylist[i]->d_name);
+		soname[strlen(soname)-3]=0;
+		set_current_plugin(soname);
+		if (load_plugin() == hash_ok) 
+		if (!hash_plugin_is_special())
+		{
+		    if (hash_plugin_parse_hash(hash,NULL) == hash_ok)
+		    {
+			hlog("Hash type detected, using plugin: %s\n",soname);
+			detecting=0;
+			return hash_ok;
+		    }
+		    else 
+		    {
+			unload_plugin();
+		    }
+		}
+	    }
+	    i++;
+	} while (i<count);
+	free(dentrylist);
+    }
+
+    /* Is a hashfile (but hashlist)? */
+    i=0;
+    if (file)
+    {
+	fd=fopen(file,"r");
+	if (!fd)
+	{
+	    elog("Cannot open %s\n",file);
+	    return hash_err;
+	}
+	fgets(line,1024,fd);
+	line[1023]=0;
+	if (strlen(line)<1) fgets(line,1024,fd);
+	line[1023]=0;
+	fclose(fd);
+	if (line[strlen(line)-1]=='\n') line[strlen(line)-1]=0;
+	if (line[strlen(line)-1]=='\r') line[strlen(line)-1]=0;
+
+	dir=opendir(plugindir);
+	if (!dir)
+	{
+	    elog("Cannot open plugins dir: %s", plugindir);
+	    return hash_err;
+	}
+	closedir(dir);
+	count = scandir(plugindir, &dentrylist, 0, alphasort);
+	do
+	{
+	    if (strstr(dentrylist[i]->d_name, ".so"))
+	    {
+		strcpy(soname,dentrylist[i]->d_name);
+		soname[strlen(soname)-3]=0;
+		set_current_plugin(soname);
+		if (load_plugin() == hash_ok) 
+		if (!hash_plugin_is_special())
+		{
+		    if (hash_plugin_parse_hash(line,NULL) == hash_ok)
+		    {
+			hlog("Hash type detected, using plugin: %s\n",soname);
+			detecting=0;
+			return hash_ok;
+		    }
+		    else 
+		    {
+			unload_plugin();
+		    }
+		}
+	    }
+	    i++;
+	} while (i<count);
+	free(dentrylist);
+    }
+
+    /* Is a hashfile (but not hashlist)? */
+    i=0;
+    if (file)
+    {
+	dir=opendir(plugindir);
+	if (!dir)
+	{
+	    elog("Cannot open plugins dir: %s", plugindir);
+	    return hash_err;
+	}
+	closedir(dir);
+	count = scandir(plugindir, &dentrylist, 0, alphasort);
+	do
+	{
+	    if (strstr(dentrylist[i]->d_name, ".so"))
+	    {
+		strcpy(soname,dentrylist[i]->d_name);
+		soname[strlen(soname)-3]=0;
+		set_current_plugin(soname);
+		if (load_plugin() == hash_ok) 
+		if (hash_plugin_is_special())
+		{
+		    if (hash_plugin_parse_hash(NULL,file) == hash_ok)
+		    {
+			hlog("Hash type detected, using plugin: %s\n",soname);
+			detecting=0;
+			return hash_ok;
+		    }
+		    else 
+		    {
+			unload_plugin();
+		    }
+		}
+	    }
+	    i++;
+	} while (i<count);
+	free(dentrylist);
+    }
+    return hash_err;
+}
