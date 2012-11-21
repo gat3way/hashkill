@@ -572,6 +572,7 @@ static void ocl_dmg_crack_callback(char *line, int self)
 
 static void ocl_dmg_callback(char *line, int self)
 {
+    if ((rule_counts[self][0]==-1)&&(line[0]==0x01)) return;
     rule_counts[self][0]++;
     rule_sizes[self][rule_counts[self][0]] = strlen(line);
     strcpy(&rule_images[self][0]+(rule_counts[self][0]*MAX),line);

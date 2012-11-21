@@ -349,7 +349,6 @@ void node_add_dict(char *line, char *stack,int ind,int self)
     {
 	if (ops[self][ind].mode==0)
 	{
-	    
 	    cline[MAXCAND-1]=0;
 	    bzero(cline,strlen(cline));
 	    strcpy(cline,line);
@@ -426,17 +425,10 @@ void node_add_dict(char *line, char *stack,int ind,int self)
             if (rline[strlen(rline)-1]=='\n') rline[strlen(rline)-1]=0;
             if (rline[strlen(rline)-1]=='\r') rline[strlen(rline)-1]=0;
 
-            if (ind<1)
-            {
-        	BREAKPOINT(rline,stack,ind,self);
-            }
-            else
-            {
-        	bzero(cline,strlen(cline));
-        	strcpy(cline,line);
-        	strcat(cline,rline);
-        	BREAKPOINT(cline,stack,ind,self);
-    	    }
+    	    bzero(cline,32);
+    	    strcpy(cline,line);
+    	    strcat(cline,rline);
+    	    BREAKPOINT(cline,stack,ind,self);
 	}
 	fclose(fp);
 	if (mapped==1) munmap(map,st.st_size);

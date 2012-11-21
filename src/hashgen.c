@@ -65,7 +65,7 @@ extern char **environ;
 static char currentline[1024];
 
 
-static char startstring[HASHKILL_MAXTHREADS][256];
+static char startstring[HASHKILL_MAXTHREADS+3][256];
 
 
 static void fix_line(char *line)
@@ -1586,7 +1586,7 @@ void rule_gen_parse(char *rulefile, finalfn_t callback, int max, int self)
 	    /* Handle the bad "add str" ... case */
 	    if ((ops[self][currentlinenum[self]].parsefn==node_add_str)&&(currentlinenum[self]==0)&&(hashgen_stdout_mode==0))
 	    {
-		strcpy(startstring[self],ops[self][0].params);
+		strcat(startstring[self],ops[self][0].params);
 	    }
 	    else
 	    {
@@ -1655,8 +1655,12 @@ void * rule_stats_thread(void *arg)
 	else if (strncmp(line,"end",3)==0) 
 	{
 	    if (attack_over!=0) return NULL;
+	    if (currentlinenum[MAXRULES+2]==0)
+	    {
+		currentlinenum[MAXRULES+2]=1;
+		ops[MAXRULES+2][currentlinenum[MAXRULES+2]].parsefn=node_count;
+	    }
 	    update_chainlen(2,RULE_MODE_STATS);
-	    
 	    if (session_restore_flag==0) gen_stats(MAXRULES+2);
 	}
 	else
@@ -1665,8 +1669,11 @@ void * rule_stats_thread(void *arg)
 	    if (currentlinenum[MAXRULES+2]==0)
 	    {
 		if (currentlinenum[MAXRULES+2]==0) parse(line,MAXRULES+2,0,RULE_MODE_STATS);
-		currentlinenum[MAXRULES+2]=1;
-		ops[MAXRULES+2][currentlinenum[MAXRULES+2]].parsefn=node_count;
+		if (ops[MAXRULES+2][0].parsefn!=node_add_str)
+		{
+		    currentlinenum[MAXRULES+2]=1;
+		    ops[MAXRULES+2][currentlinenum[MAXRULES+2]].parsefn=node_count;
+		}
 	    }
 	}
 	bzero(lineread,MAXCAND*8);
