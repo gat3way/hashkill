@@ -142,7 +142,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
      __sha256_crypt_r(password, salt, salt2, len, vectorsize);
 
     b=strlen(salt);
-    for (a=0;a<vectorsize;a++) if (fastcompare((const char *)salt2[a]+b,hash,16)==0)
+    for (a=0;a<vectorsize;a++) if (fastcompare((const char *)salt2[a]+b,hash,32)==0)
     {
         *num=a;
         return hash_ok;
@@ -173,5 +173,5 @@ void get_vector_size(int size)
 
 int get_salt_size(void)
 {
-    return 14;
+    return 32;
 }
