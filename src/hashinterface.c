@@ -806,7 +806,6 @@ void hash_proto_new_biomem(FILE *file)
     fread(filedata, 8192, 1, file);
     filedata[8191] = 0;
     memcpy(privkey,filedata,8192);
-    
 }
 
 
