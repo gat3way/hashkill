@@ -109,11 +109,17 @@ This reduces the GPU worksize. It may give you better responsiveness but general
 
 .TP
 .B -T <limit> --gpu-temp=<limit>
-Temperature threshold (default: 90C). If any GPU goes above that limit, it would be disabled for a minute
+Temperature threshold (default: 90C). If any GPU goes above that limit, it would be disabled for a minute.
+Providing -T 0 effectively disables thermal monitoring for GPUs.
 
 .TP
 .B -t <platform> --gpu-platform=<platform>
 OpenCL platform to use where <platform> is an integer. This is useful only when you have more than one platform installed (AMD and NVidia)
+
+.TP
+.B -a <options> --addopts=<platform>
+Additional options to pass to the rule engine (separated by ':'). They can be parsed by the rule engine via $1..$9
+
 
 .SH Attack types
 
