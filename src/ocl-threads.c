@@ -288,6 +288,10 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"mscash")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"oracle-old")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"o5logon")==0)) {ocl_vector=1;loops=1;}
+		if ((strcmp(get_current_plugin(),"vbulletin")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"ipb2")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"joomla")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"oscommerce")==0)) loops=2;
 	    }
 
 	    /* AMD rule quirks */
@@ -346,7 +350,6 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"rar")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"rar")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"django256")==0)&&(ocl_have_gcn)) ocl_vector=1;
-		if ((strcmp(get_current_plugin(),"django256")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 	    }
 
 
@@ -377,6 +380,30 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"mscash")==0)) {loops=1;ocl_vector=8;}
 		if ((strcmp(get_current_plugin(),"smf")==0)) {ocl_vector=4;loops=1;}
 		if ((strcmp(get_current_plugin(),"django")==0)) ocl_vector=2;
+	    }
+	    else
+	    {
+		if ((strcmp(get_current_plugin(),"sl3")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"sha1")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"nsldap")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"nsldaps")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"smf")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"mssql-2000")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"mssql-2005")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"mssql-2012")==0)) loops=1;
+		if ((strcmp(get_current_plugin(),"lm")==0)) loops=1;
+		if ((strcmp(get_current_plugin(),"desunix")==0)) loops=1;
+		if ((strcmp(get_current_plugin(),"sha512")==0)) loops=1;
+		if ((strcmp(get_current_plugin(),"osxlion")==0)) loops=1;
+		if ((strcmp(get_current_plugin(),"osx-old")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"oracle11g")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"mscash")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"oracle-old")==0)) loops=1;
+		if ((strcmp(get_current_plugin(),"o5logon")==0)) {ocl_vector=1;loops=1;}
+		if ((strcmp(get_current_plugin(),"vbulletin")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"ipb2")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"joomla")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"oscommerce")==0)) loops=2;
 	    }
 
 	    /* Specific nvidia rule quirks */
@@ -531,7 +558,6 @@ hash_stat ocl_markov()
     int supported = 0;
     struct hash_list_s *amylist=hash_list;
     int flag=0,count=0;
-
 
 
     while (ocl_supported_plugins[index].bruteforce_routine)
@@ -953,7 +979,8 @@ static uint64_t markov_calculate_overall(int n)
     int markov_csize;
 
     /* wait until the threads started cracking */
-    while (wthreads[0].tries==0) usleep(1000);
+    attack_overall_count=1;
+    //while (wthreads[0].tries==0) usleep(1000);
     reduced_size=0;
     markov_csize = strlen(markov_charset);
     if ((fast_markov==1)) markov_csize-=23;
@@ -1086,7 +1113,7 @@ static void *calculate_markov_thread(void *arg)
 {
     int cnt;
     uint64_t overall=0;
-    
+
     for (cnt=5;cnt<=markov_max_len;cnt++) 
     {
         overall += markov_calculate_overall(cnt-4);
@@ -1106,6 +1133,8 @@ hash_stat ocl_spawn_threads(unsigned int num, unsigned int queue_size)
     pthread_mutexattr_t mutexattr;
     pthread_t calc_thread;
     pthread_t temp_thread;
+    pthread_attr_t thread_attr;
+    struct sched_param thread_param;
 
     create_hash_indexes();
 
@@ -1140,7 +1169,15 @@ hash_stat ocl_spawn_threads(unsigned int num, unsigned int queue_size)
     /* Unless user pressed ctrl-c BEFORE we have initialized workthreads...*/
     if (attack_over == 0) 
     {
-	pthread_create(&monitorthread, NULL, ocl_start_monitor_thread, &cnt);
+    	pthread_attr_init(&thread_attr);
+    	pthread_attr_setschedpolicy(&thread_attr, SCHED_RR);
+    	thread_param.sched_priority = 50;
+    	pthread_attr_setschedparam(&thread_attr, &thread_param);
+    	pthread_attr_setinheritsched(&thread_attr,PTHREAD_EXPLICIT_SCHED); 
+    	if (pthread_create(&monitorthread, &thread_attr, ocl_start_monitor_thread, &cnt)!=0)
+    	{
+        	pthread_create(&monitorthread, NULL, ocl_start_monitor_thread, &cnt);
+    	}
 	pthread_create(&monitorinfothread, NULL, ocl_start_monitor_info_thread, &cnt);
     }
     time1 = time(NULL);

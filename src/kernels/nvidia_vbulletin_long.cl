@@ -467,7 +467,7 @@ plains[res] = (uint4)(xx0,xx1,xx2,xx3);
 
 
 
-__kernel void  __attribute__((reqd_work_group_size(64, 1, 1))) 
+__kernel void  __attribute__((reqd_work_group_size(128, 1, 1))) 
 vbulletin_long_double( __global uint4 *hashes,  const uint size,  __global uint4 *plains, __global uint *found, __global const  uint * table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4,uint16 chbase5,uint16 chbase6,uint16 chbase7,uint16 chbase8,uint16 chbase9, uint16 chbase10) 
 {
 uint i;
@@ -507,7 +507,7 @@ vbulletin_long1(hashes,input, size, plains, found, singlehash,k,chbase10,chbase6
 
 
 
-__kernel void  __attribute__((reqd_work_group_size(64, 1, 1))) 
+__kernel void  __attribute__((reqd_work_group_size(128, 1, 1))) 
 vbulletin_long_normal( __global uint4 *hashes,  const uint size,  __global uint4 *plains, __global uint *found, __global const  uint * table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4,uint16 chbase5,uint16 chbase6,uint16 chbase7,uint16 chbase8,uint16 chbase9, uint16 chbase10) 
 {
 uint i;
@@ -1137,7 +1137,7 @@ plains[res*4+3] = (uint4)(xx0.s3,xx1.s3,xx2.s3,xx3.s3);
 
 
 
-__kernel void  __attribute__((reqd_work_group_size(64, 1, 1))) 
+__kernel void  __attribute__((reqd_work_group_size(128, 1, 1))) 
 vbulletin_long_double( __global uint4 *hashes,  const uint size,  __global uint4 *plains, __global uint *found, __global const  uint *table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4,uint16 chbase5,uint16 chbase6,uint16 chbase7,uint16 chbase8,uint16 chbase9, uint16 chbase10) 
 {
 uint4 i;
@@ -1166,7 +1166,7 @@ vbulletin_long1(hashes,input, size, plains, found, singlehash,k,chbase8,chbase4)
 
 
 
-__kernel void  __attribute__((reqd_work_group_size(64, 1, 1))) 
+__kernel void  __attribute__((reqd_work_group_size(128, 1, 1))) 
 vbulletin_long_normal( __global uint4 *hashes,  const uint size,  __global uint4 *plains, __global uint *found, __global const  uint * table,const uint16 chbase1,  const uint16 chbase2,uint16 chbase3,uint16 chbase4,uint16 chbase5,uint16 chbase6,uint16 chbase7,uint16 chbase8,uint16 chbase9, uint16 chbase10) 
 {
 uint4 i,k;
