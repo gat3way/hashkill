@@ -51,6 +51,16 @@ char * hash_plugin_detailed(void)
 hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 {
     FILE *myfile;
+    char buf[1024];
+
+    myfile = fopen(filename, "r");
+    if (!myfile) return hash_err;
+    fgets(buf,1024,myfile);
+    fclose(myfile);
+    if (!strstr(buf,"-BEGIN"))
+    {
+	return hash_err;
+    }
     myfile = fopen(filename, "r");
     if (!myfile) return hash_err;
     hash_new_biomem(myfile);

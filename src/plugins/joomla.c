@@ -77,10 +77,12 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     {
 	return hash_err;
     }
+
     /* salt */
     temp_str=strtok(NULL,":");
     if (temp_str) 
     {
+	if (strlen(salt)>32) return hash_err;
 	strcpy(salt, temp_str);
     }
     else

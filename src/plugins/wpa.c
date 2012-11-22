@@ -78,25 +78,25 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     err = stat(filename,&f_stat);
     if (err<0)
     {
-	elog("Cannot stat file: %s\n",filename);
-	exit(1);
+	if (!hashline) elog("Cannot stat file: %s\n",filename);
+	return hash_err;
     }
     if (f_stat.st_size!=392)
     {
-	elog("Not a HCCAP file: %s\n",filename);
-	exit(1);
+	if (!hashline) elog("Not a HCCAP file: %s\n",filename);
+	return hash_err;
     }
 
     fd = open(filename,O_RDONLY);
     if (fd<0)
     {
-	elog("Cannot open pcap file: %s\n",filename);
+	if (!hashline) elog("Cannot open pcap file: %s\n",filename);
 	return hash_err;
     }
     read(fd,&hccap,sizeof(hccap_t));
     if (hccap.eapol_size>256)
     {
-	elog("Cannot open pcap file: %s\n",filename);
+	if (!hashline) elog("Cannot open pcap file: %s\n",filename);
 	return hash_err;
     }
 

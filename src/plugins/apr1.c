@@ -77,6 +77,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	strcpy(temp_str, temp_str2);
 	temp_str2 = strtok(NULL,"$");
 	if (!temp_str2) return hash_err;
+	if (strcmp(temp_str,"apr1")!=0) return hash_err;
 	snprintf(salt, HASHFILE_MAX_LINE_LENGTH-1, "$%s$%s$", temp_str, temp_str2);
 	temp_str2 = strtok(NULL,"$");
 	if (!temp_str2) return hash_err;
@@ -90,6 +91,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	strcpy(line3, temp_str2);
 	temp_str2 = strtok(NULL,"$");
 	if (!temp_str2) return hash_err;
+	if (strcmp(line3,"apr1")!=0) return hash_err;
 	snprintf(salt, HASHFILE_MAX_LINE_LENGTH-1, "$%s$%s$", line3, temp_str2);
 	temp_str2 = strtok(NULL,"$");
 	if (!temp_str2) return hash_err;

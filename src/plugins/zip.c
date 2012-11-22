@@ -109,21 +109,19 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     fd = open(filename, O_RDONLY);
     if (fd<1)
     {
-        elog("Cannot open file %s\n", filename);
+        if (!hashline) elog("Cannot open file %s\n", filename);
         return hash_err;
     }
     read(fd, &u321, 4);
     fileoffset+=4;
     if (u321 != 0x04034b50)
     {
-        elog("Not a ZIP file: %s!\n", filename);
+        if (!hashline) elog("Not a ZIP file: %s!\n", filename);
         return hash_err;
     }
     close(fd);
     fileoffset=0;
     fd = open(filename, O_RDONLY);
-
-    
 
     while (!parsed)
     {
@@ -208,9 +206,9 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
                     case 1: winzip_key_size = 128;winzip_salt_size = 8;break;
                     case 2: winzip_key_size = 192;winzip_salt_size = 12;break;
                     case 3: winzip_key_size = 256;winzip_salt_size = 16;break;
-                    default: elog("Unknown AES encryption key length (0x%02x) quitting...\n",buf[8]&255);return hash_err;
+                    default: if (!hashline) elog("Unknown AES encryption key length (0x%02x) quitting...\n",buf[8]&255);return hash_err;
                 }
-                hlog("Encrypted using strong AES%d encryption\n",winzip_key_size);
+                if (!hashline) hlog("Encrypted using strong AES%d encryption\n",winzip_key_size);
             }
             // Parse the encryption header - the winzip way 
             if (has_winzip_encryption)
@@ -267,11 +265,11 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
         parsed=1;
     }
 
-    if (has_winzip_encryption==0) hlog("Found >= %d password-protected files in archive!\n",cur);
+    if ((!hashline) && (has_winzip_encryption==0)) hlog("Found >= %d password-protected files in archive!\n",cur);
 
     if ((cur==0)&&(has_winzip_encryption==0))
     {
-            elog("File %s is not a password-protected ZIP archive\n", filename);
+            if (!hashline) elog("File %s is not a password-protected ZIP archive\n", filename);
             return hash_err;
     }
 

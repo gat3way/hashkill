@@ -134,7 +134,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     fd = open(filename, O_RDONLY);
     if (fd<1)
     {
-	elog("Cannot open file %s\n", filename);
+	if (!hashline) elog("Cannot open file %s\n", filename);
 	return hash_err;
     }
     read(fd,signature,7);
@@ -143,7 +143,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     if ( (signature[0]!=0x52) || (signature[1]!=0x61) || (signature[2]!=0x72) || 
 	 (signature[3]!=0x21) || (signature[4]!=0x1a) || (signature[5]!=0x07))
     {
-	elog("Not a RAR3 archive: %s", filename);
+	if (!hashline) elog("Not a RAR3 archive: %s", filename);
 	return hash_err;
     }
     ret=0;
@@ -167,7 +167,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	    islarge=0;
 	    if (!(u161 & 0x4))
 	    {
-		elog("RAR archive %s is not password protected!\n",filename);
+		if (!hashline) elog("RAR archive %s is not password protected!\n",filename);
 		//return hash_err;
 	    }
 	    if ((u161 & 0x400))
@@ -261,7 +261,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     if ((goodtogo==0)&&(best<1))
     {
 	hlog("No crackable archive files found, exiting...%s\n","");
-	exit(1);
+	return hash_err;
     }
 
     if (headerenc==0)
@@ -277,7 +277,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	int ofd=open("/dev/shm/outfile",O_WRONLY|O_CREAT,0644);
 	write(ofd,filebuf,packedsize);
 	memcpy(savedbuf,filebuf,128);
-	hlog("Best file chosen to attack: %s\n",bestfile[c].filename);
+	if (!hashline) hlog("Best file chosen to attack: %s\n",bestfile[c].filename);
 	close(ofd);
 	free(filebuf);
     }

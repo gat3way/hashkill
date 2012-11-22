@@ -75,10 +75,12 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     if (temp_str) 
     {
 	strcpy(salt, temp_str);
+	if (strlen(salt)>5) return hash_err;
     }
     else
     {
     	strcpy(salt, hash);
+    	if (strlen(salt)>5) return hash_err;
 	strcpy(hash,username);
 	strcpy(username,"N/A");
     }

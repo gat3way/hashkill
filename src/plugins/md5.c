@@ -65,12 +65,19 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     if (temp_str) 
     {
 	strcpy(hash, temp_str);
+
 	/* Hash is not 32 characters long => not a md5 hash */
 	if (strlen(hash)!=32)
 	{
 	    return hash_err;
 	}
-    
+
+	/* Salt could be 32 chars long, check if that is the case */
+        int flag=0;
+        int a;
+        for (a=0;a<strlen(hash);a++) if ( ((hash[a]<'0')||(hash[a]>'9'))&&((hash[a]<'a')||(hash[a]>'f'))) flag=1;
+        if (flag==1) return hash_err;
+
 	/* No hash provided at all */
 	if (strcmp(username,hashline)==0)
 	{

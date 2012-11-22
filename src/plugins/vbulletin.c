@@ -74,7 +74,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     else
     {
 	a=0;
-	while (line[a]!=':') 
+	while ((a<strlen(line))&&(line[a]!=':'))
 	{
 	    username[a]=line[a];
 	    a++;
@@ -84,6 +84,9 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	hash[32]=0;
 	strcpy(salt,&line[a+33]);
     }
+
+    if (strlen(line2)!=32) return hash_err;
+    if (strlen(salt)>32) return hash_err;
 
     (void)hash_add_username(username);
     hex2str(line2, hash, 32);
@@ -176,5 +179,5 @@ void get_vector_size(int size)
 
 int get_salt_size(void)
 {
-    return 32;
+    return 33;
 }

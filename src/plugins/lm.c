@@ -72,7 +72,6 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
         temp_str=strtok(NULL,":");
         if (!temp_str) return hash_err;
         strcpy(hash, temp_str);
-
         if (strlen(hash)!=32)
         {
             return hash_err;
@@ -102,11 +101,15 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     if (temp_str) 
     {
         strcpy(hash, temp_str);
-
         if (strlen(hash)!=32)
         {
             return hash_err;
         }
+        int flag=0;
+        int a;
+        for (a=0;a<strlen(hash);a++) if ( ((hash[a]<'0')||(hash[a]>'9'))&&((hash[a]<'a')||(hash[a]>'f'))) flag=1;
+        if (flag==1) return hash_err;
+    
         (void)hash_add_username(username);
         strlow(hash);
         hex2str(line, hash, 32);

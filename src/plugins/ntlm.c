@@ -67,6 +67,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
         temp_str=strtok(NULL,":");
         /* skip first hash */
         temp_str=strtok(NULL,":");
+        if (strlen(temp_str)!=32) return hash_err;
         /* get LM hash */
         temp_str=strtok(NULL,":");
 	if (!temp_str) return hash_err;
@@ -96,6 +97,13 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	{
 	    return hash_err;
 	}
+
+	/* Could be a salt anyway, let's check */
+	int flag=0;
+	int a;
+	for (a=0;a<strlen(hash);a++) if ( ((hash[a]<'0')||(hash[a]>'9'))&&((hash[a]<'a')||(hash[a]>'f'))) flag=1;
+	if (flag==1) return hash_err;
+
 	(void)hash_add_username(username);
 	strlow(hash);
 	hex2str(line, hash, 32);

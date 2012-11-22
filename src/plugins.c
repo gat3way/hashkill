@@ -326,12 +326,10 @@ hash_stat detect_plugin(char *plugindir,char *file, char *hash)
     char line[1024];
     FILE *fd;
     char *preferred_plugins[] = { "ntlm","sha1","md5","lm","sha256","sha512",NULL };
+    char *preferred_special_plugins[] = { "zip","rar","wpa","privkey",NULL };
 
     /* We are now detecting plugins, don't be verbose */
     detecting=1;
-
-    /* TODO: First, check the preferred plugins */
-
 
 
     /* Is a cmdline hash? */
@@ -346,6 +344,31 @@ hash_stat detect_plugin(char *plugindir,char *file, char *hash)
 	}
 	closedir(dir);
 	count = scandir(plugindir, &dentrylist, 0, alphasort);
+
+	/* First check preferred plugins */
+	while (preferred_plugins[i])
+	{
+	    strcpy(soname,preferred_plugins[i]);
+	    set_current_plugin(soname);
+	    if (load_plugin() == hash_ok) 
+	    if (!hash_plugin_is_special())
+	    {
+	        if (hash_plugin_parse_hash(hash,NULL) == hash_ok)
+	        {
+		    hlog("Hash type detected, using plugin: %s\n",soname);
+		    detecting=0;
+		    return hash_ok;
+		}
+		else 
+		{
+		    unload_plugin();
+		}
+	    }
+	    i++;
+	}
+
+	/* Then the next, in order */
+	i=0;
 	do
 	{
 	    if (strstr(dentrylist[i]->d_name, ".so"))
@@ -399,6 +422,31 @@ hash_stat detect_plugin(char *plugindir,char *file, char *hash)
 	}
 	closedir(dir);
 	count = scandir(plugindir, &dentrylist, 0, alphasort);
+
+	/* First check preferred plugins */
+	while (preferred_plugins[i])
+	{
+	    strcpy(soname,preferred_plugins[i]);
+	    set_current_plugin(soname);
+	    if (load_plugin() == hash_ok) 
+	    if (!hash_plugin_is_special())
+	    {
+	        if (hash_plugin_parse_hash(line,NULL) == hash_ok)
+	        {
+		    hlog("Hash type detected, using plugin: %s\n",soname);
+		    detecting=0;
+		    return hash_ok;
+		}
+		else 
+		{
+		    unload_plugin();
+		}
+	    }
+	    i++;
+	}
+
+	/* Then the next, in order */
+	i=0;
 	do
 	{
 	    if (strstr(dentrylist[i]->d_name, ".so"))
@@ -438,6 +486,31 @@ hash_stat detect_plugin(char *plugindir,char *file, char *hash)
 	}
 	closedir(dir);
 	count = scandir(plugindir, &dentrylist, 0, alphasort);
+
+	/* First check preferred plugins */
+	while (preferred_special_plugins[i])
+	{
+	    strcpy(soname,preferred_special_plugins[i]);
+	    set_current_plugin(soname);
+	    if (load_plugin() == hash_ok) 
+	    if (hash_plugin_is_special())
+	    {
+	        if (hash_plugin_parse_hash("dummy",file) == hash_ok)
+	        {
+		    hlog("Hash type detected, using plugin: %s\n",soname);
+		    detecting=0;
+		    return hash_ok;
+		}
+		else 
+		{
+		    unload_plugin();
+		}
+	    }
+	    i++;
+	}
+
+	/* Then the next, in order */
+	i=0;
 	do
 	{
 	    if (strstr(dentrylist[i]->d_name, ".so"))
@@ -448,7 +521,7 @@ hash_stat detect_plugin(char *plugindir,char *file, char *hash)
 		if (load_plugin() == hash_ok) 
 		if (hash_plugin_is_special())
 		{
-		    if (hash_plugin_parse_hash(NULL,file) == hash_ok)
+		    if (hash_plugin_parse_hash("dummy",file) == hash_ok)
 		    {
 			hlog("Hash type detected, using plugin: %s\n",soname);
 			detecting=0;
