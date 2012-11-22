@@ -512,7 +512,7 @@ static void ocl_execute(cl_command_queue queue, cl_kernel kernel, size_t *global
 		lglobal_work_size[1]=global_work_size[1]/8;
 		offset[1] = try*lglobal_work_size[1];
 		offset[0] = 0;
-
+		if (attack_over!=0) pthread_exit(NULL);
 		_clEnqueueNDRangeKernel(queue, kernel, 2, offset, lglobal_work_size, local_work_size, 0, NULL, NULL);
 		found = _clEnqueueMapBuffer(queue, found_buf, CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
 		if (*found>0) 
@@ -531,20 +531,28 @@ static void ocl_execute(cl_command_queue queue, cl_kernel kernel, size_t *global
 	}
 	else
 	{
-	    _clEnqueueNDRangeKernel(queue, kernel, 2, NULL, global_work_size, local_work_size, 0, NULL, NULL);
-	    found = _clEnqueueMapBuffer(queue, found_buf, CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
-	    if (*found>0) 
+	    for (try=0;try<2;try++)
 	    {
-    		ocl_get_cracked(queue,plains_buf,plains, hashes_buf,hashes, *found, wthreads[self].vectorsize, hash_ret_len,list[a]);
-    		bzero(plains,16*8*MAXFOUND);
-    		_clEnqueueWriteBuffer(queue, plains_buf, CL_FALSE, 0, 16*8*MAXFOUND, plains, 0, NULL, NULL);
-    		// Change for other types
-    		bzero(hashes,hash_ret_len*8*MAXFOUND);
-    		_clEnqueueWriteBuffer(queue, hashes_buf, CL_FALSE, 0, hash_ret_len*8*MAXFOUND, hashes, 0, NULL, NULL);
-    		*found = 0;
-    		_clEnqueueWriteBuffer(queue, found_buf, CL_TRUE, 0, 4, found, 0, NULL, NULL);
+		lglobal_work_size[0]=global_work_size[0];
+		lglobal_work_size[1]=global_work_size[1]/2;
+		offset[1] = try*lglobal_work_size[1];
+		offset[0] = 0;
+		if (attack_over!=0) pthread_exit(NULL);
+		_clEnqueueNDRangeKernel(queue, kernel, 2, offset, lglobal_work_size, local_work_size, 0, NULL, NULL);
+		found = _clEnqueueMapBuffer(queue, found_buf, CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
+		if (*found>0) 
+		{
+    		    ocl_get_cracked(queue,plains_buf,plains, hashes_buf,hashes, *found, wthreads[self].vectorsize, hash_ret_len,list[a]);
+    		    bzero(plains,16*8*MAXFOUND);
+    		    _clEnqueueWriteBuffer(queue, plains_buf, CL_FALSE, 0, 16*8*MAXFOUND, plains, 0, NULL, NULL);
+    		    // Change for other types
+    		    bzero(hashes,hash_ret_len*8*MAXFOUND);
+    		    _clEnqueueWriteBuffer(queue, hashes_buf, CL_FALSE, 0, hash_ret_len*8*MAXFOUND, hashes, 0, NULL, NULL);
+    		    *found = 0;
+    		    _clEnqueueWriteBuffer(queue, found_buf, CL_TRUE, 0, 4, found, 0, NULL, NULL);
+		}
+    		_clEnqueueUnmapMemObject(queue,found_buf,(void *)found,0,NULL,NULL);
 	    }
-    	    _clEnqueueUnmapMemObject(queue,found_buf,(void *)found,0,NULL,NULL);
 	}
     }
     wthreads[self].tries += (charset_size*charset_size*charset_size*charset_size*wthreads[self].loops)/(get_hashes_num());

@@ -535,13 +535,13 @@ static void ocl_execute(cl_command_queue queue, cl_kernel kernel, size_t *global
     {
 	if (interactive_mode==1)
 	{
-	    for (try=0;try<32;try++)
+	    for (try=0;try<64;try++)
 	    {
 		lglobal_work_size[0]=global_work_size[0];
-		lglobal_work_size[1]=global_work_size[1]/32;
+		lglobal_work_size[1]=global_work_size[1]/64;
 		offset[1] = try*lglobal_work_size[1];
 		offset[0] = 0;
-
+		if (attack_over!=0) pthread_exit(NULL);
 		_clEnqueueNDRangeKernel(queue, kernel, 2, offset, lglobal_work_size, local_work_size, 0, NULL, NULL);
 		found = _clEnqueueMapBuffer(queue, found_buf, CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
 		if (*found>0) 
@@ -566,7 +566,7 @@ static void ocl_execute(cl_command_queue queue, cl_kernel kernel, size_t *global
 		lglobal_work_size[1]=global_work_size[1]/16;
 		offset[1] = try*lglobal_work_size[1];
 		offset[0] = 0;
-
+		if (attack_over!=0) pthread_exit(NULL);
 		_clEnqueueNDRangeKernel(queue, kernel, 2, offset, lglobal_work_size, local_work_size, 0, NULL, NULL);
 		found = _clEnqueueMapBuffer(queue, found_buf, CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
 		if (*found>0) 
