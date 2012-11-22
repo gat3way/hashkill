@@ -72,6 +72,12 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     	    return hash_err;
 	}
 
+        /* Do not allow 32-byte salts to be recognized as hash */
+        int flag=0;
+        int a;
+        for (a=0;a<strlen(hash);a++) if ( ((hash[a]<'0')||(hash[a]>'9'))&&((hash[a]<'a')||(hash[a]>'f'))) flag=1;
+        if (flag==1) return hash_err;
+
 	(void)hash_add_username(username);
 	hex2str(line, hash, 40);
 	(void)hash_add_hash(line, 20);
@@ -83,6 +89,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
         {
     	    return hash_err;
 	}
+
 
 	(void)hash_add_username("N/A");
 	hex2str(line, username, 40);

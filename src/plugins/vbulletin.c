@@ -85,6 +85,10 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	strcpy(salt,&line[a+33]);
     }
 
+    int flag=0;
+    for (a=0;a<strlen(hash);a++) if ( ((hash[a]<'0')||(hash[a]>'9'))&&((hash[a]<'a')||(hash[a]>'f'))) flag=1;
+    if (flag==1) return hash_err;
+
     if (strlen(hash)!=32) return hash_err;
     if (strlen(salt)>32) return hash_err;
 

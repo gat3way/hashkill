@@ -325,7 +325,7 @@ hash_stat detect_plugin(char *plugindir,char *file, char *hash)
     int count=-1,i=0;
     char line[1024];
     FILE *fd;
-    char *preferred_plugins[] = { "ntlm","sha1","md5","lm","sha256","sha512",NULL };
+    char *preferred_plugins[] = { "ntlm","sha1","md5","lm","sha256","sha512","smf","vbulletin","ipb2",NULL };
     char *preferred_special_plugins[] = { "zip","rar","wpa","privkey",NULL };
     char *detected_plugins[128];
     int detected;
