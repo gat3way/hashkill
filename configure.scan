@@ -7,14 +7,7 @@ AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
-AC_PROG_CXX
-AC_PROG_AWK
 AC_PROG_CC
-AC_PROG_CPP
-AC_PROG_INSTALL
-AC_PROG_LN_S
-AC_PROG_MAKE_SET
-AC_PROG_RANLIB
 
 # Checks for libraries.
 # FIXME: Replace `main' with a function in `-lcrypto':
@@ -53,18 +46,16 @@ AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_MALLOC
 AC_FUNC_MMAP
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([bzero endpwent getcwd memmove memset mkdir munmap setenv strchr strcspn strerror strstr strtol strtoul])
+AC_CHECK_FUNCS([atexit bzero endpwent getcwd memchr memmove memset mkdir munmap setenv strchr strcspn strerror strstr strtol strtoul])
 
 AC_CONFIG_FILES([Makefile
                  man/Makefile
                  src/Makefile
                  src/dict/Makefile
-                 src/hashgen/Makefile
                  src/kernels/Makefile
                  src/kernels/compiler/Makefile
                  src/markov/Makefile
                  src/plugins/Makefile
                  src/rules/Makefile
-                 src/tests/Makefile
                  src/tools/Makefile])
 AC_OUTPUT

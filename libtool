@@ -1,7 +1,7 @@
 #! /bin/sh
 
 # libtool - Provide generalized library-building support services.
-# Generated automatically by config.status (hashkill) 0.3.0
+# Generated automatically by config.status (hashkill) 0.3.1
 # Libtool was configured on host debian:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 #

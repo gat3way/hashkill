@@ -2,9 +2,9 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.64])
-AC_INIT(hashkill, 0.3.0, gat3way@gat3way.eu)
+AC_INIT(hashkill, 0.3.1, gat3way@gat3way.eu)
 AC_PROG_LIBTOOL
-AM_INIT_AUTOMAKE(hashkill, 0.3.0)
+AM_INIT_AUTOMAKE(hashkill, 0.3.1)
 AC_OUTPUT(Makefile src/Makefile man/Makefile)
 AC_CONFIG_SRCDIR([src/threads.c])
 AC_CONFIG_MACRO_DIR([m4])
