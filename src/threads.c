@@ -650,11 +650,6 @@ static void thread_attack_worker_linear_markov_single(int self)
 
 
 
-
-
-
-
-
 /* Init hash bitmaps */
 static void init_bitmaps()
 {
@@ -767,7 +762,6 @@ unsigned int hash_num_cpu(void)
 /* Start monitor thread */ 
 static void * start_monitor_thread(void *arg)
 {
-
     uint64_t sum;
     int cracked;
     FILE *sessionfile;

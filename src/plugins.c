@@ -327,10 +327,18 @@ hash_stat detect_plugin(char *plugindir,char *file, char *hash)
     FILE *fd;
     char *preferred_plugins[] = { "ntlm","sha1","md5","lm","sha256","sha512",NULL };
     char *preferred_special_plugins[] = { "zip","rar","wpa","privkey",NULL };
+    char *detected_plugins[128];
+    int detected;
+    char *detected_list;
+    int detected_list_size=0;
+    int j,flag;
+    char lhash[256]; // Local hashline copy cause some plugins play rough with strtok
 
     /* We are now detecting plugins, don't be verbose */
     detecting=1;
 
+    /* Init */
+    detected=-1;
 
     /* Is a cmdline hash? */
     i=0;
@@ -353,16 +361,14 @@ hash_stat detect_plugin(char *plugindir,char *file, char *hash)
 	    if (load_plugin() == hash_ok) 
 	    if (!hash_plugin_is_special())
 	    {
-	        if (hash_plugin_parse_hash(hash,NULL) == hash_ok)
+	        strcpy(lhash,hash);
+	        if (hash_plugin_parse_hash(lhash,NULL) == hash_ok)
 	        {
-		    hlog("Hash type detected, using plugin: %s\n",soname);
-		    detecting=0;
-		    return hash_ok;
+		    detected++;
+		    detected_plugins[detected]=malloc(strlen(preferred_plugins[i]+1));
+		    strcpy(detected_plugins[detected],preferred_plugins[i]);
 		}
-		else 
-		{
-		    unload_plugin();
-		}
+		unload_plugin();
 	    }
 	    i++;
 	}
@@ -379,16 +385,19 @@ hash_stat detect_plugin(char *plugindir,char *file, char *hash)
 		if (load_plugin() == hash_ok) 
 		if (!hash_plugin_is_special())
 		{
-		    if (hash_plugin_parse_hash(hash,NULL) == hash_ok)
+		    strcpy(lhash,hash);
+		    if (hash_plugin_parse_hash(lhash,NULL) == hash_ok)
 		    {
-			hlog("Hash type detected, using plugin: %s\n",soname);
-			detecting=0;
-			return hash_ok;
+			flag=0;
+			for (j=0;j<=detected;j++) if (strcmp(detected_plugins[j],soname)==0) flag=1;
+			if (flag==0)
+			{
+			    detected++;
+			    detected_plugins[detected]=malloc(strlen(soname)+1);
+			    strcpy(detected_plugins[detected],soname);
+			}
 		    }
-		    else 
-		    {
-			unload_plugin();
-		    }
+		    unload_plugin();
 		}
 	    }
 	    i++;
@@ -431,16 +440,14 @@ hash_stat detect_plugin(char *plugindir,char *file, char *hash)
 	    if (load_plugin() == hash_ok) 
 	    if (!hash_plugin_is_special())
 	    {
-	        if (hash_plugin_parse_hash(line,NULL) == hash_ok)
+	        strcpy(lhash,line);
+	        if (hash_plugin_parse_hash(lhash,NULL) == hash_ok)
 	        {
-		    hlog("Hash type detected, using plugin: %s\n",soname);
-		    detecting=0;
-		    return hash_ok;
+		    detected++;
+		    detected_plugins[detected]=malloc(strlen(preferred_plugins[i]));
+		    strcpy(detected_plugins[detected],preferred_plugins[i]);
 		}
-		else 
-		{
-		    unload_plugin();
-		}
+		unload_plugin();
 	    }
 	    i++;
 	}
@@ -457,16 +464,19 @@ hash_stat detect_plugin(char *plugindir,char *file, char *hash)
 		if (load_plugin() == hash_ok) 
 		if (!hash_plugin_is_special())
 		{
-		    if (hash_plugin_parse_hash(line,NULL) == hash_ok)
+		    strcpy(lhash,line);
+		    if (hash_plugin_parse_hash(lhash,NULL) == hash_ok)
 		    {
-			hlog("Hash type detected, using plugin: %s\n",soname);
-			detecting=0;
-			return hash_ok;
+			flag=0;
+			for (j=0;j<=detected;j++) if (strcmp(detected_plugins[j],soname)==0) flag=1;
+			if (flag==0)
+			{
+			    detected++;
+			    detected_plugins[detected]=malloc(strlen(soname)+1);
+			    strcpy(detected_plugins[detected],soname);
+			}
 		    }
-		    else 
-		    {
-			unload_plugin();
-		    }
+		    unload_plugin();
 		}
 	    }
 	    i++;
@@ -497,14 +507,11 @@ hash_stat detect_plugin(char *plugindir,char *file, char *hash)
 	    {
 	        if (hash_plugin_parse_hash("dummy",file) == hash_ok)
 	        {
-		    hlog("Hash type detected, using plugin: %s\n",soname);
-		    detecting=0;
-		    return hash_ok;
+		    detected++;
+		    detected_plugins[detected]=malloc(strlen(preferred_special_plugins[i])+1);
+		    strcpy(detected_plugins[detected],preferred_special_plugins[i]);
 		}
-		else 
-		{
-		    unload_plugin();
-		}
+		unload_plugin();
 	    }
 	    i++;
 	}
@@ -523,19 +530,53 @@ hash_stat detect_plugin(char *plugindir,char *file, char *hash)
 		{
 		    if (hash_plugin_parse_hash("dummy",file) == hash_ok)
 		    {
-			hlog("Hash type detected, using plugin: %s\n",soname);
-			detecting=0;
-			return hash_ok;
+			flag=0;
+			for (j=0;j<=detected;j++) if (strcmp(detected_plugins[j],soname)==0) flag=1;
+			if (flag==0)
+			{
+			    detected++;
+			    detected_plugins[detected] = malloc(strlen(soname)+1);
+			    strcpy(detected_plugins[detected],soname);
+			}
 		    }
-		    else 
-		    {
-			unload_plugin();
-		    }
+		    unload_plugin();
 		}
 	    }
 	    i++;
 	} while (i<count);
 	free(dentrylist);
+    }
+
+    detected++;
+    detecting=0;
+    if (detected > 1)
+    {
+	for (i=0;i<detected;i++)
+	{
+	    detected_list_size += strlen(detected_plugins[i])+1;
+	}
+	detected_list = malloc(detected_list_size+1);
+	bzero(detected_list,detected_list_size);
+	for (i=0;i<detected;i++)
+	{
+	    sprintf(detected_list,"%s %s",detected_list,detected_plugins[i]);
+	}
+	wlog("Warning: multiple plugins match this input!%s\n","");
+	wlog("Plugins available:%s\n",detected_list);
+	wlog("Choosing %s. If that's not what you meant, use the -p <plugin> switch!\n",detected_plugins[0]);
+	set_current_plugin(detected_plugins[0]);
+	load_plugin();
+	free(detected_list);
+	for (i=0;i<detected;i++) free(detected_plugins[i]);
+	return hash_ok;
+    }
+    if (detected == 1)
+    {
+    	hlog("Loading plugin %s\n",detected_plugins[0]);
+    	set_current_plugin(detected_plugins[0]);
+	load_plugin();
+    	free(detected_plugins[0]);
+    	return hash_ok;
     }
     return hash_err;
 }

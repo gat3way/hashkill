@@ -66,6 +66,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     {
 	strcpy(hash, temp_str);
     }
+    else return hash_err;
 
     // Hash is not 32 characters long => not a md5 hash
     if ((strlen(hash)!=32)&&(strlen(username)!=32))
@@ -77,6 +78,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     temp_str=strtok(NULL,":");
     if (temp_str) 
     {
+	if (strlen(temp_str)>31) return hash_err;
 	strcpy(salt, temp_str);
     }
     else
@@ -87,7 +89,6 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     }
 
 
-    
     (void)hash_add_username(username);
     hex2str(line2, hash, 32);
     (void)hash_add_hash(line2, 16);

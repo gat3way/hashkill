@@ -85,7 +85,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	strcpy(salt,&line[a+33]);
     }
 
-    if (strlen(line2)!=32) return hash_err;
+    if (strlen(hash)!=32) return hash_err;
     if (strlen(salt)>32) return hash_err;
 
     (void)hash_add_username(username);
