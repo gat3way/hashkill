@@ -17,9 +17,8 @@ all: plugin_md5 plugin_md5md5 plugin_joomla plugin_sha1 plugin_smf plugin_md4 \
      plugin_pixmd5 plugin_sl3 plugin_ripemd160 plugin_sha1sha1 plugin_lm plugin_oracle-old \
      plugin_nsldap plugin_nsldaps plugin_sapg plugin_mscash plugin_mediawiki plugin_zip plugin_osxlion \
      plugin_mscash2 plugin_wpa plugin_rar plugin_dmg plugin_osx-old plugin_bfunix plugin_drupal7 \
-     plugin_django256 plugin_sha256unix plugin_o5logon plugin_mssql2012
-     #plugin_bitcoin  plugin_mysql-old
-
+     plugin_django256 plugin_sha256unix plugin_o5logon plugin_mssql2012 plugin_msoffice
+     #plugin_bitcoin  plugin_mysql-old 
 
 
 plugin_md5:
@@ -161,7 +160,7 @@ plugin_osx-old:
 	@if [ ! -e osx-old.so ]; then  $(CC)  plugin.c osx-old.c -o osx-old.so $(CFLAGS) $(LDFLAGS) ;fi
 
 plugin_bfunix:
-	@if [ ! -e bfunix.so ]; then  $(CC)  plugin.c bfunix.c bf-crypt.c -o bfunix.so $(CFLAGS) $(LDFLAGS) -w -funroll-all-loops -g;fi
+	@if [ ! -e bfunix.so ]; then  $(CC)  plugin.c bfunix.c bf-crypt.c -o bfunix.so $(CFLAGS) $(LDFLAGS) -w -funroll-all-loops;fi
 
 plugin_drupal7:
 	@if [ ! -e drupal7.so ]; then  $(CC)  plugin.c drupal7.c phpass-512.c -o drupal7.so $(CFLAGS) $(LDFLAGS)  ;fi
@@ -175,6 +174,8 @@ plugin_o5logon:
 plugin_mssql2012:
 	@if [ ! -e mssql-2012.so ]; then  $(CC)  plugin.c mssql-2012.c -o mssql-2012.so $(CFLAGS) $(LDFLAGS)  ;fi
 
+plugin_msoffice:
+	@if [ ! -e msoffice.so ]; then  $(CC)  plugin.c msoffice.c base64.c -o msoffice.so $(CFLAGS) $(LDFLAGS) -w -funroll-all-loops ;fi
 
 
 install:
