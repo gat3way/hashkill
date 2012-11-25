@@ -768,7 +768,7 @@ dst[GGI*5+4]=(uint4)(SB.s3,SC.s3,SD.s3,SE.s3);
 
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))
-void officefinal( __global uint4 *dst,  __global uint *inp)
+void officefinal( __global uint4 *dst,  __global uint *inp, uint16 salt)
 {
 uint4 SIZE;
 uint ib,ic,id,i;  
@@ -1279,18 +1279,18 @@ w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
 SA=A+H0;SB=B+H1;SC=C+H2;SD=D+H3;SE=E+H4;
 }
 
-dst[GGI*5]=A;
-dst[GGI*5+1]=B;
-dst[GGI*5+2]=C;
-dst[GGI*5+3]=D;
-dst[GGI*5+4]=E;
+dst[GGI*5]=SA;
+dst[GGI*5+1]=SB;
+dst[GGI*5+2]=SC;
+dst[GGI*5+3]=SD;
+dst[GGI*5+4]=SE;
 }
 
 
 
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))
-void officefinal( __global uint *dst,  __global uint *inp)
+void officefinal( __global uint *dst,  __global uint *inp, uint16 salt)
 {
 uint SIZE;
 uint ib,ic,id,i;  

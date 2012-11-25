@@ -812,8 +812,11 @@ w1=SB;
 w2=SC;
 w3=SD;
 w4=SE;
-w5=(uint4)0;
-w6=0x80000000;
+w5=(uint4)salt.s9;
+w6=(uint4)salt.sA;
+w7=0x80000000;
+Endian_Reverse32(w5);
+Endian_Reverse32(w6);
 
 A=H0;
 B=H1;
@@ -821,8 +824,8 @@ C=H2;
 D=H3;
 E=H4;
 
-SIZE=(uint4)24<<3;
-w7=w8=w9=w10=w11=w12=w13=w14=w16=(uint4)0;
+SIZE=(uint4)28<<3;
+w8=w9=w10=w11=w12=w13=w14=w16=(uint4)0;
 
 K = K0;
 ROTATE1(A, B, C, D, E, w0);
@@ -910,28 +913,29 @@ w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10);
 w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
 A=A+H0;B=B+H1;C=C+H2;D=D+H3;E=E+H4;
 
+Endian_Reverse32(A);
+Endian_Reverse32(B);
+Endian_Reverse32(C);
+Endian_Reverse32(D);
+Endian_Reverse32(E);
+
 SSA=A;
 SSB=B;
 SSC=C;
 SSD=D;
 SSE=E;
 
-w0=A^0x36363636;
-w1=B^0x36363636;
-w2=C^0x36363636;
-w3=D^0x36363636;
-w4=E^0x36363636;
-w5=(uint4)0x36363636;
-w6=(uint4)0x36363636;
-w7=(uint4)0x36363636;
-w8=(uint4)0x36363636;
-w9=(uint4)0x36363636;
-w10=(uint4)0x36363636;
-w11=(uint4)0x36363636;
-w12=(uint4)0x36363636;
-w13=(uint4)0x36363636;
-w14=(uint4)0x36363636;
-SIZE=w15=(uint4)0x36363636;
+
+w0=SA;
+w1=SB;
+w2=SC;
+w3=SD;
+w4=SE;
+w5=(uint4)salt.sB;
+w6=(uint4)salt.sC;
+w7=0x80000000;
+Endian_Reverse32(w5);
+Endian_Reverse32(w6);
 
 A=H0;
 B=H1;
@@ -939,102 +943,8 @@ C=H2;
 D=H3;
 E=H4;
 
-K = K0;
-ROTATE1(A, B, C, D, E, w0);
-ROTATE1(E, A, B, C, D, w1);
-ROTATE1(D, E, A, B, C, w2);
-ROTATE1(C, D, E, A, B, w3);
-ROTATE1(B, C, D, E, A, w4);
-ROTATE1(A, B, C, D, E, w5);
-ROTATE1(E, A, B, C, D, w6);
-ROTATE1(D, E, A, B, C, w7);
-ROTATE1(C, D, E, A, B, w8);
-ROTATE1(B, C, D, E, A, w9);
-ROTATE1(A, B, C, D, E, w10);
-ROTATE1(E, A, B, C, D, w11);
-ROTATE1(D, E, A, B, C, w12);
-ROTATE1(C, D, E, A, B, w13);
-ROTATE1(B, C, D, E, A, w14);
-ROTATE1(A, B, C, D, E, SIZE);  
-w16 = rotate((w13 ^ w8 ^ w2 ^ w0),S1);ROTATE1(E,A,B,C,D,w16);
-w0 = rotate((w14 ^ w9 ^ w3 ^ w1),S1);ROTATE1(D,E,A,B,C,w0); 
-w1 = rotate((SIZE ^ w10 ^ w4 ^ w2),S1); ROTATE1(C,D,E,A,B,w1); 
-w2 = rotate((w16 ^ w11 ^ w5 ^ w3),S1);  ROTATE1(B,C,D,E,A,w2); 
-K = K1;
-w3 = rotate((w0 ^ w12 ^ w6 ^ w4),S1); ROTATE2_F(A, B, C, D, E, w3);
-w4 = rotate((w1 ^ w13 ^ w7 ^ w5),S1); ROTATE2_F(E, A, B, C, D, w4);
-w5 = rotate((w2 ^ w14 ^ w8 ^ w6),S1); ROTATE2_F(D, E, A, B, C, w5);
-w6 = rotate((w3 ^ SIZE ^ w9 ^ w7),S1);ROTATE2_F(C, D, E, A, B, w6);
-w7 = rotate((w4 ^ w16 ^ w10 ^ w8),S1); ROTATE2_F(B, C, D, E, A, w7);
-w8 = rotate((w5 ^ w0 ^ w11 ^ w9),S1); ROTATE2_F(A, B, C, D, E, w8);
-w9 = rotate((w6 ^ w1 ^ w12 ^ w10),S1); ROTATE2_F(E, A, B, C, D, w9);
-w10 = rotate((w7 ^ w2 ^ w13 ^ w11),S1); ROTATE2_F(D, E, A, B, C, w10); 
-w11 = rotate((w8 ^ w3 ^ w14 ^ w12),S1); ROTATE2_F(C, D, E, A, B, w11); 
-w12 = rotate((w9 ^ w4 ^ SIZE ^ w13),S1); ROTATE2_F(B, C, D, E, A, w12);
-w13 = rotate((w10 ^ w5 ^ w16 ^ w14),S1); ROTATE2_F(A, B, C, D, E, w13);
-w14 = rotate((w11 ^ w6 ^ w0 ^ SIZE),S1); ROTATE2_F(E, A, B, C, D, w14);
-SIZE = rotate((w12 ^ w7 ^ w1 ^ w16),S1); ROTATE2_F(D, E, A, B, C, SIZE);
-w16 = rotate((w13 ^ w8 ^ w2 ^ w0),S1); ROTATE2_F(C, D, E, A, B, w16);  
-w0 = rotate(w14 ^ w9 ^ w3 ^ w1,S1); ROTATE2_F(B, C, D, E, A, w0);  
-w1 = rotate(SIZE ^ w10 ^ w4 ^ w2,S1); ROTATE2_F(A, B, C, D, E, w1);
-w2 = rotate(w16 ^ w11 ^ w5 ^ w3,S1); ROTATE2_F(E, A, B, C, D, w2); 
-w3 = rotate(w0 ^ w12 ^ w6 ^ w4,S1); ROTATE2_F(D, E, A, B, C, w3);  
-w4 = rotate(w1 ^ w13 ^ w7 ^ w5,S1);ROTATE2_F(C, D, E, A, B, w4);
-w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE2_F(B, C, D, E, A, w5);  
-K = K2;
-w6 = rotate(w3 ^ SIZE ^ w9 ^ w7, S1); ROTATE3_F(A, B, C, D, E, w6);
-w7 = rotate(w4 ^ w16 ^ w10 ^ w8, S1); ROTATE3_F(E, A, B, C, D, w7);
-w8 = rotate(w5 ^ w0 ^ w11 ^ w9, S1); ROTATE3_F(D, E, A, B, C, w8); 
-w9 = rotate(w6 ^ w1 ^ w12 ^ w10, S1); ROTATE3_F(C, D, E, A, B, w9);
-w10 = rotate(w7 ^ w2 ^ w13 ^ w11, S1); ROTATE3_F(B, C, D, E, A, w10);  
-w11 = rotate(w8 ^ w3 ^ w14 ^ w12, S1); ROTATE3_F(A, B, C, D, E, w11);  
-w12 = rotate(w9 ^ w4 ^ SIZE ^ w13, S1); ROTATE3_F(E, A, B, C, D, w12); 
-w13 = rotate(w10 ^ w5 ^ w16 ^ w14, S1); ROTATE3_F(D, E, A, B, C, w13); 
-w14 = rotate(w11 ^ w6 ^ w0 ^ SIZE, S1); ROTATE3_F(C, D, E, A, B, w14); 
-SIZE = rotate(w12 ^ w7 ^ w1 ^ w16, S1); ROTATE3_F(B, C, D, E, A, SIZE);
-w16 = rotate(w13 ^ w8 ^ w2 ^ w0, S1); ROTATE3_F(A, B, C, D, E, w16);
-w0 = rotate(w14 ^ w9 ^ w3 ^ w1, S1); ROTATE3_F(E, A, B, C, D, w0); 
-w1 = rotate(SIZE ^ w10 ^ w4 ^ w2, S1); ROTATE3_F(D, E, A, B, C, w1);
-w2 = rotate(w16 ^ w11 ^ w5 ^ w3, S1); ROTATE3_F(C, D, E, A, B, w2);
-w3 = rotate(w0 ^ w12 ^ w6 ^ w4, S1); ROTATE3_F(B, C, D, E, A, w3); 
-w4 = rotate(w1 ^ w13 ^ w7 ^ w5, S1); ROTATE3_F(A, B, C, D, E, w4); 
-w5 = rotate(w2 ^ w14 ^ w8 ^ w6, S1); ROTATE3_F(E, A, B, C, D, w5); 
-w6 = rotate(w3 ^ SIZE ^ w9 ^ w7, S1); ROTATE3_F(D, E, A, B, C, w6);
-w7 = rotate(w4 ^ w16 ^ w10 ^ w8, S1); ROTATE3_F(C, D, E, A, B, w7);
-w8 = rotate(w5 ^ w0 ^ w11 ^ w9, S1); ROTATE3_F(B, C, D, E, A, w8); 
-K = K3;
-w9 = rotate(w6 ^ w1 ^ w12 ^ w10, S1); ROTATE4_F(A, B, C, D, E, w9);
-w10 = rotate(w7 ^ w2 ^ w13 ^ w11, S1); ROTATE4_F(E, A, B, C, D, w10);  
-w11 = rotate(w8 ^ w3 ^ w14 ^ w12, S1); ROTATE4_F(D, E, A, B, C, w11);  
-w12 = rotate(w9 ^ w4 ^ SIZE ^ w13, S1); ROTATE4_F(C, D, E, A, B, w12); 
-w13 = rotate(w10 ^ w5 ^ w16 ^ w14, S1); ROTATE4_F(B, C, D, E, A, w13); 
-w14 = rotate(w11 ^ w6 ^ w0 ^ SIZE, S1); ROTATE4_F(A, B, C, D, E, w14); 
-SIZE = rotate(w12 ^ w7 ^ w1 ^ w16, S1); ROTATE4_F(E, A, B, C, D, SIZE);
-w16 = rotate(w13 ^ w8 ^ w2 ^ w0, S1); ROTATE4_F(D, E, A, B, C, w16);
-w0 = rotate(w14 ^ w9 ^ w3 ^ w1, S1); ROTATE4_F(C, D, E, A, B, w0); 
-w1 = rotate(SIZE ^ w10 ^ w4 ^ w2, S1); ROTATE4_F(B, C, D, E, A, w1);
-w2 = rotate(w16 ^ w11 ^ w5 ^ w3,S1); ROTATE4_F(A, B, C, D, E, w2); 
-w3 = rotate(w0 ^ w12 ^ w6 ^ w4,S1); ROTATE4_F(E, A, B, C, D, w3);  
-w4 = rotate(w1 ^ w13 ^ w7 ^ w5,S1); ROTATE4_F(D, E, A, B, C, w4);  
-w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE4_F(C, D, E, A, B, w5);  
-w6 = rotate(w3 ^ SIZE ^ w9 ^ w7,S1); ROTATE4_F(B, C, D, E, A, w6); 
-w7 = rotate(w4 ^ w16 ^ w10 ^ w8,S1); ROTATE4_F(A, B, C, D, E, w7); 
-w8 = rotate(w5 ^ w0 ^ w11 ^ w9,S1); ROTATE4_F(E, A, B, C, D, w8);  
-w9 = rotate(w6 ^ w1 ^ w12 ^ w10,S1); ROTATE4_F(D, E, A, B, C, w9); 
-w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10);
-w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
-SA=A+H0;SB=B+H1;SC=C+H2;SD=D+H3;SE=E+H4;
-
-
-w0=0x80000000;
-w1=w2=w3=w4=w5=w6=w7=w8=w9=w10=w11=w12=w13=w14=w16=(uint4)0;
-SIZE=(uint4)(64<<3);
-
-A=SA;
-B=SB;
-C=SC;
-D=SD;
-E=SE;
+SIZE=(uint4)28<<3;
+w8=w9=w10=w11=w12=w13=w14=w16=(uint4)0;
 
 K = K0;
 ROTATE1(A, B, C, D, E, w0);
@@ -1120,7 +1030,7 @@ w8 = rotate(w5 ^ w0 ^ w11 ^ w9,S1); ROTATE4_F(E, A, B, C, D, w8);
 w9 = rotate(w6 ^ w1 ^ w12 ^ w10,S1); ROTATE4_F(D, E, A, B, C, w9); 
 w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10);
 w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
-A=A+SA;B=B+SB;C=C+SC;D=D+SD;E=E+SE;
+A=A+H0;B=B+H1;C=C+H2;D=D+H3;E=E+H4;
 
 Endian_Reverse32(A);
 Endian_Reverse32(B);
@@ -1129,17 +1039,32 @@ Endian_Reverse32(D);
 Endian_Reverse32(E);
 
 
-dst[GGI*5]=(uint4)(A.s0,B.s0,C.s0,D.s0);
-dst[GGI*5+1]=(uint4)(E.s0,A.s1,B.s1,C.s1);
-dst[GGI*5+2]=(uint4)(D.s1,E.s1,A.s2,B.s2);
-dst[GGI*5+3]=(uint4)(C.s2,D.s2,E.s2,A.s3);
-dst[GGI*5+4]=(uint4)(B.s3,C.s3,D.s3,E.s3);
+dst[GGI*16]=(uint4)(SSA.s0,SSB.s0,SSC.s0,SSD.s0);
+dst[GGI*16+1]=(uint4)(SSE.s0,0x36363636,0x36363636,0x36363636);
+dst[GGI*16+2]=(uint4)(A.s0,B.s0,C.s0,D.s0);
+dst[GGI*16+3]=(uint4)(E.s0,0x36363636,0x36363636,0x36363636);
 
+dst[GGI*16+4]=(uint4)(SSA.s1,SSB.s1,SSC.s1,SSD.s1);
+dst[GGI*16+5]=(uint4)(SSE.s1,0x36363636,0x36363636,0x36363636);
+dst[GGI*16+6]=(uint4)(A.s1,B.s1,C.s1,D.s1);
+dst[GGI*16+7]=(uint4)(E.s1,0x36363636,0x36363636,0x36363636);
+
+dst[GGI*16+8]=(uint4)(SSA.s2,SSB.s2,SSC.s2,SSD.s2);
+dst[GGI*16+9]=(uint4)(SSE.s2,0x36363636,0x36363636,0x36363636);
+dst[GGI*16+10]=(uint4)(A.s2,B.s2,C.s2,D.s2);
+dst[GGI*16+11]=(uint4)(E.s2,0x36363636,0x36363636,0x36363636);
+
+dst[GGI*16+12]=(uint4)(SSA.s3,SSB.s3,SSC.s3,SSD.s3);
+dst[GGI*16+13]=(uint4)(SSE.s3,0x36363636,0x36363636,0x36363636);
+dst[GGI*16+14]=(uint4)(A.s3,B.s3,C.s3,D.s3);
+dst[GGI*16+15]=(uint4)(E.s3,0x36363636,0x36363636,0x36363636);
 }
 
 
 
+// GCN now
 #else
+
 
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))
@@ -1276,18 +1201,18 @@ w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
 SA=A+H0;SB=B+H1;SC=C+H2;SD=D+H3;SE=E+H4;
 }
 
-dst[GGI*5]=SA;
-dst[GGI*5+1]=SB;
-dst[GGI*5+2]=SC;
-dst[GGI*5+3]=SD;
-dst[GGI*5+4]=SE;
+dst[GGI*5]=(uint)SA;
+dst[GGI*5+1]=(uint)SB;
+dst[GGI*5+2]=(uint)SC;
+dst[GGI*5+3]=(uint)SD;
+dst[GGI*5+4]=(uint)SE;
 }
 
 
 
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))
-void officefinal( __global uint *dst,  __global uint *inp, uint16 salt)
+void officefinal( __global uint4 *dst,  __global uint *inp, uint16 salt)
 {
 uint SIZE;
 uint ib,ic,id,i;  
@@ -1318,8 +1243,11 @@ w1=SB;
 w2=SC;
 w3=SD;
 w4=SE;
-w5=(uint)0;
-w6=0x80000000;
+w5=(uint)salt.s9;
+w6=(uint)salt.sA;
+w7=0x80000000;
+Endian_Reverse32(w5);
+Endian_Reverse32(w6);
 
 A=H0;
 B=H1;
@@ -1327,8 +1255,8 @@ C=H2;
 D=H3;
 E=H4;
 
-SIZE=(uint)24<<3;
-w7=w8=w9=w10=w11=w12=w13=w14=w16=(uint)0;
+SIZE=(uint)28<<3;
+w8=w9=w10=w11=w12=w13=w14=w16=(uint)0;
 
 K = K0;
 ROTATE1(A, B, C, D, E, w0);
@@ -1416,28 +1344,29 @@ w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10);
 w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
 A=A+H0;B=B+H1;C=C+H2;D=D+H3;E=E+H4;
 
+Endian_Reverse32(A);
+Endian_Reverse32(B);
+Endian_Reverse32(C);
+Endian_Reverse32(D);
+Endian_Reverse32(E);
+
 SSA=A;
 SSB=B;
 SSC=C;
 SSD=D;
 SSE=E;
 
-w0=A^0x36363636;
-w1=B^0x36363636;
-w2=C^0x36363636;
-w3=D^0x36363636;
-w4=E^0x36363636;
-w5=(uint)0x36363636;
-w6=(uint)0x36363636;
-w7=(uint)0x36363636;
-w8=(uint)0x36363636;
-w9=(uint)0x36363636;
-w10=(uint)0x36363636;
-w11=(uint)0x36363636;
-w12=(uint)0x36363636;
-w13=(uint)0x36363636;
-w14=(uint)0x36363636;
-SIZE=w15=(uint)0x36363636;
+
+w0=SA;
+w1=SB;
+w2=SC;
+w3=SD;
+w4=SE;
+w5=(uint)salt.sB;
+w6=(uint)salt.sC;
+w7=0x80000000;
+Endian_Reverse32(w5);
+Endian_Reverse32(w6);
 
 A=H0;
 B=H1;
@@ -1445,102 +1374,8 @@ C=H2;
 D=H3;
 E=H4;
 
-K = K0;
-ROTATE1(A, B, C, D, E, w0);
-ROTATE1(E, A, B, C, D, w1);
-ROTATE1(D, E, A, B, C, w2);
-ROTATE1(C, D, E, A, B, w3);
-ROTATE1(B, C, D, E, A, w4);
-ROTATE1(A, B, C, D, E, w5);
-ROTATE1(E, A, B, C, D, w6);
-ROTATE1(D, E, A, B, C, w7);
-ROTATE1(C, D, E, A, B, w8);
-ROTATE1(B, C, D, E, A, w9);
-ROTATE1(A, B, C, D, E, w10);
-ROTATE1(E, A, B, C, D, w11);
-ROTATE1(D, E, A, B, C, w12);
-ROTATE1(C, D, E, A, B, w13);
-ROTATE1(B, C, D, E, A, w14);
-ROTATE1(A, B, C, D, E, SIZE);  
-w16 = rotate((w13 ^ w8 ^ w2 ^ w0),S1);ROTATE1(E,A,B,C,D,w16);
-w0 = rotate((w14 ^ w9 ^ w3 ^ w1),S1);ROTATE1(D,E,A,B,C,w0); 
-w1 = rotate((SIZE ^ w10 ^ w4 ^ w2),S1); ROTATE1(C,D,E,A,B,w1); 
-w2 = rotate((w16 ^ w11 ^ w5 ^ w3),S1);  ROTATE1(B,C,D,E,A,w2); 
-K = K1;
-w3 = rotate((w0 ^ w12 ^ w6 ^ w4),S1); ROTATE2_F(A, B, C, D, E, w3);
-w4 = rotate((w1 ^ w13 ^ w7 ^ w5),S1); ROTATE2_F(E, A, B, C, D, w4);
-w5 = rotate((w2 ^ w14 ^ w8 ^ w6),S1); ROTATE2_F(D, E, A, B, C, w5);
-w6 = rotate((w3 ^ SIZE ^ w9 ^ w7),S1);ROTATE2_F(C, D, E, A, B, w6);
-w7 = rotate((w4 ^ w16 ^ w10 ^ w8),S1); ROTATE2_F(B, C, D, E, A, w7);
-w8 = rotate((w5 ^ w0 ^ w11 ^ w9),S1); ROTATE2_F(A, B, C, D, E, w8);
-w9 = rotate((w6 ^ w1 ^ w12 ^ w10),S1); ROTATE2_F(E, A, B, C, D, w9);
-w10 = rotate((w7 ^ w2 ^ w13 ^ w11),S1); ROTATE2_F(D, E, A, B, C, w10); 
-w11 = rotate((w8 ^ w3 ^ w14 ^ w12),S1); ROTATE2_F(C, D, E, A, B, w11); 
-w12 = rotate((w9 ^ w4 ^ SIZE ^ w13),S1); ROTATE2_F(B, C, D, E, A, w12);
-w13 = rotate((w10 ^ w5 ^ w16 ^ w14),S1); ROTATE2_F(A, B, C, D, E, w13);
-w14 = rotate((w11 ^ w6 ^ w0 ^ SIZE),S1); ROTATE2_F(E, A, B, C, D, w14);
-SIZE = rotate((w12 ^ w7 ^ w1 ^ w16),S1); ROTATE2_F(D, E, A, B, C, SIZE);
-w16 = rotate((w13 ^ w8 ^ w2 ^ w0),S1); ROTATE2_F(C, D, E, A, B, w16);  
-w0 = rotate(w14 ^ w9 ^ w3 ^ w1,S1); ROTATE2_F(B, C, D, E, A, w0);  
-w1 = rotate(SIZE ^ w10 ^ w4 ^ w2,S1); ROTATE2_F(A, B, C, D, E, w1);
-w2 = rotate(w16 ^ w11 ^ w5 ^ w3,S1); ROTATE2_F(E, A, B, C, D, w2); 
-w3 = rotate(w0 ^ w12 ^ w6 ^ w4,S1); ROTATE2_F(D, E, A, B, C, w3);  
-w4 = rotate(w1 ^ w13 ^ w7 ^ w5,S1);ROTATE2_F(C, D, E, A, B, w4);
-w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE2_F(B, C, D, E, A, w5);  
-K = K2;
-w6 = rotate(w3 ^ SIZE ^ w9 ^ w7, S1); ROTATE3_F(A, B, C, D, E, w6);
-w7 = rotate(w4 ^ w16 ^ w10 ^ w8, S1); ROTATE3_F(E, A, B, C, D, w7);
-w8 = rotate(w5 ^ w0 ^ w11 ^ w9, S1); ROTATE3_F(D, E, A, B, C, w8); 
-w9 = rotate(w6 ^ w1 ^ w12 ^ w10, S1); ROTATE3_F(C, D, E, A, B, w9);
-w10 = rotate(w7 ^ w2 ^ w13 ^ w11, S1); ROTATE3_F(B, C, D, E, A, w10);  
-w11 = rotate(w8 ^ w3 ^ w14 ^ w12, S1); ROTATE3_F(A, B, C, D, E, w11);  
-w12 = rotate(w9 ^ w4 ^ SIZE ^ w13, S1); ROTATE3_F(E, A, B, C, D, w12); 
-w13 = rotate(w10 ^ w5 ^ w16 ^ w14, S1); ROTATE3_F(D, E, A, B, C, w13); 
-w14 = rotate(w11 ^ w6 ^ w0 ^ SIZE, S1); ROTATE3_F(C, D, E, A, B, w14); 
-SIZE = rotate(w12 ^ w7 ^ w1 ^ w16, S1); ROTATE3_F(B, C, D, E, A, SIZE);
-w16 = rotate(w13 ^ w8 ^ w2 ^ w0, S1); ROTATE3_F(A, B, C, D, E, w16);
-w0 = rotate(w14 ^ w9 ^ w3 ^ w1, S1); ROTATE3_F(E, A, B, C, D, w0); 
-w1 = rotate(SIZE ^ w10 ^ w4 ^ w2, S1); ROTATE3_F(D, E, A, B, C, w1);
-w2 = rotate(w16 ^ w11 ^ w5 ^ w3, S1); ROTATE3_F(C, D, E, A, B, w2);
-w3 = rotate(w0 ^ w12 ^ w6 ^ w4, S1); ROTATE3_F(B, C, D, E, A, w3); 
-w4 = rotate(w1 ^ w13 ^ w7 ^ w5, S1); ROTATE3_F(A, B, C, D, E, w4); 
-w5 = rotate(w2 ^ w14 ^ w8 ^ w6, S1); ROTATE3_F(E, A, B, C, D, w5); 
-w6 = rotate(w3 ^ SIZE ^ w9 ^ w7, S1); ROTATE3_F(D, E, A, B, C, w6);
-w7 = rotate(w4 ^ w16 ^ w10 ^ w8, S1); ROTATE3_F(C, D, E, A, B, w7);
-w8 = rotate(w5 ^ w0 ^ w11 ^ w9, S1); ROTATE3_F(B, C, D, E, A, w8); 
-K = K3;
-w9 = rotate(w6 ^ w1 ^ w12 ^ w10, S1); ROTATE4_F(A, B, C, D, E, w9);
-w10 = rotate(w7 ^ w2 ^ w13 ^ w11, S1); ROTATE4_F(E, A, B, C, D, w10);  
-w11 = rotate(w8 ^ w3 ^ w14 ^ w12, S1); ROTATE4_F(D, E, A, B, C, w11);  
-w12 = rotate(w9 ^ w4 ^ SIZE ^ w13, S1); ROTATE4_F(C, D, E, A, B, w12); 
-w13 = rotate(w10 ^ w5 ^ w16 ^ w14, S1); ROTATE4_F(B, C, D, E, A, w13); 
-w14 = rotate(w11 ^ w6 ^ w0 ^ SIZE, S1); ROTATE4_F(A, B, C, D, E, w14); 
-SIZE = rotate(w12 ^ w7 ^ w1 ^ w16, S1); ROTATE4_F(E, A, B, C, D, SIZE);
-w16 = rotate(w13 ^ w8 ^ w2 ^ w0, S1); ROTATE4_F(D, E, A, B, C, w16);
-w0 = rotate(w14 ^ w9 ^ w3 ^ w1, S1); ROTATE4_F(C, D, E, A, B, w0); 
-w1 = rotate(SIZE ^ w10 ^ w4 ^ w2, S1); ROTATE4_F(B, C, D, E, A, w1);
-w2 = rotate(w16 ^ w11 ^ w5 ^ w3,S1); ROTATE4_F(A, B, C, D, E, w2); 
-w3 = rotate(w0 ^ w12 ^ w6 ^ w4,S1); ROTATE4_F(E, A, B, C, D, w3);  
-w4 = rotate(w1 ^ w13 ^ w7 ^ w5,S1); ROTATE4_F(D, E, A, B, C, w4);  
-w5 = rotate(w2 ^ w14 ^ w8 ^ w6,S1); ROTATE4_F(C, D, E, A, B, w5);  
-w6 = rotate(w3 ^ SIZE ^ w9 ^ w7,S1); ROTATE4_F(B, C, D, E, A, w6); 
-w7 = rotate(w4 ^ w16 ^ w10 ^ w8,S1); ROTATE4_F(A, B, C, D, E, w7); 
-w8 = rotate(w5 ^ w0 ^ w11 ^ w9,S1); ROTATE4_F(E, A, B, C, D, w8);  
-w9 = rotate(w6 ^ w1 ^ w12 ^ w10,S1); ROTATE4_F(D, E, A, B, C, w9); 
-w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10);
-w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
-SA=A+H0;SB=B+H1;SC=C+H2;SD=D+H3;SE=E+H4;
-
-
-w0=0x80000000;
-w1=w2=w3=w4=w5=w6=w7=w8=w9=w10=w11=w12=w13=w14=w16=(uint)0;
-SIZE=(uint)(64<<3);
-
-A=SA;
-B=SB;
-C=SC;
-D=SD;
-E=SE;
+SIZE=(uint)28<<3;
+w8=w9=w10=w11=w12=w13=w14=w16=(uint)0;
 
 K = K0;
 ROTATE1(A, B, C, D, E, w0);
@@ -1626,7 +1461,7 @@ w8 = rotate(w5 ^ w0 ^ w11 ^ w9,S1); ROTATE4_F(E, A, B, C, D, w8);
 w9 = rotate(w6 ^ w1 ^ w12 ^ w10,S1); ROTATE4_F(D, E, A, B, C, w9); 
 w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10);
 w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
-A=A+SA;B=B+SB;C=C+SC;D=D+SD;E=E+SE;
+A=A+H0;B=B+H1;C=C+H2;D=D+H3;E=E+H4;
 
 Endian_Reverse32(A);
 Endian_Reverse32(B);
@@ -1635,13 +1470,12 @@ Endian_Reverse32(D);
 Endian_Reverse32(E);
 
 
-dst[GGI*5]=A;
-dst[GGI*5+1]=B;
-dst[GGI*5+2]=C;
-dst[GGI*5+3]=D;
-dst[GGI*5+4]=E;
-
+dst[GGI*4]=(uint4)(SSA,SSB,SSC,SSD);
+dst[GGI*4+1]=(uint4)(SSE,0x36363636,0x36363636,0x36363636);
+dst[GGI*4+2]=(uint4)(A,B,C,D);
+dst[GGI*4+3]=(uint4)(E,0x36363636,0x36363636,0x36363636);
 }
+
 
 
 #endif

@@ -71,8 +71,8 @@ static int keybits;
 unsigned int saltsize;
 
 /* Office 2010/2013 */
-static const unsigned char encryptedVerifierHashInputBlockKey[] = { 0xfe, 0xa7, 0xd2, 0x76, 0x3b, 0x4b, 0x9e, 0x79 };
-static const unsigned char encryptedVerifierHashValueBlockKey[] = { 0xd7, 0xaa, 0x0f, 0x6d, 0x30, 0x61, 0x34, 0x4e };
+static const unsigned char hibk[] = { 0xfe, 0xa7, 0xd2, 0x76, 0x3b, 0x4b, 0x9e, 0x79 };
+static const unsigned char hvbk[] = { 0xd7, 0xaa, 0x0f, 0x6d, 0x30, 0x61, 0x34, 0x4e };
 
 
 /* Get buffer+offset for sector */
@@ -591,12 +591,41 @@ static hash_stat check_msoffice(unsigned char *key, char *pwd)
 	    return hash_ok;
 	}
     }
+    else if (fileversion==2010)
+    {
+	unsigned char decryptedhashinput[32];
+	unsigned char decryptedhashvalue[32];
+	unsigned char hbuf[32];
+	unsigned char sbuf[32];
+	unsigned char tbuf[32];
+	AES_KEY aeskey;
+	unsigned char iv[16];
+	int len;
+	SHA_CTX ctx;
 
+	memcpy(sbuf,key,32);
+	memcpy(tbuf,key+32,32);
+	memset(&aeskey,0,sizeof(AES_KEY));
+	memcpy(iv,docsalt,16);
+	if (keybits==128) OAES_SET_DECRYPT_KEY(sbuf, 128, &aeskey);
+	else OAES_SET_DECRYPT_KEY(sbuf, 256, &aeskey);
+	OAES_CBC_ENCRYPT(verifierhashinput,decryptedhashinput,16,&aeskey,iv,AES_DECRYPT);
+	memset(&aeskey,0,sizeof(AES_KEY));
+	memcpy(iv,docsalt,16);
+	if (keybits==128) OAES_SET_DECRYPT_KEY(tbuf, 128, &aeskey);
+	else OAES_SET_DECRYPT_KEY(tbuf, 256, &aeskey);
+	OAES_CBC_ENCRYPT(verifierhashvalue,decryptedhashvalue,32,&aeskey,iv,AES_DECRYPT);
+	len=16;
+	SHA1_Init(&ctx);
+	SHA1_Update(&ctx, decryptedhashinput, len);
+	SHA1_Final(hbuf, &ctx);
+	if (memcmp(decryptedhashvalue,hbuf,20)==0)
+	{
+	    return hash_ok;
+	}
+    }
     return hash_err;
 }
-
-
-
 
 
 
@@ -617,6 +646,11 @@ static cl_uint16 msoffice_getsalt()
     t.s4=(salt2[16]&255)|((salt2[17]&255)<<8)|((salt2[18]&255)<<16)|((salt2[19]&255)<<24);
     t.s5=(salt2[20]&255)|((salt2[21]&255)<<8)|((salt2[22]&255)<<16)|((salt2[23]&255)<<24);
     t.s6=(salt2[24]&255)|((salt2[25]&255)<<8)|((salt2[26]&255)<<16)|((salt2[27]&255)<<24);
+
+    t.s9=(hibk[0]&255)|((hibk[1]&255)<<8)|((hibk[2]&255)<<16)|((hibk[3]&255)<<24);
+    t.sA=(hibk[4]&255)|((hibk[5]&255)<<8)|((hibk[6]&255)<<16)|((hibk[7]&255)<<24);
+    t.sB=(hvbk[0]&255)|((hvbk[1]&255)<<8)|((hvbk[2]&255)<<16)|((hvbk[3]&255)<<24);
+    t.sC=(hvbk[4]&255)|((hvbk[5]&255)<<8)|((hvbk[6]&255)<<16)|((hvbk[7]&255)<<24);
 
     t.sF=(len);
     return t;
@@ -660,6 +694,7 @@ static void ocl_msoffice_crack_callback(char *line, int self)
     _clSetKernelArg(rule_kernel[self], 5, sizeof(cl_uint16), (void*) &salt);
     _clSetKernelArg(rule_kernelpre1[self], 3, sizeof(cl_uint16), (void*) &salt);
     _clSetKernelArg(rule_kernelbl1[self], 2, sizeof(cl_uint16), (void*) &salt);
+    _clSetKernelArg(rule_kernelend[self], 2, sizeof(cl_uint16), (void*) &salt);
 
     if (attack_over!=0) pthread_exit(NULL);
     pthread_mutex_lock(&wthreads[self].tempmutex);
@@ -671,19 +706,28 @@ static void ocl_msoffice_crack_callback(char *line, int self)
     _clFinish(rule_oclqueue[self]);
 
 
-    for (a=0;a<50;a++)
+    for (a=0;a<(spincount/1000);a++)
     {
 	if (attack_over!=0) pthread_exit(NULL);
 	salt.s8=a*1000;
 	_clSetKernelArg(rule_kernelbl1[self], 2, sizeof(cl_uint16), (void*) &salt);
 	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
-        wthreads[self].tries+=(gws1)/50;
+        wthreads[self].tries+=(gws1)/(spincount/1000);
     }
 
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelend[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 
     _clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, hash_ret_len1*wthreads[self].vectorsize*ocl_rule_workset[self], rule_ptr[self], 0, NULL, NULL);
+/*
+int i;
+printf("%s - ",rule_images[self]);
+for (i=0;i<64;i++) printf("%02x",rule_ptr[self][i]&255);
+printf("\n");
+printf("%s - ",rule_images[self]+32);
+for (i=64;i<128;i++) printf("%02x",rule_ptr[self][i]&255);
+printf("\n");
+*/
     for (a=0;a<ocl_rule_workset[self];a++)
     {
         for (c=0;c<wthreads[self].vectorsize;c++)
@@ -735,9 +779,19 @@ void* ocl_rule_msoffice_thread(void *arg)
     memcpy(&self,arg,sizeof(int));
     pthread_mutex_lock(&biglock);
 
+
+    if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
+    else rule_local_work_size = amd_local_work_size;
+    ocl_rule_workset[self]=128*128;
+    if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=4;
+    if (ocl_gpu_double) ocl_rule_workset[self]*=2;
+    if (interactive_mode==1) ocl_rule_workset[self]/=8;
+
+
     if (fileversion==2007)
     {
 	hash_ret_len1=20;
+	spincount=50000;
 	if (wthreads[self].type==nv_thread)
 	{
 	    if (wthreads[self].ocl_have_sm21==1) wthreads[self].vectorsize=4;
@@ -745,6 +799,31 @@ void* ocl_rule_msoffice_thread(void *arg)
 	}
 	else
 	{
+	    if (wthreads[self].ocl_have_old_ati==1)
+	    {
+		wlog("Warning: AMD 4xxx GPUs not supported%s\n","");
+		return NULL;
+	    }
+	    if (wthreads[self].ocl_have_gcn!=1) wthreads[self].vectorsize=4;
+	    else wthreads[self].vectorsize=1;
+	}
+    }
+    else if (fileversion==2010)
+    {
+	hash_ret_len1=64;
+	ocl_rule_workset[self]/=2;
+	if (wthreads[self].type==nv_thread)
+	{
+	    if (wthreads[self].ocl_have_sm21==1) wthreads[self].vectorsize=4;
+	    else wthreads[self].vectorsize=1;
+	}
+	else
+	{
+	    if (wthreads[self].ocl_have_old_ati==1)
+	    {
+		wlog("Warning: AMD 4xxx GPUs not supported%s\n","");
+		return NULL;
+	    }
 	    if (wthreads[self].ocl_have_gcn!=1) wthreads[self].vectorsize=4;
 	    else wthreads[self].vectorsize=1;
 	}
@@ -752,14 +831,6 @@ void* ocl_rule_msoffice_thread(void *arg)
 
 
 
-    if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
-    else rule_local_work_size = amd_local_work_size;
-    ocl_rule_workset[self]=128*128;
-    if (wthreads[self].type==nv_thread) ocl_rule_workset[self]/=2;
-    if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=4;
-    if (ocl_gpu_double) ocl_rule_workset[self]*=2;
-    if (interactive_mode==1) ocl_rule_workset[self]/=8;
-    
     rule_ptr[self] = malloc(ocl_rule_workset[self]*hash_ret_len1*wthreads[self].vectorsize);
     rule_counts[self][0]=0;
 

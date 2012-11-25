@@ -724,7 +724,12 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    lens[a]=28;
 	}
 	hash_sha1_slow(hbuf,tbuf,lens);
-
+	for (a=0;a<vectorsize;a++)
+	for (b=20;b<32;b++)
+	{
+	    sbuf[a][b]=0x36;
+	    tbuf[a][b]=0x36;
+	}
 
 	for (a=0;a<vectorsize;a++)
 	{
