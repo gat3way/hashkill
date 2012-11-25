@@ -86,7 +86,7 @@ char* get_buf_offset(int sector)
     return (buf+(sector+1)*sectorsize);
 }
 
-/* Get buffer offset for sector */
+/* Get sector offset for sector */
 int get_offset(int sector)
 {
     return ((sector+1)*sectorsize);
