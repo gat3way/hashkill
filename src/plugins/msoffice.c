@@ -176,7 +176,12 @@ int get_mini_offset(int sector)
 
 
 
-/* Read stream from mini table - callee needs to free memory */
+/* 
+   Read stream from mini table - callee needs to free memory 
+   TODO: what if stream is in FAT? Until now I haven't seen a case
+   like that with EncryptionStream (it's usually around 1KB, far below 4KB)
+   Anyway, this should be handled properly some day.
+*/
 char* read_stream_mini(int start, int size)
 {
     char *lbuf=malloc(4);
@@ -187,7 +192,7 @@ char* read_stream_mini(int start, int size)
     sector=start;
     while (lsize<size)
     {
-        lbuf = realloc(lbuf,lsize+128);
+        lbuf = realloc(lbuf,lsize+64);
         memcpy(lbuf + lsize,get_buf_offset(get_minisection_sector(sector)) + get_mini_offset(sector), 64);
         lsize += 64;
         mtab = get_mtab(sector);
