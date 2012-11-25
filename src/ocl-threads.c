@@ -90,6 +90,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"sha256unix",&ocl_bruteforce_sha256unix, &ocl_markov_sha256unix, &ocl_rule_sha256unix},
                             {1,"o5logon",&ocl_bruteforce_o5logon, &ocl_markov_o5logon, &ocl_rule_o5logon},
                             {1,"mssql-2012",&ocl_bruteforce_mssql_2012, &ocl_markov_mssql_2012, &ocl_rule_mssql_2012},
+                            {1,"msoffice",&ocl_bruteforce_msoffice, &ocl_markov_msoffice, &ocl_rule_msoffice},
                             {0, "", NULL, NULL, NULL}
                         };
 

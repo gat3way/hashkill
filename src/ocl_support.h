@@ -242,6 +242,13 @@ hash_stat ocl_bruteforce_mssql_2012(void);
 hash_stat ocl_markov_mssql_2012(void);
 hash_stat ocl_rule_mssql_2012(void);
 
+/* msoffice plugin support */
+hash_stat ocl_bruteforce_msoffice(void);
+hash_stat ocl_markov_msoffice(void);
+hash_stat ocl_rule_msoffice(void);
+
+
+
 /* supported plugins struct array*/
 struct ocl_supported_plugins_s
 {

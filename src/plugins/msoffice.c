@@ -214,7 +214,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     int datasector,datasize;
     int ministreamcutoff;
     int a;
-    char *stream;
+    char *stream=NULL;
     char *token,*token1;
 
     fd=open(filename,O_RDONLY);
@@ -287,6 +287,12 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
             stream = read_stream_mini(datasector,datasize);
         }
         index+=128;
+    }
+
+    if (!stream)
+    {
+	//printf("No stream found!\n");
+	return hash_err;
     }
 
     index = 0;

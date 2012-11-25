@@ -80,6 +80,7 @@ build:
 	@if [ ! -e amd_o5logon_long__Juniper.bin ]; then ./amd-compiler amd_o5logon_long n ;fi
 	@if [ ! -e amd_sha512_passsaltu__Juniper.bin ]; then ./amd-compiler amd_sha512_passsaltu n ;fi
 	@if [ ! -e amd_sha512_passsaltu_long__Juniper.bin ]; then ./amd-compiler amd_sha512_passsaltu_long n ;fi
+	@if [ ! -e amd_msoffice2007__Juniper.bin ]; then ./amd-compiler amd_msoffice2007 n ;fi
 	# NVidia
 	@if [ ! -e nvidia_md5_long__sm10.ptx ]; then ./nvidia-compiler nvidia_md5_long ns ;fi
 	@if [ ! -e nvidia_md5__sm10.ptx ]; then ./nvidia-compiler nvidia_md5 ns ;fi
@@ -148,6 +149,7 @@ build:
 	@if [ ! -e nvidia_o5logon_long__sm10.ptx ]; then ./nvidia-compiler nvidia_o5logon_long n ;fi
 	@if [ ! -e nvidia_sha512_passsaltu__sm10.ptx ]; then ./nvidia-compiler nvidia_sha512_passsaltu n ;fi
 	@if [ ! -e nvidia_sha512_passsaltu_long__sm10.ptx ]; then ./nvidia-compiler nvidia_sha512_passsaltu_long n ;fi
+	@if [ ! -e nvidia_msoffice2007__sm10.ptx ]; then ./nvidia-compiler nvidia_msoffice2007 n ;fi
 
 
 
