@@ -1,4 +1,4 @@
-/* rsa-privkey.c
+/* privkey.c
  *
  * hashkill - a hash cracking tool
  * Copyright (C) 2010 Milen Rangelov <gat3way@gat3way.eu>

@@ -46,14 +46,16 @@ static int fileversion = 0;
 static unsigned char docsalt[32];
 static unsigned char verifier[32];
 static unsigned char verifierhash[32];
-static unsigned char verifierhashinput[32];
-static unsigned char verifierhashvalue[32];
+static unsigned char verifierhashinput[64];
+static unsigned char verifierhashvalue[72];
 static int verifierhashsize;
 static int spincount;
 static int keybits;
 unsigned int saltsize;
 
-
+/* Office 2010/2013 */
+static const unsigned char encryptedVerifierHashInputBlockKey[] = { 0xfe, 0xa7, 0xd2, 0x76, 0x3b, 0x4b, 0x9e, 0x79 };
+static const unsigned char encryptedVerifierHashValueBlockKey[] = { 0xd7, 0xaa, 0x0f, 0x6d, 0x30, 0x61, 0x34, 0x4e };
 
 
 char myfilename[255];
@@ -493,7 +495,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
             token1[a]=token[a];
             a++;
         }
-        b64_pton(token1,docsalt,saltsize);
+        b64_pton(token1,docsalt,saltsize+4);
         //printf("saltValue=");
         free(token1);
 
@@ -515,7 +517,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
             token1[a]=token[a];
             a++;
         }
-        b64_pton(token1,verifierhashinput,16);
+        b64_pton(token1,verifierhashinput,32+4);
         //printf("encryptedVerifierHashInput=");
         free(token1);
 
@@ -537,7 +539,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
             token1[a]=token[a];
             a++;
         }
-        b64_pton(token1,verifierhashvalue,32);
+        b64_pton(token1,verifierhashvalue,64+4);
         //printf("encryptedVerifierHashValue=");
         free(token1);
     }
@@ -561,8 +563,6 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 
     if (fileversion == 2007)
     {
-	unsigned char enckey[256];
-	unsigned char X1[20];
 	unsigned char *ibuf[VECTORSIZE];
 	unsigned char *hbuf[VECTORSIZE];
 	unsigned int lens[VECTORSIZE];
@@ -598,12 +598,11 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    {
 		memcpy(hbuf[a],&b,4);
 		memcpy(hbuf[a]+4,ibuf[a],24);
+		bzero(hbuf[a]+24,32);
 		lens[a]=24;
 	    }
-	    hash_sha1_slow(hbuf,ibuf,lens);
+	    hash_sha1_unicode(hbuf,ibuf,lens);
 	}
-
-
 
 	for (a=0;a<vectorsize;a++)
 	{
@@ -642,10 +641,228 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	}
 	hash_sha1_slow(decryptedverifier,hbuf,lens);
 
-	
 	for (a=0;a<vectorsize;a++)
 	{
 	    if (memcmp(hbuf[a],decryptedverifierhash[a],16)==0)
+	    {
+		memcpy(salt2[a],"MS Office document  \0", 21);
+		*num=a;
+		return hash_ok;
+	    }
+	}
+    }
+    else if (fileversion == 2010)
+    {
+	unsigned char *ibuf[VECTORSIZE];
+	unsigned char *hbuf[VECTORSIZE];
+	unsigned char *sbuf[VECTORSIZE];
+	unsigned char *tbuf[VECTORSIZE];
+	unsigned int lens[VECTORSIZE];
+	unsigned char passutf16[64];
+	unsigned char *decryptedhashinput[VECTORSIZE];
+	unsigned char *decryptedhashvalue[VECTORSIZE];
+	AES_KEY aeskey;
+	char iv[16];
+
+	for (a=0;a<vectorsize;a++)
+	{
+	    ibuf[a]=alloca(128);
+	    hbuf[a]=alloca(128);
+	    bzero(passutf16,64);
+	    for (b=0;b<strlen(password[a]);b++) 
+	    {
+		passutf16[b*2]=password[a][b];
+		passutf16[b*2+1]=0;
+	    }
+	    bzero(ibuf[a],128);
+	    memcpy(ibuf[a],docsalt,saltsize);
+	    memcpy(ibuf[a]+saltsize,passutf16,strlen(password[a])*2);
+	    lens[a]=saltsize+strlen(password[a])*2;
+	}
+	hash_sha1_slow(ibuf,hbuf,lens);
+	for (a=0;a<vectorsize;a++) memcpy(ibuf[a],hbuf[a],20);
+
+	for (b=0;b<spincount;b++)
+	{
+	    for (a=0;a<vectorsize;a++)
+	    {
+		memcpy(hbuf[a],&b,4);
+		memcpy(hbuf[a]+4,ibuf[a],24);
+		bzero(hbuf[a]+24,32);
+		lens[a]=24;
+	    }
+	    hash_sha1_unicode(hbuf,ibuf,lens);
+	}
+
+	for (a=0;a<vectorsize;a++)
+	{
+	    sbuf[a]=alloca(64);
+	    bzero(sbuf[a],64);
+	    memcpy(&ibuf[a][20],encryptedVerifierHashInputBlockKey,8);
+	    memcpy(hbuf[a],ibuf[a],28);
+	    lens[a]=28;
+	}
+	hash_sha1_slow(hbuf,sbuf,lens);
+
+	for (a=0;a<vectorsize;a++)
+	{
+	    tbuf[a]=alloca(32);
+	    bzero(tbuf[a],64);
+	    memcpy(&ibuf[a][20],encryptedVerifierHashValueBlockKey,8);
+	    memcpy(hbuf[a],ibuf[a],28);
+	    lens[a]=28;
+	}
+	hash_sha1_slow(hbuf,tbuf,lens);
+
+
+	for (a=0;a<vectorsize;a++)
+	{
+	    decryptedhashinput[a]=alloca(32);
+	    memcpy(iv, docsalt, 16);
+	    memset(&aeskey, 0, sizeof(AES_KEY));
+	    if (keybits == 128)
+	    {
+    		hash_aes_set_decrypt_key(sbuf[a], 128, &aeskey);
+	    }
+	    else
+	    {
+		hash_aes_set_decrypt_key(sbuf[a], 256, &aeskey);
+	    }
+	    hash_aes_cbc_encrypt(verifierhashinput, decryptedhashinput[a], 16, &aeskey, iv, AES_DECRYPT);
+	}
+
+	for (a=0;a<vectorsize;a++)
+	{
+	    decryptedhashvalue[a]=alloca(32);
+	    memcpy(iv, docsalt, 16);
+	    memset(&aeskey, 0, sizeof(AES_KEY));
+	    if (keybits == 128)
+	    {
+    		hash_aes_set_decrypt_key(tbuf[a], 128, &aeskey);
+	    }
+	    else
+	    {
+		hash_aes_set_decrypt_key(tbuf[a], 256, &aeskey);
+	    }
+	    hash_aes_cbc_encrypt(verifierhashvalue, decryptedhashvalue[a], 32, &aeskey, iv, AES_DECRYPT);
+	}
+
+
+	for (a=0;a<vectorsize;a++) lens[a]=16;
+	hash_sha1_slow(decryptedhashinput,hbuf,lens);
+	for (a=0;a<vectorsize;a++)
+	{
+	    if (memcmp(hbuf[a],decryptedhashvalue[a],20)==0)
+	    {
+		memcpy(salt2[a],"MS Office document  \0", 21);
+		*num=a;
+		return hash_ok;
+	    }
+	}
+    }
+    else if (fileversion == 2013)
+    {
+	unsigned char *ibuf[VECTORSIZE];
+	unsigned char *hbuf[VECTORSIZE];
+	unsigned char *sbuf[VECTORSIZE];
+	unsigned char *tbuf[VECTORSIZE];
+	unsigned int lens[VECTORSIZE];
+	unsigned char passutf16[64];
+	unsigned char *decryptedhashinput[VECTORSIZE];
+	unsigned char *decryptedhashvalue[VECTORSIZE];
+	AES_KEY aeskey;
+	char iv[16];
+
+	for (a=0;a<vectorsize;a++)
+	{
+	    ibuf[a]=alloca(128);
+	    hbuf[a]=alloca(128);
+	    bzero(passutf16,64);
+	    for (b=0;b<strlen(password[a]);b++) 
+	    {
+		passutf16[b*2]=password[a][b];
+		passutf16[b*2+1]=0;
+	    }
+	    bzero(ibuf[a],128);
+	    memcpy(ibuf[a],docsalt,saltsize);
+	    memcpy(ibuf[a]+saltsize,passutf16,strlen(password[a])*2);
+	    lens[a]=saltsize+strlen(password[a])*2;
+	}
+	hash_sha512_unicode(ibuf,hbuf,lens);
+
+	for (a=0;a<vectorsize;a++) memcpy(ibuf[a],hbuf[a],64);
+
+	for (b=0;b<spincount;b++)
+	{
+	    for (a=0;a<vectorsize;a++)
+	    {
+		memcpy(hbuf[a],&b,4);
+		memcpy(hbuf[a]+4,ibuf[a],68);
+		bzero(hbuf[a]+68,32);
+		lens[a]=68;
+	    }
+	    hash_sha512_unicode(hbuf,ibuf,lens);
+	}
+
+	for (a=0;a<vectorsize;a++)
+	{
+	    sbuf[a]=alloca(128);
+	    bzero(sbuf[a],64);
+	    memcpy(&ibuf[a][64],encryptedVerifierHashInputBlockKey,8);
+	    memcpy(hbuf[a],ibuf[a],72);
+	    lens[a]=72;
+	}
+	hash_sha512_unicode(hbuf,sbuf,lens);
+
+	for (a=0;a<vectorsize;a++)
+	{
+	    tbuf[a]=alloca(128);
+	    bzero(tbuf[a],64);
+	    memcpy(&ibuf[a][64],encryptedVerifierHashValueBlockKey,8);
+	    memcpy(hbuf[a],ibuf[a],72);
+	    lens[a]=72;
+	}
+	hash_sha512_unicode(hbuf,tbuf,lens);
+
+
+	for (a=0;a<vectorsize;a++)
+	{
+	    decryptedhashinput[a]=alloca(32);
+	    memcpy(iv, docsalt, 16);
+	    memset(&aeskey, 0, sizeof(AES_KEY));
+	    if (keybits == 128)
+	    {
+    		hash_aes_set_decrypt_key(sbuf[a], 128, &aeskey);
+	    }
+	    else
+	    {
+		hash_aes_set_decrypt_key(sbuf[a], 256, &aeskey);
+	    }
+	    hash_aes_cbc_encrypt(verifierhashinput, decryptedhashinput[a], 16, &aeskey, iv, AES_DECRYPT);
+	}
+
+	for (a=0;a<vectorsize;a++)
+	{
+	    decryptedhashvalue[a]=alloca(32);
+	    memcpy(iv, docsalt, 16);
+	    memset(&aeskey, 0, sizeof(AES_KEY));
+	    if (keybits == 128)
+	    {
+    		hash_aes_set_decrypt_key(tbuf[a], 128, &aeskey);
+	    }
+	    else
+	    {
+		hash_aes_set_decrypt_key(tbuf[a], 256, &aeskey);
+	    }
+	    hash_aes_cbc_encrypt(verifierhashvalue, decryptedhashvalue[a], 32, &aeskey, iv, AES_DECRYPT);
+	}
+
+	for (a=0;a<vectorsize;a++) lens[a]=16;
+	hash_sha512_unicode(decryptedhashinput,hbuf,lens);
+
+	for (a=0;a<vectorsize;a++)
+	{
+	    if (memcmp(hbuf[a],decryptedhashvalue[a],20)==0)
 	    {
 		memcpy(salt2[a],"MS Office document  \0", 21);
 		*num=a;
