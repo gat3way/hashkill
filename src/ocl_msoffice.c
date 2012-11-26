@@ -624,6 +624,40 @@ static hash_stat check_msoffice(unsigned char *key, char *pwd)
 	    return hash_ok;
 	}
     }
+    else
+    {
+	unsigned char decryptedhashinput[32];
+	unsigned char decryptedhashvalue[32];
+	unsigned char hbuf[128];
+	unsigned char sbuf[128];
+	unsigned char tbuf[128];
+	AES_KEY aeskey;
+	unsigned char iv[16];
+	int len;
+	SHA512_CTX ctx;
+
+	memcpy(sbuf,key,64);
+	memcpy(tbuf,key+64,64);
+	memset(&aeskey,0,sizeof(AES_KEY));
+	memcpy(iv,docsalt,16);
+	if (keybits==128) OAES_SET_DECRYPT_KEY(sbuf, 128, &aeskey);
+	else OAES_SET_DECRYPT_KEY(sbuf, 256, &aeskey);
+	OAES_CBC_ENCRYPT(verifierhashinput,decryptedhashinput,16,&aeskey,iv,AES_DECRYPT);
+	memset(&aeskey,0,sizeof(AES_KEY));
+	memcpy(iv,docsalt,16);
+	if (keybits==128) OAES_SET_DECRYPT_KEY(tbuf, 128, &aeskey);
+	else OAES_SET_DECRYPT_KEY(tbuf, 256, &aeskey);
+	OAES_CBC_ENCRYPT(verifierhashvalue,decryptedhashvalue,32,&aeskey,iv,AES_DECRYPT);
+	len=16;
+	SHA512_Init(&ctx);
+	SHA512_Update(&ctx, decryptedhashinput, len);
+	SHA512_Final(hbuf, &ctx);
+	if (memcmp(decryptedhashvalue,hbuf,32)==0)
+	{
+	    return hash_ok;
+	}
+    }
+
     return hash_err;
 }
 
@@ -667,7 +701,7 @@ static void ocl_msoffice_crack_callback(char *line, int self)
     int a,c,d,e;
     cl_uint16 addline;
     cl_uint16 salt;
-    unsigned char key[48];
+    unsigned char key[128];
     char plainimg[MAXCAND+1];
     size_t gws,gws1;
 
@@ -677,7 +711,6 @@ static void ocl_msoffice_crack_callback(char *line, int self)
     gws1 = gws*wthreads[self].vectorsize;
     if (gws1==0) gws1=64;
     if (gws==0) gws=64;
-
 
     /* setup addline */
     addline.s0=addline.s1=addline.s2=addline.s3=addline.s4=addline.s5=addline.s6=addline.s7=addline.sF=0;
@@ -705,15 +738,14 @@ static void ocl_msoffice_crack_callback(char *line, int self)
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
     _clFinish(rule_oclqueue[self]);
 
-
-    for (a=0;a<(spincount/1000);a++)
+    for (a=0;a<((spincount)/(1000));a++)
     {
 	if (attack_over!=0) pthread_exit(NULL);
 	salt.s8=a*1000;
 	_clSetKernelArg(rule_kernelbl1[self], 2, sizeof(cl_uint16), (void*) &salt);
 	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
-        wthreads[self].tries+=(gws1)/(spincount/1000);
+    	wthreads[self].tries+=(gws1)/(spincount/1000);
     }
 
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelend[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
@@ -724,10 +756,20 @@ int i;
 printf("%s - ",rule_images[self]);
 for (i=0;i<64;i++) printf("%02x",rule_ptr[self][i]&255);
 printf("\n");
-printf("%s - ",rule_images[self]+32);
 for (i=64;i<128;i++) printf("%02x",rule_ptr[self][i]&255);
 printf("\n");
+printf("%s - ",rule_images[self]+32);
+for (i=128;i<192;i++) printf("%02x",rule_ptr[self][i]&255);
+printf("\n");
+for (i=192;i<256;i++) printf("%02x",rule_ptr[self][i]&255);
+printf("\n");
+printf("%s - ",rule_images[self]+64);
+for (i=256;i<320;i++) printf("%02x",rule_ptr[self][i]&255);
+printf("\n");
+for (i=320;i<384;i++) printf("%02x",rule_ptr[self][i]&255);
+printf("\n");
 */
+
     for (a=0;a<ocl_rule_workset[self];a++)
     {
         for (c=0;c<wthreads[self].vectorsize;c++)
@@ -775,18 +817,17 @@ void* ocl_rule_msoffice_thread(void *arg)
     size_t nvidia_local_work_size[3]={64,1,1};
     size_t amd_local_work_size[3]={64,1,1};
     int self;
+    int factor;
 
     memcpy(&self,arg,sizeof(int));
     pthread_mutex_lock(&biglock);
 
-
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
     ocl_rule_workset[self]=128*128;
-    if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=4;
-    if (ocl_gpu_double) ocl_rule_workset[self]*=2;
+    if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=2;
+    if (ocl_gpu_double) ocl_rule_workset[self]*=4;
     if (interactive_mode==1) ocl_rule_workset[self]/=8;
-
 
     if (fileversion==2007)
     {
@@ -828,8 +869,24 @@ void* ocl_rule_msoffice_thread(void *arg)
 	    else wthreads[self].vectorsize=1;
 	}
     }
-
-
+    else if (fileversion==2013)
+    {
+	hash_ret_len1=128;
+	ocl_rule_workset[self]/=2;
+	if (wthreads[self].type==nv_thread)
+	{
+	    wthreads[self].vectorsize=1;
+	}
+	else
+	{
+	    if (wthreads[self].ocl_have_old_ati==1)
+	    {
+		wlog("Warning: AMD 4xxx GPUs not supported%s\n","");
+		return NULL;
+	    }
+	    wthreads[self].vectorsize=1;
+	}
+    }
 
     rule_ptr[self] = malloc(ocl_rule_workset[self]*hash_ret_len1*wthreads[self].vectorsize);
     rule_counts[self][0]=0;
@@ -844,23 +901,27 @@ void* ocl_rule_msoffice_thread(void *arg)
     rule_found_buf[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, 4, NULL, &err );
 
 
+    if (fileversion==2007) factor=20;
+    else if (fileversion==2010) factor=20;
+    else factor=64;
+
     rule_found_ind[self]=malloc(ocl_rule_workset[self]*sizeof(cl_uint));
     bzero(rule_found_ind[self],sizeof(uint)*ocl_rule_workset[self]);
     rule_found_ind_buf[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*sizeof(cl_uint), NULL, &err );
     _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE, 0, 4, &found, 0, NULL, NULL);
     rule_images_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
     rule_images2_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
-    rule_images3_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*20, NULL, &err );
+    rule_images3_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*factor, NULL, &err );
     rule_sizes_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint), NULL, &err );
     rule_sizes2_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint), NULL, &err );
     rule_sizes[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
     rule_sizes2[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
     rule_images[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
     rule_images2[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
-    rule_images3[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*20);
+    rule_images3[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*factor);
     bzero(&rule_images[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
     bzero(&rule_images2[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
-    bzero(&rule_images3[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*20);
+    bzero(&rule_images3[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*factor);
     bzero(rule_sizes[self],ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
     bzero(rule_sizes2[self],ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
     _clSetKernelArg(rule_kernel[self], 0, sizeof(cl_mem), (void*) &rule_images2_buf[self]);

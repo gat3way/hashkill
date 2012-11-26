@@ -440,7 +440,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
         token = memmem(startptr,strlen(stream+8),"saltSize=\"",10);
         if (!token)
         {
-            //printf("no keyBits parameters in XML!\n");
+            //printf("no saltSize parameters in XML!\n");
             free(buf);
             free(stream);
             return hash_err;
@@ -806,6 +806,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	}
 	hash_sha512_unicode(ibuf,hbuf,lens);
 
+
 	for (a=0;a<vectorsize;a++) memcpy(ibuf[a],hbuf[a],64);
 
 	for (b=0;b<spincount;b++)
@@ -819,6 +820,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    }
 	    hash_sha512_unicode(hbuf,ibuf,lens);
 	}
+
 
 	for (a=0;a<vectorsize;a++)
 	{
@@ -839,7 +841,6 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    lens[a]=72;
 	}
 	hash_sha512_unicode(hbuf,tbuf,lens);
-
 
 	for (a=0;a<vectorsize;a++)
 	{
@@ -878,7 +879,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 
 	for (a=0;a<vectorsize;a++)
 	{
-	    if (memcmp(hbuf[a],decryptedhashvalue[a],20)==0)
+	    if (memcmp(hbuf[a],decryptedhashvalue[a],32)==0)
 	    {
 		memcpy(salt2[a],"MS Office document  \0", 21);
 		*num=a;
