@@ -525,6 +525,7 @@ static void ocl_dmg_crack_callback(char *line, int self)
     cl_uint16 salt;
     unsigned char key[48];
     char plainimg[MAXCAND+1];
+    size_t gws,gws1;
 
     /* setup addline */
     addline.s0=addline.s1=addline.s2=addline.s3=addline.s4=addline.s5=addline.s6=addline.s7=addline.sF=0;
@@ -545,11 +546,18 @@ static void ocl_dmg_crack_callback(char *line, int self)
     pthread_mutex_lock(&wthreads[self].tempmutex);
     pthread_mutex_unlock(&wthreads[self].tempmutex);
 
+    if (rule_counts[self][0]==-1) return;
+    gws = (rule_counts[self][0] / wthreads[self].vectorsize);
+    while ((gws%64)!=0) gws++;
+    gws1 = gws*wthreads[self].vectorsize;
+    if (gws1==0) gws1=64;
+    if (gws==0) gws=64;
+
+
     wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize);
-    size_t nws=ocl_rule_workset[self]*wthreads[self].vectorsize;
-    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel2[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel2[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
     _clFinish(rule_oclqueue[self]);
-    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
+    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 
     _clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, hash_ret_len1*wthreads[self].vectorsize*ocl_rule_workset[self], rule_ptr[self], 0, NULL, NULL);
     for (a=0;a<ocl_rule_workset[self];a++)
@@ -680,7 +688,11 @@ hash_stat ocl_rule_dmg(void)
     int err;
     int worker_thread_keys[32];
 
-    if (hash_err == load_dmg(hashlist_file)) exit(1);
+    if (hash_err == load_dmg(hashlist_file)) 
+    {
+	elog("Could not load the dmg file!%s\n","");
+	return hash_err;
+    }
 
     /* setup initial OpenCL vars */
     int numplatforms=0;
