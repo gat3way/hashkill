@@ -210,6 +210,7 @@ hash_stat load_plugin(void)
 	void(*register_des_ecb_encrypt)(void (*des_ecb_encrypt)(const unsigned char *key, int keysize, const unsigned char *in[VECTORSIZE], int len, unsigned char *out[VECTORSIZE], int mode)) = dlsym(dlhandle, "register_des_ecb_encrypt");
 	void(*register_des_ecb_decrypt)(void (*des_ecbdecrypt)(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *out, int mode)) = dlsym(dlhandle, "register_des_ecb_decrypt");
 	void(*register_des_cbc_encrypt)(void (*des_ecb_encrypt)(const unsigned char *key[VECTORSIZE], int keysize, const unsigned char *in[VECTORSIZE], int len[VECTORSIZE], unsigned char *out[VECTORSIZE], unsigned char *iv[VECTORSIZE], int mode)) = dlsym(dlhandle, "register_des_cbc_encrypt");
+	void(*register_rc4_encrypt)(void (*des_rc4_encrypt)(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *out)) = dlsym(dlhandle, "register_rc4_encrypt");
 	void(*register_lm)(void (*lm)(const unsigned char *in[VECTORSIZE], unsigned char *out[VECTORSIZE])) = dlsym(dlhandle, "register_lm");
 	void(*register_lm_slow)(void (*lm_slow)(const unsigned char *in[VECTORSIZE], unsigned char *out[VECTORSIZE])) = dlsym(dlhandle, "register_lm_slow");
 	void(*register_aes_cbc_encrypt)(void (*aes_cbc_encrypt)(const unsigned char *in,unsigned char *out,unsigned long length,AES_KEY *key,unsigned char ivec[16],int oper)) = dlsym(dlhandle, "register_aes_cbc_encrypt");
@@ -258,6 +259,7 @@ hash_stat load_plugin(void)
 	    register_des_ecb_encrypt(hash_proto_des_ecb_encrypt);
 	    register_des_ecb_decrypt(hash_proto_des_ecb_decrypt);
 	    register_des_cbc_encrypt(hash_proto_des_cbc_encrypt);
+	    register_rc4_encrypt(hash_proto_rc4_encrypt);
 	    register_lm(hash_proto_lm);
 	    register_lm_slow(hash_proto_lm_slow);
 	    register_aes_cbc_encrypt(hash_proto_aes_cbc_encrypt);

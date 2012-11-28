@@ -40,6 +40,7 @@
 #include <openssl/rsa.h>
 #include <openssl/hmac.h>
 #include <openssl/ripemd.h>
+#include <openssl/rc4.h>
 #include <openssl/aes.h>
 #include <openssl/md4.h>
 #include <openssl/des.h>
@@ -1089,6 +1090,17 @@ void hash_proto_des_cbc_encrypt(const unsigned char *key[VECTORSIZE], int keysiz
 
     //DES_CBC(key,in,out,iv,len);
 }
+
+
+void hash_proto_rc4_encrypt(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *out)
+{
+    RC4_KEY rc4key;
+
+    RC4_set_key(&rc4key, keysize, key);
+    RC4(&rc4key, len, in, out);
+}
+
+
 
 // TODO: handle openssl case
 void hash_proto_lm(const unsigned char *in[VECTORSIZE], unsigned char *out[VECTORSIZE])
