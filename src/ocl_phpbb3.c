@@ -98,7 +98,7 @@ static int b64_pton(char const *src, char *target)
     for (j=0; j<65; j++) if (cov_2char[j]==src[21]) c1=(j&255);
     for (j=0; j<65; j++) if (cov_2char[j]==src[20]) c2=(j&255);
     y=(c1<<26)|(c2<<20)|0;//(c3<<14)|(c4<<8);
-    target[15]=(y>>8)&255;
+    target[15]=(y>>20)&255;
     target[16]=0;
     return 0;
 }
@@ -224,7 +224,7 @@ static void ocl_phpbb3_crack_callback(char *line, int self)
 	    	    e=(a)*wthreads[self].vectorsize+c;
                     memcpy(base64,mylist->hash,34);
                     b64_pton(base64+12,mhash);
-    		    if (memcmp(mhash, (char *)rule_ptr[self]+(e)*hash_ret_len1, hash_ret_len1-1) == 0)
+    		    if (memcmp(mhash, (char *)rule_ptr[self]+(e)*hash_ret_len1, hash_ret_len1) == 0)
     		    {
             		int flag = 0;
                 	strcpy(plain,&rule_images[self][0]+(e*MAX));
