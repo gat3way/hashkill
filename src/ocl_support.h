@@ -249,6 +249,7 @@ hash_stat ocl_rule_msoffice(void);
 
 
 
+
 /* supported plugins struct array*/
 struct ocl_supported_plugins_s
 {

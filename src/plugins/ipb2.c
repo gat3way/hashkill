@@ -55,12 +55,16 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     char line[HASHFILE_MAX_LINE_LENGTH];
     char line2[HASHFILE_MAX_LINE_LENGTH];
     char *temp_str;
+    char *s;
 
     if (!hashline) return hash_err;
     if (strlen(hashline)<2) return hash_err;
 
     snprintf(line, HASHFILE_MAX_LINE_LENGTH-1, "%s", hashline);
-    strcpy(username, strtok(line, ":"));
+    s = strtok(line, ":");
+    if (!s) return hash_err;
+    strncpy(username,s ,HASHFILE_MAX_LINE_LENGTH-2);
+    username[HASHFILE_MAX_LINE_LENGTH-1]=0;
     temp_str=strtok(NULL,":");
     if (temp_str) 
     {
@@ -210,5 +214,5 @@ void get_vector_size(int size)
 
 int get_salt_size(void)
 {
-    return 6;
+    return 8;
 }

@@ -68,7 +68,7 @@ static unsigned char verifierhashvalue[72];
 static int verifierhashsize;
 static int spincount;
 static int keybits;
-unsigned int saltsize;
+static unsigned int saltsize;
 
 /* Office 2010/2013 */
 static const unsigned char hibk[] = { 0xfe, 0xa7, 0xd2, 0x76, 0x3b, 0x4b, 0x9e, 0x79 };
@@ -76,13 +76,13 @@ static const unsigned char hvbk[] = { 0xd7, 0xaa, 0x0f, 0x6d, 0x30, 0x61, 0x34, 
 
 
 /* Get buffer+offset for sector */
-char* get_buf_offset(int sector)
+static char* get_buf_offset(int sector)
 {
     return (buf+(sector+1)*sectorsize);
 }
 
 /* Get sector offset for sector */
-int get_offset(int sector)
+static int get_offset(int sector)
 {
     return ((sector+1)*sectorsize);
 }
@@ -90,14 +90,14 @@ int get_offset(int sector)
 
 
 /* Get FAT table for a given sector */
-int* get_fat(int sector)
+static int* get_fat(int sector)
 {
     char *fat=NULL;
     int difatn=0;
 
     if (sector<(sectorsize/4))
     {
-        fat=get_buf_offset(0);
+        fat=get_buf_offset(difat[0]);
         return (int*)fat;
     }
     while ((!fat)&&(difatn<109))
@@ -110,7 +110,7 @@ int* get_fat(int sector)
 
 
 /* Get mini FAT table for a given minisector */
-int* get_mtab(int sector)
+static int* get_mtab(int sector)
 {
     int *fat=NULL;
     char *mtab=NULL;
@@ -136,7 +136,7 @@ int* get_mtab(int sector)
 
 
 /* Get minisection sector nr per given mini sector offset */
-int get_minisection_sector(int sector)
+static int get_minisection_sector(int sector)
 {
     int *fat=NULL;
     int sectn=0;
@@ -164,7 +164,7 @@ int get_minisection_sector(int sector)
 
 
 /* Get minisection offset */
-int get_mini_offset(int sector)
+static int get_mini_offset(int sector)
 {
     return ((sector*64)%(sectorsize));
 }
@@ -176,7 +176,7 @@ int get_mini_offset(int sector)
    like that with EncryptionStream (it's usually around 1KB, far below 4KB)
    Anyway, this should be handled properly some day.
 */
-char* read_stream_mini(int start, int size)
+static char* read_stream_mini(int start, int size)
 {
     char *lbuf=malloc(4);
     int lsize=0;

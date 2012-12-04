@@ -482,6 +482,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     unsigned char passutf16[64];
     char iv[16];
 
+/*
     if ((verifierhashsize==16)&&(type==0))
     {
         RC4_KEY key;
@@ -538,7 +539,9 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    }
 	}
     }
-    else if ((type==1)&&(verifierhashsize==16))
+    else
+    */
+    if ((type==1)&&(verifierhashsize==16))
     {
         RC4_KEY key;
         char *decryptedverifier[20];
@@ -579,8 +582,6 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    RC4(&key, 20, verifierhash, decryptedverifierhash[a]);
 	    lens[a]=16;
 	}
-	//hash_sha1_slow(decryptedverifier,hbuf,lens);
-printf("here!\n");
 	hash_md5_unicode(decryptedverifier,hbuf,lens);
 	for (a=0;a<vectorsize;a++)
 	{

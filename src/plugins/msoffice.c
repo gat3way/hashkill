@@ -102,7 +102,7 @@ int* get_fat(int sector)
 
     if (sector<(sectorsize/4))
     {
-        fat=get_buf_offset(0);
+        fat=get_buf_offset(difat[0]);
         return (int*)fat;
     }
     while ((!fat)&&(difatn<109))
@@ -914,5 +914,5 @@ void get_vector_size(int size)
 
 int get_salt_size(void)
 {
-    return 1;
+    return 2;
 }

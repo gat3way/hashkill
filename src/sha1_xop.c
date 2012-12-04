@@ -598,18 +598,6 @@ hash_stat SHA1_XOP(char *plains[VSIZE], char *hash[VSIZE], int lens[VSIZE])
 #define udata102 ((UINT4 *)(&plains[9][32]))
 #define udata112 ((UINT4 *)(&plains[10][32]))
 #define udata122 ((UINT4 *)(&plains[11][32]))
-#define udata130 ((UINT4 *)plains[12])
-#define udata140 ((UINT4 *)plains[13])
-#define udata150 ((UINT4 *)plains[14])
-#define udata160 ((UINT4 *)plains[15])
-#define udata131 ((UINT4 *)(&plains[12][16]))
-#define udata141 ((UINT4 *)(&plains[13][16]))
-#define udata151 ((UINT4 *)(&plains[14][16]))
-#define udata161 ((UINT4 *)(&plains[15][16]))
-#define udata132 ((UINT4 *)(&plains[12][32]))
-#define udata142 ((UINT4 *)(&plains[13][32]))
-#define udata152 ((UINT4 *)(&plains[14][32]))
-#define udata162 ((UINT4 *)(&plains[15][32]))
 
 
     // load input into m128i

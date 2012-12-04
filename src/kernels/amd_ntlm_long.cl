@@ -5,8 +5,6 @@
 
 void ntlm_long1( __global uint4 *hashes, const uint4 input, const uint size,  __global uint4 *plains, __global uint *bitmaps, __global uint *found,  uint4 singlehash, uint x0) 
 {  
-
-
 uint SIZE;  
 uint a,b,c,d, tmp1, tmp2; 
 uint w0, w1, w2, w3, w4, w5, w6, w7, w14,x1,x2,x3;
@@ -181,6 +179,8 @@ SIZE = (uint)(size);
 i=table[get_global_id(0)]<<16;
 j=table[get_global_id(1)];
 k=(i|j);
+
+
 
 
 input=(uint4)(chbase1.s0,chbase1.s1,chbase1.s2,chbase1.s3);
