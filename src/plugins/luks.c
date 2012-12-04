@@ -202,19 +202,16 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     myfile = open(filename, O_RDONLY|O_LARGEFILE);
     if (myfile<1) 
     {
-	elog("Open %s failed!\n",filename);
 	return hash_err;
     }
     
     if (read(myfile,&myphdr,sizeof(struct luks_phdr))<sizeof(struct luks_phdr)) 
     {
-	elog("%s: cannot read LUKS header!\n", filename);
 	return hash_err;
     }
     
     if (strcmp(myphdr.magic, "LUKS\xba\xbe") !=0 )
     {
-	elog("%s: bad LUKS header!\n", filename);
 	return hash_err;
     }
     
@@ -223,12 +220,6 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	elog("Only AES cipher supported. Used cipher: %s\n",myphdr.cipherName);
 	return hash_err;
     }
-    
-    hlog("Ciphername: %s\n", myphdr.cipherName);
-    hlog("Ciphermode: %s\n", myphdr.cipherMode);
-    hlog("Keybytes: %d\n", ntohl(myphdr.keyBytes));
-    hlog("Hashspec: %s\n", myphdr.hashSpec);
-    hlog("mkdigestiterations: %d\n", htonl(myphdr.mkDigestIterations));
 
     for (cnt=0;cnt<LUKS_NUMKEYS;cnt++)
     {
@@ -238,6 +229,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	    bestiter=ntohl(myphdr.keyblock[cnt].passwordIterations);
 	}
     }
+
     hlog("Best keyslot %d: - iteration count %d - stripes: %d \n", bestslot, ntohl(myphdr.keyblock[bestslot].passwordIterations),ntohl(myphdr.keyblock[bestslot].stripes));
 
     afsize = af_sectors(ntohl(myphdr.keyBytes),ntohl(myphdr.keyblock[bestslot].stripes));
