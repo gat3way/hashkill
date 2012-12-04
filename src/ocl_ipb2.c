@@ -1692,17 +1692,16 @@ static void ocl_ipb2_crack_callback(char *line, int self)
     if ((line[0]==0)||(ocl_rule_opt_counts[self]>=wthreads[self].vectorsize))
     {
         mylist = hash_list;
+        wthreads[self].tries+=(ocl_rule_workset[self]*ocl_rule_opt_counts[self]);
         while (mylist)
         {
             if (mylist->salt2[0]==1) {mylist=mylist->next;continue;}
-
             _clSetKernelArg(rule_kernel[self], 7, sizeof(cl_uint16), (void*) &addline1[self]);
             _clSetKernelArg(rule_kernel[self], 8, sizeof(cl_uint16), (void*) &addline2[self]);
 
             if (attack_over!=0) pthread_exit(NULL);
             pthread_mutex_lock(&wthreads[self].tempmutex);
             pthread_mutex_unlock(&wthreads[self].tempmutex);
-            wthreads[self].tries+=ocl_rule_workset[self]*ocl_rule_opt_counts[self];
 
             /* setup salt */
 	    salt.s0=salt.s1=salt.s2=salt.s3=salt.s4=salt.s5=salt.s6=salt.s7=salt.sF=0;
