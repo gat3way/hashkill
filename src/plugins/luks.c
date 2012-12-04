@@ -18,14 +18,18 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+
+#define _LARGEFILE64_SOURCE
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <alloca.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <fcntl.h>
 #include <arpa/inet.h>
+#include <openssl/sha.h>
 #include "plugin.h"
 #include "err.h"
 #include "hashinterface.h"
@@ -54,18 +58,21 @@ struct luks_phdr {
      uint32_t  mkDigestIterations;
      char      uuid[UUID_STRING_L];
      struct {
-	           uint32_t active;
-                   uint32_t passwordIterations;
-                   char     passwordSalt[LUKS_SALTSIZE];
-                   uint32_t keyMaterialOffset;
-                   uint32_t stripes;
-            } keyblock[LUKS_NUMKEYS];
+           uint32_t active;
+           uint32_t passwordIterations;
+           char     passwordSalt[LUKS_SALTSIZE];
+           uint32_t keyMaterialOffset;
+           uint32_t stripes;
+    } keyblock[LUKS_NUMKEYS];
 } myphdr;
 
 
+static char myfilename[255];
+static unsigned char *cipherbuf;
+static int afsize;
+static unsigned int bestslot=0;
 
 
-char myfilename[255];
 
 char * hash_plugin_summary(void)
 {
@@ -85,12 +92,114 @@ char * hash_plugin_detailed(void)
 }
 
 
+void XORblock(char *src1, char *src2, char *dst, int n)
+{
+    int j;
+
+    for(j=0; j<n; j++)
+    dst[j] = src1[j] ^ src2[j];
+}
+
+
+
+static int diffuse(unsigned char *src, unsigned char *dst, int size)
+{
+    uint32_t i;
+    uint32_t IV;   /* host byte order independent hash IV */
+    SHA_CTX ctx;
+    int fullblocks = (size)/20;
+    int padding = size%20;
+
+    for (i=0; i < fullblocks; i++) 
+    {
+	IV = htonl(i);
+	SHA1_Init(&ctx);
+	SHA1_Update(&ctx,&IV,4);
+	SHA1_Update(&ctx,src+20*i,20);
+	SHA1_Final(dst+20*i,&ctx);
+    }
+
+    if(padding) 
+    {
+	IV = htonl(fullblocks);
+	SHA1_Init(&ctx);
+	SHA1_Update(&ctx,&IV,4);
+	SHA1_Update(&ctx,src+20*fullblocks,padding);
+	SHA1_Final(dst+20*fullblocks,&ctx);
+    }
+    return 0;
+}
+
+
+
+extern int AF_merge(unsigned char *src, unsigned char *dst, int afsize, int stripes)
+{
+    int i;
+    char *bufblock;
+    int blocksize=afsize/stripes;
+
+    bufblock = alloca(blocksize);
+
+    memset(bufblock,0,blocksize);
+    for(i=0; i<(stripes-1); i++) 
+    {
+	XORblock((char*)(src+(blocksize*i)),bufblock,bufblock,blocksize);
+	diffuse((unsigned char *)bufblock,(unsigned char *)bufblock,blocksize);
+    }
+    XORblock((char *)(src+blocksize*(stripes-1)),bufblock,(char*)dst,blocksize);
+    return 0;
+}
+
+
+
+
+static int af_sectors(int blocksize, int blocknumbers)
+{
+    int af_size;
+
+    af_size = blocksize*blocknumbers;
+    af_size = (af_size+511)/512;
+    af_size*=512;
+    return af_size;
+}
+
+
+static void decrypt_aes_cbc_essiv(unsigned char *src, unsigned char *dst, unsigned char *key, int startsector,int size)
+{
+    AES_KEY aeskey;
+    unsigned char essiv[16];
+    unsigned char essivhash[32];
+    int a;
+    SHA256_CTX ctx;
+    unsigned char sectorbuf[16];
+    unsigned char zeroiv[16];
+
+    for (a=0;a<(size/512);a++)
+    {
+	SHA256_Init(&ctx);
+	SHA256_Update(&ctx, key, ntohl(myphdr.keyBytes));
+	SHA256_Final(essivhash, &ctx);
+	bzero(sectorbuf,16);
+	bzero(zeroiv,16);
+	bzero(essiv,16);
+	memcpy(sectorbuf,&a,4);
+	hash_aes_set_encrypt_key(essivhash, ntohl(myphdr.keyBytes)*8, &aeskey);
+	hash_aes_cbc_encrypt(sectorbuf, essiv, 16, &aeskey, zeroiv, AES_ENCRYPT);
+	hash_aes_set_decrypt_key(key, ntohl(myphdr.keyBytes)*8, &aeskey);
+	hash_aes_cbc_encrypt((src+a*512), (dst+a*512), 512, &aeskey, essiv, AES_DECRYPT);
+    }
+}
+
+
+
 hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 {
     int myfile;
-    myfile = open(filename, O_RDONLY);
     int cnt;
-    
+    int readbytes;
+    unsigned int bestiter=0xFFFFFFFF;
+
+    myfile = open(filename, O_RDONLY|O_LARGEFILE);
     if (myfile<1) 
     {
 	elog("Open %s failed!\n",filename);
@@ -121,84 +230,72 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     hlog("Hashspec: %s\n", myphdr.hashSpec);
     hlog("mkdigestiterations: %d\n", htonl(myphdr.mkDigestIterations));
 
-    
-    for (cnt=0;cnt<=LUKS_NUMKEYS;cnt++)
-    hlog("Keyslot %d: active: %d - iteration count %d\n", cnt, ntohl(myphdr.keyblock[cnt].active), ntohl(myphdr.keyblock[cnt].passwordIterations));
-    
-    
+    for (cnt=0;cnt<LUKS_NUMKEYS;cnt++)
+    {
+	if ((ntohl(myphdr.keyblock[cnt].passwordIterations)<bestiter)&&(ntohl(myphdr.keyblock[cnt].passwordIterations)>1))
+	{
+	    bestslot=cnt;
+	    bestiter=ntohl(myphdr.keyblock[cnt].passwordIterations);
+	}
+    }
+    hlog("Best keyslot %d: - iteration count %d - stripes: %d \n", bestslot, ntohl(myphdr.keyblock[bestslot].passwordIterations),ntohl(myphdr.keyblock[bestslot].stripes));
+
+    afsize = af_sectors(ntohl(myphdr.keyBytes),ntohl(myphdr.keyblock[bestslot].stripes));
+    cipherbuf = malloc(afsize);
+
+    lseek(myfile, ntohl(myphdr.keyblock[bestslot].keyMaterialOffset)*512, SEEK_SET);
+    readbytes = read(myfile, cipherbuf, afsize);
+
+    if (readbytes<0)
+    {
+	free(cipherbuf);
+	close(myfile);
+	return hash_err;
+    }
+
+
 
     strcpy(myfilename, filename);
     (void)hash_add_username(filename);
-    (void)hash_add_hash("LUKS device",0);
-    (void)hash_add_salt("");
-    (void)hash_add_salt2("                              ");
+    (void)hash_add_hash("LUKS device  ",0);
+    (void)hash_add_salt(" ");
+    (void)hash_add_salt2(" ");
 
     return hash_ok;
 }
 
 
-hash_stat hash_plugin_check_hash(const char *hash, const char *password, const char *salt,  char * __restrict salt2, const char *username)
+hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSIZE], const char *salt, char *salt2[VECTORSIZE], const char *username, int *num, int threadid)
 {
-    int cnt,fd, readbytes,smth=0;
-    char keycandidate[255];
-    char masterkeycandidate[255];
-    char masterkeycandidate2[255];
+    unsigned char keycandidate[255];
+    unsigned char masterkeycandidate[255];
+    unsigned char masterkeycandidate2[255];
+    int a;
 
-    char *splittedkey = malloc(1024*255);
-    char *cipherbuf = malloc(1024*255);
-    
-    
-    if (strlen(password)<2) return hash_err;
-    /* For each active keyslot */
-    for (cnt = 0;cnt <= LUKS_NUMKEYS;cnt++)
-    /* Try to decrypt master key */
-    if (ntohl(myphdr.keyblock[cnt].passwordIterations) > 0)
+    for (a=0;a<vectorsize;a++)
     {
-	hash_pbkdf2(password, (unsigned char *)&myphdr.keyblock[cnt].passwordSalt, LUKS_SALTSIZE, ntohl(myphdr.keyblock[cnt].passwordIterations), ntohl(myphdr.keyBytes), keycandidate);
-	fd = open(myfilename, O_RDONLY);
-	lseek(fd, ntohl(myphdr.keyblock[cnt].keyMaterialOffset)*512, SEEK_SET);
-	readbytes = read(fd, cipherbuf, ntohl(myphdr.keyBytes)*ntohl(myphdr.keyblock[cnt].stripes));
-	if (readbytes<0) goto out;
-	close(fd);
-	//printf("readbytes=%d stripes=%d\n", readbytes,ntohl(myphdr.keyblock[cnt].stripes));
-	//hash_aes_decrypt(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *vec, unsigned char *out, int mode);
-	/* OK - SO WE HAVE TO GENERATE THE ESSIV */
-	char essiv[32];
-	char hashedkey[32];
-	char zeroiv[32];
-	bzero(zeroiv,32);
-	hash_sha256(keycandidate, hashedkey, ntohl(myphdr.keyBytes));
-	int offset = ntohl(myphdr.keyblock[cnt].keyMaterialOffset);
-	hash_aes_encrypt(hashedkey, ntohl(myphdr.keyBytes), &offset , 4, zeroiv, essiv, 0);
-	
-	hash_aes_decrypt(keycandidate, ntohl(myphdr.keyBytes), cipherbuf, readbytes, essiv, splittedkey, 1);
-	AF_merge(splittedkey,masterkeycandidate, ntohl(myphdr.keyBytes), ntohl(myphdr.keyblock[cnt].stripes));
-	///int AF_merge(char *src, char *dst, size_t blocksize, unsigned int blocknumbers, const char *hash)
-	hash_pbkdf2(masterkeycandidate, myphdr.mkDigestSalt, LUKS_SALTSIZE, ntohl(myphdr.mkDigestIterations), ntohl(myphdr.keyBytes), masterkeycandidate2);
-	if (memcmp(masterkeycandidate2, myphdr.mkDigest, LUKS_DIGESTSIZE)==0) smth = 1;
-	printf("password = %s mkcand2=",password);
-	for (fd=0;fd<16;fd++) printf("%02x",masterkeycandidate2[fd]&255);
-	printf(" mkdigest= ");
-	for (fd=0;fd<16;fd++) printf("%02x",myphdr.mkDigest[fd]&255);
-	printf("\n");
+	unsigned char *af_decrypted = alloca(afsize);
+	// Get pbkdf2 of the password to obtain decryption key
+	hash_pbkdf2(password[a], (unsigned char *)&myphdr.keyblock[bestslot].passwordSalt, LUKS_SALTSIZE, ntohl(myphdr.keyblock[bestslot].passwordIterations), ntohl(myphdr.keyBytes), keycandidate);
+	// Decrypt the blocks
+	decrypt_aes_cbc_essiv(cipherbuf, af_decrypted, keycandidate, ntohl(myphdr.keyblock[bestslot].keyMaterialOffset),afsize);
+	// AFMerge the blocks
+	AF_merge(af_decrypted,masterkeycandidate, afsize, ntohl(myphdr.keyblock[bestslot].stripes));
+	// pbkdf2 again
+	hash_pbkdf2_len((char *)masterkeycandidate, LUKS_SALTSIZE, (unsigned char *)myphdr.mkDigestSalt, 32,ntohl(myphdr.mkDigestIterations) , LUKS_SALTSIZE, masterkeycandidate2);
+	// compare
+	if (memcmp(masterkeycandidate2, myphdr.mkDigest, LUKS_DIGESTSIZE)==0) 
+	{
+	    *num=a;
+	    return hash_ok;
+	}
     }
-    out:
-    free(cipherbuf);
-    free(splittedkey);
-
-
-    if (smth==1) {memcpy(salt2,"LUKS device\0\0", 12);return hash_ok;}
-    else 
-    {
-	salt2[0]=password[0];
-	return hash_err;
-    }
+    return hash_err;
 }
-
 
 int hash_plugin_hash_length(void)
 {
-    return 14;
+    return 16;
 }
 
 int hash_plugin_is_raw(void)
@@ -210,3 +307,14 @@ int hash_plugin_is_special(void)
 {
     return 1;
 }
+
+void get_vector_size(int size)
+{
+    vectorsize = size;
+}
+
+int get_salt_size(void)
+{
+    return 4;
+}
+
