@@ -83,6 +83,7 @@ build:
 	@if [ ! -e amd_msoffice2007__Juniper.bin ]; then ./amd-compiler amd_msoffice2007 n ;fi
 	@if [ ! -e amd_msoffice2010__Juniper.bin ]; then ./amd-compiler amd_msoffice2010 n ;fi
 	@if [ ! -e amd_msoffice2013__Juniper.bin ]; then ./amd-compiler amd_msoffice2013 n ;fi
+	@if [ ! -e amd_luks256__Juniper.bin ]; then ./amd-compiler amd_luks256 no ;fi
 	# NVidia
 	@if [ ! -e nvidia_md5_long__sm10.ptx ]; then ./nvidia-compiler nvidia_md5_long ns ;fi
 	@if [ ! -e nvidia_md5__sm10.ptx ]; then ./nvidia-compiler nvidia_md5 ns ;fi
@@ -154,6 +155,7 @@ build:
 	@if [ ! -e nvidia_msoffice2007__sm10.ptx ]; then ./nvidia-compiler nvidia_msoffice2007 n ;fi
 	@if [ ! -e nvidia_msoffice2010__sm10.ptx ]; then ./nvidia-compiler nvidia_msoffice2010 n ;fi
 	@if [ ! -e nvidia_msoffice2013__sm10.ptx ]; then ./nvidia-compiler nvidia_msoffice2013 n ;fi
+	@if [ ! -e nvidia_luks256__sm10.ptx ]; then ./nvidia-compiler nvidia_luks256 n ;fi
 
 
 

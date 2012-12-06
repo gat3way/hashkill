@@ -247,6 +247,11 @@ hash_stat ocl_bruteforce_msoffice(void);
 hash_stat ocl_markov_msoffice(void);
 hash_stat ocl_rule_msoffice(void);
 
+/* luks plugin support */
+hash_stat ocl_bruteforce_luks(void);
+hash_stat ocl_markov_luks(void);
+hash_stat ocl_rule_luks(void);
+
 
 
 

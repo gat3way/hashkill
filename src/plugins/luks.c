@@ -262,11 +262,11 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     unsigned char keycandidate[255];
     unsigned char masterkeycandidate[255];
     unsigned char masterkeycandidate2[255];
+    unsigned char *af_decrypted = alloca(afsize);
     int a;
 
     for (a=0;a<vectorsize;a++)
     {
-	unsigned char *af_decrypted = alloca(afsize);
 	// Get pbkdf2 of the password to obtain decryption key
 	hash_pbkdf2(password[a], (unsigned char *)&myphdr.keyblock[bestslot].passwordSalt, LUKS_SALTSIZE, ntohl(myphdr.keyblock[bestslot].passwordIterations), ntohl(myphdr.keyBytes), keycandidate);
 	// Decrypt the blocks
