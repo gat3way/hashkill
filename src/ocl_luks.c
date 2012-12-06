@@ -221,7 +221,7 @@ hash_stat load_luks(char *filename)
 	}
     }
 
-    hlog("Best keyslot %d: - iteration count %d - stripes: %d \n", bestslot, ntohl(myphdr.keyblock[bestslot].passwordIterations),ntohl(myphdr.keyblock[bestslot].stripes));
+    //hlog("Best keyslot %d: - iteration count %d - stripes: %d \n", bestslot, ntohl(myphdr.keyblock[bestslot].passwordIterations),ntohl(myphdr.keyblock[bestslot].stripes));
 
     afsize = af_sectors(ntohl(myphdr.keyBytes),ntohl(myphdr.keyblock[bestslot].stripes));
     cipherbuf = malloc(afsize);
@@ -561,7 +561,7 @@ void* ocl_rule_luks_thread(void *arg)
 
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
-    ocl_rule_workset[self]=64*64;
+    ocl_rule_workset[self]=128*128;
     if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=4;
     if (ocl_gpu_double) ocl_rule_workset[self]*=4;
     if (interactive_mode==1) ocl_rule_workset[self]/=4;
