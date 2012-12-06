@@ -46,7 +46,6 @@
 extern int b64_pton(char *src,unsigned char *target,size_t targsize);
 
 static int hash_ret_len1=20;
-static char myfilename[255];
 
 /* File Buffer */
 static char *buf;
@@ -81,12 +80,14 @@ static char* get_buf_offset(int sector)
     return (buf+(sector+1)*sectorsize);
 }
 
+
 /* Get sector offset for sector */
+/*
 static int get_offset(int sector)
 {
     return ((sector+1)*sectorsize);
 }
-
+*/
 
 
 /* Get FAT table for a given sector */

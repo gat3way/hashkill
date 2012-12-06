@@ -273,7 +273,7 @@ static void ocl_wpa_crack_callback(char *line, int self)
     {
 	if (attack_over==1) pthread_exit(NULL);
 	addline.sA=a*1170;
-	_clSetKernelArg(rule_kernelbl2[self], 3, sizeof(cl_uint16), (void*) &addline);
+	_clSetKernelArg(rule_kernelbl1[self], 3, sizeof(cl_uint16), (void*) &addline);
 	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
         wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/14;
