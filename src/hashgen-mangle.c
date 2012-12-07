@@ -19,7 +19,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-
+#define _LARGEFILE64_SOURCE
+#define _FILE_OFFSET_BITS 64
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -369,7 +370,7 @@ void node_add_dict(char *line, char *stack,int ind,int self)
 	    }
 	    if (st.st_size<MAX_MMAP_INITIAL)
 	    {
-		fd = open(nextname, O_RDONLY);
+		fd = open(nextname, O_RDONLY|O_LARGEFILE);
 		if (fd<0)
 		{
 		    elog("Cannot open %s?!?\n",nextname);
@@ -855,11 +856,11 @@ void node_add_binstrings(char *line, char *stack,int ind,int self)
 	    BREAKPOINT(cline,stack,ind,self);
 	}
 
-	fd=open(ops[self][ind].params,O_RDONLY);
+	fd=open(ops[self][ind].params,O_RDONLY|O_LARGEFILE);
 	if (fd<0) 
 	{
 	    sprintf(nextname,DATADIR"/hashkill/dict/%s",ops[self][ind].params);
-	    fd=open(nextname,O_RDONLY);
+	    fd=open(nextname,O_RDONLY|O_LARGEFILE);
 	    if (fd<0)
 	    {
 		hg_elog("Could not open binfile: %s\n",nextname);
@@ -914,11 +915,11 @@ void node_add_binstrings(char *line, char *stack,int ind,int self)
 	    BREAKPOINT(line,cline,ind,self);
 	}
 
-	fd=open(ops[self][ind].params,O_RDONLY);
+	fd=open(ops[self][ind].params,O_RDONLY|O_LARGEFILE);
 	if (fd<0) 
 	{
 	    sprintf(nextname,DATADIR"/hashkill/dict/%s",ops[self][ind].params);
-	    fd=open(nextname,O_RDONLY);
+	    fd=open(nextname,O_RDONLY|O_LARGEFILE);
 	    if (fd<0)
 	    {
 		hg_elog("Could not open binfile: %s\n",nextname);
