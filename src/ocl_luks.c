@@ -76,7 +76,6 @@ struct luks_phdr {
 } myphdr;
 
 
-static char myfilename[255];
 static unsigned char *cipherbuf;
 static int afsize=0;
 static unsigned int bestslot=0;
@@ -352,6 +351,9 @@ static void ocl_luks_crack_callback(char *line, int self)
     cl_uint16 salt3;
     unsigned char *af_decrypted = alloca(afsize);
     unsigned char masterkeycandidate[32];
+    size_t nws1;
+    size_t nws;
+
 
     /* setup addline */
     addline.s0=addline.s1=addline.s2=addline.s3=addline.s4=addline.s5=addline.s6=addline.s7=addline.sF=0;
@@ -366,11 +368,14 @@ static void ocl_luks_crack_callback(char *line, int self)
     salt2=ocl_get_salt2();
 
     if (attack_over!=0) pthread_exit(NULL);
-    pthread_mutex_lock(&wthreads[self].tempmutex);
-    pthread_mutex_unlock(&wthreads[self].tempmutex);
 
-    size_t nws1=ocl_rule_workset[self]*wthreads[self].vectorsize;
-    size_t nws=ocl_rule_workset[self];
+    if (rule_counts[self][0]==-1) return;
+    nws = (rule_counts[self][0] / wthreads[self].vectorsize);
+    while ((nws%64)!=0) nws++;
+    nws1 = nws*wthreads[self].vectorsize;
+    if (nws1==0) nws1=64;
+    if (nws==0) nws=64;
+
 
     _clSetKernelArg(rule_kernelend[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
     _clSetKernelArg(rule_kernelend[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
@@ -427,7 +432,7 @@ static void ocl_luks_crack_callback(char *line, int self)
     b=(2*ntohl(myphdr.keyblock[bestslot].passwordIterations))/1000;
     for (a=0;a<(ntohl(myphdr.keyblock[bestslot].passwordIterations));a+=1000)
     {
-	if (attack_over==1) pthread_exit(NULL);
+	if (attack_over!=0) pthread_exit(NULL);
 	addline.sA=a;
 	addline.sB=a+1000;
 	if (a>(ntohl(myphdr.keyblock[bestslot].passwordIterations)-1000)) addline.sB=a+(ntohl(myphdr.keyblock[bestslot].passwordIterations)%1000);
@@ -435,14 +440,16 @@ static void ocl_luks_crack_callback(char *line, int self)
 	_clSetKernelArg(rule_kernelbl1[self], 3, sizeof(cl_uint16), (void*) &addline);
 	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
-        wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/b;
+        wthreads[self].tries+=(nws1)/b;
+        pthread_mutex_lock(&wthreads[self].tempmutex);
+        pthread_mutex_unlock(&wthreads[self].tempmutex);
     }
 
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre2[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
     _clFinish(rule_oclqueue[self]);
     for (a=0;a<(ntohl(myphdr.keyblock[bestslot].passwordIterations));a+=1000)
     {
-	if (attack_over==1) pthread_exit(NULL);
+	if (attack_over!=0) pthread_exit(NULL);
 	addline.sA=a;
 	addline.sB=a+1000;
 	if (a==0) addline.sA=1;
@@ -450,15 +457,17 @@ static void ocl_luks_crack_callback(char *line, int self)
 	_clSetKernelArg(rule_kernelbl2[self], 3, sizeof(cl_uint16), (void*) &addline);
 	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl2[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
-        wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/b;
+        wthreads[self].tries+=(nws1)/b;
+        pthread_mutex_lock(&wthreads[self].tempmutex);
+        pthread_mutex_unlock(&wthreads[self].tempmutex);
     }
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelend[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
 
 
     _clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, hash_ret_len1*wthreads[self].vectorsize*ocl_rule_workset[self], rule_ptr[self], 0, NULL, NULL);
-    for (a=0;a<ocl_rule_workset[self]*wthreads[self].vectorsize;a++)
+    for (a=0;a<nws1;a++)
     {
-	if (attack_over==1) pthread_exit(NULL);
+	if (attack_over!=0) pthread_exit(NULL);
         b=a*hash_ret_len1;
         memcpy(masterkeycandidate,rule_ptr[self]+b,32);
         decrypt_aes_cbc_essiv(cipherbuf, af_decrypted, masterkeycandidate, ntohl(myphdr.keyblock[bestslot].keyMaterialOffset),afsize);
@@ -475,10 +484,9 @@ static void ocl_luks_crack_callback(char *line, int self)
 
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
     _clFinish(rule_oclqueue[self]);
-    b=(2*ntohl(myphdr.mkDigestIterations))/1000;
     for (a=0;a<(ntohl(myphdr.mkDigestIterations));a+=1000)
     {
-	if (attack_over==1) pthread_exit(NULL);
+	if (attack_over!=0) pthread_exit(NULL);
 	addline.sA=a;
 	addline.sB=a+1000;
 	if (a==0) addline.sA=1;
@@ -486,7 +494,8 @@ static void ocl_luks_crack_callback(char *line, int self)
 	_clSetKernelArg(rule_kernelbl1[self], 3, sizeof(cl_uint16), (void*) &addline);
 	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
-        wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/b;
+        pthread_mutex_lock(&wthreads[self].tempmutex);
+        pthread_mutex_unlock(&wthreads[self].tempmutex);
     }
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelend2[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
 
@@ -505,6 +514,7 @@ static void ocl_luks_crack_callback(char *line, int self)
 	    {
 	        e=(a)*wthreads[self].vectorsize+c;
     	        if (memcmp(myphdr.mkDigest, (char *)rule_ptr[self]+(e)*hash_ret_len1, 16) == 0)
+    	        if (!cracked_list)
     	        {
             	    strcpy(plain,&rule_images[self][0]+(e*MAX));
             	    strcat(plain,line);
@@ -551,7 +561,6 @@ void* ocl_rule_luks_thread(void *arg)
     size_t nvidia_local_work_size[3]={64,1,1};
     size_t amd_local_work_size[3]={64,1,1};
     int self;
-    unsigned char block[128];
     char hex1[16];
     cl_uint4 singlehash;
 
@@ -760,6 +769,7 @@ hash_stat ocl_rule_luks(void)
     rule_gen_parse(rule_file,ocl_luks_callback,nwthreads,SELF_THREAD);
 
     for (a=0;a<nwthreads;a++) pthread_join(crack_threads[a], NULL);
+    free(cipherbuf);
     attack_over=2;
     printf("\n");
     hlog("Done!\n%s","");

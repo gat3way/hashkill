@@ -1,4 +1,5 @@
 #define rotate(a,b) ((a) << (b)) + ((a) >> (32-(b)))
+
 #define GGI (get_global_id(0))
 #define GLI (get_local_id(0))
 
@@ -1577,7 +1578,6 @@ dst[get_global_id(0)*4+3]=(uint4)(TTTE.s1,TTA.s1,TTB.s1,TTC.s1);
 
 
 #else
-
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))
 void prepare1( __global uint *dst,  __global uint *input, __global uint *input1, uint16 str, uint16 salt,uint4 singlehash, uint16 salt2)
@@ -1605,14 +1605,14 @@ uint TTA,TTB,TTC,TTD,TTE;
 TTA=TTB=TTC=TTD=TTE=(uint)0;
 
 
-a=input[get_global_id(0)*2*8];
-b=input[get_global_id(0)*2*8+1];
-c=input[get_global_id(0)*2*8+2];
-d=input[get_global_id(0)*2*8+3];
-e=input[get_global_id(0)*2*8+4];
-f=input[get_global_id(0)*2*8+5];
-g=input[get_global_id(0)*2*8+6];
-h=input[get_global_id(0)*2*8+7];
+a=input[get_global_id(0)*8];
+b=input[get_global_id(0)*8+1];
+c=input[get_global_id(0)*8+2];
+d=input[get_global_id(0)*8+3];
+e=input[get_global_id(0)*8+4];
+f=input[get_global_id(0)*8+5];
+g=input[get_global_id(0)*8+6];
+h=input[get_global_id(0)*8+7];
 
 
 
@@ -2145,8 +2145,7 @@ OPE=input1[get_global_id(0)*2*5+9];
 
 
 // We now have the first HMAC. Iterate to find the rest
-
-for (ic=str.sA;ic<+str.sB;ic++)
+for (ic=str.sA;ic<str.sB;ic++)
 {
 
 // calculate hash sum 1
@@ -2376,6 +2375,7 @@ TTB ^= B;
 TTC ^= C;
 TTD ^= D;
 TTE ^= E;
+
 }
 
 dst[get_global_id(0)*3*5+0]=TTA;
@@ -2453,10 +2453,9 @@ w6=(uint)salt2.s6;
 w7=(uint)salt2.s7;
 w8=(uint)salt2.s8;
 w9=(uint)salt2.s9;
-w10=(uint)salt2.sA;
 
-SIZE=(uint)salt2.sF;
-w11=w12=w13=w14=(uint)0;
+SIZE=(uint)(36+64)<<3;
+w10=w11=w12=w13=w14=(uint)0;
 
 
 K = K0;
@@ -2969,11 +2968,12 @@ dst[get_global_id(0)*3*5+14]=E;
 }
 
 
+
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))
 void final( __global uint4 *dst,  __global uint *input, __global uint *input1, uint16 str, uint16 salt,uint4 singlehash, uint16 salt2, global uint *found, global uint *found_ind)
 {
-uint TTTA,TTTB,TTTC,TTTD,TTTE,TTA,TTB,TTC,TTD,TTE;
+uint TTA,TTB,TTC,TTD,TTE,TTTA,TTTB,TTTC,TTTD,TTTE,l,tmp1,tmp2;
 
 TTTA=input1[get_global_id(0)*3*5+0];
 TTTB=input1[get_global_id(0)*3*5+1];
@@ -2985,8 +2985,19 @@ TTB=input1[get_global_id(0)*3*5+6];
 TTC=input1[get_global_id(0)*3*5+7];
 TTD=input1[get_global_id(0)*3*5+8];
 TTE=input1[get_global_id(0)*3*5+9];
-}
+Endian_Reverse32(TTTA);
+Endian_Reverse32(TTTB);
+Endian_Reverse32(TTTC);
+Endian_Reverse32(TTTD);
+Endian_Reverse32(TTTE);
+Endian_Reverse32(TTA);
+Endian_Reverse32(TTB);
+Endian_Reverse32(TTC);
 
+dst[get_global_id(0)*2]=(uint4)(TTTA,TTTB,TTTC,TTTD);
+dst[get_global_id(0)*2+1]=(uint4)(TTTE,TTA,TTB,TTC);
+
+}
 
 
 __kernel 
@@ -3021,6 +3032,8 @@ dst[get_global_id(0)*2]=(uint4)(TTTA,TTTB,TTTC,TTTD);
 dst[get_global_id(0)*2+1]=(uint4)(TTTE,TTA,TTB,TTC);
 
 }
+
+
 
 
 #endif
