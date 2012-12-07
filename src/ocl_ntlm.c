@@ -342,7 +342,7 @@ static void ocl_execute(cl_command_queue queue, cl_kernel kernel, size_t *global
 	for (try=0;try<8;try++)
 	{
 	    lglobal_work_size[0]=global_work_size[0];
-	    lglobal_work_size[1]=global_work_size[1]/8;
+	    lglobal_work_size[1]=(global_work_size[1]+7)/8;
 	    offset[1] = try*lglobal_work_size[1];
 	    offset[0] = 0;
 

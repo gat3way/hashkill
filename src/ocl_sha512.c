@@ -292,7 +292,7 @@ static void ocl_execute(cl_command_queue queue, cl_kernel kernel, size_t *global
 	{
 	    if (attack_over>0) return;
 	    lglobal_work_size[0]=global_work_size[0];
-	    lglobal_work_size[1]=global_work_size[1]/32;
+	    lglobal_work_size[1]=(global_work_size[1]+31)/32;
 	    offset[1] = try*lglobal_work_size[1];
 	    offset[0] = 0;
 	    if (attack_over!=0) pthread_exit(NULL);
@@ -319,7 +319,7 @@ static void ocl_execute(cl_command_queue queue, cl_kernel kernel, size_t *global
 	{
 	    if (attack_over>0) return;
 	    lglobal_work_size[0]=global_work_size[0];
-	    lglobal_work_size[1]=global_work_size[1]/16;
+	    lglobal_work_size[1]=(global_work_size[1]+16)/16;
 	    offset[1] = try*lglobal_work_size[1];
 	    offset[0] = 0;
 	    if (attack_over!=0) pthread_exit(NULL);
