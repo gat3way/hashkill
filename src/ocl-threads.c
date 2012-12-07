@@ -227,13 +227,13 @@ hash_stat ocl_get_device()
 	    loops=1;
 
 	    /* Default values: VLIW: vectors4/loops1 GCN: vectors1/loops4 SM21: vectors4/loops1 NV: vectors1/loops4 */
-	    if ((ocl_have_old_ati==1) || (ocl_have_sm21==1))
+	    if ((attack_method!=attack_method_rule)&&(((!ocl_have_gcn)&&(!ocl_dev_nvidia)) || ((ocl_have_sm21==1)&&(ocl_dev_nvidia==1))))
 	    {
-    		ocl_vector=4;
+    		ocl_vector=8;
     		loops=1;
 	    }
 
-	    if (((ocl_have_gcn)&&(attack_method!=attack_method_rule))||((ocl_dev_nvidia)&&(!ocl_have_sm21)))
+	    if ((attack_method!=attack_method_rule)&&(((!ocl_dev_nvidia)&&(ocl_have_gcn==1))||((ocl_dev_nvidia==1)&&(!ocl_have_sm21))))
 	    {
 		loops=4;
 		ocl_vector=1;
@@ -243,7 +243,7 @@ hash_stat ocl_get_device()
 	    if (ocl_user_threads!=0) ocl_threads = ocl_user_threads;
 
     	    /* VLIW vector hacks */
-    	    if (ocl_vector==8)
+    	    if ((!ocl_have_gcn)&&(!ocl_dev_nvidia))
     	    {
 		if ((strcmp(get_current_plugin(),"sha1")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"sha256")==0)) ocl_vector=4;
@@ -271,7 +271,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"o5logon")==0)) {ocl_vector=1;loops=1;}
 	    }
 	    /* GCN loops hacks */
-	    if (loops==4)
+	    if ((ocl_have_gcn==1)&&(!ocl_dev_nvidia))
 	    {
 		if ((strcmp(get_current_plugin(),"sl3")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"sha1")==0)) loops=2;
@@ -369,8 +369,9 @@ hash_stat ocl_get_device()
 	    }
 
 	    /* SM21 hacks */
-	    if (ocl_have_sm21==1)
+	    if ((ocl_have_sm21==1)&&(ocl_dev_nvidia==1))
 	    {
+		ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"desunix")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"bfunix")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"drupal7")==0)) ocl_vector=1;
@@ -385,7 +386,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"smf")==0)) {ocl_vector=4;loops=1;}
 		if ((strcmp(get_current_plugin(),"django")==0)) ocl_vector=2;
 	    }
-	    else
+	    else if (ocl_dev_nvidia==1)
 	    {
 		if ((strcmp(get_current_plugin(),"sl3")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"sha1")==0)) loops=2;
@@ -491,6 +492,7 @@ hash_stat ocl_get_device()
 		wthreads[nwthreads].oldtries = 0;
 		wthreads[nwthreads].templocked = 0;
 		sprintf(wthreads[nwthreads].adaptername,"%s", devicename);
+		printf("wthreads[%d].vectorsize=%d, wthreads[%d].loops=%d\n",nwthreads,wthreads[nwthreads].vectorsize,nwthreads,wthreads[nwthreads].loops);
 		nwthreads++;
 	    }
 	}
