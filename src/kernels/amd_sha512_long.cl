@@ -9,95 +9,95 @@ ulong A,B,C,D,E,F,G,H,K,l,tmp1,tmp2,temp,T1,x1,xx0;
 uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
 
 
-#define H0 0x6a09e667f3bcc908ULL
-#define H1 0xbb67ae8584caa73bULL
-#define H2 0x3c6ef372fe94f82bULL
-#define H3 0xa54ff53a5f1d36f1ULL
-#define H4 0x510e527fade682d1ULL
-#define H5 0x9b05688c2b3e6c1fULL
-#define H6 0x1f83d9abfb41bd6bULL
-#define H7 0x5be0cd19137e2179ULL
+#define H0 0x6a09e667f3bcc908L
+#define H1 0xbb67ae8584caa73bL
+#define H2 0x3c6ef372fe94f82bL
+#define H3 0xa54ff53a5f1d36f1L
+#define H4 0x510e527fade682d1L
+#define H5 0x9b05688c2b3e6c1fL
+#define H6 0x1f83d9abfb41bd6bL
+#define H7 0x5be0cd19137e2179L
 
-#define AC1  0x428a2f98d728ae22ULL
-#define AC2  0x7137449123ef65cdULL
-#define AC3  0xb5c0fbcfec4d3b2fULL
-#define AC4  0xe9b5dba58189dbbcULL
-#define AC5  0x3956c25bf348b538ULL
-#define AC6  0x59f111f1b605d019ULL
-#define AC7  0x923f82a4af194f9bULL
-#define AC8  0xab1c5ed5da6d8118ULL
-#define AC9  0xd807aa98a3030242ULL
-#define AC10 0x12835b0145706fbeULL
-#define AC11 0x243185be4ee4b28cULL
-#define AC12 0x550c7dc3d5ffb4e2ULL
-#define AC13 0x72be5d74f27b896fULL
-#define AC14 0x80deb1fe3b1696b1ULL
-#define AC15 0x9bdc06a725c71235ULL
-#define AC16 0xc19bf174cf692694ULL
-#define AC17 0xe49b69c19ef14ad2ULL
-#define AC18 0xefbe4786384f25e3ULL
-#define AC19 0x0fc19dc68b8cd5b5ULL
-#define AC20 0x240ca1cc77ac9c65ULL
-#define AC21 0x2de92c6f592b0275ULL
-#define AC22 0x4a7484aa6ea6e483ULL
-#define AC23 0x5cb0a9dcbd41fbd4ULL
-#define AC24 0x76f988da831153b5ULL
-#define AC25 0x983e5152ee66dfabULL
-#define AC26 0xa831c66d2db43210ULL
-#define AC27 0xb00327c898fb213fULL
-#define AC28 0xbf597fc7beef0ee4ULL
-#define AC29 0xc6e00bf33da88fc2ULL
-#define AC30 0xd5a79147930aa725ULL
-#define AC31 0x06ca6351e003826fULL
-#define AC32 0x142929670a0e6e70ULL
-#define AC33 0x27b70a8546d22ffcULL
-#define AC34 0x2e1b21385c26c926ULL
-#define AC35 0x4d2c6dfc5ac42aedULL
-#define AC36 0x53380d139d95b3dfULL
-#define AC37 0x650a73548baf63deULL
-#define AC38 0x766a0abb3c77b2a8ULL
-#define AC39 0x81c2c92e47edaee6ULL
-#define AC40 0x92722c851482353bULL
-#define AC41 0xa2bfe8a14cf10364ULL
-#define AC42 0xa81a664bbc423001ULL
-#define AC43 0xc24b8b70d0f89791ULL
-#define AC44 0xc76c51a30654be30ULL
-#define AC45 0xd192e819d6ef5218ULL
-#define AC46 0xd69906245565a910ULL
-#define AC47 0xf40e35855771202aULL
-#define AC48 0x106aa07032bbd1b8ULL
-#define AC49 0x19a4c116b8d2d0c8ULL
-#define AC50 0x1e376c085141ab53ULL
-#define AC51 0x2748774cdf8eeb99ULL
-#define AC52 0x34b0bcb5e19b48a8ULL
-#define AC53 0x391c0cb3c5c95a63ULL
-#define AC54 0x4ed8aa4ae3418acbULL
-#define AC55 0x5b9cca4f7763e373ULL
-#define AC56 0x682e6ff3d6b2b8a3ULL
-#define AC57 0x748f82ee5defb2fcULL
-#define AC58 0x78a5636f43172f60ULL
-#define AC59 0x84c87814a1f0ab72ULL
-#define AC60 0x8cc702081a6439ecULL
-#define AC61 0x90befffa23631e28ULL
-#define AC62 0xa4506cebde82bde9ULL
-#define AC63 0xbef9a3f7b2c67915ULL
-#define AC64 0xc67178f2e372532bULL
-#define AC65 0xca273eceea26619cULL
-#define AC66 0xd186b8c721c0c207ULL
-#define AC67 0xeada7dd6cde0eb1eULL
-#define AC68 0xf57d4f7fee6ed178ULL
-#define AC69 0x06f067aa72176fbaULL
-#define AC70 0x0a637dc5a2c898a6ULL
-#define AC71 0x113f9804bef90daeULL
-#define AC72 0x1b710b35131c471bULL
-#define AC73 0x28db77f523047d84ULL
-#define AC74 0x32caab7b40c72493ULL
-#define AC75 0x3c9ebe0a15c9bebcULL
-#define AC76 0x431d67c49c100d4cULL
-#define AC77 0x4cc5d4becb3e42b6ULL
-#define AC78 0x597f299cfc657e2aULL
-#define AC79 0x5fcb6fab3ad6faecULL
-#define AC80 0x6c44198c4a475817ULL
+#define AC1  0x428a2f98d728ae22L
+#define AC2  0x7137449123ef65cdL
+#define AC3  0xb5c0fbcfec4d3b2fL
+#define AC4  0xe9b5dba58189dbbcL
+#define AC5  0x3956c25bf348b538L
+#define AC6  0x59f111f1b605d019L
+#define AC7  0x923f82a4af194f9bL
+#define AC8  0xab1c5ed5da6d8118L
+#define AC9  0xd807aa98a3030242L
+#define AC10 0x12835b0145706fbeL
+#define AC11 0x243185be4ee4b28cL
+#define AC12 0x550c7dc3d5ffb4e2L
+#define AC13 0x72be5d74f27b896fL
+#define AC14 0x80deb1fe3b1696b1L
+#define AC15 0x9bdc06a725c71235L
+#define AC16 0xc19bf174cf692694L
+#define AC17 0xe49b69c19ef14ad2L
+#define AC18 0xefbe4786384f25e3L
+#define AC19 0x0fc19dc68b8cd5b5L
+#define AC20 0x240ca1cc77ac9c65L
+#define AC21 0x2de92c6f592b0275L
+#define AC22 0x4a7484aa6ea6e483L
+#define AC23 0x5cb0a9dcbd41fbd4L
+#define AC24 0x76f988da831153b5L
+#define AC25 0x983e5152ee66dfabL
+#define AC26 0xa831c66d2db43210L
+#define AC27 0xb00327c898fb213fL
+#define AC28 0xbf597fc7beef0ee4L
+#define AC29 0xc6e00bf33da88fc2L
+#define AC30 0xd5a79147930aa725L
+#define AC31 0x06ca6351e003826fL
+#define AC32 0x142929670a0e6e70L
+#define AC33 0x27b70a8546d22ffcL
+#define AC34 0x2e1b21385c26c926L
+#define AC35 0x4d2c6dfc5ac42aedL
+#define AC36 0x53380d139d95b3dfL
+#define AC37 0x650a73548baf63deL
+#define AC38 0x766a0abb3c77b2a8L
+#define AC39 0x81c2c92e47edaee6L
+#define AC40 0x92722c851482353bL
+#define AC41 0xa2bfe8a14cf10364L
+#define AC42 0xa81a664bbc423001L
+#define AC43 0xc24b8b70d0f89791L
+#define AC44 0xc76c51a30654be30L
+#define AC45 0xd192e819d6ef5218L
+#define AC46 0xd69906245565a910L
+#define AC47 0xf40e35855771202aL
+#define AC48 0x106aa07032bbd1b8L
+#define AC49 0x19a4c116b8d2d0c8L
+#define AC50 0x1e376c085141ab53L
+#define AC51 0x2748774cdf8eeb99L
+#define AC52 0x34b0bcb5e19b48a8L
+#define AC53 0x391c0cb3c5c95a63L
+#define AC54 0x4ed8aa4ae3418acbL
+#define AC55 0x5b9cca4f7763e373L
+#define AC56 0x682e6ff3d6b2b8a3L
+#define AC57 0x748f82ee5defb2fcL
+#define AC58 0x78a5636f43172f60L
+#define AC59 0x84c87814a1f0ab72L
+#define AC60 0x8cc702081a6439ecL
+#define AC61 0x90befffa23631e28L
+#define AC62 0xa4506cebde82bde9L
+#define AC63 0xbef9a3f7b2c67915L
+#define AC64 0xc67178f2e372532bL
+#define AC65 0xca273eceea26619cL
+#define AC66 0xd186b8c721c0c207L
+#define AC67 0xeada7dd6cde0eb1eL
+#define AC68 0xf57d4f7fee6ed178L
+#define AC69 0x06f067aa72176fbaL
+#define AC70 0x0a637dc5a2c898a6L
+#define AC71 0x113f9804bef90daeL
+#define AC72 0x1b710b35131c471bL
+#define AC73 0x28db77f523047d84L
+#define AC74 0x32caab7b40c72493L
+#define AC75 0x3c9ebe0a15c9bebcL
+#define AC76 0x431d67c49c100d4cL
+#define AC77 0x4cc5d4becb3e42b6L
+#define AC78 0x597f299cfc657e2aL
+#define AC79 0x5fcb6fab3ad6faecL
+#define AC80 0x6c44198c4a475817L
 
 
 
@@ -113,13 +113,12 @@ x1=w1;
 
 
 
-/*
-#define Endian_Reverse64(a) { (a) = ((a) & 0x00000000000000FFULL) << 56ULL | ((a) & 0x000000000000FF00ULL) << 40ULL | \
-                              ((a) & 0x0000000000FF0000ULL) << 24ULL | ((a) & 0x00000000FF000000ULL) << 8ULL | \
-                              ((a) & 0x000000FF00000000ULL) >> 8ULL | ((a) & 0x0000FF0000000000ULL) >> 24ULL | \
-                              ((a) & 0x00FF000000000000ULL) >> 40ULL | ((a) & 0xFF00000000000000ULL) >> 56ULL; }
-*/
-#define Endian_Reverse64(n)       ((n) = as_ulong(as_uchar8(n).s76543210))
+
+#define Endian_Reverse64(a) { (a) = ((a) & 0x00000000000000FFL) << 56L | ((a) & 0x000000000000FF00L) << 40L | \
+                              ((a) & 0x0000000000FF0000L) << 24L | ((a) & 0x00000000FF000000L) << 8L | \
+                              ((a) & 0x000000FF00000000L) >> 8L | ((a) & 0x0000FF0000000000L) >> 24L | \
+                              ((a) & 0x00FF000000000000L) >> 40L | ((a) & 0xFF00000000000000L) >> 56L; }
+
 
 A=(ulong)H0;
 B=(ulong)H1;
@@ -131,16 +130,16 @@ G=(ulong)H6;
 H=(ulong)H7;
 
 
-#define ROTATE(b,x)     (((x) >> (b)) | ((x) << (64ULL - (b))))
+#define ROTATE(b,x)     (((x) >> (b)) | ((x) << (64L - (b))))
 #define R(b,x)          ((x) >> (b))
 #define Ch(x,y,z)       ((z)^((x)&((y)^(z))))
 #define Maj(x,y,z)      (((x) & (y)) | ((z)&((x)|(y))))
 
 
-#define Sigma0_512(x)   (ROTATE(28ULL, (x)) ^ ROTATE(34ULL, (x)) ^ ROTATE(39ULL, (x)))
-#define Sigma1_512(x)   (ROTATE(14ULL, (x)) ^ ROTATE(18ULL, (x)) ^ ROTATE(41ULL, (x)))
-#define sigma0_512(x)   (ROTATE( 1ULL, (x)) ^ ROTATE( 8ULL, (x)) ^ R( 7ULL,   (x)))
-#define sigma1_512(x)   (ROTATE(19ULL, (x)) ^ ROTATE(61ULL, (x)) ^ R( 6ULL,   (x)))
+#define Sigma0_512(x)   (ROTATE(28L, (x)) ^ ROTATE(34L, (x)) ^ ROTATE(39L, (x)))
+#define Sigma1_512(x)   (ROTATE(14L, (x)) ^ ROTATE(18L, (x)) ^ ROTATE(41L, (x)))
+#define sigma0_512(x)   (ROTATE( 1L, (x)) ^ ROTATE( 8L, (x)) ^ R( 7L,   (x)))
+#define sigma1_512(x)   (ROTATE(19L, (x)) ^ ROTATE(61L, (x)) ^ R( 6L,   (x)))
 
 
 #define ROUND512_0_TO_15(a,b,c,d,e,f,g,h,AC,x) T1 = (h) + Sigma1_512(e) + Ch((e), (f), (g)) + AC + x; \

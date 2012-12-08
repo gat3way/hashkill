@@ -11,11 +11,11 @@
 #define TOUPPERCHAR(y) ( (((y)<='z')&&((y)>='a')) ? ((y)-32) : (y))
 #define TOUPPERDWORD(x) (TOUPPERCHAR((x)&255)|((TOUPPERCHAR(((x)>>8) & 0xFF))<<8)|((TOUPPERCHAR(((x)>>16) & 0xFF))<<16)|((TOUPPERCHAR(((x)>>24) & 0xFF))<<24))
 
+#define Endian_Reverse64(a) { (a) = ((a) & 0x00000000000000FFL) << 56L | ((a) & 0x000000000000FF00L) << 40L | \
+                              ((a) & 0x0000000000FF0000L) << 24L | ((a) & 0x00000000FF000000L) << 8L | \
+                              ((a) & 0x000000FF00000000L) >> 8L | ((a) & 0x0000FF0000000000L) >> 24L | \
+                              ((a) & 0x00FF000000000000L) >> 40L | ((a) & 0xFF00000000000000L) >> 56L; }
 
-#define Endian_Reverse64(a) { (a) = ((a) & 0x00000000000000FFL) << 56 | ((a) & 0x000000000000FF00L) << 40 | \
-                              ((a) & 0x0000000000FF0000L) << 24 | ((a) & 0x00000000FF000000L) << 8 | \
-                              ((a) & 0x000000FF00000000L) >> 8 | ((a) & 0x0000FF0000000000L) >> 24 | \
-                              ((a) & 0x00FF000000000000L) >> 40 | ((a) & 0xFF00000000000000L) >> 56; }
 
 #define ROTATE(b,x)     (((x) >> (b)) | ((x) << (64 - (b))))
 #define R(b,x)          ((x) >> (b))
