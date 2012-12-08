@@ -394,7 +394,11 @@ hash_stat ocl_rule_bfunix(void)
     	    cl_uint compute_capability_major, compute_capability_minor;
             _clGetDeviceInfo(device[wthreads[i].deviceid], CL_DEVICE_COMPUTE_CAPABILITY_MAJOR_NV, sizeof(cl_uint), &compute_capability_major, NULL);
             _clGetDeviceInfo(device[wthreads[i].deviceid], CL_DEVICE_COMPUTE_CAPABILITY_MINOR_NV, sizeof(cl_uint), &compute_capability_minor, NULL);
-            if ((compute_capability_major==1)&&(compute_capability_minor==0)) sprintf(pbuf,"sm10");
+            if ((compute_capability_major==1)&&(compute_capability_minor==0))
+            {
+        	elog("Bcrypt not supported on Nvidia SM_10 GPUS!\n%s","");
+        	return hash_err;
+            }
             if ((compute_capability_major==1)&&(compute_capability_minor==1)) sprintf(pbuf,"sm11");
             if ((compute_capability_major==1)&&(compute_capability_minor==2)) sprintf(pbuf,"sm12");
             if ((compute_capability_major==1)&&(compute_capability_minor==3)) sprintf(pbuf,"sm13");
@@ -427,9 +431,7 @@ hash_stat ocl_rule_bfunix(void)
         }
     }
 
-
     pthread_mutex_init(&biglock, NULL);
-
     for (a=0;a<nwthreads;a++)
     {
         worker_thread_keys[a]=a;

@@ -1,3 +1,4 @@
+#ifndef SM10
 #define GGI (get_global_id(0))
 #define GLI (get_local_id(0))
 
@@ -617,3 +618,4 @@ found_ind[get_global_id(0)] = 1;
 
 }
 
+#endif
