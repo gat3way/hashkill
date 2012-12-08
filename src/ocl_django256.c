@@ -241,7 +241,7 @@ static void ocl_django256_crack_callback(char *line, int self)
 	    _clFinish(rule_oclqueue[self]);
     	    wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/(get_hashes_num()*(salt.sE/1000));
 	}
-	salt.sA=(salt.sE%1000);
+	salt.sA=((salt.sE)%1000);
 	_clSetKernelArg(rule_kernellast[self], 6, sizeof(cl_uint16), (void*) &salt);
     	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernellast[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
         found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);

@@ -353,7 +353,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"dmg")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"rar")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"rar")==0)&&(!ocl_have_gcn)) ocl_vector=2;
-		if ((strcmp(get_current_plugin(),"django256")==0)&&(ocl_have_gcn)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"django256")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 	    }
 
 
@@ -384,7 +384,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"zip")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"mscash")==0)) {loops=1;ocl_vector=8;}
 		if ((strcmp(get_current_plugin(),"smf")==0)) {ocl_vector=4;loops=1;}
-		if ((strcmp(get_current_plugin(),"django")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"django256")==0)) ocl_vector=2;
 	    }
 	    else if (ocl_dev_nvidia==1)
 	    {
@@ -492,7 +492,6 @@ hash_stat ocl_get_device()
 		wthreads[nwthreads].oldtries = 0;
 		wthreads[nwthreads].templocked = 0;
 		sprintf(wthreads[nwthreads].adaptername,"%s", devicename);
-		printf("wthreads[%d].vectorsize=%d, wthreads[%d].loops=%d\n",nwthreads,wthreads[nwthreads].vectorsize,nwthreads,wthreads[nwthreads].loops);
 		nwthreads++;
 	    }
 	}
