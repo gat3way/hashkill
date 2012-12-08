@@ -375,7 +375,7 @@ static void ocl_sha256unix_crack_callback(char *line, int self)
     	    _clSetKernelArg(rule_kernelbl1[self], 5, sizeof(cl_uint), (void*) &end);
 	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 	    _clFinish(rule_oclqueue[self]);
-	    wthreads[self].tries+=(wthreads[self].vectorsize*ocl_rule_workset[self])/20;
+	    wthreads[self].tries+=(wthreads[self].vectorsize*ocl_rule_workset[self])/(20*get_hashes_num());
 	}
 
         _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernellast[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);

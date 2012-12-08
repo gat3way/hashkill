@@ -1580,6 +1580,8 @@ static void ocl_oracle_old_crack_callback(char *line, int self)
     cl_uint16 addline;
     cl_uint16 salt;
     cl_uint16 singlehash;
+
+    wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/get_hashes_num();
     mylist = hash_list;
     while (mylist)
     {
@@ -1626,7 +1628,6 @@ static void ocl_oracle_old_crack_callback(char *line, int self)
         pthread_mutex_lock(&wthreads[self].tempmutex);
         pthread_mutex_unlock(&wthreads[self].tempmutex);
 
-        wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/get_hashes_num();
         size_t nws=ocl_rule_workset[self]*wthreads[self].vectorsize;
         _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel2[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);

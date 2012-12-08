@@ -538,7 +538,7 @@ static void ocl_sha512unix_crack_callback(char *line, int self)
 	    _clFinish(rule_oclqueue[self]);
 	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 	    _clFinish(rule_oclqueue[self]);
-    	    if ((a%500)==1) wthreads[self].tries+=(wthreads[self].vectorsize*ocl_rule_workset[self])/10;
+    	    if ((a%500)==1) wthreads[self].tries+=(wthreads[self].vectorsize*ocl_rule_workset[self])/(10*get_hashes_num());
 	}
 	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel137[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);

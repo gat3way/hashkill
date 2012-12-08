@@ -1852,6 +1852,7 @@ static void ocl_joomla_crack_callback(char *line, int self)
 
     if ((line[0]==0)||(ocl_rule_opt_counts[self]>=wthreads[self].vectorsize))
     {
+	wthreads[self].tries+=ocl_rule_workset[self]*ocl_rule_opt_counts[self];
 	mylist = hash_list;
 	while (mylist)
 	{
@@ -1863,7 +1864,6 @@ static void ocl_joomla_crack_callback(char *line, int self)
 	    if (attack_over!=0) pthread_exit(NULL);
 	    pthread_mutex_lock(&wthreads[self].tempmutex);
 	    pthread_mutex_unlock(&wthreads[self].tempmutex);
-	    wthreads[self].tries+=ocl_rule_workset[self]*ocl_rule_opt_counts[self];
 
 	    /* setup salt */
 	    salt.s0=salt.s1=salt.s2=salt.s3=salt.s4=salt.s5=salt.s6=salt.s7=salt.sF=0;

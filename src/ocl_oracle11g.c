@@ -1805,6 +1805,7 @@ static void ocl_oracle11g_crack_callback(char *line, int self)
 
     if ((line[0]==0)||(ocl_rule_opt_counts[self]>=wthreads[self].vectorsize))
     {
+        wthreads[self].tries+=ocl_rule_workset[self]*ocl_rule_opt_counts[self];
         mylist = hash_list;
         while (mylist)
         {
@@ -1816,7 +1817,6 @@ static void ocl_oracle11g_crack_callback(char *line, int self)
             if (attack_over!=0) pthread_exit(NULL);
             pthread_mutex_lock(&wthreads[self].tempmutex);
             pthread_mutex_unlock(&wthreads[self].tempmutex);
-            wthreads[self].tries+=ocl_rule_workset[self]*ocl_rule_opt_counts[self];
 
             /* setup salt */
 	    hex2str((char *)saltc, (char *)mylist->salt, 20);
