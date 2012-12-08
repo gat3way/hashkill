@@ -65,6 +65,8 @@ int charset_size;
 int reduced_size;
 char reduced_charset[88];
 int markov2[88][88];
+static pthread_t monitorinfothread;
+
 
 /* OpenSSL thread-safety variables */
 static pthread_mutex_t *lock_cs;			// mutexes
@@ -684,7 +686,6 @@ hash_stat spawn_threads(unsigned int num)
 {
     unsigned int cnt, cnt1;
     pthread_t monitorthread;
-    pthread_t monitorinfothread;
     pthread_attr_t thread_attr;
     struct sched_param thread_param;
 
@@ -768,7 +769,7 @@ static void * start_monitor_thread(void *arg)
     char *attack_current_str = "abcdeffsd";
     int a;
 
-    while (wthreads[0].tries==0) usleep(10000);
+    while ((wthreads[0].tries==0)&&(attack_over==0)) usleep(10000);
     printf("\n");
 
     if ((strcmp(get_current_plugin(),"sl3")==0)) 
@@ -778,7 +779,7 @@ static void * start_monitor_thread(void *arg)
     }
     attack_checkpoints=0;
 
-    while ((attack_over != 2)&&(hashgen_stdout_mode==0))
+    while ((attack_over == 0)&&(hashgen_stdout_mode==0))
     {
         sleep(3);
         attack_checkpoints++;
@@ -900,8 +901,8 @@ static void * start_monitor_thread(void *arg)
         }
     }
     printf("\n");
+    pthread_cancel(monitorinfothread);
     pthread_exit(NULL);
-
     return 0;
 }
 
