@@ -207,9 +207,9 @@ int compile(char *filename, char *buildparams)
         char pbuf[100];
         err = _clGetDeviceInfo( devices[i], CL_DEVICE_NAME, sizeof(pbuf),pbuf, NULL );
         checkErr( "clGetDeviceINfo", err );
-        //if (strstr(pbuf,"Tahiti")) continue;
-        //if (strstr(pbuf,"Pitcairn")) continue;
-        //if (strstr(pbuf,"Capeverde")) continue;
+        if (strstr(pbuf,"Dogs")) continue;
+        if (strstr(pbuf,"Cats")) continue;
+        if (strstr(pbuf,"Raccoons")) continue;
 
 	printf("building for %s\n",pbuf);
 	char flags[1000];
@@ -218,7 +218,7 @@ int compile(char *filename, char *buildparams)
 	if (strstr(pbuf,"ATI")) sprintf(flags,"-fno-bin-amdil -fno-bin-llvmir -fno-bin-source -DOLD_ATI   %s",buildparams);
 	else if (strstr(pbuf,"Cayman"))  sprintf(flags,"-fno-bin-amdil -fno-bin-llvmir -fno-bin-source -DVLIW4  -Dcl_amd_media_ops2 %s",buildparams);
 	else if ((strstr(pbuf,"Capeverde"))||(strstr(pbuf,"Pitcairn"))||(strstr(pbuf,"Tahiti")))  sprintf(flags,"-fno-bin-amdil -fno-bin-llvmir -fno-bin-source -DGCN  -Dcl_amd_media_ops2 %s",buildparams);
-	else sprintf(flags,"-fno-bin-amdil -fno-bin-llvmir -fno-bin-source  -Dcl_amd_media_ops2   %s",buildparams);
+	else sprintf(flags,"-fno-bin-amdil -fno-bin-llvmir -fno-bin-source  -Dcl_amd_media_ops2  %s",buildparams);
 	if (optdisable==1) sprintf(flags,"%s -cl-opt-disable -fno-bin-amdil -fno-bin-llvmir -fno-bin-source -Dcl_amd_media_ops2 -O0",flags);
 	if (big16==1) 
 	{
