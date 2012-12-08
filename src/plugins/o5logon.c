@@ -41,6 +41,7 @@ char * hash_plugin_detailed(void)
 	    "------------------------\n"
 	    "Use this module to crack TNS login sessions\n"
 	    "Input should be in form: \'dbuser:AUTH_SESSKEY:AUTH_VFR_DATA\'\n"
+	    "JtR-compatible input format also accepted\n"
 	    "Software that uses that password hashing method:\n"
 	    "oracle 11g \n"
 	    "\nAuthor: Alex Stanev <alex@stanev.org>\n");
