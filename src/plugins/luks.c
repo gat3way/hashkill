@@ -76,7 +76,7 @@ static unsigned int bestslot=0;
 
 char * hash_plugin_summary(void)
 {
-    return("luks \t\t\tLUKS encrypted block device plugin");
+    return("luks \t\tLUKS encrypted block device plugin");
 }
 
 
@@ -86,6 +86,7 @@ char * hash_plugin_detailed(void)
 	    "------------------------------------------------\n"
 	    "Use this module to crack LUKS encrypted partitions\n"
 	    "Input should be a LUKS device file specified with -f\n"
+	    "Warning: currently only aes256/cbc-essiv:sha256 images supported!\n"
 	    "Known software that uses this password hashing method:\n"
 	    "cryptsetup/LUKS\n"
 	    "\nAuthor: Milen Rangelov <gat3way@gat3way.eu>\n");
@@ -230,7 +231,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	}
     }
 
-    hlog("Best keyslot %d: - iteration count %d - stripes: %d \n", bestslot, ntohl(myphdr.keyblock[bestslot].passwordIterations),ntohl(myphdr.keyblock[bestslot].stripes));
+    hlog("Best keyslot [%d]: %d keyslot iterations, %d stripes, %d mkiterations\n", bestslot, ntohl(myphdr.keyblock[bestslot].passwordIterations),ntohl(myphdr.keyblock[bestslot].stripes),ntohl(myphdr.mkDigestIterations));
 
     afsize = af_sectors(ntohl(myphdr.keyBytes),ntohl(myphdr.keyblock[bestslot].stripes));
     cipherbuf = malloc(afsize);
