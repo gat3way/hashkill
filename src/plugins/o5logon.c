@@ -54,14 +54,29 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     char salt[HASHFILE_MAX_LINE_LENGTH];
     char line[HASHFILE_MAX_LINE_LENGTH];
     char line2[HASHFILE_MAX_LINE_LENGTH];
-    //char line3[HASHFILE_MAX_LINE_LENGTH];
     char *temp_str;
-    
+    int a;
+
     if (!hashline) return hash_err;
-    
     if (strlen(hashline)<116) return hash_err;
     
+    /* Handle JTR format input */
     snprintf(line, HASHFILE_MAX_LINE_LENGTH-1, "%s", hashline);
+    if (strstr(line,"$o5logon$"))
+    {
+	temp_str = strtok(line,"$");
+	strcpy(line2,temp_str);
+	temp_str = strtok(NULL,"$");
+	temp_str = strtok(NULL,"$");
+	strcat(line2,temp_str);
+	bzero(line,HASHFILE_MAX_LINE_LENGTH-1);
+	for (a=0;a<strlen(line2);a++)
+	{
+	    if (line2[a]=='*') line[a]=':';
+	    else line[a]=line2[a];
+	}
+    }
+
     strcpy(username, strtok(line, ":"));
     temp_str=strtok(NULL,":");
     if (temp_str) 
