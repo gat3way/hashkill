@@ -214,9 +214,8 @@ w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11); //A=...., C
 
 
 #ifdef SINGLE_MODE
-tmp1 = (uint)(singlehash.z)^C;
-tmp2 = (uint)(singlehash.w)^D;
-if ((tmp2*tmp1)) return;
+if (C!=singlehash.z) return;
+if (D!=singlehash.w) return;
 #endif
 
 #ifndef SINGLE_MODE
@@ -467,9 +466,8 @@ w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11); //A=...., C
 
 
 #ifdef SINGLE_MODE
-tmp1 = (uint)(singlehash.z)^C;
-tmp2 = (uint)(singlehash.w)^D;
-if ((tmp2*tmp1)) return;
+if (C!=singlehash.z) return;
+if (D!=singlehash.w) return;
 #endif
 
 #ifndef SINGLE_MODE
@@ -891,9 +889,8 @@ w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11); //A=...., C
 
 
 #ifdef SINGLE_MODE
-tmp1 = (uint4)(singlehash.z)^C;
-tmp2 = (uint4)(singlehash.w)^D;
-if ((tmp2.w*tmp2.y*tmp2.z*tmp2.x*tmp1.w*tmp1.y*tmp1.z*tmp1.x)) return;
+if (all(C!=(uint4)singlehash.z)) return;
+if (all(D!=(uint4)singlehash.w)) return;
 #endif
 
 #ifndef SINGLE_MODE
@@ -1169,10 +1166,10 @@ w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11); //A=...., C
 
 
 #ifdef SINGLE_MODE
-tmp1 = (uint4)(singlehash.z)^C;
-tmp2 = (uint4)(singlehash.w)^D;
-if ((tmp2.w*tmp2.y*tmp2.z*tmp2.x*tmp1.w*tmp1.y*tmp1.z*tmp1.x)) return;
+if (all(C!=(uint4)singlehash.z)) return;
+if (all(D!=(uint4)singlehash.w)) return;
 #endif
+
 #ifndef SINGLE_MODE
 id=0;
 b1=A.s0;b2=B.s0;b3=C.s0;b4=D.s0;
