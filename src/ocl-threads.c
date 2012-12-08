@@ -301,6 +301,7 @@ hash_stat ocl_get_device()
 	    {
 		/* Global */
 		if ((strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"desunix")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"joomla")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"oscommerce")==0)) ocl_vector=4;
@@ -312,6 +313,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"mssql-2005")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"mssql-2012")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"nsldaps")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"nsldap")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"vbulletin")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"joomla")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"oscommerce")==0)) ocl_vector=4;
@@ -354,6 +356,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"rar")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"rar")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"django256")==0)&&(!ocl_have_gcn)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"django256")==0)&&(ocl_have_gcn)) ocl_vector=1;
 	    }
 
 
@@ -655,7 +658,7 @@ static void * ocl_start_monitor_thread(void *arg)
     int installed=0;
     int a;
 
-    while (wthreads[0].tries==0) usleep(10000);
+    while ((wthreads[0].tries==0)&&(attack_over==0)) usleep(10000);
     printf("\n");
 
     if ((strcmp(get_current_plugin(),"sl3")==0)) 
@@ -664,7 +667,7 @@ static void * ocl_start_monitor_thread(void *arg)
 	attack_method=attack_method_simple_bruteforce;
     }
 
-    while (attack_over != 2)
+    while (attack_over == 0)
     {
         sleep(3);
         attack_checkpoints++;
