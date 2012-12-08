@@ -129,6 +129,7 @@ static void ocl_md5unix_crack_callback(char *line, int self)
     mylist = hash_list;
     while (mylist)
     {
+        //if (attack_over!=0) pthread_exit(NULL);
         if (mylist->salt2[0]==1) {mylist=mylist->next;continue;}
 	/* setup addline */
 	addline.s0=addline.s1=addline.s2=addline.s3=addline.s4=addline.s5=addline.s6=addline.s7=addline.sF=0;
@@ -175,7 +176,6 @@ static void ocl_md5unix_crack_callback(char *line, int self)
 	singlehash.x=A;singlehash.y=B;singlehash.z=C;singlehash.w=D;
 	_clSetKernelArg(rule_kernel16[cc1][self], 4, sizeof(cl_uint4), (void*) &singlehash);
 
-        if (attack_over!=0) pthread_exit(NULL);
         pthread_mutex_lock(&wthreads[self].tempmutex);
         pthread_mutex_unlock(&wthreads[self].tempmutex);
 
@@ -215,7 +215,7 @@ static void ocl_md5unix_crack_callback(char *line, int self)
                 	addlist = cracked_list;
                 	while (addlist)
                 	{
-                	    if ((strcmp(addlist->username, mylist->username) == 0) && (memcmp(addlist->hash, mylist->hash, hash_ret_len1) == 0))
+                	    if ((strcmp(addlist->username, mylist->username) == 0) && (strcmp(addlist->hash, mylist->hash) == 0))
                                 flag = 1;
                     	    addlist = addlist->next;
                 	}
