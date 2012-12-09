@@ -2160,6 +2160,9 @@ hash_stat main_thread_rule(int threads)
     {
         pthread_join(crack_threads[a], NULL);
     }
+    /* This is stupid, but we need to do that to avoid a race here */
+    pthread_mutex_lock(&crackedmutex);
+    pthread_mutex_unlock(&crackedmutex);
     SSL_thread_cleanup();
     return hash_ok;
 }
