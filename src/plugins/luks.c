@@ -70,7 +70,7 @@ struct luks_phdr {
 static char myfilename[255];
 static unsigned char *cipherbuf;
 static int afsize;
-static unsigned int bestslot=0;
+static unsigned int bestslot=2000;
 
 
 
@@ -230,6 +230,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	    bestiter=ntohl(myphdr.keyblock[cnt].passwordIterations);
 	}
     }
+    if (bestslot==2000) return hash_err;
 
     hlog("Best keyslot [%d]: %d keyslot iterations, %d stripes, %d mkiterations\n", bestslot, ntohl(myphdr.keyblock[bestslot].passwordIterations),ntohl(myphdr.keyblock[bestslot].stripes),ntohl(myphdr.mkDigestIterations));
     afsize = af_sectors(ntohl(myphdr.keyBytes),ntohl(myphdr.keyblock[bestslot].stripes));
