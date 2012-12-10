@@ -173,7 +173,7 @@ static void decrypt_aes_cbc_essiv(unsigned char *src, unsigned char *dst, unsign
 	bzero(zeroiv,16);
 	bzero(essiv,16);
 	memcpy(sectorbuf,&a,4);
-	OAES_SET_ENCRYPT_KEY(essivhash, ntohl(myphdr.keyBytes)*8, &aeskey);
+	OAES_SET_ENCRYPT_KEY(essivhash, 256, &aeskey);
 	OAES_CBC_ENCRYPT(sectorbuf, essiv, 16, &aeskey, zeroiv, AES_ENCRYPT);
 	OAES_SET_DECRYPT_KEY(key, ntohl(myphdr.keyBytes)*8, &aeskey);
 	OAES_CBC_ENCRYPT((src+a*512), (dst+a*512), 512, &aeskey, essiv, AES_DECRYPT);
@@ -213,7 +213,7 @@ hash_stat load_luks(char *filename)
 
     for (cnt=0;cnt<LUKS_NUMKEYS;cnt++)
     {
-	if ((ntohl(myphdr.keyblock[cnt].passwordIterations)<bestiter)&&(ntohl(myphdr.keyblock[cnt].passwordIterations)>1))
+	if ((ntohl(myphdr.keyblock[cnt].passwordIterations)<bestiter)&&(ntohl(myphdr.keyblock[cnt].passwordIterations)>1)&&(ntohl(myphdr.keyblock[cnt].active)==0x00ac71f3))
 	{
 	    bestslot=cnt;
 	    bestiter=ntohl(myphdr.keyblock[cnt].passwordIterations);

@@ -184,7 +184,7 @@ static void decrypt_aes_cbc_essiv(unsigned char *src, unsigned char *dst, unsign
 	bzero(zeroiv,16);
 	bzero(essiv,16);
 	memcpy(sectorbuf,&a,4);
-	hash_aes_set_encrypt_key(essivhash, ntohl(myphdr.keyBytes)*8, &aeskey);
+	hash_aes_set_encrypt_key(essivhash, 256, &aeskey);
 	hash_aes_cbc_encrypt(sectorbuf, essiv, 16, &aeskey, zeroiv, AES_ENCRYPT);
 	hash_aes_set_decrypt_key(key, ntohl(myphdr.keyBytes)*8, &aeskey);
 	hash_aes_cbc_encrypt((src+a*512), (dst+a*512), 512, &aeskey, essiv, AES_DECRYPT);
@@ -224,7 +224,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 
     for (cnt=0;cnt<LUKS_NUMKEYS;cnt++)
     {
-	if ((ntohl(myphdr.keyblock[cnt].passwordIterations)<bestiter)&&(ntohl(myphdr.keyblock[cnt].passwordIterations)>1))
+	if ((ntohl(myphdr.keyblock[cnt].passwordIterations)<bestiter)&&(ntohl(myphdr.keyblock[cnt].passwordIterations)>1)&&(ntohl(myphdr.keyblock[cnt].active)==0x00ac71f3))
 	{
 	    bestslot=cnt;
 	    bestiter=ntohl(myphdr.keyblock[cnt].passwordIterations);
@@ -232,10 +232,8 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     }
 
     hlog("Best keyslot [%d]: %d keyslot iterations, %d stripes, %d mkiterations\n", bestslot, ntohl(myphdr.keyblock[bestslot].passwordIterations),ntohl(myphdr.keyblock[bestslot].stripes),ntohl(myphdr.mkDigestIterations));
-
     afsize = af_sectors(ntohl(myphdr.keyBytes),ntohl(myphdr.keyblock[bestslot].stripes));
     cipherbuf = malloc(afsize);
-
     lseek(myfile, ntohl(myphdr.keyblock[bestslot].keyMaterialOffset)*512, SEEK_SET);
     readbytes = read(myfile, cipherbuf, afsize);
 
@@ -275,7 +273,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	// AFMerge the blocks
 	AF_merge(af_decrypted,masterkeycandidate, afsize, ntohl(myphdr.keyblock[bestslot].stripes));
 	// pbkdf2 again
-	hash_pbkdf2_len((char *)masterkeycandidate, LUKS_SALTSIZE, (unsigned char *)myphdr.mkDigestSalt, 32,ntohl(myphdr.mkDigestIterations) , LUKS_SALTSIZE, masterkeycandidate2);
+	hash_pbkdf2_len((char *)masterkeycandidate, ntohl(myphdr.keyBytes), (unsigned char *)myphdr.mkDigestSalt, LUKS_SALTSIZE, ntohl(myphdr.mkDigestIterations) , LUKS_DIGESTSIZE, masterkeycandidate2);
 	// compare
 	if (memcmp(masterkeycandidate2, myphdr.mkDigest, LUKS_DIGESTSIZE)==0) 
 	{
