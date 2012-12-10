@@ -717,7 +717,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 
 	for (a=0;a<vectorsize;a++)
 	{
-	    tbuf[a]=alloca(32);
+	    tbuf[a]=alloca(64);
 	    bzero(tbuf[a],64);
 	    memcpy(&ibuf[a][20],encryptedVerifierHashValueBlockKey,8);
 	    memcpy(hbuf[a],ibuf[a],28);

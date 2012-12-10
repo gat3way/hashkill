@@ -126,13 +126,13 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     }
     /* ensure they aren't smashing the heap?!?*/
     snprintf(line2,HASHFILE_MAX_LINE_LENGTH-3,"%s",username);
-    line2[HASHFILE_MAX_LINE_LENGTH-2] = 0;
+    line2[HASHFILE_MAX_LINE_LENGTH-1] = 0;
     (void)hash_add_username(line2);
     snprintf(line2,HASHFILE_MAX_LINE_LENGTH-3,"%s",hash);
-    line2[HASHFILE_MAX_LINE_LENGTH-2] = 0;
+    line2[HASHFILE_MAX_LINE_LENGTH-1] = 0;
     (void)hash_add_hash(line2, 0);
     snprintf(line2,HASHFILE_MAX_LINE_LENGTH-3,"%s",salt);
-    line2[HASHFILE_MAX_LINE_LENGTH-2] = 0;
+    line2[HASHFILE_MAX_LINE_LENGTH-1] = 0;
     (void)hash_add_salt(line2);
     (void)hash_add_salt2("");
 
@@ -153,6 +153,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     rounds[0]=salt[0];
     rounds[1]=salt[1];
     rounds[2]=0;
+    rounds[3]=0;
     __bf_decode(mysalt, salt+2, 16);
     __bf_swap(mysalt, 4);
     mysalt[4]=(1 << atoi(rounds));

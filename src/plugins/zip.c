@@ -519,7 +519,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 
 int hash_plugin_hash_length(void)
 {
-    return 16;
+    return 32;
 }
 
 int hash_plugin_is_raw(void)
@@ -539,5 +539,5 @@ void get_vector_size(int size)
 
 int get_salt_size(void)
 {
-   return 4;
+   return 5;
 }

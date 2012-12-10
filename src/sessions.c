@@ -194,6 +194,7 @@ void session_close_file(FILE *sessionfile)
     fclose(sessionfile);
     unlink(fname2);
     rename(fname, fname2);
+    unlink(fname);
 #endif
 }
 

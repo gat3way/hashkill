@@ -828,9 +828,9 @@ __bf_crypt_r (key, salt, buffer, buflen, vectorsize,hash)
 	bfout[0][5] &= ~(unsigned int)0xFF;
 	bfout[1][5] &= ~(unsigned int)0xFF;
 	bfout[2][5] &= ~(unsigned int)0xFF;
-	if (memcmp(bfout[0],hash,24)==0) buffer[loop][0]='!';
-	if (memcmp(bfout[1],hash,24)==0) buffer[loop+1][0]='!';
-	if (memcmp(bfout[2],hash,24)==0) buffer[loop+2][0]='!';
+	if (memcmp(bfout[0],hash,23)==0) buffer[loop][0]='!';
+	if (memcmp(bfout[1],hash,23)==0) buffer[loop+1][0]='!';
+	if (memcmp(bfout[2],hash,23)==0) buffer[loop+2][0]='!';
     }
 }
 

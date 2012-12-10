@@ -121,4 +121,5 @@ rule ripemd160 (CPU only!)	|1 passwords|hashkill -pripemd160 2c08e8f5884750a7b99
 rule msoffice (2007)		|1 passwords|hashkill -pmsoffice -f a.docx -r rule_uu
 rule msoffice (2010)		|1 passwords|hashkill -pmsoffice -f b.docx -r rule_uu
 rule msoffice (2013)		|1 passwords|hashkill -pmsoffice -f c.docx -r rule_uu
-rule luks 			|1 passwords|hashkill -pluks -f image -r rule_uu
+rule luks (256)			|1 passwords|hashkill -pluks -f image -r rule_uu
+rule luks (128)			|1 passwords|hashkill -pluks -f image1 -r rule_uu
