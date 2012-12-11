@@ -3,8 +3,8 @@ ifneq ($(DESTDIR),"")
 endif
 
 all:
-	$(CC) -o pcap2hcap pcap2hcap.c -O2 $(LDFLAGS)
-	$(CC) -o markovgen markovgen.c -O2 $(LDFLAGS)
+	$(CC) -o pcap2hcap pcap2hcap.c -O2 $(LDFLAGS) -Wno-unused-result
+	$(CC) -o markovgen markovgen.c -O2 $(LDFLAGS) -Wno-unused-result
 
 
 install:

@@ -3,7 +3,7 @@ ifneq ($(DESTDIR),"")
 endif
 
 
-CFLAGS += -Wall -I../ -shared -g -O3 -fpic  -fomit-frame-pointer -funroll-loops -minline-all-stringops  -momit-leaf-frame-pointer 
+CFLAGS += -Wall -I../ -shared -g -O3 -fpic  -fomit-frame-pointer -funroll-loops -minline-all-stringops  -momit-leaf-frame-pointer -Wno-unused-result
 #CFLAGS = -Wall -I../ -shared  -O2 -fpic  -fomit-frame-pointer -minline-all-stringops  -Wall -funroll-loops -m32
 
 
