@@ -92,6 +92,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"mssql-2012",&ocl_bruteforce_mssql_2012, &ocl_markov_mssql_2012, &ocl_rule_mssql_2012},
                             {1,"msoffice",&ocl_bruteforce_msoffice, &ocl_markov_msoffice, &ocl_rule_msoffice},
                             {1,"luks",&ocl_bruteforce_luks, &ocl_markov_luks, &ocl_rule_luks},
+                            {1,"ripemd160",&ocl_bruteforce_ripemd160, &ocl_markov_ripemd160, &ocl_rule_ripemd160},
                             {0, "", NULL, NULL, NULL}
                         };
 
@@ -247,6 +248,7 @@ hash_stat ocl_get_device()
     	    {
 		if ((strcmp(get_current_plugin(),"sha1")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"sha256")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"ripemd160")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"sl3")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"md5md5")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"mysql5")==0)) ocl_vector=4;
@@ -275,6 +277,7 @@ hash_stat ocl_get_device()
 	    {
 		if ((strcmp(get_current_plugin(),"sl3")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"sha1")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"ripemd160")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"nsldap")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"nsldaps")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"smf")==0)) loops=2;
@@ -331,6 +334,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"md5")==0)) ocl_vector=8;
 		if ((strcmp(get_current_plugin(),"md4")==0)) ocl_vector=8;
 		if ((strcmp(get_current_plugin(),"sha1")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"ripemd160")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"ntlm")==0)) ocl_vector=8;
 		if ((strcmp(get_current_plugin(),"md5md5")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=1;
@@ -393,6 +397,7 @@ hash_stat ocl_get_device()
 	    {
 		if ((strcmp(get_current_plugin(),"sl3")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"sha1")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"ripemd160")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"nsldap")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"nsldaps")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"smf")==0)) loops=2;
@@ -438,6 +443,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"md5")==0)) ocl_vector=8;
 		if ((strcmp(get_current_plugin(),"md4")==0)) ocl_vector=8;
 		if ((strcmp(get_current_plugin(),"sha1")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"ripemd160")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"sha256")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=2;

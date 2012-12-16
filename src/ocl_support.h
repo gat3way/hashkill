@@ -252,6 +252,10 @@ hash_stat ocl_bruteforce_luks(void);
 hash_stat ocl_markov_luks(void);
 hash_stat ocl_rule_luks(void);
 
+/* ripemd160 plugin support */
+hash_stat ocl_bruteforce_ripemd160(void);
+hash_stat ocl_markov_ripemd160(void);
+hash_stat ocl_rule_ripemd160(void);
 
 
 

@@ -132,7 +132,8 @@ am_hashkill_OBJECTS = hashkill-ocl-base.$(OBJEXT) \
 	hashkill-ocl_sha256unix.$(OBJEXT) \
 	hashkill-ocl_o5logon.$(OBJEXT) \
 	hashkill-ocl_mssql-2012.$(OBJEXT) \
-	hashkill-ocl_msoffice.$(OBJEXT) hashkill-ocl_luks.$(OBJEXT)
+	hashkill-ocl_msoffice.$(OBJEXT) hashkill-ocl_luks.$(OBJEXT) \
+	hashkill-ocl_ripemd160.$(OBJEXT)
 hashkill_OBJECTS = $(am_hashkill_OBJECTS)
 hashkill_DEPENDENCIES = libtargets.la
 hashkill_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -348,7 +349,7 @@ ocl_joomla.c ocl_oscommerce.c ocl_ipb2.c ocl_vbulletin.c ocl_smf.c ocl_oracle11g
 ocl_mssql-2005.c ocl_nsldaps.c ocl_osx-old.c ocl_osxlion.c ocl_desunix.c ocl_oracle-old.c  ocl_mscash.c \
 ocl_pixmd5.c ocl_phpbb3.c ocl_wordpress.c ocl_md5unix.c ocl_sha512unix.c ocl_mscash2.c ocl_apr1.c ocl_wpa.c \
 ocl_dmg.c unrargpu.c ocl_rar.c ocl_bfunix.c ocl_drupal7.c ocl_zip.c ocl_django256.c ocl_sha256unix.c \
-ocl_o5logon.c ocl_mssql-2012.c ocl_msoffice.c ocl_luks.c
+ocl_o5logon.c ocl_mssql-2012.c ocl_msoffice.c ocl_luks.c ocl_ripemd160.c
 
 
 # forced static linkage below
@@ -545,6 +546,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_phpbb3.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_pixmd5.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_rar.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_ripemd160.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_sha1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_sha256.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_sha256unix.Po@am__quote@
@@ -1610,6 +1612,20 @@ hashkill-ocl_luks.obj: ocl_luks.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_luks.c' object='hashkill-ocl_luks.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_luks.obj `if test -f 'ocl_luks.c'; then $(CYGPATH_W) 'ocl_luks.c'; else $(CYGPATH_W) '$(srcdir)/ocl_luks.c'; fi`
+
+hashkill-ocl_ripemd160.o: ocl_ripemd160.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_ripemd160.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_ripemd160.Tpo -c -o hashkill-ocl_ripemd160.o `test -f 'ocl_ripemd160.c' || echo '$(srcdir)/'`ocl_ripemd160.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_ripemd160.Tpo $(DEPDIR)/hashkill-ocl_ripemd160.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_ripemd160.c' object='hashkill-ocl_ripemd160.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_ripemd160.o `test -f 'ocl_ripemd160.c' || echo '$(srcdir)/'`ocl_ripemd160.c
+
+hashkill-ocl_ripemd160.obj: ocl_ripemd160.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_ripemd160.obj -MD -MP -MF $(DEPDIR)/hashkill-ocl_ripemd160.Tpo -c -o hashkill-ocl_ripemd160.obj `if test -f 'ocl_ripemd160.c'; then $(CYGPATH_W) 'ocl_ripemd160.c'; else $(CYGPATH_W) '$(srcdir)/ocl_ripemd160.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_ripemd160.Tpo $(DEPDIR)/hashkill-ocl_ripemd160.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_ripemd160.c' object='hashkill-ocl_ripemd160.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_ripemd160.obj `if test -f 'ocl_ripemd160.c'; then $(CYGPATH_W) 'ocl_ripemd160.c'; else $(CYGPATH_W) '$(srcdir)/ocl_ripemd160.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
