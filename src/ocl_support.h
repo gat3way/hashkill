@@ -257,6 +257,11 @@ hash_stat ocl_bruteforce_ripemd160(void);
 hash_stat ocl_markov_ripemd160(void);
 hash_stat ocl_rule_ripemd160(void);
 
+/* whirlpool plugin support */
+hash_stat ocl_bruteforce_whirlpool(void);
+hash_stat ocl_markov_whirlpool(void);
+hash_stat ocl_rule_whirlpool(void);
+
 
 
 /* supported plugins struct array*/
