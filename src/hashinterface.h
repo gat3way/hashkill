@@ -235,6 +235,7 @@ hash_stat hash_proto_md4(char *plaintext[VECTORSIZE], char *hashmd5[VECTORSIZE],
 hash_stat hash_proto_md4_unicode(char *plaintext[VECTORSIZE], char *hashmd5[VECTORSIZE], int len,int threadid);
 void hash_proto_md4_slow(char *plaintext[VECTORSIZE], char *hashmd5[VECTORSIZE], int len[VECTORSIZE],int threadid);
 void hash_proto_ripemd160(const char *plaintext[VECTORSIZE], char *hashmd5[VECTORSIZE], int len[VECTORSIZE]);
+void hash_proto_whirlpool(const char *plaintext[VECTORSIZE], char *hashmd5[VECTORSIZE], int len[VECTORSIZE]);
 void hash_proto_md5_hex(const char *hash[VECTORSIZE],  char *hashhex[VECTORSIZE]);
 hash_stat hash_proto_sha1(char *plaintext[VECTORSIZE], char *hashmd5[VECTORSIZE], int len, int threadid);
 void hash_proto_sha1_unicode(char *plaintext[VECTORSIZE], char *hashmd5[VECTORSIZE], int len[VECTORSIZE]);

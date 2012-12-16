@@ -46,6 +46,7 @@ hash_stat (*hash_sha1)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE]
 void *(*hash_sha1_unicode)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE]);
 void *(*hash_sha1_slow)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE]);
 void *(*hash_ripemd160)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE]);
+void *(*hash_whirlpool)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE]);
 void *(*hash_sha1_hex)(const char *hash[VECTORSIZE], char *hashhex[VECTORSIZE]);
 void *(*hash_sha256_unicode)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE]);
 void *(*hash_sha256_hex)(const char *hash[VECTORSIZE], char *hashhex[VECTORSIZE]);
@@ -80,6 +81,7 @@ void register_add_hash(void *(*add_hash)(const char *hash, int len));
 void register_add_salt(void *(*add_salt)(const char *salt));
 void register_add_salt2(void *(*add_salt2)(const char *salt2));
 void register_ripemd160(void *(*ripemd160)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE]));
+void register_whirlpool(void *(*whirlpool)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE]));
 void register_md5(hash_stat (*md5)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len, int threadid));
 void register_md5_unicode(void *(*md5_unicode)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE]));
 void register_md5_unicode_slow(void *(*md5_unicode_slow)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE]));

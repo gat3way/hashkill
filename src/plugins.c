@@ -204,6 +204,7 @@ hash_stat load_plugin(void)
 	void(*register_hmac_sha1)(void (*hmac_sha1)(void *key, int keylen, unsigned char *data, int datalen,unsigned char *output, int outputlen)) = dlsym(dlhandle, "register_hmac_sha1");
 	void(*register_hmac_md5)(void (*hmac_md5)(void *key, int keylen, unsigned char *data, int datalen, unsigned char *output, int outputlen)) = dlsym(dlhandle, "register_hmac_md5");
 	void(*register_ripemd160)(void (*ripemd160)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE])) = dlsym(dlhandle, "register_ripemd160");
+	void(*register_whirlpool)(void (*whirlpool)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE])) = dlsym(dlhandle, "register_whirlpool");
 	void(*register_pbkdf512)(void (*pbkdf512)(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)) = dlsym(dlhandle, "register_pbkdf512");
 	void(*register_aes_encrypt)(void (*aes_encrypt)(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *vec, unsigned char *out, int mode)) = dlsym(dlhandle, "register_aes_encrypt");
 	void(*register_aes_decrypt)(void (*aes_decrypt)(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *vec, unsigned char *out, int mode)) = dlsym(dlhandle, "register_aes_decrypt");
@@ -253,6 +254,7 @@ hash_stat load_plugin(void)
 	    register_hmac_sha1(hash_proto_hmac_sha1);
 	    register_hmac_md5(hash_proto_hmac_md5);
 	    register_ripemd160(hash_proto_ripemd160);
+	    register_whirlpool(hash_proto_whirlpool);
 	    register_pbkdf512(hash_proto_pbkdf512);
 	    register_aes_encrypt(hash_proto_aes_encrypt);
 	    register_aes_decrypt(hash_proto_aes_decrypt);

@@ -100,6 +100,11 @@ void register_ripemd160(void * (*ripemd160)(const char *plaintext[VECTORSIZE], c
     hash_ripemd160 = ripemd160;
 }
 
+void register_whirlpool(void * (*whirlpool)(const char *plaintext[VECTORSIZE], char *hashripe[VECTORSIZE], int len[VECTORSIZE]))
+{
+    hash_whirlpool = whirlpool;
+}
+
 
 void register_md5(hash_stat  (*md5)(const char *plaintext[VECTORSIZE], char *hashmd5[VECTORSIZE], int len, int threadid))
 {

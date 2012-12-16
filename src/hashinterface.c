@@ -40,6 +40,7 @@
 #include <openssl/rsa.h>
 #include <openssl/hmac.h>
 #include <openssl/ripemd.h>
+#include <openssl/whrlpool.h>
 #include <openssl/rc4.h>
 #include <openssl/aes.h>
 #include <openssl/md4.h>
@@ -472,6 +473,20 @@ void hash_proto_ripemd160(const char *plaintext[VECTORSIZE], char *hash[VECTORSI
     }
 }
 
+
+/* WHIRLPOOL proto function */
+void hash_proto_whirlpool(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int lens[VECTORSIZE])
+{
+    int a;
+    
+    for (a=0;a<vectorsize;a++)
+    {
+	WHIRLPOOL_CTX ctx;
+	WHIRLPOOL_Init(&ctx);
+	WHIRLPOOL_Update(&ctx, plaintext[a], lens[a]);
+	WHIRLPOOL_Final((unsigned char *)hash[a],&ctx);
+    }
+}
 
 
 /* SHA1 digest -> hex str */
