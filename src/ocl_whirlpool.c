@@ -1350,6 +1350,7 @@ static void ocl_whirlpool_crack_callback(char *line, int self)
         wthreads[self].tries+=ocl_rule_workset[self]*ocl_rule_opt_counts[self];
         _clSetKernelArg(rule_kernel[self], 7, sizeof(cl_uint16), (void*) &addline1[self]);
         _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
+
         found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
         if (*found>0) 
         {
@@ -1515,7 +1516,7 @@ void* ocl_rule_whirlpool_thread(void *arg)
     rule_sizes[self]=malloc(ocl_rule_workset[self]*sizeof(cl_uint));
     rule_images[self]=malloc(ocl_rule_workset[self]*MAX);
     bzero(&rule_images[self][0],ocl_rule_workset[self]*MAX);
-    bzero(&rule_images[self][0],ocl_rule_workset[self]*sizeof(cl_uint));
+    bzero(&rule_sizes[self][0],ocl_rule_workset[self]*sizeof(cl_uint));
     _clSetKernelArg(rule_kernel[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
     _clSetKernelArg(rule_kernel[self], 1, sizeof(cl_mem), (void*) &rule_images_buf[self]);
     _clSetKernelArg(rule_kernel[self], 2, sizeof(cl_mem), (void*) &rule_sizes_buf[self]);

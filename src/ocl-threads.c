@@ -391,7 +391,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"oracle11g")==0)) {ocl_vector=4;loops=1;}
 		if ((strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=1;
-		if ((strcmp(get_current_plugin(),"whirlpool")==0)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"whirlpool")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) {ocl_vector=2;loops=1;}
 		if ((strcmp(get_current_plugin(),"zip")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"mscash")==0)) {loops=1;ocl_vector=8;}
