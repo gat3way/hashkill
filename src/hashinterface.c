@@ -50,7 +50,8 @@
 #include "threads.h"
 #include "plugins.h"
 #include "cpu-feat.h"
-
+#include "cpu-serpent.h"
+#include "cpu-twofish.h"
 
 
 
