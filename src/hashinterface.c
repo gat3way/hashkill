@@ -45,6 +45,7 @@
 #include <openssl/aes.h>
 #include <openssl/md4.h>
 #include <openssl/des.h>
+#include <openssl/bn.h>
 #include "err.h"
 #include "hashinterface.h"
 #include "threads.h"
@@ -892,6 +893,65 @@ void hash_proto_pbkdf2_256_len(const char *pass, int passlen, unsigned char *sal
 	SHA256_Final(hash, &ctx);
 	for(b=0;b<32;b++) out[b] ^= hash[b];
     }
+}
+
+
+/* Multiplication in GF(2^128) of a binary value (encrypted sector) with integer constant (coef) */
+static void hash_mulgf2128_i(unsigned char *in, int len, unsigned int coef, unsigned char *out)
+{
+    BIGNUM *a1;
+    BIGNUM *a2;
+    BIGNUM *a3;
+    BIGNUM *ar;
+    BN_CTX *ctx;
+    int mod = 128;
+    unsigned char coefreal[4];
+    unsigned char modreal[4];
+    int a,ai,ao;
+
+    a1 = BN_new();
+    a2 = BN_new();
+    a3 = BN_new();
+    ar = BN_new();
+    ctx = BN_CTX_new();
+
+    /* Endian reversals! */
+    coefreal[0]=(coef>>24);
+    coefreal[1]=(coef>>16)&255;
+    coefreal[2]=(coef>>8)&255;
+    coefreal[3]=(coef)&255;
+
+    modreal[0]=(mod>>24);
+    modreal[1]=(mod>>16)&255;
+    modreal[2]=(mod>>8)&255;
+    modreal[3]=(mod)&255;
+
+    for (a=0;a<len/4;a++)
+    {
+	ai=(int)*((unsigned char *)(in+a*4));
+	ao=(ai>>24)|(((ai>>16)&255)<<8)|(((ai>>8)&255)<<16)|(((ai)&255)<<24);
+	memcpy(in+a*4,&ao,4);
+    }
+
+    BN_bin2bn(in, len, a1);
+    BN_bin2bn(coefreal, 4, a2);
+    BN_bin2bn(modreal, 4, a3);
+    BN_GF2m_mod_mul(ar,a1,a2,a3,ctx);
+
+    BN_bn2bin(ar, out);
+    /* Endian reverse "out" */
+    for (a=0;a<len/4;a++)
+    {
+	ai=(int)*((unsigned char *)(out+a*4));
+	ao=(ai>>24)|(((ai>>16)&255)<<8)|(((ai>>8)&255)<<16)|(((ai)&255)<<24);
+	memcpy(out+a*4,&ao,4);
+    }
+
+    BN_free(a1);
+    BN_free(a2);
+    BN_free(a3);
+    BN_free(ar);
+    BN_CTX_free(ctx);
 }
 
 
