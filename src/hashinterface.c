@@ -31,6 +31,7 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <termios.h>
+#include <arpa/inet.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
 #include <openssl/des.h>
@@ -897,52 +898,47 @@ void hash_proto_pbkdf2_256_len(const char *pass, int passlen, unsigned char *sal
 
 
 /* Multiplication in GF(2^128) of a binary value (encrypted sector) with integer constant (coef) */
-static void hash_mulgf2128_i(unsigned char *in, int len, unsigned int coef, unsigned char *out)
+void hash_mulgf2128_i(unsigned char *in, int len, unsigned int coef, unsigned char *out)
 {
     BIGNUM *a1;
     BIGNUM *a2;
     BIGNUM *a3;
     BIGNUM *ar;
     BN_CTX *ctx;
-    int mod = 128;
-    unsigned char coefreal[4];
-    unsigned char modreal[4];
-    int a,ai,ao;
+    int p[5];
+    unsigned int mod = htonl(128);
+    unsigned int coefreal = htonl(coef);
+    unsigned int a,ai,ao;
 
     a1 = BN_new();
     a2 = BN_new();
     a3 = BN_new();
     ar = BN_new();
     ctx = BN_CTX_new();
+    p[0]=128;
+    p[1]=7;
+    p[2]=2;
+    p[3]=1;
+    p[4]=0;
 
     /* Endian reversals! */
-    coefreal[0]=(coef>>24);
-    coefreal[1]=(coef>>16)&255;
-    coefreal[2]=(coef>>8)&255;
-    coefreal[3]=(coef)&255;
-
-    modreal[0]=(mod>>24);
-    modreal[1]=(mod>>16)&255;
-    modreal[2]=(mod>>8)&255;
-    modreal[3]=(mod)&255;
-
     for (a=0;a<len/4;a++)
     {
-	ai=(int)*((unsigned char *)(in+a*4));
+	memcpy(&ai,in+a*4,4);
 	ao=(ai>>24)|(((ai>>16)&255)<<8)|(((ai>>8)&255)<<16)|(((ai)&255)<<24);
 	memcpy(in+a*4,&ao,4);
     }
 
     BN_bin2bn(in, len, a1);
-    BN_bin2bn(coefreal, 4, a2);
-    BN_bin2bn(modreal, 4, a3);
-    BN_GF2m_mod_mul(ar,a1,a2,a3,ctx);
+    BN_set_word(a2,coefreal);
+    BN_set_word(a3,mod);
+    BN_GF2m_mod_mul_arr(ar,a1,a2,p,ctx);
 
     BN_bn2bin(ar, out);
     /* Endian reverse "out" */
     for (a=0;a<len/4;a++)
     {
-	ai=(int)*((unsigned char *)(out+a*4));
+	memcpy(&ai,out+a*4,4);
 	ao=(ai>>24)|(((ai>>16)&255)<<8)|(((ai>>8)&255)<<16)|(((ai)&255)<<24);
 	memcpy(out+a*4,&ao,4);
     }
