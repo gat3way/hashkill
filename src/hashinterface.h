@@ -256,6 +256,8 @@ void hash_proto_hmac_sha1_file(void *key, int keylen, char *filename, long offse
 void hash_proto_hmac_sha1(void *key, int keylen, unsigned char *data, int datalen, unsigned char *output, int outputlen);
 void hash_proto_hmac_md5(void *key, int keylen, unsigned char *data, int datalen, unsigned char *output, int outputlen);
 void hash_proto_pbkdf512(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out);
+void hash_proto_pbkdfrmd160(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out);
+void hash_proto_pbkdfwhirlpool(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out);
 void hash_proto_aes_encrypt(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *vec, unsigned char *out, int mode);
 void hash_proto_aes_decrypt(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *vec, unsigned char *out, int mode);
 void hash_proto_des_ecb_encrypt(const unsigned char *key, int keysize, const unsigned char *in[VECTORSIZE], int len, unsigned char *out[VECTORSIZE], int mode);
@@ -267,6 +269,10 @@ void hash_proto_lm_slow(const unsigned char *in[VECTORSIZE], unsigned char *out[
 void hash_proto_aes_cbc_encrypt(const unsigned char *in,unsigned char *out,unsigned long length,AES_KEY *key,unsigned char ivec[16],int oper);
 int hash_proto_aes_set_encrypt_key(const unsigned char *userKey,const int bits,AES_KEY *key);
 int hash_proto_aes_set_decrypt_key(const unsigned char *userKey, const int bits, AES_KEY *key);
+void hash_proto_decrypt_aes_xts(char *key1, char *key2, char *in, char *out, int len, int sector, int cur_block);
+void hash_proto_decrypt_twofish_xts(char *key1, char *key2, char *in, char *out, int len, int sector, int cur_block);
+void hash_proto_decrypt_serpent_xts(char *key1, char *key2, char *in, char *out, int len, int sector, int cur_block);
+
 void scheduler_init();
 void scheduler_setup(int curlen, int startlen, int maxlen, int charset_size, int charset_size2);
 int sched_s1();

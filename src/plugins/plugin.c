@@ -58,6 +58,8 @@ void register_hmac_sha1_file(void * (*hmac_sha1_file)(void *key, int keylen, cha
 void register_hmac_sha1(void * (*hmac_sha1)(void *key, int keylen, unsigned char *data, int datalen, unsigned char *output, int outputlen));
 void register_hmac_md5(void * (*hmac_md5)(void *key, int keylen, unsigned char *data, int datalen, unsigned char *output, int outputlen));
 void register_pbkdf512(void * (*pbkdf512)(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out));
+void register_pbkdfrmd160(void * (*pbkdfrmd160)(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out));
+void register_pbkdfwhirlpool(void * (*pbkdfwhirlpool)(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out));
 void register_aes_encrypt(void * (*aes_encrypt)(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *vec, unsigned char *out, int mode));
 void register_aes_decrypt(void * (*aes_decrypt)(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *vec, unsigned char *out, int mode));
 void register_des_ecb_encrypt(void * (*des_ecb_encrypt)(const unsigned char *key, int keysize, const unsigned char *in[VECTORSIZE], int len, unsigned char *out[VECTORSIZE], int mode));
@@ -69,6 +71,9 @@ void register_lm_slow(void * (*lm_slow)(const unsigned char *in[VECTORSIZE], uns
 void register_aes_cbc_encrypt(void * (*aes_cbc_encrypt)(const unsigned char *in,unsigned char *out,unsigned long length,AES_KEY *key,unsigned char ivec[16],int oper));
 void register_aes_set_encrypt_key(int * (*aes_set_encrypt_key)(const unsigned char *userKey,const int bits,AES_KEY *key));
 void register_aes_set_decrypt_key(int * (*aes_set_decrypt_key)(const unsigned char *userKey,const int bits,AES_KEY *key));
+void register_decrypt_aes_xts(void * (*decrypt_aes_ctx)(char *key1, char *key2, char *in, char *out, int len, int sector, int cur_block));
+void register_decrypt_twofish_xts(void * (*decrypt_twofish_ctx)(char *key1, char *key2, char *in, char *out, int len, int sector, int cur_block));
+void register_decrypt_serpent_xts(void * (*decrypt_serpent_ctx)(char *key1, char *key2, char *in, char *out, int len, int sector, int cur_block));
 
 
 char* strupr(char* ioString);
@@ -251,6 +256,16 @@ void register_pbkdf512(void * (*pbkdf512)(const char *pass, unsigned char *salt,
     hash_pbkdf512 = pbkdf512;
 }
 
+void register_pbkdfrmd160(void * (*pbkdfrmd160)(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out))
+{
+    hash_pbkdfrmd160 = pbkdfrmd160;
+}
+
+void register_pbkdfwhirlpool(void * (*pbkdfwhirlpool)(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out))
+{
+    hash_pbkdfwhirlpool = pbkdfwhirlpool;
+}
+
 
 void register_aes_encrypt(void * (*aes_encrypt)(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *vec, unsigned char *out, int mode))
 {
@@ -284,6 +299,22 @@ void register_rc4_encrypt(void * (*rc4_encrypt)(const unsigned char *key, int ke
 {
     hash_rc4_encrypt = rc4_encrypt;
 }
+
+void register_decrypt_aes_xts(void * (*decrypt_aes_xts)(char *key1, char *key2, char *in, char *out, int len, int sector, int cur_block))
+{
+    hash_decrypt_aes_xts = decrypt_aes_xts;
+}
+
+void register_decrypt_twofish_xts(void * (*decrypt_twofish_xts)(char *key1, char *key2, char *in, char *out, int len, int sector, int cur_block))
+{
+    hash_decrypt_twofish_xts = decrypt_twofish_xts;
+}
+
+void register_decrypt_serpent_xts(void * (*decrypt_serpent_xts)(char *key1, char *key2, char *in, char *out, int len, int sector, int cur_block))
+{
+    hash_decrypt_serpent_xts = decrypt_serpent_xts;
+}
+
 
 
 void register_lm(void * (*lm)(const unsigned char *in[VECTORSIZE], unsigned char *out[VECTORSIZE]))

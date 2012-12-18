@@ -56,6 +56,26 @@
 #include "cpu-twofish.h"
 
 
+// Check windows - TBD
+#if _WIN32 || _WIN64
+#if _WIN64
+#define ENV64
+#else
+#define ENV32
+#endif
+#endif
+
+// Check GCC
+#if __GNUC__
+#if __x86_64__ || __ppc64__
+#define ENV64
+#else
+#define ENV32
+#endif
+#endif
+
+typedef uint64_t __attribute__((__may_alias__)) uint64;
+
 
 /* Global variables */
 char temp_username[HASHFILE_MAX_PLAIN_LENGTH];	// temporary username
@@ -897,58 +917,6 @@ void hash_proto_pbkdf2_256_len(const char *pass, int passlen, unsigned char *sal
 }
 
 
-/* Multiplication in GF(2^128) of a binary value (encrypted sector) with integer constant (coef) */
-void hash_mulgf2128_i(unsigned char *in, int len, unsigned int coef, unsigned char *out)
-{
-    BIGNUM *a1;
-    BIGNUM *a2;
-    BIGNUM *a3;
-    BIGNUM *ar;
-    BN_CTX *ctx;
-    int p[5];
-    unsigned int mod = htonl(128);
-    unsigned int coefreal = htonl(coef);
-    unsigned int a,ai,ao;
-
-    a1 = BN_new();
-    a2 = BN_new();
-    a3 = BN_new();
-    ar = BN_new();
-    ctx = BN_CTX_new();
-    p[0]=128;
-    p[1]=7;
-    p[2]=2;
-    p[3]=1;
-    p[4]=0;
-
-    /* Endian reversals! */
-    for (a=0;a<len/4;a++)
-    {
-	memcpy(&ai,in+a*4,4);
-	ao=(ai>>24)|(((ai>>16)&255)<<8)|(((ai>>8)&255)<<16)|(((ai)&255)<<24);
-	memcpy(in+a*4,&ao,4);
-    }
-
-    BN_bin2bn(in, len, a1);
-    BN_set_word(a2,coefreal);
-    BN_set_word(a3,mod);
-    BN_GF2m_mod_mul_arr(ar,a1,a2,p,ctx);
-
-    BN_bn2bin(ar, out);
-    /* Endian reverse "out" */
-    for (a=0;a<len/4;a++)
-    {
-	memcpy(&ai,out+a*4,4);
-	ao=(ai>>24)|(((ai>>16)&255)<<8)|(((ai>>8)&255)<<16)|(((ai)&255)<<24);
-	memcpy(out+a*4,&ao,4);
-    }
-
-    BN_free(a1);
-    BN_free(a2);
-    BN_free(a3);
-    BN_free(ar);
-    BN_CTX_free(ctx);
-}
 
 
 
@@ -981,7 +949,7 @@ void hash_proto_pbkdf512(const char *pass, unsigned char *salt, int saltlen, int
         memcpy(p, digtmp, cplen);
         for(j = 1; j < iter; j++) 
         {
-    	    HMAC(EVP_sha512(), pass, passlen, digtmp, SHA_DIGEST_LENGTH, digtmp, NULL);
+    	    HMAC(EVP_sha512(), pass, passlen, digtmp, SHA512_DIGEST_LENGTH, digtmp, NULL);
     	    for(k = 0; k < cplen; k++) p[k] ^= digtmp[k];
 	}
 	tkeylen-= cplen;
@@ -990,6 +958,88 @@ void hash_proto_pbkdf512(const char *pass, unsigned char *salt, int saltlen, int
     }
     HMAC_CTX_cleanup(&hctx);
 }
+
+
+/* PBKDF2 with HMAC_RIPEMD160 */
+void hash_proto_pbkdfrmd160(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)
+{
+    unsigned char digtmp[RIPEMD160_DIGEST_LENGTH], *p, itmp[4];
+    int cplen, j, k, tkeylen;
+    unsigned long i = 1;
+    HMAC_CTX hctx;
+    int passlen = strlen(pass);
+
+    HMAC_CTX_init(&hctx);
+    p = out;
+    tkeylen = keylen;
+    if(!pass) passlen = 0;
+    else if(passlen == -1) passlen = strlen(pass);
+    while(tkeylen) 
+    {
+        if(tkeylen > RIPEMD160_DIGEST_LENGTH) cplen = RIPEMD160_DIGEST_LENGTH;
+        else cplen = tkeylen;
+        itmp[0] = (unsigned char)((i >> 24) & 0xff);
+        itmp[1] = (unsigned char)((i >> 16) & 0xff);
+        itmp[2] = (unsigned char)((i >> 8) & 0xff);
+        itmp[3] = (unsigned char)(i & 0xff);
+        HMAC_Init_ex(&hctx, pass, passlen, EVP_ripemd160(), NULL);
+        HMAC_Update(&hctx, salt, saltlen);
+        HMAC_Update(&hctx, itmp, 4);
+        HMAC_Final(&hctx, digtmp, NULL);
+        memcpy(p, digtmp, cplen);
+        for(j = 1; j < iter; j++) 
+        {
+    	    HMAC(EVP_ripemd160(), pass, passlen, digtmp, RIPEMD160_DIGEST_LENGTH, digtmp, NULL);
+    	    for(k = 0; k < cplen; k++) p[k] ^= digtmp[k];
+	}
+	tkeylen-= cplen;
+	i++;
+	p+= cplen;
+    }
+    HMAC_CTX_cleanup(&hctx);
+}
+
+
+/* PBKDF2 with HMAC_WHIRLPOOL */
+void hash_proto_pbkdfwhirlpool(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)
+{
+    unsigned char digtmp[WHIRLPOOL_DIGEST_LENGTH], *p, itmp[4];
+    int cplen, j, k, tkeylen;
+    unsigned long i = 1;
+    HMAC_CTX hctx;
+    int passlen = strlen(pass);
+
+    HMAC_CTX_init(&hctx);
+    p = out;
+    tkeylen = keylen;
+    if(!pass) passlen = 0;
+    else if(passlen == -1) passlen = strlen(pass);
+    while(tkeylen) 
+    {
+        if(tkeylen > WHIRLPOOL_DIGEST_LENGTH) cplen = WHIRLPOOL_DIGEST_LENGTH;
+        else cplen = tkeylen;
+        itmp[0] = (unsigned char)((i >> 24) & 0xff);
+        itmp[1] = (unsigned char)((i >> 16) & 0xff);
+        itmp[2] = (unsigned char)((i >> 8) & 0xff);
+        itmp[3] = (unsigned char)(i & 0xff);
+        HMAC_Init_ex(&hctx, pass, passlen, EVP_whirlpool(), NULL);
+        HMAC_Update(&hctx, salt, saltlen);
+        HMAC_Update(&hctx, itmp, 4);
+        HMAC_Final(&hctx, digtmp, NULL);
+        memcpy(p, digtmp, cplen);
+        for(j = 1; j < iter; j++) 
+        {
+    	    HMAC(EVP_whirlpool(), pass, passlen, digtmp, WHIRLPOOL_DIGEST_LENGTH, digtmp, NULL);
+    	    for(k = 0; k < cplen; k++) p[k] ^= digtmp[k];
+	}
+	tkeylen-= cplen;
+	i++;
+	p+= cplen;
+    }
+    HMAC_CTX_cleanup(&hctx);
+}
+
+
 
 
 
@@ -1067,6 +1117,252 @@ void hash_proto_hmac_sha1_file(void *key, int keylen, char *filename, long offse
 }
 
 
+
+void hash_proto_decrypt_aes_xts(char *key1, char *key2, char *in, char *out, int len, int sector, int cur_block)
+{
+    unsigned char finalcarry;
+    unsigned char whvs[512];
+    unsigned char whv[16];
+    unsigned char whv1[16];
+    unsigned char bytebufunitno[16];
+    uint64 *whvsptr = (uint64 *) whvs;
+    uint64 *whvptr = (uint64 *) whv;
+    uint64 *bufptr = (uint64*)in;
+    uint64 *dataunitbufptr;
+    unsigned int startblock = cur_block, endblock, block;
+    uint64 *const finalint64whvsptr = whvsptr + sizeof (whvs) / sizeof (*whvsptr) - 1;
+    uint64 blockcount, dataunitno;
+    int a;
+    char zeroiv[16]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    AES_KEY aeskey;
+
+    dataunitno = sector;
+    *((uint64 *) bytebufunitno) = dataunitno;
+    *((uint64 *) bytebufunitno + 1) = 0;
+
+    blockcount = len / 16;
+
+    while (blockcount > 0)
+    {
+        if (blockcount < 32) endblock = startblock + (unsigned int) blockcount;
+        else endblock = 32;
+        whvsptr = finalint64whvsptr;
+        whvptr = (uint64*)whv;
+        *whvptr = *((uint64*)bytebufunitno);
+        *(whvptr + 1) = 0;
+
+        OAES_SET_ENCRYPT_KEY((unsigned char *)key2,256,&aeskey);
+        OAES_CBC_ENCRYPT(whv, whv1, 16, &aeskey, (unsigned char *)zeroiv, AES_ENCRYPT);
+        memcpy(whv,whv1,16);
+
+        for (block = 0; block < endblock; block++)
+        {
+            if (block >= startblock)
+            {
+                *whvsptr-- = *whvptr++;
+                *whvsptr-- = *whvptr;
+            }
+            else whvptr++;
+
+            finalcarry = (*whvptr & 0x8000000000000000ULL) ? 135 : 0;
+            *whvptr-- <<= 1;
+            if (*whvptr & 0x8000000000000000ULL) *(whvptr + 1) |= 1;
+            *whvptr <<= 1;
+            whv[0] ^= finalcarry;
+        }
+
+        dataunitbufptr = bufptr;
+        whvsptr = finalint64whvsptr;
+        for (block = startblock; block < endblock; block++)
+        {
+            *bufptr++ ^= *whvsptr--;
+            *bufptr++ ^= *whvsptr--;
+        }
+
+        OAES_SET_DECRYPT_KEY((unsigned char *)key1,256,&aeskey);
+        for (a=0;a<(endblock-startblock);a++)
+        {
+    	    OAES_CBC_ENCRYPT(((unsigned char *)(dataunitbufptr))+a*16, (unsigned char *)out+a*16, 16, &aeskey, (unsigned char *)zeroiv, AES_DECRYPT);
+	}
+
+        bufptr = dataunitbufptr;
+        whvsptr = finalint64whvsptr;
+        for (block = startblock; block < endblock; block++)
+        {
+            *bufptr++ ^= *whvsptr--;
+            *bufptr++ ^= *whvsptr--;
+        }
+        blockcount -= endblock - startblock;
+        startblock = 0;
+        dataunitno++;
+        *((uint64*) bytebufunitno) = (dataunitno);
+    }
+}
+
+
+
+void hash_proto_decrypt_twofish_xts(char *key1, char *key2, char *in, char *out, int len, int sector, int cur_block)
+{
+    unsigned char finalcarry;
+    unsigned char whvs[512];
+    unsigned char whv[16];
+    unsigned char whv1[16];
+    unsigned char bytebufunitno[16];
+    uint64 *whvsptr = (uint64 *) whvs;
+    uint64 *whvptr = (uint64 *) whv;
+    uint64 *bufptr = (uint64*)in;
+    uint64 *dataunitbufptr;
+    unsigned int startblock = cur_block, endblock, block;
+    uint64 *const finalint64whvsptr = whvsptr + sizeof (whvs) / sizeof (*whvsptr) - 1;
+    uint64 blockcount, dataunitno;
+    int a;
+    TWOFISH_KEY twofishkey[8];
+
+    dataunitno = sector;
+    *((uint64 *) bytebufunitno) = dataunitno;
+    *((uint64 *) bytebufunitno + 1) = 0;
+
+    blockcount = len / 16;
+
+    while (blockcount > 0)
+    {
+        if (blockcount < 32) endblock = startblock + (unsigned int) blockcount;
+        else endblock = 32;
+        whvsptr = finalint64whvsptr;
+        whvptr = (uint64*)whv;
+        *whvptr = *((uint64*)bytebufunitno);
+        *(whvptr + 1) = 0;
+
+        TWOFISH_set_key((unsigned char *)key2,256,twofishkey);
+        TWOFISH_encrypt(twofishkey,(char *)whv, (char *)whv1);
+        memcpy(whv,whv1,16);
+
+        for (block = 0; block < endblock; block++)
+        {
+            if (block >= startblock)
+            {
+                *whvsptr-- = *whvptr++;
+                *whvsptr-- = *whvptr;
+            }
+            else whvptr++;
+
+            finalcarry = (*whvptr & 0x8000000000000000ULL) ? 135 : 0;
+            *whvptr-- <<= 1;
+            if (*whvptr & 0x8000000000000000ULL) *(whvptr + 1) |= 1;
+            *whvptr <<= 1;
+            whv[0] ^= finalcarry;
+        }
+
+        dataunitbufptr = bufptr;
+        whvsptr = finalint64whvsptr;
+        for (block = startblock; block < endblock; block++)
+        {
+            *bufptr++ ^= *whvsptr--;
+            *bufptr++ ^= *whvsptr--;
+        }
+
+        TWOFISH_set_key((unsigned char *)key1,256,twofishkey);
+        for (a=0;a<(endblock-startblock);a++)
+        {
+    	    TWOFISH_decrypt(twofishkey,((char *)(dataunitbufptr))+a*16, (char *)out+a*16);
+	}
+
+        bufptr = dataunitbufptr;
+        whvsptr = finalint64whvsptr;
+        for (block = startblock; block < endblock; block++)
+        {
+            *bufptr++ ^= *whvsptr--;
+            *bufptr++ ^= *whvsptr--;
+        }
+        blockcount -= endblock - startblock;
+        startblock = 0;
+        dataunitno++;
+        *((uint64*) bytebufunitno) = (dataunitno);
+    }
+}
+
+
+
+
+void hash_proto_decrypt_serpent_xts(char *key1, char *key2, char *in, char *out, int len, int sector, int cur_block)
+{
+    unsigned char finalcarry;
+    unsigned char whvs[512];
+    unsigned char whv[16];
+    unsigned char whv1[16];
+    unsigned char bytebufunitno[16];
+    uint64 *whvsptr = (uint64 *) whvs;
+    uint64 *whvptr = (uint64 *) whv;
+    uint64 *bufptr = (uint64*)in;
+    uint64 *dataunitbufptr;
+    unsigned int startblock = cur_block, endblock, block;
+    uint64 *const finalint64whvsptr = whvsptr + sizeof (whvs) / sizeof (*whvsptr) - 1;
+    uint64 blockcount, dataunitno;
+    int a;
+    SERPENT_KEY serpentkey;
+
+    dataunitno = sector;
+    *((uint64 *) bytebufunitno) = dataunitno;
+    *((uint64 *) bytebufunitno + 1) = 0;
+
+    blockcount = len / 16;
+
+    while (blockcount > 0)
+    {
+        if (blockcount < 32) endblock = startblock + (unsigned int) blockcount;
+        else endblock = 32;
+        whvsptr = finalint64whvsptr;
+        whvptr = (uint64*)whv;
+        *whvptr = *((uint64*)bytebufunitno);
+        *(whvptr + 1) = 0;
+
+        SERPENT_set_key((unsigned char *)key2,256,serpentkey);
+        SERPENT_encrypt(serpentkey,(char *)whv, (char *)whv1);
+        memcpy(whv,whv1,16);
+
+        for (block = 0; block < endblock; block++)
+        {
+            if (block >= startblock)
+            {
+                *whvsptr-- = *whvptr++;
+                *whvsptr-- = *whvptr;
+            }
+            else whvptr++;
+
+            finalcarry = (*whvptr & 0x8000000000000000ULL) ? 135 : 0;
+            *whvptr-- <<= 1;
+            if (*whvptr & 0x8000000000000000ULL) *(whvptr + 1) |= 1;
+            *whvptr <<= 1;
+            whv[0] ^= finalcarry;
+        }
+
+        dataunitbufptr = bufptr;
+        whvsptr = finalint64whvsptr;
+        for (block = startblock; block < endblock; block++)
+        {
+            *bufptr++ ^= *whvsptr--;
+            *bufptr++ ^= *whvsptr--;
+        }
+
+        SERPENT_set_key((unsigned char *)key1,256,serpentkey);
+        for (a=0;a<(endblock-startblock);a++)
+        {
+    	    SERPENT_decrypt(serpentkey,((char *)(dataunitbufptr))+a*16, (char *)out+a*16);
+	}
+
+        bufptr = dataunitbufptr;
+        whvsptr = finalint64whvsptr;
+        for (block = startblock; block < endblock; block++)
+        {
+            *bufptr++ ^= *whvsptr--;
+            *bufptr++ ^= *whvsptr--;
+        }
+        blockcount -= endblock - startblock;
+        startblock = 0;
+        dataunitno++;
+        *((uint64*) bytebufunitno) = (dataunitno);
+    }
+}
 
 
 
