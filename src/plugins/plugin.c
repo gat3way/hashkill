@@ -57,9 +57,9 @@ void register_pbkdf2_256_len(void * (*pbkdf2_256_len)(const char *pass, int pass
 void register_hmac_sha1_file(void * (*hmac_sha1_file)(void *key, int keylen, char *filename, long offset, long size, unsigned char *output, int outputlen));
 void register_hmac_sha1(void * (*hmac_sha1)(void *key, int keylen, unsigned char *data, int datalen, unsigned char *output, int outputlen));
 void register_hmac_md5(void * (*hmac_md5)(void *key, int keylen, unsigned char *data, int datalen, unsigned char *output, int outputlen));
-void register_pbkdf512(void * (*pbkdf512)(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out));
-void register_pbkdfrmd160(void * (*pbkdfrmd160)(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out));
-void register_pbkdfwhirlpool(void * (*pbkdfwhirlpool)(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out));
+void register_pbkdf512(void * (*pbkdf512)(const char *pass, int len, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out));
+void register_pbkdfrmd160(void * (*pbkdfrmd160)(const char *pass, int len, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out));
+void register_pbkdfwhirlpool(void * (*pbkdfwhirlpool)(const char *pass, int len, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out));
 void register_aes_encrypt(void * (*aes_encrypt)(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *vec, unsigned char *out, int mode));
 void register_aes_decrypt(void * (*aes_decrypt)(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *vec, unsigned char *out, int mode));
 void register_des_ecb_encrypt(void * (*des_ecb_encrypt)(const unsigned char *key, int keysize, const unsigned char *in[VECTORSIZE], int len, unsigned char *out[VECTORSIZE], int mode));
@@ -251,17 +251,17 @@ void register_hmac_md5(void * (*hmac_md5)(void *key, int keylen, unsigned char *
 }
 
 
-void register_pbkdf512(void * (*pbkdf512)(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out))
+void register_pbkdf512(void * (*pbkdf512)(const char *pass, int len, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out))
 {
     hash_pbkdf512 = pbkdf512;
 }
 
-void register_pbkdfrmd160(void * (*pbkdfrmd160)(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out))
+void register_pbkdfrmd160(void * (*pbkdfrmd160)(const char *pass,int len, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out))
 {
     hash_pbkdfrmd160 = pbkdfrmd160;
 }
 
-void register_pbkdfwhirlpool(void * (*pbkdfwhirlpool)(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out))
+void register_pbkdfwhirlpool(void * (*pbkdfwhirlpool)(const char *pass,int len, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out))
 {
     hash_pbkdfwhirlpool = pbkdfwhirlpool;
 }

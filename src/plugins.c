@@ -205,9 +205,9 @@ hash_stat load_plugin(void)
 	void(*register_hmac_md5)(void (*hmac_md5)(void *key, int keylen, unsigned char *data, int datalen, unsigned char *output, int outputlen)) = dlsym(dlhandle, "register_hmac_md5");
 	void(*register_ripemd160)(void (*ripemd160)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE])) = dlsym(dlhandle, "register_ripemd160");
 	void(*register_whirlpool)(void (*whirlpool)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE])) = dlsym(dlhandle, "register_whirlpool");
-	void(*register_pbkdf512)(void (*pbkdf512)(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)) = dlsym(dlhandle, "register_pbkdf512");
-	void(*register_pbkdfrmd160)(void (*pbkdfrmd160)(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)) = dlsym(dlhandle, "register_pbkdfrmd160");
-	void(*register_pbkdfwhirlpool)(void (*pbkdfwhirlpool)(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)) = dlsym(dlhandle, "register_pbkdfwhirlpool");
+	void(*register_pbkdf512)(void (*pbkdf512)(const char *pass, int len, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)) = dlsym(dlhandle, "register_pbkdf512");
+	void(*register_pbkdfrmd160)(void (*pbkdfrmd160)(const char *pass, int len, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)) = dlsym(dlhandle, "register_pbkdfrmd160");
+	void(*register_pbkdfwhirlpool)(void (*pbkdfwhirlpool)(const char *pass, int len, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)) = dlsym(dlhandle, "register_pbkdfwhirlpool");
 	void(*register_aes_encrypt)(void (*aes_encrypt)(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *vec, unsigned char *out, int mode)) = dlsym(dlhandle, "register_aes_encrypt");
 	void(*register_aes_decrypt)(void (*aes_decrypt)(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *vec, unsigned char *out, int mode)) = dlsym(dlhandle, "register_aes_decrypt");
 	void(*register_des_ecb_encrypt)(void (*des_ecb_encrypt)(const unsigned char *key, int keysize, const unsigned char *in[VECTORSIZE], int len, unsigned char *out[VECTORSIZE], int mode)) = dlsym(dlhandle, "register_des_ecb_encrypt");

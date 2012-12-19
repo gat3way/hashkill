@@ -69,7 +69,7 @@ hash_stat load_hashes_file(const char *filename)
     
     if (hash_plugin_is_special())
     {
-	temp_stat = hash_plugin_parse_hash(NULL,(char *)filename);
+	temp_stat = hash_plugin_parse_hash(additional_options,(char *)filename);
 	if (add_hash_list(temp_username, temp_hash, temp_salt, temp_salt2) == hash_err)
 	{
 	    elog("Not enough memory to insert new hash_list entry! %s\n","");

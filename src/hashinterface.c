@@ -921,19 +921,18 @@ void hash_proto_pbkdf2_256_len(const char *pass, int passlen, unsigned char *sal
 
 
 /* PBKDF2 with HMAC_SHA512 */
-void hash_proto_pbkdf512(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)
+void hash_proto_pbkdf512(const char *pass,int len, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)
 {
     unsigned char digtmp[SHA512_DIGEST_LENGTH], *p, itmp[4];
     int cplen, j, k, tkeylen;
     unsigned long i = 1;
     HMAC_CTX hctx;
-    int passlen = strlen(pass);
+    int passlen = len;
 
     HMAC_CTX_init(&hctx);
     p = out;
     tkeylen = keylen;
     if(!pass) passlen = 0;
-    else if(passlen == -1) passlen = strlen(pass);
     while(tkeylen) 
     {
         if(tkeylen > SHA512_DIGEST_LENGTH) cplen = SHA512_DIGEST_LENGTH;
@@ -961,19 +960,18 @@ void hash_proto_pbkdf512(const char *pass, unsigned char *salt, int saltlen, int
 
 
 /* PBKDF2 with HMAC_RIPEMD160 */
-void hash_proto_pbkdfrmd160(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)
+void hash_proto_pbkdfrmd160(const char *pass,int len, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)
 {
     unsigned char digtmp[RIPEMD160_DIGEST_LENGTH], *p, itmp[4];
     int cplen, j, k, tkeylen;
     unsigned long i = 1;
     HMAC_CTX hctx;
-    int passlen = strlen(pass);
+    int passlen = len;
 
     HMAC_CTX_init(&hctx);
     p = out;
     tkeylen = keylen;
     if(!pass) passlen = 0;
-    else if(passlen == -1) passlen = strlen(pass);
     while(tkeylen) 
     {
         if(tkeylen > RIPEMD160_DIGEST_LENGTH) cplen = RIPEMD160_DIGEST_LENGTH;
@@ -1001,19 +999,18 @@ void hash_proto_pbkdfrmd160(const char *pass, unsigned char *salt, int saltlen, 
 
 
 /* PBKDF2 with HMAC_WHIRLPOOL */
-void hash_proto_pbkdfwhirlpool(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)
+void hash_proto_pbkdfwhirlpool(const char *pass,int len, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out)
 {
     unsigned char digtmp[WHIRLPOOL_DIGEST_LENGTH], *p, itmp[4];
     int cplen, j, k, tkeylen;
     unsigned long i = 1;
     HMAC_CTX hctx;
-    int passlen = strlen(pass);
+    int passlen = len;
 
     HMAC_CTX_init(&hctx);
     p = out;
     tkeylen = keylen;
     if(!pass) passlen = 0;
-    else if(passlen == -1) passlen = strlen(pass);
     while(tkeylen) 
     {
         if(tkeylen > WHIRLPOOL_DIGEST_LENGTH) cplen = WHIRLPOOL_DIGEST_LENGTH;

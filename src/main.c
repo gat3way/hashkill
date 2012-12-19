@@ -332,8 +332,10 @@ int main(int argc, char *argv[])
 	{"gpu-temp", 0, 0, 'T'},
 	{"gpu-platform", 0, 0, 't'},
 	{"add-opts", 0, 0, 'a'},
+	{"plugin-opts", 0, 0, 'A'},
 	{0, 0, 0, 0}
     };
+
 
     /* initialize */
     printf("\n");
@@ -396,7 +398,7 @@ int main(int argc, char *argv[])
     signal(SIGTERM, sigint_handler);
 
     opterr = 0;
-    while ((option = getopt_long(argc, argv, "p:f:d:P::b::t:T:S::s:o:O:N:n:M::m:hicFDG:C:a:T:r:R",long_options, &option_index)) != -1)
+    while ((option = getopt_long(argc, argv, "p:f:d:P::b::t:T:S::s:o:O:N:n:M::m:hicFDG:C:a:T:r:RA:",long_options, &option_index)) != -1)
     switch (option)
     {
 	case 'r':
@@ -454,6 +456,11 @@ int main(int argc, char *argv[])
 
 	case 'a':
 	    process_addopts(optarg);
+	break;
+
+	case 'A':
+	    additional_options = malloc(strlen(optarg)+1);
+	    strcpy(additional_options,optarg);
 	break;
 
 	case 'c':

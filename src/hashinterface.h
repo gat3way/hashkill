@@ -205,6 +205,7 @@ char *addopts[10];			// Additional options
 hash_stat have_ocl;			// OCL attack?
 int salt_size;				// salt size as returned by plugin
 char *markovstat;			// Markov statfile
+char *additional_options;		// -a addopts
 
 /* List manipulation routines */
 hash_stat add_hash_list(char *username, char *hash, char *salt, char *salt2);
@@ -255,9 +256,9 @@ void hash_proto_pbkdf2_256_len(const char *pass, int passlen, unsigned char *sal
 void hash_proto_hmac_sha1_file(void *key, int keylen, char *filename, long offset, long size, unsigned char *output, int outputlen);
 void hash_proto_hmac_sha1(void *key, int keylen, unsigned char *data, int datalen, unsigned char *output, int outputlen);
 void hash_proto_hmac_md5(void *key, int keylen, unsigned char *data, int datalen, unsigned char *output, int outputlen);
-void hash_proto_pbkdf512(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out);
-void hash_proto_pbkdfrmd160(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out);
-void hash_proto_pbkdfwhirlpool(const char *pass, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out);
+void hash_proto_pbkdf512(const char *pass, int len, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out);
+void hash_proto_pbkdfrmd160(const char *pass, int len, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out);
+void hash_proto_pbkdfwhirlpool(const char *pass, int len, unsigned char *salt, int saltlen, int iter, int keylen, unsigned char *out);
 void hash_proto_aes_encrypt(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *vec, unsigned char *out, int mode);
 void hash_proto_aes_decrypt(const unsigned char *key, int keysize, const unsigned char *in, int len, unsigned char *vec, unsigned char *out, int mode);
 void hash_proto_des_ecb_encrypt(const unsigned char *key, int keysize, const unsigned char *in[VECTORSIZE], int len, unsigned char *out[VECTORSIZE], int mode);
