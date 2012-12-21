@@ -240,7 +240,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	    serpent_aes=serpent_twofish_aes=1;
 	    twofish_serpent=xts=lrw=normal=1;
 	    hidden=0;
-	    tok=strtok(NULL,":");
+	    tok=strtok_r(NULL,":",&ptr);
 	    if (tok)
 	    {
 		keyfile=1;
@@ -261,7 +261,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	    serpent_aes=serpent_twofish_aes=1;
 	    twofish_serpent=xts=lrw=hidden=1;
 	    normal=0;
-	    tok=strtok(NULL,":");
+	    tok=strtok_r(NULL,":",&ptr);
 	    if (tok)
 	    {
 		keyfile=1;
@@ -291,7 +291,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	    lrw=0;
 	    normal=1;
 	    hidden=0;
-	    tok=strtok(NULL,":");
+	    tok=strtok_r(NULL,":",&ptr);
 	    if (tok)
 	    {
 		keyfile=1;
@@ -321,7 +321,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	    lrw=0;
 	    normal=0;
 	    hidden=1;
-	    tok=strtok(NULL,":");
+	    tok=strtok_r(NULL,":",&ptr);
 	    if (tok)
 	    {
 		keyfile=1;
@@ -492,6 +492,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     {
 	bzero(passphrase,64);
 	len = strlen(password[a]);
+	if ((keyfile==0)&&(len==0)) continue;
 	memcpy(passphrase,password[a],len);
 	if (keyfile==1)
 	{
