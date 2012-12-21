@@ -450,7 +450,7 @@ static void decrypt(u4byte l_key[],const u4byte in_blk[4], u4byte out_blk[4])
 
 void TWOFISH_set_key(unsigned char *key, int keysize, TWOFISH_KEY *twofish_key)
 {
-    memcpy(twofish_key,set_key((const unsigned int *)key, keysize),(keysize/8));
+    memcpy(twofish_key,set_key((const unsigned int *)key, keysize),(40*4));
 }
 
 void TWOFISH_encrypt(TWOFISH_KEY *key,char *input, char *output)

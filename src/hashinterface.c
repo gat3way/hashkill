@@ -1114,85 +1114,47 @@ void hash_proto_hmac_sha1_file(void *key, int keylen, char *filename, long offse
 }
 
 
-
 void hash_proto_decrypt_aes_xts(char *key1, char *key2, char *in, char *out, int len, int sector, int cur_block)
 {
-    unsigned char finalcarry;
-    unsigned char whvs[512];
-    unsigned char whv[16];
-    unsigned char whv1[16];
-    unsigned char bytebufunitno[16];
-    uint64 *whvsptr = (uint64 *) whvs;
-    uint64 *whvptr = (uint64 *) whv;
-    uint64 *bufptr = (uint64*)in;
-    uint64 *dataunitbufptr;
-    unsigned int startblock = cur_block, endblock, block;
-    uint64 *const finalint64whvsptr = whvsptr + sizeof (whvs) / sizeof (*whvsptr) - 1;
-    uint64 blockcount, dataunitno;
-    int a;
+    uint8_t T[16], tweak[16],buf[16];;
+    uint32_t i, m, mo, lim, t, tt;
+    uint32_t x;
     char zeroiv[16]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     AES_KEY aeskey;
 
-    dataunitno = sector;
-    *((uint64 *) bytebufunitno) = dataunitno;
-    *((uint64 *) bytebufunitno + 1) = 0;
+    m  = len >> 4;
+    mo = len & 15;
+    tweak[0]=(sector&255);
+    tweak[1]=(sector>>8)&255;
+    tweak[2]=(sector>>16)&255;
+    tweak[3]=(sector>>24)&255;
+    bzero(tweak+4,12);
 
-    blockcount = len / 16;
+    OAES_SET_ENCRYPT_KEY((unsigned char *)key2,256,&aeskey);
+    OAES_CBC_ENCRYPT(tweak, T, 16, &aeskey, (unsigned char *)zeroiv, AES_ENCRYPT);
 
-    while (blockcount > 0)
+    if (mo == 0) lim = m;
+    else lim = m - 1;
+
+    for (i = 0; i < lim; i++) 
     {
-        if (blockcount < 32) endblock = startblock + (unsigned int) blockcount;
-        else endblock = 32;
-        whvsptr = finalint64whvsptr;
-        whvptr = (uint64*)whv;
-        *whvptr = *((uint64*)bytebufunitno);
-        *(whvptr + 1) = 0;
-
-        OAES_SET_ENCRYPT_KEY((unsigned char *)key2,256,&aeskey);
-        OAES_CBC_ENCRYPT(whv, whv1, 16, &aeskey, (unsigned char *)zeroiv, AES_ENCRYPT);
-        memcpy(whv,whv1,16);
-
-        for (block = 0; block < endblock; block++)
+        for (x = 0; x < 16; x += sizeof(uint64_t))
+        *((uint64_t*)&out[i*16+x]) = *((uint64_t*)&in[i*16+x]) ^ *((uint64_t*)&T[x]);
+	OAES_SET_DECRYPT_KEY((unsigned char *)key1,256,&aeskey);
+	bzero(zeroiv,16);
+	OAES_CBC_ENCRYPT((unsigned char *)out+i*16, (unsigned char *)out+i*16, 16, &aeskey, (unsigned char *)zeroiv, AES_DECRYPT);
+        for (x = 0; x < 16; x += sizeof(uint64_t)) 
+        *((uint64_t*)&out[i*16+x]) ^=  *((uint64_t*)&T[x]);
+        for (x = t = 0; x < 16; x++) 
         {
-            if (block >= startblock)
-            {
-                *whvsptr-- = *whvptr++;
-                *whvsptr-- = *whvptr;
-            }
-            else whvptr++;
-
-            finalcarry = (*whvptr & 0x8000000000000000ULL) ? 135 : 0;
-            *whvptr-- <<= 1;
-            if (*whvptr & 0x8000000000000000ULL) *(whvptr + 1) |= 1;
-            *whvptr <<= 1;
-            whv[0] ^= finalcarry;
+            tt = T[x] >> 7;
+            T[x] = ((T[x] << 1) | t) & 0xFF;
+            t = tt;
         }
-
-        dataunitbufptr = bufptr;
-        whvsptr = finalint64whvsptr;
-        for (block = startblock; block < endblock; block++)
+        if (tt) 
         {
-            *bufptr++ ^= *whvsptr--;
-            *bufptr++ ^= *whvsptr--;
+            T[0] ^= 0x87;
         }
-
-        OAES_SET_DECRYPT_KEY((unsigned char *)key1,256,&aeskey);
-        for (a=0;a<(endblock-startblock);a++)
-        {
-    	    OAES_CBC_ENCRYPT(((unsigned char *)(dataunitbufptr))+a*16, (unsigned char *)out+a*16, 16, &aeskey, (unsigned char *)zeroiv, AES_DECRYPT);
-	}
-
-        bufptr = dataunitbufptr;
-        whvsptr = finalint64whvsptr;
-        for (block = startblock; block < endblock; block++)
-        {
-            *bufptr++ ^= *whvsptr--;
-            *bufptr++ ^= *whvsptr--;
-        }
-        blockcount -= endblock - startblock;
-        startblock = 0;
-        dataunitno++;
-        *((uint64*) bytebufunitno) = (dataunitno);
     }
 }
 
@@ -1200,164 +1162,84 @@ void hash_proto_decrypt_aes_xts(char *key1, char *key2, char *in, char *out, int
 
 void hash_proto_decrypt_twofish_xts(char *key1, char *key2, char *in, char *out, int len, int sector, int cur_block)
 {
-    unsigned char finalcarry;
-    unsigned char whvs[512];
-    unsigned char whv[16];
-    unsigned char whv1[16];
-    unsigned char bytebufunitno[16];
-    uint64 *whvsptr = (uint64 *) whvs;
-    uint64 *whvptr = (uint64 *) whv;
-    uint64 *bufptr = (uint64*)in;
-    uint64 *dataunitbufptr;
-    unsigned int startblock = cur_block, endblock, block;
-    uint64 *const finalint64whvsptr = whvsptr + sizeof (whvs) / sizeof (*whvsptr) - 1;
-    uint64 blockcount, dataunitno;
-    int a;
-    TWOFISH_KEY twofishkey[8];
+    uint8_t T[16], tweak[16];
+    uint32_t i, m, mo, lim, t, tt;
+    uint32_t x;
+    TWOFISH_KEY skey[40];
 
-    dataunitno = sector;
-    *((uint64 *) bytebufunitno) = dataunitno;
-    *((uint64 *) bytebufunitno + 1) = 0;
+    m  = len >> 4;
+    mo = len & 15;
+    tweak[0]=(sector&255);
+    tweak[1]=(sector>>8)&255;
+    tweak[2]=(sector>>16)&255;
+    tweak[3]=(sector>>24)&255;
+    bzero(tweak+4,12);
+    TWOFISH_set_key((unsigned char *)key2,256,skey);
+    TWOFISH_encrypt(skey,(char *)tweak, (char *)T);
 
-    blockcount = len / 16;
+    if (mo == 0) lim = m;
+    else lim = m - 1;
 
-    while (blockcount > 0)
+    for (i = 0; i < lim; i++) 
     {
-        if (blockcount < 32) endblock = startblock + (unsigned int) blockcount;
-        else endblock = 32;
-        whvsptr = finalint64whvsptr;
-        whvptr = (uint64*)whv;
-        *whvptr = *((uint64*)bytebufunitno);
-        *(whvptr + 1) = 0;
-
-        TWOFISH_set_key((unsigned char *)key2,256,twofishkey);
-        TWOFISH_encrypt(twofishkey,(char *)whv, (char *)whv1);
-        memcpy(whv,whv1,16);
-
-        for (block = 0; block < endblock; block++)
+        for (x = 0; x < 16; x += sizeof(uint64_t))
+        *((uint64_t*)&out[i*16+x]) = *((uint64_t*)&in[i*16+x]) ^ *((uint64_t*)&T[x]);
+        TWOFISH_set_key((unsigned char *)key1,256,skey);
+        TWOFISH_decrypt(skey,out+i*16, (char *)out+i*16);
+        for (x = 0; x < 16; x += sizeof(uint64_t)) 
+        *((uint64_t*)&out[i*16+x]) ^=  *((uint64_t*)&T[x]);
+        for (x = t = 0; x < 16; x++) 
         {
-            if (block >= startblock)
-            {
-                *whvsptr-- = *whvptr++;
-                *whvsptr-- = *whvptr;
-            }
-            else whvptr++;
-
-            finalcarry = (*whvptr & 0x8000000000000000ULL) ? 135 : 0;
-            *whvptr-- <<= 1;
-            if (*whvptr & 0x8000000000000000ULL) *(whvptr + 1) |= 1;
-            *whvptr <<= 1;
-            whv[0] ^= finalcarry;
+            tt = T[x] >> 7;
+            T[x] = ((T[x] << 1) | t) & 0xFF;
+            t = tt;
         }
-
-        dataunitbufptr = bufptr;
-        whvsptr = finalint64whvsptr;
-        for (block = startblock; block < endblock; block++)
+        if (tt) 
         {
-            *bufptr++ ^= *whvsptr--;
-            *bufptr++ ^= *whvsptr--;
+            T[0] ^= 0x87;
         }
-
-        TWOFISH_set_key((unsigned char *)key1,256,twofishkey);
-        for (a=0;a<(endblock-startblock);a++)
-        {
-    	    TWOFISH_decrypt(twofishkey,((char *)(dataunitbufptr))+a*16, (char *)out+a*16);
-	}
-
-        bufptr = dataunitbufptr;
-        whvsptr = finalint64whvsptr;
-        for (block = startblock; block < endblock; block++)
-        {
-            *bufptr++ ^= *whvsptr--;
-            *bufptr++ ^= *whvsptr--;
-        }
-        blockcount -= endblock - startblock;
-        startblock = 0;
-        dataunitno++;
-        *((uint64*) bytebufunitno) = (dataunitno);
     }
 }
 
 
-
-
 void hash_proto_decrypt_serpent_xts(char *key1, char *key2, char *in, char *out, int len, int sector, int cur_block)
 {
-    unsigned char finalcarry;
-    unsigned char whvs[512];
-    unsigned char whv[16];
-    unsigned char whv1[16];
-    unsigned char bytebufunitno[16];
-    uint64 *whvsptr = (uint64 *) whvs;
-    uint64 *whvptr = (uint64 *) whv;
-    uint64 *bufptr = (uint64*)in;
-    uint64 *dataunitbufptr;
-    unsigned int startblock = cur_block, endblock, block;
-    uint64 *const finalint64whvsptr = whvsptr + sizeof (whvs) / sizeof (*whvsptr) - 1;
-    uint64 blockcount, dataunitno;
-    int a;
-    SERPENT_KEY serpentkey;
+    uint8_t T[16], tweak[16];
+    uint32_t i, m, mo, lim, t, tt;
+    uint32_t x;
+    SERPENT_KEY skey;
 
-    dataunitno = sector;
-    *((uint64 *) bytebufunitno) = dataunitno;
-    *((uint64 *) bytebufunitno + 1) = 0;
+    m  = len >> 4;
+    mo = len & 15;
+    tweak[0]=(sector&255);
+    tweak[1]=(sector>>8)&255;
+    tweak[2]=(sector>>16)&255;
+    tweak[3]=(sector>>24)&255;
+    bzero(tweak+4,12);
+    SERPENT_set_key((unsigned char *)key2,256,&skey);
+    SERPENT_encrypt(&skey,(char *)tweak, (char *)T);
 
-    blockcount = len / 16;
+    if (mo == 0) lim = m;
+    else lim = m - 1;
 
-    while (blockcount > 0)
+    for (i = 0; i < lim; i++) 
     {
-        if (blockcount < 32) endblock = startblock + (unsigned int) blockcount;
-        else endblock = 32;
-        whvsptr = finalint64whvsptr;
-        whvptr = (uint64*)whv;
-        *whvptr = *((uint64*)bytebufunitno);
-        *(whvptr + 1) = 0;
-
-        SERPENT_set_key((unsigned char *)key2,256,serpentkey);
-        SERPENT_encrypt(serpentkey,(char *)whv, (char *)whv1);
-        memcpy(whv,whv1,16);
-
-        for (block = 0; block < endblock; block++)
+        for (x = 0; x < 16; x += sizeof(uint64_t))
+        *((uint64_t*)&out[i*16+x]) = *((uint64_t*)&in[i*16+x]) ^ *((uint64_t*)&T[x]);
+        SERPENT_set_key((unsigned char *)key1,256,&skey);
+        SERPENT_decrypt(&skey,out+i*16, (char *)out+i*16);
+        for (x = 0; x < 16; x += sizeof(uint64_t)) 
+        *((uint64_t*)&out[i*16+x]) ^=  *((uint64_t*)&T[x]);
+        for (x = t = 0; x < 16; x++) 
         {
-            if (block >= startblock)
-            {
-                *whvsptr-- = *whvptr++;
-                *whvsptr-- = *whvptr;
-            }
-            else whvptr++;
-
-            finalcarry = (*whvptr & 0x8000000000000000ULL) ? 135 : 0;
-            *whvptr-- <<= 1;
-            if (*whvptr & 0x8000000000000000ULL) *(whvptr + 1) |= 1;
-            *whvptr <<= 1;
-            whv[0] ^= finalcarry;
+            tt = T[x] >> 7;
+            T[x] = ((T[x] << 1) | t) & 0xFF;
+            t = tt;
         }
-
-        dataunitbufptr = bufptr;
-        whvsptr = finalint64whvsptr;
-        for (block = startblock; block < endblock; block++)
+        if (tt) 
         {
-            *bufptr++ ^= *whvsptr--;
-            *bufptr++ ^= *whvsptr--;
+            T[0] ^= 0x87;
         }
-
-        SERPENT_set_key((unsigned char *)key1,256,serpentkey);
-        for (a=0;a<(endblock-startblock);a++)
-        {
-    	    SERPENT_decrypt(serpentkey,((char *)(dataunitbufptr))+a*16, (char *)out+a*16);
-	}
-
-        bufptr = dataunitbufptr;
-        whvsptr = finalint64whvsptr;
-        for (block = startblock; block < endblock; block++)
-        {
-            *bufptr++ ^= *whvsptr--;
-            *bufptr++ ^= *whvsptr--;
-        }
-        blockcount -= endblock - startblock;
-        startblock = 0;
-        dataunitno++;
-        *((uint64*) bytebufunitno) = (dataunitno);
     }
 }
 

@@ -110,10 +110,8 @@ static int hidden=0;
 static int normal=0;
 static int keyfile=0;
 static unsigned char keytab[64];
-
-// static char keyfile_pass[64];
 static int offset=0;
-
+static int bytes=0;
 
 
 char * hash_plugin_summary(void)
@@ -360,6 +358,9 @@ printf("xts: %d\n",xts);
 printf("hidden: %d\n",lrw);
 printf("normal: %d\n",xts);
 
+    if ((aes)||(serpent)||(twofish)) bytes=64;
+    if ((aes_twofish)||(serpent_aes)) bytes=128;
+    if ((aes_twofish_serpent)||(serpent_twofish_aes)) bytes=192;
 
     strcpy(myfilename, filename);
     (void)hash_add_username(filename);
@@ -377,6 +378,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     unsigned char out[128];
     int a,b,len;
     char passphrase[64];
+    char mysector[16];
 
     for (a=0;a<vectorsize;a++)
     {
@@ -388,18 +390,73 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    for (b=0;b<64;b++) passphrase[b] += keytab[b];
 	    len=64;
 	}
-
-	hash_pbkdf512((char *)passphrase,len, (unsigned char *)tc_salt, 64, 1000, 64, key);
-	bzero(out,64);
-	hash_decrypt_aes_xts((char *)key, (char *)key+32, (char *)sector+64, (char *)out, 64, 0, 0);
-
-	// compare
-	if (memcmp(out, "TRUE", 4)==0) 
+	
+	if (sha512)
 	{
-	    *num=a;
-	    return hash_ok;
+	    hash_pbkdf512((char *)passphrase,len, (unsigned char *)tc_salt, 64, 1000, bytes, key);
+	    bzero(out,64);
+	    if (aes)
+	    {
+		hash_decrypt_aes_xts((char *)key, (char *)key+32, (char *)sector+64, (char *)out, 16, 0, 0);
+		if (memcmp(out, "TRUE", 4)==0) 
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+
+	    bzero(out,64);
+	    if (twofish)
+	    {
+		hash_decrypt_twofish_xts((char *)key, (char *)key+32, (char *)sector+64, (char *)out, 16, 0, 0);
+		if (memcmp(out, "TRUE", 4)==0) 
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    /*
+	    bzero(out,64);
+	    if (serpent)
+	    {
+		memcpy(mysector,sector+64,16);
+		hash_decrypt_serpent_xts((char *)key, (char *)key+32, (char *)mysector, (char *)out, 16, 0, 0);
+		if (memcmp(out, "TRUE", 4)==0) 
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    */
 	}
+	/*
+	if (ripemd)
+	{
+	    hash_pbkdfrmd160((char *)passphrase,len, (unsigned char *)tc_salt, 64, 2000, bytes, key);
+	    bzero(out,64);
+	    hash_decrypt_aes_xts((char *)key, (char *)key+32, (char *)sector+64, (char *)out, 64, 0, 0);
+	    // compare
+	    if (memcmp(out, "TRUE", 4)==0) 
+	    {
+		*num=a;
+		return hash_ok;
+	    }
+	}
+	if (whirlpool)
+	{
+	    hash_pbkdfwhirlpool((char *)passphrase,len, (unsigned char *)tc_salt, 64, 1000, bytes, key);
+	    bzero(out,64);
+	    hash_decrypt_aes_xts((char *)key, (char *)key+32, (char *)sector+64, (char *)out, 64, 0, 0);
+	    // compare
+	    if (memcmp(out, "TRUE", 4)==0) 
+	    {
+		*num=a;
+		return hash_ok;
+	    }
+	}
+	*/
     }
+    
     return hash_err;
 }
 

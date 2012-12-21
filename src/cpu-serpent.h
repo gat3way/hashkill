@@ -35,8 +35,8 @@ typedef struct _Serpent_CTX { serpent_subkey subkey[33]; } serpent_ctx;
 
 
 #define SERPENT_KEY serpent_ctx
-void SERPENT_set_key(unsigned char *key, int keysize, SERPENT_KEY serpent_key);
-void SERPENT_encrypt(SERPENT_KEY serpent_key,char *input, char *output);
-void SERPENT_decrypt(SERPENT_KEY serpent_key,char *input, char *output);
+void SERPENT_set_key(unsigned char *key, int keysize, SERPENT_KEY *serpent_key);
+void SERPENT_encrypt(SERPENT_KEY *serpent_key,char *input, char *output);
+void SERPENT_decrypt(SERPENT_KEY *serpent_key,char *input, char *output);
 
 #endif

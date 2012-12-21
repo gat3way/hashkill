@@ -658,17 +658,17 @@ plainText[0] = next[0]; plainText[1] = next[1];	plainText[2] = next[2]; plainTex
 
 
 
-void SERPENT_set_key(unsigned char *key, int keysize, SERPENT_KEY serpent_key)
+void SERPENT_set_key(unsigned char *key, int keysize, SERPENT_KEY *serpent_key)
 {
-    serpent_init(&serpent_key, key, (keysize/8));
+    serpent_init(serpent_key, key, (keysize/8));
 }
 
-void SERPENT_encrypt(SERPENT_KEY serpent_key,char *input, char *output)
+void SERPENT_encrypt(SERPENT_KEY *serpent_key,char *input, char *output)
 {
-    serpent_encrypt(&serpent_key, (const serpent_word32 *)input, (serpent_word32 *)output);
+    serpent_encrypt(serpent_key, (const serpent_word32 *)input, (serpent_word32 *)output);
 }
 
-void SERPENT_decrypt(SERPENT_KEY serpent_key,char *input, char *output)
+void SERPENT_decrypt(SERPENT_KEY *serpent_key,char *input, char *output)
 {
-    serpent_encrypt(&serpent_key, (const serpent_word32 *)input, (serpent_word32 *)output);
+    serpent_decrypt(serpent_key, (const serpent_word32 *)output, (serpent_word32 *)input);
 }
