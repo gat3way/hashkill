@@ -89,8 +89,6 @@ int crc_32_tab[256]=
 static char myfilename[255];
 static unsigned char tc_salt[64];
 static unsigned char sector[512];
-static unsigned char tc_hidsalt[64];
-static unsigned char hidsector[512];
 static int sha512=1;
 static int sha1=1;
 static int ripemd=1;
@@ -110,7 +108,6 @@ static int hidden=0;
 static int normal=0;
 static int keyfile=0;
 static unsigned char keytab[64];
-static int offset=0;
 static int bytes=0;
 
 
@@ -122,13 +119,38 @@ char * hash_plugin_summary(void)
 
 char * hash_plugin_detailed(void)
 {
-    return("truecrypt - truecrypt encrypted block device plugin\n"
+    return("truecrypt - TrueCrypt encrypted block device plugin\n"
 	    "------------------------------------------------\n"
-	    "Use this module to crack truecrypt encrypted partitions\n"
-	    "Input should be a truecrypt device file specified with -f\n"
-	    "Warning: currently only aes256/cbc-essiv:sha256 images supported!\n"
+	    "Use this module to crack TrueCrypt encrypted volumes\n"
+	    "Input should be a TrueCrypt device file specified with -f\n"
+	    "Additional options supplied using -A using the following format:\n"
+	    "-A hash_algo1,hash_algo2,..:ciper1,cipher2,...:[n[,h]]:[keyfile1,keyfile2,...]\n"
+	    "-A default[:keyfile,...] will use default hash/cipher, normal partition with optional keyfiles\n"
+	    "-A all[:keyfile,...] will use all algos, normal+hidden partition with optional keyfiles\n"
+	    "-A default,hidden[:keyfile,...] will use default hash/cipher, normal partition with optional keyfiles\n"
+	    "-A all,hidden[:keyfile,...] will use all algos, normal+hidden partition with optional keyfiles\n"
+	    "hash_algos are as follows:\n"
+	    "r - RIPEMD-160\n"
+	    "s - SHA-512\n"
+	    "w - Whirlpool\n\n"
+	    "Ciphers are as follows:\n"
+	    "a - AES\n"
+	    "t - Twofish\n"
+	    "s - Serpent\n"
+	    "at - AES-Twofish\n"
+	    "sa - Serpent-AES\n"
+	    "ts - Twofish-Serpent\n"
+	    "ats - AES-Twofish-Serpent\n"
+	    "sta - Serpent-Twofish-AES\n\n"
+	    "Volumes are as follows:\n"
+	    "n - check the volume provided with -f (default)\n"
+	    "h - check the hidden volume\n\n"
+	    "You can use one or more keyfiles.\n"
+	    "Example:\n"
+	    "-A w,s:a,t,s,at,sa:nh:keyfile - Use Whirlpool/SHA512 with AES/Serpent/Twofish/AES-Twofish/Serpent-AES, check normal and hidden volume with keyfile: keyfile\n\n"
+	    "Default is -A all\n\n"
 	    "Known software that uses this password hashing method:\n"
-	    "cryptsetup/truecrypt\n"
+	    "TrueCrypt\n"
 	    "\nAuthor: Milen Rangelov <gat3way@gat3way.eu>\n");
 }
 
@@ -144,7 +166,6 @@ void init_keytab(void)
 static hash_stat crc_file(char *file)
 {
     int fd;
-    unsigned char byte;
     uint32_t crc=~0U;
     int pos=0;
     int fpos=0;
@@ -183,7 +204,7 @@ static hash_stat crc_file(char *file)
 hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 {
     int myfile;
-    char *tok,*tok1,*toksave;
+    char *tok,*tok1;
     char *ptr;
     char *ptr1;
     char *myline;
@@ -201,6 +222,8 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     }
     memcpy(tc_salt,sector,64);
 
+    keyfile=0;
+
     /* We have plugin options */
     if (hashline)
     {
@@ -211,9 +234,46 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	if (strcmp(tok,"all")==0)
 	{
 	    // TODO: hidsalt, hidsector stuff
-	    
+	    sha512=ripemd=whirlpool=1;
+	    boot=aes=twofish=serpent=1;
+	    aes_twofish=aes_twofish_serpent=1;
+	    serpent_aes=serpent_twofish_aes=1;
+	    twofish_serpent=xts=lrw=normal=1;
+	    hidden=0;
+	    tok=strtok(NULL,":");
+	    if (tok)
+	    {
+		keyfile=1;
+		tok1=strtok_r(tok,",",&ptr1);
+		while (tok1)
+		{
+		    if (crc_file(tok1) == hash_err) return hash_err;
+		    tok1=strtok_r(NULL,",",&ptr1);
+		}
+	    }
 	}
-	else if ((strcmp(tok,"default")==0)||(strcmp(tok,"default7")==0))
+	else if (strcmp(tok,"all,hidden")==0)
+	{
+	    // TODO: hidsalt, hidsector stuff
+	    sha512=ripemd=whirlpool=1;
+	    boot=aes=twofish=serpent=1;
+	    aes_twofish=aes_twofish_serpent=1;
+	    serpent_aes=serpent_twofish_aes=1;
+	    twofish_serpent=xts=lrw=hidden=1;
+	    normal=0;
+	    tok=strtok(NULL,":");
+	    if (tok)
+	    {
+		keyfile=1;
+		tok1=strtok_r(tok,",",&ptr1);
+		while (tok1)
+		{
+		    if (crc_file(tok1) == hash_err) return hash_err;
+		    tok1=strtok_r(NULL,",",&ptr1);
+		}
+	    }
+	}
+	else if (strcmp(tok,"default")==0)
 	{
 	    sha512=0;
 	    ripemd=1;
@@ -231,6 +291,47 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	    lrw=0;
 	    normal=1;
 	    hidden=0;
+	    tok=strtok(NULL,":");
+	    if (tok)
+	    {
+		keyfile=1;
+		tok1=strtok_r(tok,",",&ptr1);
+		while (tok1)
+		{
+		    if (crc_file(tok1) == hash_err) return hash_err;
+		    tok1=strtok_r(NULL,",",&ptr1);
+		}
+	    }
+	}
+	else if (strcmp(tok,"default,hidden")==0)
+	{
+	    sha512=0;
+	    ripemd=1;
+	    whirlpool=0;
+	    boot=1;
+	    aes=1;
+	    twofish=0;
+	    serpent=0;
+	    aes_twofish=0;
+	    aes_twofish_serpent=0;
+	    serpent_aes=0;
+	    serpent_twofish_aes=0;
+	    twofish_serpent=0;
+	    xts=1;
+	    lrw=0;
+	    normal=0;
+	    hidden=1;
+	    tok=strtok(NULL,":");
+	    if (tok)
+	    {
+		keyfile=1;
+		tok1=strtok_r(tok,",",&ptr1);
+		while (tok1)
+		{
+		    if (crc_file(tok1) == hash_err) return hash_err;
+		    tok1=strtok_r(NULL,",",&ptr1);
+		}
+	    }
 	}
 	else
 	{
@@ -278,25 +379,8 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 		    if (strcmp(tok1,"at")==0) aes_twofish = 1;
 		    if (strcmp(tok1,"ats")==0) aes_twofish_serpent = 1;
 		    if (strcmp(tok1,"sa")==0) serpent_aes = 1;
+		    if (strcmp(tok1,"ts")==0) twofish_serpent = 1;
 		    if (strcmp(tok1,"sta")==0) serpent_twofish_aes = 1;
-		    tok1=strtok_r(NULL,",",&ptr1);
-		}
-	    }
-
-	    /* Go on - get modes*/
-	    free(myline);
-	    myline = malloc(strlen(hashline)+1);
-	    strcpy(myline,hashline);
-	    tok = strtok_r(myline,":",&ptr);
-	    tok = strtok_r(NULL,":",&ptr);
-	    tok = strtok_r(NULL,":",&ptr);
-	    if (tok)
-	    {
-		tok1=strtok_r(tok,",",&ptr1);
-		while (tok1)
-		{
-		    if (strcmp(tok1,"l")==0) lrw = 1;
-		    if (strcmp(tok1,"x")==0) xts = 1;
 		    tok1=strtok_r(NULL,",",&ptr1);
 		}
 	    }
@@ -308,14 +392,14 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	    tok = strtok_r(myline,":",&ptr);
 	    tok = strtok_r(NULL,":",&ptr);
 	    tok = strtok_r(NULL,":",&ptr);
-	    tok = strtok_r(NULL,":",&ptr);
 	    if (tok)
 	    {
 		tok1=strtok_r(tok,",",&ptr1);
+		normal=hidden=0;
 		while (tok1)
 		{
-		    if (strcmp(tok1,"h")==0) hidden = 1;
-		    if (strcmp(tok1,"n")==0) normal = 1;
+		    if (strcmp(tok1,"h")==0) {hidden = 1;normal=0;}
+		    if (strcmp(tok1,"n")==0) {normal = 1;hidden=1;}
 		    tok1=strtok_r(NULL,",",&ptr1);
 		}
 	    }
@@ -339,9 +423,38 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 		    tok1=strtok_r(NULL,",",&ptr1);
 		}
 	    }
+	    free (myline);
 	}
     }
 
+
+    if ((hidden==0)&&(normal==0)) normal=1;
+
+
+    (void)hash_add_hash("Truecrypt volume  ",0);
+    if (hidden==1)
+    {
+	lseek(myfile,65536,SEEK_SET);
+	if (read(myfile,sector,512) < 512) 
+	{
+	    return hash_err;
+	}
+	memcpy(tc_salt,sector,64);
+	(void)hash_add_hash("Truecrypt hidden  ",0);
+
+    }
+    close(myfile);
+
+    if ((aes)||(serpent)||(twofish)) bytes=64;
+    if ((aes_twofish)||(serpent_aes)) bytes=128;
+    if ((aes_twofish_serpent)||(serpent_twofish_aes)) bytes=192;
+
+    strcpy(myfilename, filename);
+    (void)hash_add_username(filename);
+    (void)hash_add_salt(" ");
+    (void)hash_add_salt2(" ");
+
+/*
 printf("sha512: %d\n",sha512);
 printf("ripemd: %d\n",ripemd);
 printf("whirlpool: %d\n",whirlpool);
@@ -355,18 +468,9 @@ printf("serpent_aes: %d\n",serpent_aes);
 printf("serpent_twofish_aes: %d\n",serpent_twofish_aes);
 printf("lrw: %d\n",lrw);
 printf("xts: %d\n",xts);
-printf("hidden: %d\n",lrw);
-printf("normal: %d\n",xts);
-
-    if ((aes)||(serpent)||(twofish)) bytes=64;
-    if ((aes_twofish)||(serpent_aes)) bytes=128;
-    if ((aes_twofish_serpent)||(serpent_twofish_aes)) bytes=192;
-
-    strcpy(myfilename, filename);
-    (void)hash_add_username(filename);
-    (void)hash_add_hash("truecrypt volume  ",0);
-    (void)hash_add_salt(" ");
-    (void)hash_add_salt2(" ");
+printf("hidden: %d\n",hidden);
+printf("normal: %d\n",normal);
+*/
 
     return hash_ok;
 }
@@ -374,12 +478,16 @@ printf("normal: %d\n",xts);
 
 hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSIZE], const char *salt, char *salt2[VECTORSIZE], const char *username, int *num, int threadid)
 {
-    unsigned char key[128];
-    unsigned char out[128];
+    unsigned char key[64*3];
+    unsigned char out[16];
+    unsigned char out1[16];
+    unsigned char out2[16];
     int a,b,len;
     char passphrase[64];
     char mysector[16];
 
+
+    memcpy(mysector,sector+64,16);
     for (a=0;a<vectorsize;a++)
     {
 	bzero(passphrase,64);
@@ -390,73 +498,257 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    for (b=0;b<64;b++) passphrase[b] += keytab[b];
 	    len=64;
 	}
-	
+
 	if (sha512)
 	{
 	    hash_pbkdf512((char *)passphrase,len, (unsigned char *)tc_salt, 64, 1000, bytes, key);
-	    bzero(out,64);
 	    if (aes)
 	    {
 		hash_decrypt_aes_xts((char *)key, (char *)key+32, (char *)sector+64, (char *)out, 16, 0, 0);
-		if (memcmp(out, "TRUE", 4)==0) 
+		if ((memcmp(out, "TRUE", 4)==0)&&(memcmp(out+12,"\x00\x00\x00\x00",4)==0))
 		{
 		    *num=a;
 		    return hash_ok;
 		}
 	    }
-
-	    bzero(out,64);
 	    if (twofish)
 	    {
 		hash_decrypt_twofish_xts((char *)key, (char *)key+32, (char *)sector+64, (char *)out, 16, 0, 0);
-		if (memcmp(out, "TRUE", 4)==0) 
+		if ((memcmp(out, "TRUE", 4)==0)&&(memcmp(out+12,"\x00\x00\x00\x00",4)==0))
 		{
 		    *num=a;
 		    return hash_ok;
 		}
 	    }
-	    /*
-	    bzero(out,64);
 	    if (serpent)
 	    {
-		memcpy(mysector,sector+64,16);
 		hash_decrypt_serpent_xts((char *)key, (char *)key+32, (char *)mysector, (char *)out, 16, 0, 0);
-		if (memcmp(out, "TRUE", 4)==0) 
+		if ((memcmp(out, "TRUE", 4)==0)&&(memcmp(out+12,"\x00\x00\x00\x00",4)==0))
 		{
 		    *num=a;
 		    return hash_ok;
 		}
 	    }
-	    */
+	    if (aes_twofish)
+	    {
+		hash_decrypt_aes_xts((char *)key+32, (char *)key+96, (char *)mysector, (char *)out, 16, 0, 0);
+		hash_decrypt_twofish_xts((char *)key, (char *)key+64, (char *)out, (char *)out1, 16, 0, 0);
+		if ((memcmp(out1, "TRUE", 4)==0)&&(memcmp(out1+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    if (serpent_aes)
+	    {
+		hash_decrypt_serpent_xts((char *)key+32, (char *)key+96, (char *)mysector, (char *)out, 16, 0, 0);
+		hash_decrypt_aes_xts((char *)key, (char *)key+64, (char *)out, (char *)out1, 16, 0, 0);
+		if ((memcmp(out1, "TRUE", 4)==0)&&(memcmp(out1+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    if (twofish_serpent)
+	    {
+		hash_decrypt_twofish_xts((char *)key+32, (char *)key+96, (char *)mysector, (char *)out, 16, 0, 0);
+		hash_decrypt_serpent_xts((char *)key, (char *)key+64, (char *)out, (char *)out1, 16, 0, 0);
+		if ((memcmp(out1, "TRUE", 4)==0)&&(memcmp(out1+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    if (aes_twofish_serpent)
+	    {
+		hash_decrypt_aes_xts((char *)key+64, (char *)key+160, (char *)mysector, (char *)out, 16, 0, 0);
+		hash_decrypt_twofish_xts((char *)key+32, (char *)key+128, (char *)out, (char *)out1, 16, 0, 0);
+		hash_decrypt_serpent_xts((char *)key, (char *)key+96, (char *)out1, (char *)out2, 16, 0, 0);
+		if ((memcmp(out2, "TRUE", 4)==0)&&(memcmp(out2+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    if (serpent_twofish_aes)
+	    {
+		hash_decrypt_serpent_xts((char *)key+64, (char *)key+160, (char *)mysector, (char *)out, 16, 0, 0);
+		hash_decrypt_twofish_xts((char *)key+32, (char *)key+128, (char *)out, (char *)out1, 16, 0, 0);
+		hash_decrypt_aes_xts((char *)key, (char *)key+96, (char *)out1, (char *)out2, 16, 0, 0);
+		if ((memcmp(out2, "TRUE", 4)==0)&&(memcmp(out2+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
 	}
-	/*
 	if (ripemd)
 	{
 	    hash_pbkdfrmd160((char *)passphrase,len, (unsigned char *)tc_salt, 64, 2000, bytes, key);
-	    bzero(out,64);
-	    hash_decrypt_aes_xts((char *)key, (char *)key+32, (char *)sector+64, (char *)out, 64, 0, 0);
-	    // compare
-	    if (memcmp(out, "TRUE", 4)==0) 
+	    if (aes)
 	    {
-		*num=a;
-		return hash_ok;
+		hash_decrypt_aes_xts((char *)key, (char *)key+32, (char *)sector+64, (char *)out, 16, 0, 0);
+		if ((memcmp(out, "TRUE", 4)==0)&&(memcmp(out+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    if (twofish)
+	    {
+		hash_decrypt_twofish_xts((char *)key, (char *)key+32, (char *)sector+64, (char *)out, 16, 0, 0);
+		if ((memcmp(out, "TRUE", 4)==0)&&(memcmp(out+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    if (serpent)
+	    {
+		hash_decrypt_serpent_xts((char *)key, (char *)key+32, (char *)mysector, (char *)out, 16, 0, 0);
+		if ((memcmp(out, "TRUE", 4)==0)&&(memcmp(out+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    if (aes_twofish)
+	    {
+		hash_decrypt_aes_xts((char *)key+32, (char *)key+96, (char *)mysector, (char *)out, 16, 0, 0);
+		hash_decrypt_twofish_xts((char *)key, (char *)key+64, (char *)out, (char *)out1, 16, 0, 0);
+		if ((memcmp(out1, "TRUE", 4)==0)&&(memcmp(out1+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    if (serpent_aes)
+	    {
+		hash_decrypt_serpent_xts((char *)key+32, (char *)key+96, (char *)mysector, (char *)out, 16, 0, 0);
+		hash_decrypt_aes_xts((char *)key, (char *)key+64, (char *)out, (char *)out1, 16, 0, 0);
+		if ((memcmp(out1, "TRUE", 4)==0)&&(memcmp(out1+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    if (twofish_serpent)
+	    {
+		hash_decrypt_twofish_xts((char *)key+32, (char *)key+96, (char *)mysector, (char *)out, 16, 0, 0);
+		hash_decrypt_serpent_xts((char *)key, (char *)key+64, (char *)out, (char *)out1, 16, 0, 0);
+		if ((memcmp(out1, "TRUE", 4)==0)&&(memcmp(out1+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    if (aes_twofish_serpent)
+	    {
+		hash_decrypt_aes_xts((char *)key+64, (char *)key+160, (char *)mysector, (char *)out, 16, 0, 0);
+		hash_decrypt_twofish_xts((char *)key+32, (char *)key+128, (char *)out, (char *)out1, 16, 0, 0);
+		hash_decrypt_serpent_xts((char *)key, (char *)key+96, (char *)out1, (char *)out2, 16, 0, 0);
+		if ((memcmp(out2, "TRUE", 4)==0)&&(memcmp(out2+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    if (serpent_twofish_aes)
+	    {
+		hash_decrypt_serpent_xts((char *)key+64, (char *)key+160, (char *)mysector, (char *)out, 16, 0, 0);
+		hash_decrypt_twofish_xts((char *)key+32, (char *)key+128, (char *)out, (char *)out1, 16, 0, 0);
+		hash_decrypt_aes_xts((char *)key, (char *)key+96, (char *)out1, (char *)out2, 16, 0, 0);
+		if ((memcmp(out2, "TRUE", 4)==0)&&(memcmp(out2+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
 	    }
 	}
 	if (whirlpool)
 	{
 	    hash_pbkdfwhirlpool((char *)passphrase,len, (unsigned char *)tc_salt, 64, 1000, bytes, key);
-	    bzero(out,64);
-	    hash_decrypt_aes_xts((char *)key, (char *)key+32, (char *)sector+64, (char *)out, 64, 0, 0);
-	    // compare
-	    if (memcmp(out, "TRUE", 4)==0) 
+	    if (aes)
 	    {
-		*num=a;
-		return hash_ok;
+		hash_decrypt_aes_xts((char *)key, (char *)key+32, (char *)sector+64, (char *)out, 16, 0, 0);
+		if ((memcmp(out, "TRUE", 4)==0)&&(memcmp(out+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    if (twofish)
+	    {
+		hash_decrypt_twofish_xts((char *)key, (char *)key+32, (char *)sector+64, (char *)out, 16, 0, 0);
+		if ((memcmp(out, "TRUE", 4)==0)&&(memcmp(out+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    if (serpent)
+	    {
+		hash_decrypt_serpent_xts((char *)key, (char *)key+32, (char *)mysector, (char *)out, 16, 0, 0);
+		if ((memcmp(out, "TRUE", 4)==0)&&(memcmp(out+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    if (aes_twofish)
+	    {
+		hash_decrypt_aes_xts((char *)key+32, (char *)key+96, (char *)mysector, (char *)out, 16, 0, 0);
+		hash_decrypt_twofish_xts((char *)key, (char *)key+64, (char *)out, (char *)out1, 16, 0, 0);
+		if ((memcmp(out1, "TRUE", 4)==0)&&(memcmp(out1+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    if (serpent_aes)
+	    {
+		hash_decrypt_serpent_xts((char *)key+32, (char *)key+96, (char *)mysector, (char *)out, 16, 0, 0);
+		hash_decrypt_aes_xts((char *)key, (char *)key+64, (char *)out, (char *)out1, 16, 0, 0);
+		if ((memcmp(out1, "TRUE", 4)==0)&&(memcmp(out1+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    if (twofish_serpent)
+	    {
+		hash_decrypt_twofish_xts((char *)key+32, (char *)key+96, (char *)mysector, (char *)out, 16, 0, 0);
+		hash_decrypt_serpent_xts((char *)key, (char *)key+64, (char *)out, (char *)out1, 16, 0, 0);
+		if ((memcmp(out1, "TRUE", 4)==0)&&(memcmp(out1+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    if (aes_twofish_serpent)
+	    {
+		hash_decrypt_aes_xts((char *)key+64, (char *)key+160, (char *)mysector, (char *)out, 16, 0, 0);
+		hash_decrypt_twofish_xts((char *)key+32, (char *)key+128, (char *)out, (char *)out1, 16, 0, 0);
+		hash_decrypt_serpent_xts((char *)key, (char *)key+96, (char *)out1, (char *)out2, 16, 0, 0);
+		if ((memcmp(out2, "TRUE", 4)==0)&&(memcmp(out2+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
+	    }
+	    if (serpent_twofish_aes)
+	    {
+		hash_decrypt_serpent_xts((char *)key+64, (char *)key+160, (char *)mysector, (char *)out, 16, 0, 0);
+		hash_decrypt_twofish_xts((char *)key+32, (char *)key+128, (char *)out, (char *)out1, 16, 0, 0);
+		hash_decrypt_aes_xts((char *)key, (char *)key+96, (char *)out1, (char *)out2, 16, 0, 0);
+		if ((memcmp(out2, "TRUE", 4)==0)&&(memcmp(out2+12,"\x00\x00\x00\x00",4)==0))
+		{
+		    *num=a;
+		    return hash_ok;
+		}
 	    }
 	}
-	*/
     }
-    
     return hash_err;
 }
 
