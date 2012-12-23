@@ -349,7 +349,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	    twofish_serpent=0;
 	    lrw=0;
 	    xts=0;
-	    normal=0;
+	    normal=1;
 	    hidden=0;
 
 	    tok1=strtok_r(tok,",",&ptr1);
@@ -399,7 +399,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 		while (tok1)
 		{
 		    if (strcmp(tok1,"h")==0) {hidden = 1;normal=0;}
-		    if (strcmp(tok1,"n")==0) {normal = 1;hidden=1;}
+		    if (strcmp(tok1,"n")==0) {normal = 1;hidden=0;}
 		    tok1=strtok_r(NULL,",",&ptr1);
 		}
 	    }

@@ -967,6 +967,7 @@ void hash_proto_pbkdfrmd160(const char *pass,int len, unsigned char *salt, int s
     unsigned long i = 1;
     HMAC_CTX hctx;
     int passlen = len;
+int d=0;
 
     HMAC_CTX_init(&hctx);
     p = out;

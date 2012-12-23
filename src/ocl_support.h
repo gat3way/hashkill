@@ -262,6 +262,11 @@ hash_stat ocl_bruteforce_whirlpool(void);
 hash_stat ocl_markov_whirlpool(void);
 hash_stat ocl_rule_whirlpool(void);
 
+/* truecrypt plugin support */
+hash_stat ocl_bruteforce_truecrypt(void);
+hash_stat ocl_markov_truecrypt(void);
+hash_stat ocl_rule_truecrypt(void);
+
 
 
 /* supported plugins struct array*/

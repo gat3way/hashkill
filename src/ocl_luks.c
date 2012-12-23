@@ -82,7 +82,7 @@ static unsigned int bestslot=0;
 
 
 
-void XORblock(char *src1, char *src2, char *dst, int n)
+static void XORblock(char *src1, char *src2, char *dst, int n)
 {
     int j;
 
@@ -122,7 +122,7 @@ static int diffuse(unsigned char *src, unsigned char *dst, int size)
 
 
 
-extern int AF_merge(unsigned char *src, unsigned char *dst, int afsize, int stripes)
+static  int AF_merge(unsigned char *src, unsigned char *dst, int afsize, int stripes)
 {
     int i;
     char *bufblock;

@@ -94,6 +94,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"luks",&ocl_bruteforce_luks, &ocl_markov_luks, &ocl_rule_luks},
                             {1,"ripemd160",&ocl_bruteforce_ripemd160, &ocl_markov_ripemd160, &ocl_rule_ripemd160},
                             {1,"whirlpool",&ocl_bruteforce_whirlpool, &ocl_markov_whirlpool, &ocl_rule_whirlpool},
+                            {1,"truecrypt",&ocl_bruteforce_truecrypt, &ocl_markov_truecrypt, &ocl_rule_truecrypt},
                             {0, "", NULL, NULL, NULL}
                         };
 
@@ -359,6 +360,8 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"wpa")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"luks")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"luks")==0)&&(!ocl_have_gcn)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"truecrypt")==0)&&(ocl_have_gcn)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"truecrypt")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"dmg")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"dmg")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"rar")==0)&&(ocl_have_gcn)) ocl_vector=1;
@@ -444,6 +447,8 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"wpa")==0)&&(ocl_have_sm21)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"luks")==0)&&(!ocl_have_sm21)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"luks")==0)&&(ocl_have_sm21)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"truecrypt")==0)&&(!ocl_have_sm21)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"truecrypt")==0)&&(ocl_have_sm21)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"dmg")==0)&&(!ocl_have_sm21)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"dmg")==0)&&(ocl_have_sm21)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"md5")==0)) ocl_vector=8;

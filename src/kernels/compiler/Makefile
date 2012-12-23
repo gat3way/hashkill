@@ -89,6 +89,7 @@ build:
 	@if [ ! -e amd_ripemd160__Juniper.bin ]; then ./amd-compiler amd_ripemd160 ns ;fi
 	@if [ ! -e amd_whirlpool_long__Juniper.bin ]; then ./amd-compiler amd_whirlpool_long ns ;fi
 	@if [ ! -e amd_whirlpool__Juniper.bin ]; then ./amd-compiler amd_whirlpool nso ;fi
+	@if [ ! -e amd_truecrypt__Juniper.bin ]; then ./amd-compiler amd_truecrypt n ;fi
 	# NVidia
 	@if [ ! -e nvidia_md5_long__sm10.ptx ]; then ./nvidia-compiler nvidia_md5_long ns ;fi
 	@if [ ! -e nvidia_md5__sm10.ptx ]; then ./nvidia-compiler nvidia_md5 ns ;fi
