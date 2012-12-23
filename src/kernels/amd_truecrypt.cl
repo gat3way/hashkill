@@ -1687,13 +1687,9 @@ dst[get_global_id(0)*3*5+14]=E;
 }
 
 
-
-
-
-
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))
-void final( __global uint *dst,  __global uint2 *input, __global uint2 *input1, uint16 str, uint16 salt,uint16 salt2)
+void final1( __global uint *dst,  __global uint2 *input, __global uint2 *input1, uint16 str, uint16 salt,uint16 salt2)
 {
 uint2 TTA,TTB,TTC,TTD,TTE,TTTA,TTTB,TTTC,TTTD,TTTE,l,tmp1,tmp2;
 

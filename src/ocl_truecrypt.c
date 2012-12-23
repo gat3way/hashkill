@@ -583,12 +583,6 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
     if (nws==0) nws=64;
 
 
-    _clSetKernelArg(rule_kernelend[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
-    _clSetKernelArg(rule_kernelend[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
-    _clSetKernelArg(rule_kernelend[self], 2, sizeof(cl_mem), (void*) &rule_images4_buf[self]);
-    _clSetKernelArg(rule_kernelend[self], 3, sizeof(cl_uint16), (void*) &addline);
-    _clSetKernelArg(rule_kernelend[self], 4, sizeof(cl_uint16), (void*) &salt);
-    _clSetKernelArg(rule_kernelend[self], 5, sizeof(cl_uint16), (void*) &salt2);
     _clSetKernelArg(rule_kernelmod[self], 0, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
     _clSetKernelArg(rule_kernelmod[self], 1, sizeof(cl_mem), (void*) &rule_images_buf[self]);
     _clSetKernelArg(rule_kernelmod[self], 2, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
@@ -596,6 +590,12 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
     _clSetKernelArg(rule_kernelmod[self], 4, sizeof(cl_uint16), (void*) &salt);
     _clSetKernelArg(rule_kernelmod[self], 5, sizeof(cl_uint16), (void*) &salt2);
     _clSetKernelArg(rule_kernelmod[self], 6, sizeof(cl_mem), (void*) &rule_sizes_buf[self]);
+    _clSetKernelArg(rule_kernelend1[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
+    _clSetKernelArg(rule_kernelend1[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
+    _clSetKernelArg(rule_kernelend1[self], 2, sizeof(cl_mem), (void*) &rule_images4_buf[self]);
+    _clSetKernelArg(rule_kernelend1[self], 3, sizeof(cl_uint16), (void*) &addline);
+    _clSetKernelArg(rule_kernelend1[self], 4, sizeof(cl_uint16), (void*) &salt);
+    _clSetKernelArg(rule_kernelend1[self], 5, sizeof(cl_uint16), (void*) &salt2);
     _clSetKernelArg(rule_kernelpre1[self], 0, sizeof(cl_mem), (void*) &rule_images4_buf[self]);
     _clSetKernelArg(rule_kernelpre1[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
     _clSetKernelArg(rule_kernelpre1[self], 2, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
@@ -620,7 +620,7 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
 	_clSetKernelArg(rule_kernelpre1[self], 3, sizeof(cl_uint16), (void*) &addline);
 	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
-	_clSetKernelArg(rule_kernelend[self], 3, sizeof(cl_uint16), (void*) &addline);
+	_clSetKernelArg(rule_kernelend1[self], 3, sizeof(cl_uint16), (void*) &addline);
 	for (a=0;a<2000;a+=1000)
 	{
 	    if (attack_over!=0) pthread_exit(NULL);
@@ -630,11 +630,11 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
 	    _clSetKernelArg(rule_kernelbl1[self], 3, sizeof(cl_uint16), (void*) &addline);
 	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
 	    _clFinish(rule_oclqueue[self]);
-    	    wthreads[self].tries+=(nws1)/(((bytes+19)/20)*2*algos);
+    	    wthreads[self].tries+=(nws1)/((((bytes+19)/20)*2)*algos);
     	    pthread_mutex_lock(&wthreads[self].tempmutex);
     	    pthread_mutex_unlock(&wthreads[self].tempmutex);
 	}
-	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelend[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelend1[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
     }
     _clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, hash_ret_len1*wthreads[self].vectorsize*ocl_rule_workset[self], rule_ptr[self], 0, NULL, NULL);
     for (a=0;a<nws1;a++)
@@ -681,9 +681,6 @@ void* ocl_rule_truecrypt_thread(void *arg)
     size_t nvidia_local_work_size[3]={64,1,1};
     size_t amd_local_work_size[3]={64,1,1};
     int self;
-    char hex1[16];
-    cl_uint4 singlehash;
-
 
     memcpy(&self,arg,sizeof(int));
     pthread_mutex_lock(&biglock);
@@ -703,7 +700,7 @@ void* ocl_rule_truecrypt_thread(void *arg)
     rule_kernelmod[self] = _clCreateKernel(program[self], "strmodify", &err );
     rule_kernelpre1[self] = _clCreateKernel(program[self], "prepare1", &err );
     rule_kernelbl1[self] = _clCreateKernel(program[self], "pbkdf1", &err );
-    rule_kernelend[self] = _clCreateKernel(program[self], "final", &err );
+    rule_kernelend1[self] = _clCreateKernel(program[self], "final1", &err );
 
     rule_oclqueue[self] = _clCreateCommandQueue(context[self], wthreads[self].cldeviceid, 0, &err );
     rule_buffer[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*wthreads[self].vectorsize*hash_ret_len1, NULL, &err );
