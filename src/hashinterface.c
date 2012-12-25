@@ -967,7 +967,6 @@ void hash_proto_pbkdfrmd160(const char *pass,int len, unsigned char *salt, int s
     unsigned long i = 1;
     HMAC_CTX hctx;
     int passlen = len;
-int d=0;
 
     HMAC_CTX_init(&hctx);
     p = out;
@@ -1117,7 +1116,7 @@ void hash_proto_hmac_sha1_file(void *key, int keylen, char *filename, long offse
 
 void hash_proto_decrypt_aes_xts(char *key1, char *key2, char *in, char *out, int len, int sector, int cur_block)
 {
-    uint8_t T[16], tweak[16],buf[16];;
+    uint8_t T[16], tweak[16];
     uint32_t i, m, mo, lim, t, tt;
     uint32_t x;
     char zeroiv[16]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};

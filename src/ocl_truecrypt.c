@@ -608,45 +608,166 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
     _clSetKernelArg(rule_kernelbl1[self], 3, sizeof(cl_uint16), (void*) &addline);
     _clSetKernelArg(rule_kernelbl1[self], 4, sizeof(cl_uint16), (void*) &salt);
     _clSetKernelArg(rule_kernelbl1[self], 5, sizeof(cl_uint16), (void*) &salt2);
+    _clSetKernelArg(rule_kernelend2[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
+    _clSetKernelArg(rule_kernelend2[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
+    _clSetKernelArg(rule_kernelend2[self], 2, sizeof(cl_mem), (void*) &rule_images4_buf[self]);
+    _clSetKernelArg(rule_kernelend2[self], 3, sizeof(cl_uint16), (void*) &addline);
+    _clSetKernelArg(rule_kernelend2[self], 4, sizeof(cl_uint16), (void*) &salt);
+    _clSetKernelArg(rule_kernelend2[self], 5, sizeof(cl_uint16), (void*) &salt2);
+    _clSetKernelArg(rule_kernelpre2[self], 0, sizeof(cl_mem), (void*) &rule_images4_buf[self]);
+    _clSetKernelArg(rule_kernelpre2[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
+    _clSetKernelArg(rule_kernelpre2[self], 2, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
+    _clSetKernelArg(rule_kernelpre2[self], 3, sizeof(cl_uint16), (void*) &addline);
+    _clSetKernelArg(rule_kernelpre2[self], 4, sizeof(cl_uint16), (void*) &salt);
+    _clSetKernelArg(rule_kernelpre2[self], 5, sizeof(cl_uint16), (void*) &salt2);
+    _clSetKernelArg(rule_kernelbl2[self], 0, sizeof(cl_mem), (void*) &rule_images4_buf[self]);
+    _clSetKernelArg(rule_kernelbl2[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
+    _clSetKernelArg(rule_kernelbl2[self], 2, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
+    _clSetKernelArg(rule_kernelbl2[self], 3, sizeof(cl_uint16), (void*) &addline);
+    _clSetKernelArg(rule_kernelbl2[self], 4, sizeof(cl_uint16), (void*) &salt);
+    _clSetKernelArg(rule_kernelbl2[self], 5, sizeof(cl_uint16), (void*) &salt2);
+    _clSetKernelArg(rule_kernelend3[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
+    _clSetKernelArg(rule_kernelend3[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
+    _clSetKernelArg(rule_kernelend3[self], 2, sizeof(cl_mem), (void*) &rule_images4_buf[self]);
+    _clSetKernelArg(rule_kernelend3[self], 3, sizeof(cl_uint16), (void*) &addline);
+    _clSetKernelArg(rule_kernelend3[self], 4, sizeof(cl_uint16), (void*) &salt);
+    _clSetKernelArg(rule_kernelend3[self], 5, sizeof(cl_uint16), (void*) &salt2);
+    _clSetKernelArg(rule_kernelpre3[self], 0, sizeof(cl_mem), (void*) &rule_images4_buf[self]);
+    _clSetKernelArg(rule_kernelpre3[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
+    _clSetKernelArg(rule_kernelpre3[self], 2, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
+    _clSetKernelArg(rule_kernelpre3[self], 3, sizeof(cl_uint16), (void*) &addline);
+    _clSetKernelArg(rule_kernelpre3[self], 4, sizeof(cl_uint16), (void*) &salt);
+    _clSetKernelArg(rule_kernelpre3[self], 5, sizeof(cl_uint16), (void*) &salt2);
+    _clSetKernelArg(rule_kernelbl3[self], 0, sizeof(cl_mem), (void*) &rule_images4_buf[self]);
+    _clSetKernelArg(rule_kernelbl3[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
+    _clSetKernelArg(rule_kernelbl3[self], 2, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
+    _clSetKernelArg(rule_kernelbl3[self], 3, sizeof(cl_uint16), (void*) &addline);
+    _clSetKernelArg(rule_kernelbl3[self], 4, sizeof(cl_uint16), (void*) &salt);
+    _clSetKernelArg(rule_kernelbl3[self], 5, sizeof(cl_uint16), (void*) &salt2);
 
 
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelmod[self], 1, NULL, &nws1, rule_local_work_size, 0, NULL, NULL);
     _clFinish(rule_oclqueue[self]);
 
-    for (b=0;b<((bytes+19)/20);b++)
+    if (ripemd==1)
     {
-	addline.sC=b;
-	addline.sD=keyfile;
-	_clSetKernelArg(rule_kernelpre1[self], 3, sizeof(cl_uint16), (void*) &addline);
-	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
-	_clFinish(rule_oclqueue[self]);
-	_clSetKernelArg(rule_kernelend1[self], 3, sizeof(cl_uint16), (void*) &addline);
-	for (a=0;a<2000;a+=1000)
+	for (b=0;b<((bytes+19)/20);b++)
+	{
+	    addline.sC=b;
+	    addline.sD=keyfile;
+	    _clSetKernelArg(rule_kernelpre1[self], 3, sizeof(cl_uint16), (void*) &addline);
+	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+	    _clFinish(rule_oclqueue[self]);
+	    _clSetKernelArg(rule_kernelend1[self], 3, sizeof(cl_uint16), (void*) &addline);
+	    for (a=0;a<2000;a+=1000)
+	    {
+		if (attack_over!=0) pthread_exit(NULL);
+		addline.sA=a;
+		if (a==0) addline.sA=1;
+		addline.sB=a+1000;
+		_clSetKernelArg(rule_kernelbl1[self], 3, sizeof(cl_uint16), (void*) &addline);
+		_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+		_clFinish(rule_oclqueue[self]);
+    		wthreads[self].tries+=(nws1)/((((bytes+19)/20)*2)*algos);
+    		pthread_mutex_lock(&wthreads[self].tempmutex);
+    		pthread_mutex_unlock(&wthreads[self].tempmutex);
+	    }
+	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelend1[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+	}
+	_clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, hash_ret_len1*wthreads[self].vectorsize*ocl_rule_workset[self], rule_ptr[self], 0, NULL, NULL);
+	for (a=0;a<nws1;a++)
 	{
 	    if (attack_over!=0) pthread_exit(NULL);
-	    addline.sA=a;
-	    if (a==0) addline.sA=1;
-	    addline.sB=a+1000;
-	    _clSetKernelArg(rule_kernelbl1[self], 3, sizeof(cl_uint16), (void*) &addline);
-	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
-	    _clFinish(rule_oclqueue[self]);
-    	    wthreads[self].tries+=(nws1)/((((bytes+19)/20)*2)*algos);
-    	    pthread_mutex_lock(&wthreads[self].tempmutex);
-    	    pthread_mutex_unlock(&wthreads[self].tempmutex);
+    	    b=a*hash_ret_len1;
+    	    memcpy(key,rule_ptr[self]+b,hash_ret_len1);
+	    if (check_truecrypt(key)==hash_ok)
+	    {
+		strcpy(plain,&rule_images[self][0]+(a*MAX));
+		strcat(plain,line);
+		add_cracked_list(hash_list->username, hash_list->hash, hash_list->salt, plain);
+	    }
 	}
-	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelend1[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
     }
-    _clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, hash_ret_len1*wthreads[self].vectorsize*ocl_rule_workset[self], rule_ptr[self], 0, NULL, NULL);
-    for (a=0;a<nws1;a++)
+
+    if (sha512==1)
     {
-	if (attack_over!=0) pthread_exit(NULL);
-        b=a*hash_ret_len1;
-        memcpy(key,rule_ptr[self]+b,hash_ret_len1);
-	if (check_truecrypt(key)==hash_ok)
+	for (b=0;b<(bytes/64);b++)
 	{
-	    strcpy(plain,&rule_images[self][0]+(a*MAX));
-	    strcat(plain,line);
-	    add_cracked_list(hash_list->username, hash_list->hash, hash_list->salt, plain);
+	    addline.sC=b;
+	    addline.sD=keyfile;
+	    _clSetKernelArg(rule_kernelpre2[self], 3, sizeof(cl_uint16), (void*) &addline);
+	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre2[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+	    _clFinish(rule_oclqueue[self]);
+	    _clSetKernelArg(rule_kernelend2[self], 3, sizeof(cl_uint16), (void*) &addline);
+	    for (a=0;a<1000;a+=10)
+	    {
+		if (attack_over!=0) pthread_exit(NULL);
+		addline.sA=a;
+		if (a==0) addline.sA=1;
+		addline.sB=a+10;
+		_clSetKernelArg(rule_kernelbl2[self], 3, sizeof(cl_uint16), (void*) &addline);
+		_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl2[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+		_clFinish(rule_oclqueue[self]);
+    		if ((a%100)==0)wthreads[self].tries+=(nws1)/(((bytes/64)*10)*algos);
+    		pthread_mutex_lock(&wthreads[self].tempmutex);
+    		pthread_mutex_unlock(&wthreads[self].tempmutex);
+	    }
+	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelend2[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+	}
+	_clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, hash_ret_len1*wthreads[self].vectorsize*ocl_rule_workset[self], rule_ptr[self], 0, NULL, NULL);
+	for (a=0;a<nws1;a++)
+	{
+	    if (attack_over!=0) pthread_exit(NULL);
+    	    b=a*hash_ret_len1;
+    	    memcpy(key,rule_ptr[self]+b,hash_ret_len1);
+
+	    if (check_truecrypt(key)==hash_ok)
+	    {
+		strcpy(plain,&rule_images[self][0]+(a*MAX));
+		strcat(plain,line);
+		add_cracked_list(hash_list->username, hash_list->hash, hash_list->salt, plain);
+	    }
+	}
+    }
+
+    if (whirlpool==1)
+    {
+	for (b=0;b<(bytes/64);b++)
+	{
+	    addline.sC=b;
+	    addline.sD=keyfile;
+	    _clSetKernelArg(rule_kernelpre3[self], 3, sizeof(cl_uint16), (void*) &addline);
+	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre3[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+	    _clFinish(rule_oclqueue[self]);
+	    _clSetKernelArg(rule_kernelend3[self], 3, sizeof(cl_uint16), (void*) &addline);
+	    for (a=0;a<1000;a+=10)
+	    {
+		if (attack_over!=0) pthread_exit(NULL);
+		addline.sA=a;
+		if (a==0) addline.sA=1;
+		addline.sB=a+10;
+		_clSetKernelArg(rule_kernelbl3[self], 3, sizeof(cl_uint16), (void*) &addline);
+		_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl3[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+		_clFinish(rule_oclqueue[self]);
+    		if ((a%100)==0)wthreads[self].tries+=(nws1)/(((bytes/64)*10)*algos);
+    		pthread_mutex_lock(&wthreads[self].tempmutex);
+    		pthread_mutex_unlock(&wthreads[self].tempmutex);
+	    }
+	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelend3[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+	}
+	_clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, hash_ret_len1*wthreads[self].vectorsize*ocl_rule_workset[self], rule_ptr[self], 0, NULL, NULL);
+	for (a=0;a<nws1;a++)
+	{
+	    if (attack_over!=0) pthread_exit(NULL);
+    	    b=a*hash_ret_len1;
+    	    memcpy(key,rule_ptr[self]+b,hash_ret_len1);
+
+	    if (check_truecrypt(key)==hash_ok)
+	    {
+		strcpy(plain,&rule_images[self][0]+(a*MAX));
+		strcat(plain,line);
+		add_cracked_list(hash_list->username, hash_list->hash, hash_list->salt, plain);
+	    }
 	}
     }
 }
@@ -688,7 +809,7 @@ void* ocl_rule_truecrypt_thread(void *arg)
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
     ocl_rule_workset[self]=128*128;
-    if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=4;
+    if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=2;
     if (ocl_gpu_double) ocl_rule_workset[self]*=4;
     if (interactive_mode==1) ocl_rule_workset[self]/=4;
     if (wthreads[self].type==nv_thread) ocl_rule_workset[self]/=2;
@@ -701,6 +822,12 @@ void* ocl_rule_truecrypt_thread(void *arg)
     rule_kernelpre1[self] = _clCreateKernel(program[self], "prepare1", &err );
     rule_kernelbl1[self] = _clCreateKernel(program[self], "pbkdf1", &err );
     rule_kernelend1[self] = _clCreateKernel(program[self], "final1", &err );
+    rule_kernelpre2[self] = _clCreateKernel(program[self], "prepare2", &err );
+    rule_kernelbl2[self] = _clCreateKernel(program[self], "pbkdf2", &err );
+    rule_kernelend2[self] = _clCreateKernel(program[self], "final2", &err );
+    rule_kernelpre3[self] = _clCreateKernel(program[self], "prepare3", &err );
+    rule_kernelbl3[self] = _clCreateKernel(program[self], "pbkdf3", &err );
+    rule_kernelend3[self] = _clCreateKernel(program[self], "final3", &err );
 
     rule_oclqueue[self] = _clCreateCommandQueue(context[self], wthreads[self].cldeviceid, 0, &err );
     rule_buffer[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*wthreads[self].vectorsize*hash_ret_len1, NULL, &err );
@@ -709,18 +836,18 @@ void* ocl_rule_truecrypt_thread(void *arg)
     rule_images_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
     rule_sizes_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*4, NULL, &err );
     rule_images2_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
-    rule_images3_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*40, NULL, &err );
-    rule_images4_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*60, NULL, &err );
+    rule_images3_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*128, NULL, &err );
+    rule_images4_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*128, NULL, &err );
     rule_sizes[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*4);
     rule_images[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
     rule_images2[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
-    rule_images3[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*40);
-    rule_images4[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*60);
+    rule_images3[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*128);
+    rule_images4[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*128);
     bzero(&rule_sizes[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*4);
     bzero(&rule_images[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
     bzero(&rule_images2[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
-    bzero(&rule_images3[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*40);
-    bzero(&rule_images4[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*60);
+    bzero(&rule_images3[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*128);
+    bzero(&rule_images4[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*128);
 
     pthread_mutex_unlock(&biglock); 
 
