@@ -53,7 +53,7 @@ dst[GGI*8+7] = inpc[GLI][7];
 #define m2 0xFF00FF00U 
 
 
-#ifndef GCN
+#ifdef SM21
 
 // RIPEMD-160 macros
 

@@ -169,8 +169,12 @@ hash_stat load_truecrypt(char *filename)
     char *myline;
     char hashline[4096];
 
-    strncpy(hashline,additional_options,4095);
-    hashline[4095]=0;
+    if (additional_options)
+    {
+	strncpy(hashline,additional_options,4095);
+	hashline[4095]=0;
+    }
+    else bzero(hashline,4095);
 
     init_keytab();
     myfile = open(filename, O_RDONLY|O_LARGEFILE);

@@ -167,6 +167,7 @@ build:
 	@if [ ! -e nvidia_ripemd160__sm10.ptx ]; then ./nvidia-compiler nvidia_ripemd160 ns ;fi
 	@if [ ! -e nvidia_whirlpool_long__sm10.ptx ]; then ./nvidia-compiler nvidia_whirlpool_long ns ;fi
 	@if [ ! -e nvidia_whirlpool__sm10.ptx ]; then ./nvidia-compiler nvidia_whirlpool ns ;fi
+	@if [ ! -e nvidia_truecrypt__sm10.ptx ]; then ./nvidia-compiler nvidia_truecrypt n ;fi
 
 
 
