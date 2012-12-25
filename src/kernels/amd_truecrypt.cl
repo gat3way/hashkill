@@ -5869,14 +5869,14 @@ ulong TTA,TTB,TTC,TTD,TTE,TTF,TTG,TTH;
 
 TTA=TTB=TTC=TTD=TTE=(ulong)0;
 
-ta=input[get_global_id(0)*2*8];
-tb=input[get_global_id(0)*2*8+1];
-tc=input[get_global_id(0)*2*8+2];
-td=input[get_global_id(0)*2*8+3];
-te=input[get_global_id(0)*2*8+4];
-tf=input[get_global_id(0)*2*8+5];
-tg=input[get_global_id(0)*2*8+6];
-th=input[get_global_id(0)*2*8+7];
+ta=input[get_global_id(0)*8];
+tb=input[get_global_id(0)*8+1];
+tc=input[get_global_id(0)*8+2];
+td=input[get_global_id(0)*8+3];
+te=input[get_global_id(0)*8+4];
+tf=input[get_global_id(0)*8+5];
+tg=input[get_global_id(0)*8+6];
+th=input[get_global_id(0)*8+7];
 
 ta = BYTE_ADD(ta,(uint)salt2.s0);
 tb = BYTE_ADD(tb,(uint)salt2.s1);
@@ -6856,14 +6856,14 @@ barrier(CLK_LOCAL_MEM_FENCE);
 
 TTA=TTB=TTC=TTD=TTE=TTF=TTG=TTH=(ulong)0;
 
-ta=input[get_global_id(0)*2*8];
-tb=input[get_global_id(0)*2*8+1];
-tc=input[get_global_id(0)*2*8+2];
-td=input[get_global_id(0)*2*8+3];
-te=input[get_global_id(0)*2*8+4];
-tf=input[get_global_id(0)*2*8+5];
-tg=input[get_global_id(0)*2*8+6];
-th=input[get_global_id(0)*2*8+7];
+ta=input[get_global_id(0)*8];
+tb=input[get_global_id(0)*8+1];
+tc=input[get_global_id(0)*8+2];
+td=input[get_global_id(0)*8+3];
+te=input[get_global_id(0)*8+4];
+tf=input[get_global_id(0)*8+5];
+tg=input[get_global_id(0)*8+6];
+th=input[get_global_id(0)*8+7];
 
 
 ta = BYTE_ADD(ta,(uint)salt2.s0);

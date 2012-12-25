@@ -586,7 +586,6 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
     if (nws1==0) nws1=64;
     if (nws==0) nws=64;
 
-
     _clSetKernelArg(rule_kernelmod[self], 0, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
     _clSetKernelArg(rule_kernelmod[self], 1, sizeof(cl_mem), (void*) &rule_images_buf[self]);
     _clSetKernelArg(rule_kernelmod[self], 2, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
@@ -655,7 +654,7 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
 
     if (ripemd==1)
     {
-	for (b=0;b<((bytes+19)/20);b++)
+	for (b=0;b<=((bytes)/20);b++)
 	{
 	    addline.sC=b;
 	    addline.sD=keyfile;
@@ -672,7 +671,7 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
 		_clSetKernelArg(rule_kernelbl1[self], 3, sizeof(cl_uint16), (void*) &addline);
 		_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
 		_clFinish(rule_oclqueue[self]);
-    		wthreads[self].tries+=(nws1)/((((bytes+19)/20)*2)*algos);
+    		wthreads[self].tries+=(nws1)/((((bytes)/20)*2)*algos);
     		pthread_mutex_lock(&wthreads[self].tempmutex);
     		pthread_mutex_unlock(&wthreads[self].tempmutex);
 	    }
@@ -724,7 +723,6 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
 	    if (attack_over!=0) pthread_exit(NULL);
     	    b=a*hash_ret_len1;
     	    memcpy(key,rule_ptr[self]+b,hash_ret_len1);
-
 	    if (check_truecrypt(key)==hash_ok)
 	    {
 		strcpy(plain,&rule_images[self][0]+(a*MAX));
@@ -765,7 +763,6 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
 	    if (attack_over!=0) pthread_exit(NULL);
     	    b=a*hash_ret_len1;
     	    memcpy(key,rule_ptr[self]+b,hash_ret_len1);
-
 	    if (check_truecrypt(key)==hash_ok)
 	    {
 		strcpy(plain,&rule_images[self][0]+(a*MAX));
@@ -813,12 +810,9 @@ void* ocl_rule_truecrypt_thread(void *arg)
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
     ocl_rule_workset[self]=128*128;
-    if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=2;
     if (ocl_gpu_double) ocl_rule_workset[self]*=4;
     if (interactive_mode==1) ocl_rule_workset[self]/=4;
-    if (wthreads[self].type==nv_thread) ocl_rule_workset[self]/=2;
 
-    
     rule_ptr[self] = malloc(ocl_rule_workset[self]*hash_ret_len1*wthreads[self].vectorsize);
     rule_counts[self][0]=0;
 
