@@ -4091,7 +4091,6 @@ __constant ulong rc[10] = {
 #define ROTR(x,b)  (((x) >> (b)) | ((x) << (64 - (b))))
 
 
-
 #define WH_L(a) \
 L0 = C0[(K0 >> 56)&255] ^ \
      ROTR(C0[(K7 >> 48)&0xff],8) ^ \
@@ -4222,15 +4221,13 @@ L7 = C0[(H >> 56)&255] ^ \
      ROTR(C0[(D >> 24)&0xff],32) ^ \
      ROTR(C0[(C >> 16)&0xff],40) ^ \
      ROTR(C0[(B >>  8)&0xff],48) ^ \
-     ROTR(C0[(A) &0xff],56) ^ K7;
+     ROTR(C0[(A) &0xff],56) ^ K7; 
 
 #define WHIRLPOOL_ROUND(a) \
     WH_L((a)); \
     K0=L0;K1=L1;K2=L2;K3=L3;K4=L4;K5=L5;K6=L6;K7=L7; \
     WH_R(); \
     A=L0;B=L1;C=L2;D=L3;E=L4;F=L5;G=L6;H=L7; \
-
-
 
 
 // This is the prepare function for RIPEMD-160
@@ -6853,7 +6850,6 @@ C0[get_local_id(0)+128]=CC0[get_local_id(0)+128];
 C0[get_local_id(0)+192]=CC0[get_local_id(0)+192];
 barrier(CLK_LOCAL_MEM_FENCE);
 
-
 TTA=TTB=TTC=TTD=TTE=TTF=TTG=TTH=(ulong)0;
 
 ta=input[get_global_id(0)*8];
@@ -7231,6 +7227,8 @@ C0[get_local_id(0)+64]=CC0[get_local_id(0)+64];
 C0[get_local_id(0)+128]=CC0[get_local_id(0)+128];
 C0[get_local_id(0)+192]=CC0[get_local_id(0)+192];
 barrier(CLK_LOCAL_MEM_FENCE);
+//Evade stupid GCN bug
+TTA=C0[2];
 
 
 TTA=dst[get_global_id(0)*2*8+0];
