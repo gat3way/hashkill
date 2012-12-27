@@ -647,6 +647,7 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
     _clSetKernelArg(rule_kernelbl3[self], 3, sizeof(cl_uint16), (void*) &addline);
     _clSetKernelArg(rule_kernelbl3[self], 4, sizeof(cl_uint16), (void*) &salt);
     _clSetKernelArg(rule_kernelbl3[self], 5, sizeof(cl_uint16), (void*) &salt2);
+    if (attack_over!=0) pthread_exit(NULL);
 
 
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelmod[self], 1, NULL, &nws1, rule_local_work_size, 0, NULL, NULL);
@@ -664,7 +665,7 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
 	    _clSetKernelArg(rule_kernelend1[self], 3, sizeof(cl_uint16), (void*) &addline);
 	    for (a=0;a<2000;a+=1000)
 	    {
-		if (attack_over!=0) pthread_exit(NULL);
+		if (attack_over!=0) return;
 		addline.sA=a;
 		if (a==0) addline.sA=1;
 		addline.sB=a+1000;
@@ -680,7 +681,7 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
 	_clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, hash_ret_len1*wthreads[self].vectorsize*ocl_rule_workset[self], rule_ptr[self], 0, NULL, NULL);
 	for (a=0;a<nws1;a++)
 	{
-	    if (attack_over!=0) pthread_exit(NULL);
+	    if (attack_over!=0) return;
     	    b=a*hash_ret_len1;
     	    memcpy(key,rule_ptr[self]+b,hash_ret_len1);
 	    if (check_truecrypt(key)==hash_ok)
@@ -696,6 +697,7 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
     {
 	for (b=0;b<(bytes/64);b++)
 	{
+	    if (attack_over!=0) return;
 	    addline.sC=b;
 	    addline.sD=keyfile;
 	    _clSetKernelArg(rule_kernelpre2[self], 3, sizeof(cl_uint16), (void*) &addline);
@@ -704,7 +706,7 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
 	    _clSetKernelArg(rule_kernelend2[self], 3, sizeof(cl_uint16), (void*) &addline);
 	    for (a=0;a<1000;a+=10)
 	    {
-		if (attack_over!=0) pthread_exit(NULL);
+		if (attack_over!=0) return;
 		addline.sA=a;
 		if (a==0) addline.sA=1;
 		addline.sB=a+10;
@@ -720,7 +722,7 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
 	_clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, hash_ret_len1*wthreads[self].vectorsize*ocl_rule_workset[self], rule_ptr[self], 0, NULL, NULL);
 	for (a=0;a<nws1;a++)
 	{
-	    if (attack_over!=0) pthread_exit(NULL);
+	    if (attack_over!=0) return;
     	    b=a*hash_ret_len1;
     	    memcpy(key,rule_ptr[self]+b,hash_ret_len1);
 	    if (check_truecrypt(key)==hash_ok)
@@ -736,6 +738,7 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
     {
 	for (b=0;b<(bytes/64);b++)
 	{
+	    if (attack_over!=0) return;
 	    addline.sC=b;
 	    addline.sD=keyfile;
 	    _clSetKernelArg(rule_kernelpre3[self], 3, sizeof(cl_uint16), (void*) &addline);
@@ -744,7 +747,7 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
 	    _clSetKernelArg(rule_kernelend3[self], 3, sizeof(cl_uint16), (void*) &addline);
 	    for (a=0;a<1000;a+=10)
 	    {
-		if (attack_over!=0) pthread_exit(NULL);
+		if (attack_over!=0) return;
 		addline.sA=a;
 		if (a==0) addline.sA=1;
 		addline.sB=a+10;
@@ -760,7 +763,7 @@ static void ocl_truecrypt_crack_callback(char *line, int self)
 	_clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, hash_ret_len1*wthreads[self].vectorsize*ocl_rule_workset[self], rule_ptr[self], 0, NULL, NULL);
 	for (a=0;a<nws1;a++)
 	{
-	    if (attack_over!=0) pthread_exit(NULL);
+	    if (attack_over!=0) return;
     	    b=a*hash_ret_len1;
     	    memcpy(key,rule_ptr[self]+b,hash_ret_len1);
 	    if (check_truecrypt(key)==hash_ok)
@@ -790,7 +793,7 @@ static void ocl_truecrypt_callback(char *line, int self)
     	bzero(&rule_images[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
 	rule_counts[self][0]=-1;
     }
-    if (attack_over==2) pthread_exit(NULL);
+    if (attack_over==2) return;
 }
 
 
