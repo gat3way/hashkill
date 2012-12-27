@@ -51,10 +51,10 @@ AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 
 m4_include([simd.m4])
 m4_include([json.m4])
+m4_include([oclopts.m4])
 
 AX_EXT()
 AX_CHECK_JSONLIB()
-
 
 
 

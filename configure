@@ -611,6 +611,8 @@ PKG_CONFIG
 JS_LIBS
 JS_CFLAGS
 SIMD_FLAGS
+CL_NVFLAGS
+CL_AMDFLAGS
 ALLOCA
 am__fastdepCCAS_FALSE
 am__fastdepCCAS_TRUE
@@ -739,6 +741,8 @@ with_gnu_ld
 with_sysroot
 enable_libtool_lock
 enable_dependency_tracking
+enable_amd_ocl
+enable_nv_ocl
 with_json
 '
       ac_precious_vars='build_alias
@@ -1383,6 +1387,8 @@ Optional Features:
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
+  --disable-amd-ocl	 Disable compilation of AMD OpenCL kernels
+  --disable-nv-ocl	 Disable compilation of NVidia OpenCL kernels
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -15446,6 +15452,34 @@ fi
 
 
 
+# Check whether --enable-amd-ocl was given.
+if test "${enable_amd_ocl+set}" = set; then :
+  enableval=$enable_amd_ocl; case "${enableval}" in
+     yes | no ) CL_AMDFLAGS="${enableval}" ;;
+     *) as_fn_error "bad value ${enableval} for --disable-amd-ocl" "$LINENO" 5 ;;
+   esac
+else
+  CL_AMDFLAGS="yes"
+
+fi
+
+
+# Check whether --enable-nv-ocl was given.
+if test "${enable_nv_ocl+set}" = set; then :
+  enableval=$enable_nv_ocl; case "${enableval}" in
+     yes | no ) CL_NVFLAGS="${enableval}" ;;
+     *) as_fn_error "bad value ${enableval} for --disable-nv-ocl" "$LINENO" 5 ;;
+   esac
+else
+  CL_NVFLAGS="yes"
+
+fi
+
+
+
+
+
+
 
 
   #AC_REQUIRE([AX_GCC_X86_CPUID])
@@ -15717,7 +15751,6 @@ $as_echo_n "checking jsonlib in ${JSONLIB_HOME}... " >&6; }
                 { $as_echo "$as_me:${as_lineno-$LINENO}: result: failed" >&5
 $as_echo "failed" >&6; }
         fi
-
 
 
 

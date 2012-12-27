@@ -3,6 +3,8 @@ BINDIR = $(bindir)
 IDATADIR = $(datadir)
 DATADIR = "$(datadir)"
 MAN = $(mandir)
+export CL_AMDFLAGS
+export CL_NVFLAGS
 export BINDIR
 export DATADIR
 export IDATADIR
