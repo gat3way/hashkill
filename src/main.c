@@ -233,7 +233,7 @@ static hash_stat parse_bruteforce_args(char *bruteargs)
 
 
 /* Process additional options */
-void process_addopts(char *addopt_parm)
+static void process_addopts(char *addopt_parm)
 {
     char *option;
     int a;
@@ -288,13 +288,27 @@ void sigint_handler(int val)
 }
 
 
-void detect_pipe()
+static void detect_pipe()
 {
     if (!isatty(fileno(stdin)))
     {
 	wlog("Please do not pipe to hashkill's stdin, use the 'add pipe' rule instead!\n\n%s","");
 	exit(1);
     }
+}
+
+
+static hash_stat check_out_file(char *filename)
+{
+    FILE *outfile;
+
+    outfile = fopen(filename, "w");
+    if (!outfile)
+    {
+        hlog("Cannot write output hashes list file: %s\n",filename);
+        return hash_err;
+    }
+    return hash_ok;
 }
 
 
@@ -337,48 +351,6 @@ int main(int argc, char *argv[])
 	{"plugin-opts", 0, 0, 'A'},
 	{0, 0, 0, 0}
     };
-
-/*
-TWOFISH_KEY serpent_key[41];
-//unsigned char akey[32]="\x01\x23\x45\x67\x89\xAB\xCD\xEF\xFE\xDC\xBA\x98\x76\x54\x32\x10\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xAA\xBB\xCC\xDD\xEE\xFF";
-//char plain[16]="\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
-//char aplain[16]="\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
-char aout[16]; 
-char aplain[16];
-char akey[32];
-bzero(akey,32);
-bzero(aplain,32);
-memcpy(akey,"\xD4\x3B\xB7\x55\x6E\xA3\x2E\x46\xF2\xA2\x82\xB7\xD4\x5B\x4E\x0D\x57\xFF\x73\x9D\x4D\xC9\x2C\x1B\xD7\xFC\x01\x70\x0C\xC8\x21\x6F",32);
-memcpy(aplain,"\x90\xAF\xE9\x1B\xB2\x88\x54\x4F\x2C\x32\xDC\x23\x9B\x26\x35\xE6",32);
-TWOFISH_set_key(akey, 256, serpent_key);
-TWOFISH_encrypt(serpent_key,aplain, aout);
-int i;
-for (i=0;i<16;i++) printf("%02x",aout[i]&255);
-printf("\n");
-exit(1);
-*/
-
-/*
-char key[65]=
-"\x31\x41\x59\x26\x53\x58\x97\x93"
-"\x23\x84\x62\x64\x33\x83\x27\x95"
-"\x02\x88\x41\x97\x16\x93\x99\x37"
-"\x51\x05\x82\x09\x74\x94\x45\x92"
-"\x27\x18\x28\x18\x28\x45\x90\x45"
-"\x23\x53\x60\x28\x74\x71\x35\x26"
-"\x62\x49\x77\x57\x24\x70\x93\x69"
-"\x99\x59\x57\x49\x66\x96\x76\x27"
-;
-char in[18]=
-"xd7\x4b\x93\x7d\x13\xa2\xa2\xe1"
-"\x35\x39\x71\x88\x76\x1e\xc9\xea";
-char out[17];
-hash_proto_decrypt_twofish_xts(key, key+32, in, out, 16, 0xff, 0);
-int i;
-for (i=0;i<16;i++) printf("%02x",out[i]&255);
-printf("\n");
-exit(1);
-*/
 
 
     /* initialize */
@@ -638,6 +610,13 @@ exit(1);
 	default:
 	break;
     }
+
+
+    /* First check if out_cracked_file and out_uncracked_file are good */
+    if (out_cracked_file) 
+    if (hash_err == check_out_file(out_cracked_file)) exit(1);
+    if (out_uncracked_file) check_out_file(out_uncracked_file);
+    if (hash_err == check_out_file(out_uncracked_file)) exit(1);
 
 
     if (fvalue) 
