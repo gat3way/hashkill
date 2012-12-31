@@ -305,7 +305,7 @@ static hash_stat check_out_file(char *filename)
     outfile = fopen(filename, "w");
     if (!outfile)
     {
-        hlog("Cannot write output hashes list file: %s\n",filename);
+        hlog("Cannot write to output hashes list file: %s\n",filename);
         return hash_err;
     }
     return hash_ok;
