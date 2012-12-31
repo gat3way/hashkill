@@ -613,9 +613,9 @@ int main(int argc, char *argv[])
 
 
     /* First check if out_cracked_file and out_uncracked_file are good */
-    if (out_cracked_file) 
+    if (out_cracked_file)
     if (hash_err == check_out_file(out_cracked_file)) exit(1);
-    if (out_uncracked_file) check_out_file(out_uncracked_file);
+    if (out_uncracked_file)
     if (hash_err == check_out_file(out_uncracked_file)) exit(1);
 
 
