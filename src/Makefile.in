@@ -111,7 +111,7 @@ am_hashkill_OBJECTS = hashkill-ocl-base.$(OBJEXT) \
 	hashkill-ocl_md5md5.$(OBJEXT) hashkill-ocl_mysql5.$(OBJEXT) \
 	hashkill-ocl_sha256.$(OBJEXT) hashkill-ocl_sha512.$(OBJEXT) \
 	hashkill-ocl_lm.$(OBJEXT) hashkill-ocl_nsldap.$(OBJEXT) \
-	hashkill-ocl_sl3.$(OBJEXT) hashkill-ocl_joomla.$(OBJEXT) \
+	hashkill-ocl_joomla.$(OBJEXT) \
 	hashkill-ocl_oscommerce.$(OBJEXT) hashkill-ocl_ipb2.$(OBJEXT) \
 	hashkill-ocl_vbulletin.$(OBJEXT) hashkill-ocl_smf.$(OBJEXT) \
 	hashkill-ocl_oracle11g.$(OBJEXT) \
@@ -351,7 +351,7 @@ threads.h hashinterface.h plugins.h sessions.h md5_sse2.c md5_sse2.h sha1_sse2.c
 md4_sse2.c md4_sse2.h des_sse2.c ocl-threads.c  des_nonstd_sse2.c ocl_support.h \
 lzma/7zFile.c lzma/7zStream.c lzma/LzmaDec.c lzma/LzmaEnc.c lzma/Alloc.c lzma/LzFind.c lzma/lzma.c \
 cpu-feat.c hashgen.c hashgen.h hashgen-mangle.c hashgen-mangle.h ocl-adl.c ocl_md5.c ocl_sha1.c \
-ocl_md4.c ocl_ntlm.c ocl_md5md5.c ocl_mysql5.c ocl_sha256.c ocl_sha512.c ocl_lm.c ocl_nsldap.c ocl_sl3.c \
+ocl_md4.c ocl_ntlm.c ocl_md5md5.c ocl_mysql5.c ocl_sha256.c ocl_sha512.c ocl_lm.c ocl_nsldap.c  \
 ocl_joomla.c ocl_oscommerce.c ocl_ipb2.c ocl_vbulletin.c ocl_smf.c ocl_oracle11g.c ocl_mssql-2000.c \
 ocl_mssql-2005.c ocl_nsldaps.c ocl_osx-old.c ocl_osxlion.c ocl_desunix.c ocl_oracle-old.c  ocl_mscash.c \
 ocl_pixmd5.c ocl_phpbb3.c ocl_wordpress.c ocl_md5unix.c ocl_sha512unix.c ocl_mscash2.c ocl_apr1.c ocl_wpa.c \
@@ -380,9 +380,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu src/Makefile
+	  $(AUTOMAKE) --foreign src/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -562,7 +562,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_sha256unix.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_sha512.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_sha512unix.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_sl3.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_smf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_truecrypt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_vbulletin.Po@am__quote@
@@ -1134,20 +1133,6 @@ hashkill-ocl_nsldap.obj: ocl_nsldap.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_nsldap.c' object='hashkill-ocl_nsldap.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_nsldap.obj `if test -f 'ocl_nsldap.c'; then $(CYGPATH_W) 'ocl_nsldap.c'; else $(CYGPATH_W) '$(srcdir)/ocl_nsldap.c'; fi`
-
-hashkill-ocl_sl3.o: ocl_sl3.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_sl3.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_sl3.Tpo -c -o hashkill-ocl_sl3.o `test -f 'ocl_sl3.c' || echo '$(srcdir)/'`ocl_sl3.c
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_sl3.Tpo $(DEPDIR)/hashkill-ocl_sl3.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_sl3.c' object='hashkill-ocl_sl3.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_sl3.o `test -f 'ocl_sl3.c' || echo '$(srcdir)/'`ocl_sl3.c
-
-hashkill-ocl_sl3.obj: ocl_sl3.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_sl3.obj -MD -MP -MF $(DEPDIR)/hashkill-ocl_sl3.Tpo -c -o hashkill-ocl_sl3.obj `if test -f 'ocl_sl3.c'; then $(CYGPATH_W) 'ocl_sl3.c'; else $(CYGPATH_W) '$(srcdir)/ocl_sl3.c'; fi`
-@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_sl3.Tpo $(DEPDIR)/hashkill-ocl_sl3.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_sl3.c' object='hashkill-ocl_sl3.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_sl3.obj `if test -f 'ocl_sl3.c'; then $(CYGPATH_W) 'ocl_sl3.c'; else $(CYGPATH_W) '$(srcdir)/ocl_sl3.c'; fi`
 
 hashkill-ocl_joomla.o: ocl_joomla.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_joomla.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_joomla.Tpo -c -o hashkill-ocl_joomla.o `test -f 'ocl_joomla.c' || echo '$(srcdir)/'`ocl_joomla.c

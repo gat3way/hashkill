@@ -37,7 +37,6 @@ bforce sha512 multi		|2 passwords|hashkill -psha512 -f sha512.hashes -b1:7:num
 bforce sha512 single		|1 passwords|hashkill -psha512 3627909a29c31381a071ec27f7c9ca97726182aed29a7ddd2e54353322cfb30abb9e3a6df2ac2c20fe23436311d678564d0c8d305930575f60e2d3d048184d79 -b1:7:num
 bforce smf single		|1 passwords|hashkill -psmf admin:8c7d86e03521639130f761dc9f87138ab0ce7e6c -b1:6:none:klm01-
 bforce zip (old) single		|1 passwords|hashkill -pzip -f test.zip -b1:6:none:defcon
-bforce sl3 (GPU only!)		|1 passwords|hashkill -psl3 d3399b7262fb56cb9ed053d68db9291c410839c4:0000000000000000
 rule desunix single		|1 passwords|hashkill -pdesunix fAg0TXy49dWUo -r rule_uu
 rule desunix multi		|2 passwords|hashkill -pdesunix -f desunix.hashes -r rule_num
 rule apr1 single		|1 passwords|hashkill -papr1 $apr1$e0uBuPco$viwBVwsABkKXFnZeXcmhL/ -r rule_uu

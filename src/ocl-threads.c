@@ -58,7 +58,6 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"sha512",&ocl_bruteforce_sha512, &ocl_markov_sha512, &ocl_rule_sha512},
                             {1,"lm",&ocl_bruteforce_lm, &ocl_markov_lm, &ocl_rule_lm},
                             {1,"nsldap",&ocl_bruteforce_nsldap, &ocl_markov_nsldap, &ocl_rule_nsldap},
-                            {1,"sl3",&ocl_bruteforce_sl3, &ocl_bruteforce_sl3, &ocl_bruteforce_sl3},
                             {1,"joomla",&ocl_bruteforce_joomla, &ocl_markov_joomla, &ocl_rule_joomla},
                             {1,"oscommerce",&ocl_bruteforce_oscommerce, &ocl_markov_oscommerce, &ocl_rule_oscommerce},
                             {1,"ipb2",&ocl_bruteforce_ipb2, &ocl_markov_ipb2, &ocl_rule_ipb2},
@@ -251,7 +250,6 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"sha1")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"sha256")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"ripemd160")==0)) ocl_vector=4;
-		if ((strcmp(get_current_plugin(),"sl3")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"md5md5")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"mysql5")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"nsldap")==0)) ocl_vector=4;
@@ -278,7 +276,6 @@ hash_stat ocl_get_device()
 	    /* GCN loops hacks */
 	    if ((ocl_have_gcn==1)&&(!ocl_dev_nvidia))
 	    {
-		if ((strcmp(get_current_plugin(),"sl3")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"sha1")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"ripemd160")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"nsldap")==0)) loops=2;
@@ -403,7 +400,6 @@ hash_stat ocl_get_device()
 	    }
 	    else if (ocl_dev_nvidia==1)
 	    {
-		if ((strcmp(get_current_plugin(),"sl3")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"sha1")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"ripemd160")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"nsldap")==0)) loops=2;
@@ -679,11 +675,6 @@ static void * ocl_start_monitor_thread(void *arg)
     while ((wthreads[0].tries==0)&&(attack_over==0)) usleep(10000);
     printf("\n");
 
-    if ((strcmp(get_current_plugin(),"sl3")==0)) 
-    {
-	strcpy(bruteforce_charset,"0123456789");
-	attack_method=attack_method_simple_bruteforce;
-    }
 
     while (attack_over == 0)
     {

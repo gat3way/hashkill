@@ -14,7 +14,7 @@ all: plugin_md5 plugin_md5md5 plugin_joomla plugin_sha1 plugin_smf plugin_md4 \
      plugin_ntlm plugin_desunix plugin_oscommerce plugin_mysql5 plugin_ipb2 plugin_vbulletin \
      plugin_mssql-2000 plugin_mssql-2005 plugin_phpbb3 plugin_wordpress plugin_sha256 \
      plugin_sha512 plugin_apr1 plugin_md5unix plugin_sha512unix plugin_privkey plugin_oracle11g \
-     plugin_pixmd5 plugin_sl3 plugin_ripemd160 plugin_sha1sha1 plugin_lm plugin_oracle-old \
+     plugin_pixmd5 plugin_ripemd160 plugin_sha1sha1 plugin_lm plugin_oracle-old \
      plugin_nsldap plugin_nsldaps plugin_sapg plugin_mscash plugin_mediawiki plugin_zip plugin_osxlion \
      plugin_mscash2 plugin_wpa plugin_rar plugin_dmg plugin_osx-old plugin_bfunix plugin_drupal7 \
      plugin_django256 plugin_sha256unix plugin_o5logon plugin_mssql2012 plugin_msoffice \
@@ -86,9 +86,6 @@ plugin_mysql-old:
 
 plugin_privkey:
 	@if [ ! -e privkey.so ]; then  $(CC)  plugin.c privkey.c -o privkey.so $(CFLAGS) $(LDFLAGS)   ;fi
-
-plugin_sl3:
-	@if [ ! -e sl3.so ]; then  $(CC)  plugin.c sl3.c -o sl3.so $(CFLAGS) $(LDFLAGS)   ;fi
 
 plugin_ripemd160:
 	@if [ ! -e ripemd160.so ]; then  $(CC)  plugin.c ripemd160.c -o ripemd160.so $(CFLAGS) $(LDFLAGS) ;fi

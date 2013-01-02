@@ -51,8 +51,6 @@ hash_stat ocl_bruteforce_md5md5(void);
 hash_stat ocl_markov_md5md5(void);
 hash_stat ocl_rule_md5md5(void);
 
-/* sl3 plugin support */
-hash_stat ocl_bruteforce_sl3(void);
 
 /* mysql5 plugin support */
 hash_stat ocl_bruteforce_mysql5(void);

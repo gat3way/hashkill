@@ -25,7 +25,6 @@ build:
 	if [ ! -e amd_md4__Juniper.bin ]; then ./amd-compiler amd_md4 ns ;fi; \
 	if [ ! -e amd_pixmd5_long__Juniper.bin ]; then ./amd-compiler amd_pixmd5_long ns ;fi; \
 	if [ ! -e amd_pixmd5__Juniper.bin ]; then ./amd-compiler amd_pixmd5 ns ;fi; \
-	if [ ! -e amd_sl3__Juniper.bin ]; then ./amd-compiler amd_sl3 n ;fi; \
 	if [ ! -e amd_sha256_long__Juniper.bin ]; then ./amd-compiler amd_sha256_long ns ;fi; \
 	if [ ! -e amd_sha256__Juniper.bin ]; then ./amd-compiler amd_sha256 ns ;fi; \
 	if [ ! -e amd_lm_long__Juniper.bin ]; then ./amd-compiler amd_lm_long ns ;fi; \
@@ -106,7 +105,6 @@ build:
 	if [ ! -e nvidia_lm_long__sm10.ptx ]; then ./nvidia-compiler nvidia_lm_long ns ;fi; \
 	if [ ! -e nvidia_md5md5__sm10.ptx ]; then ./nvidia-compiler nvidia_md5md5 ns ;fi; \
 	if [ ! -e nvidia_md5md5_long__sm10.ptx ]; then ./nvidia-compiler nvidia_md5md5_long ns ;fi; \
-	if [ ! -e nvidia_sl3__sm10.ptx ]; then ./nvidia-compiler nvidia_sl3 n ;fi; \
 	if [ ! -e nvidia_mysql5__sm10.ptx ]; then ./nvidia-compiler nvidia_mysql5 ns ;fi; \
 	if [ ! -e nvidia_mysql5_long__sm10.ptx ]; then ./nvidia-compiler nvidia_mysql5_long ns ;fi; \
 	if [ ! -e nvidia_sha512__sm10.ptx ]; then ./nvidia-compiler nvidia_sha512 ns ;fi; \
