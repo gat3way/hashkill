@@ -10,6 +10,8 @@ all:
 install:
 	mkdir -p $(IDESTDIR)$(BINDIR)
 	cp -f pcap2hcap $(IDESTDIR)$(BINDIR)
+	cp -f markovgen $(IDESTDIR)$(BINDIR)
+	cp -f lastpass2hashkill $(IDESTDIR)$(BINDIR)
 
 install-strip:
 	strip pcap2hcap
