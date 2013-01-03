@@ -192,6 +192,6 @@ print "\n\n";
 print "Found LastPass installations:\n=============================\n\n";
 foreach my $elem (@gathered_data)
 {
-    print "lastpass:$elem->{username}:$elem->{mode}\$$elem->{iterations}\$$elem->{verifier}\n";
+    print "lastpass:$elem->{username}:$elem->{mode}:$elem->{iterations}|$elem->{verifier}\n";
 }
 print "\n";

@@ -18,7 +18,7 @@ all: plugin_md5 plugin_md5md5 plugin_joomla plugin_sha1 plugin_smf plugin_md4 \
      plugin_nsldap plugin_nsldaps plugin_sapg plugin_mscash plugin_mediawiki plugin_zip plugin_osxlion \
      plugin_mscash2 plugin_wpa plugin_rar plugin_dmg plugin_osx-old plugin_bfunix plugin_drupal7 \
      plugin_django256 plugin_sha256unix plugin_o5logon plugin_mssql2012 plugin_msoffice \
-     plugin_msoffice-old plugin_luks plugin_whirlpool plugin_truecrypt \
+     plugin_msoffice-old plugin_luks plugin_whirlpool plugin_truecrypt plugin_lastpass \
      #plugin_bitcoin  plugin_mysql-old 
 
 
@@ -186,6 +186,9 @@ plugin_whirlpool:
 
 plugin_truecrypt:
 	@if [ ! -e truecrypt.so ]; then  $(CC)  plugin.c truecrypt.c -o truecrypt.so $(CFLAGS) $(LDFLAGS) -Wall -funroll-all-loops -lcrypto;fi
+
+plugin_lastpass:
+	@if [ ! -e lastpass.so ]; then  $(CC)  plugin.c lastpass.c -o lastpass.so $(CFLAGS) $(LDFLAGS) -Wall ;fi
 
 
 install:
