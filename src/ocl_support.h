@@ -265,6 +265,10 @@ hash_stat ocl_bruteforce_truecrypt(void);
 hash_stat ocl_markov_truecrypt(void);
 hash_stat ocl_rule_truecrypt(void);
 
+/* lastpass plugin support */
+hash_stat ocl_bruteforce_lastpass(void);
+hash_stat ocl_markov_lastpass(void);
+hash_stat ocl_rule_lastpass(void);
 
 
 /* supported plugins struct array*/

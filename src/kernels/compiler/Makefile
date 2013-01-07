@@ -90,6 +90,7 @@ build:
 	if [ ! -e amd_whirlpool_long__Juniper.bin ]; then ./amd-compiler amd_whirlpool_long ns ;fi; \
 	if [ ! -e amd_whirlpool__Juniper.bin ]; then ./amd-compiler amd_whirlpool ns ;fi; \
 	if [ ! -e amd_truecrypt__Juniper.bin ]; then ./amd-compiler amd_truecrypt no ;fi; \
+	if [ ! -e amd_lastpass__Juniper.bin ]; then ./amd-compiler amd_lastpass n ;fi; \
 	fi
 	# NVidia
 	@if [ "$(CL_NVFLAGS)" = "yes" ]; then \
