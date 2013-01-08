@@ -170,6 +170,7 @@ build:
 	if [ ! -e nvidia_whirlpool_long__sm10.ptx ]; then ./nvidia-compiler nvidia_whirlpool_long ns ;fi; \
 	if [ ! -e nvidia_whirlpool__sm10.ptx ]; then ./nvidia-compiler nvidia_whirlpool ns ;fi; \
 	if [ ! -e nvidia_truecrypt__sm10.ptx ]; then ./nvidia-compiler nvidia_truecrypt n ;fi; \
+	if [ ! -e nvidia_lastpass__sm10.ptx ]; then ./nvidia-compiler nvidia_lastpass n ;fi; \
 	fi
 
 

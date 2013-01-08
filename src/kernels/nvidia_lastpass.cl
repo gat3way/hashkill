@@ -1,3 +1,5 @@
+#define rotate(a,b) ((a) << (b)) + ((a) >> (32-(b)))
+
 #define GGI (get_global_id(0))
 #define GLI (get_local_id(0))
 
@@ -649,7 +651,7 @@ Endian_Reverse32(s3); \
 
 
 
-#ifndef GCN
+#ifdef SM21
 
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))

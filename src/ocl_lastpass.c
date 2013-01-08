@@ -47,7 +47,7 @@ static int hash_ret_len1=16;
 /* Crack callback */
 static void ocl_lastpass_crack_callback(char *line, int self)
 {
-    int a,b,c,e;
+    int a;
     int *found;
     int err;
     struct  hash_list_s  *mylist, *addlist;
@@ -168,26 +168,29 @@ static void ocl_lastpass_crack_callback(char *line, int self)
 	_clSetKernelArg(rule_kernellast[self], 5, sizeof(cl_uint16), (void*) &singlehash);
 	_clSetKernelArg(rule_kernellast[self], 6, sizeof(cl_uint16), (void*) &salt);
 
-        size_t nws=ocl_rule_workset[self]*wthreads[self].vectorsize;
+        size_t nws = ocl_rule_workset[self]*wthreads[self].vectorsize;
         _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelmod[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
         _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
 
-	for (a=1;a<iterations;a+=10)
+	for (a=1;a<iterations;a+=100)
 	{
 	    salt.sA=a;
-	    salt.sB=a+10;
+	    salt.sB=a+100;
 	    if (salt.sB>iterations) salt.sB=iterations;
 	    _clSetKernelArg(rule_kernelbl1[self], 6, sizeof(cl_uint16), (void*) &salt);
     	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
 	    _clFinish(rule_oclqueue[self]);
-    	    wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/(get_hashes_num()*(iterations/10));
+    	    wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/(get_hashes_num()*(iterations/100));
 	}
-	salt.s0='l'|('a'<<8)|('s'<<16)|('t'<<24);
-	salt.s1='p'|('a'<<8)|('s'<<16)|('s'<<24);
-	salt.s2=' '|('r'<<8)|('o'<<16)|('c'<<24);
-	salt.s3='k'|('s'<<8)|(0x02<<16)|(0x02<<24);
+	
+        bzero(mhash,64);
+        strcpy((char*)mhash,"lastpass rocks\x02\x02");
+        salt.s0=(mhash[0])|(mhash[1]<<8)|(mhash[2]<<16)|(mhash[3]<<24);
+        salt.s1=(mhash[4])|(mhash[5]<<8)|(mhash[6]<<16)|(mhash[7]<<24);
+        salt.s2=(mhash[8])|(mhash[9]<<8)|(mhash[10]<<16)|(mhash[11]<<24);
+        salt.s3=(mhash[12])|(mhash[13]<<8)|(mhash[14]<<16)|(mhash[15]<<24);
 	_clSetKernelArg(rule_kernellast[self], 6, sizeof(cl_uint16), (void*) &salt);
 	_clSetKernelArg(rule_kernellast[self], 6, sizeof(cl_uint16), (void*) &salt);
     	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernellast[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
@@ -196,36 +199,31 @@ static void ocl_lastpass_crack_callback(char *line, int self)
         if (err!=CL_SUCCESS) continue;
         if (*found>0) 
         {
-            _clEnqueueReadBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_TRUE, 0, ocl_rule_workset[self]*sizeof(cl_uint), rule_found_ind[self], 0, NULL, NULL);
-    	    for (a=0;a<ocl_rule_workset[self];a++)
+            _clEnqueueReadBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_TRUE, 0, ocl_rule_workset[self]*sizeof(cl_uint)*wthreads[self].vectorsize, rule_found_ind[self], 0, NULL, NULL);
+    	    for (a=0;a<ocl_rule_workset[self]*wthreads[self].vectorsize;a++)
 	    if (rule_found_ind[self][a]==1)
 	    {
-		b=a*wthreads[self].vectorsize;
-    		_clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, b*hash_ret_len1, hash_ret_len1*wthreads[self].vectorsize, rule_ptr[self]+b*hash_ret_len1, 0, NULL, NULL);
-		for (c=0;c<wthreads[self].vectorsize;c++)
-		{
-	    	    e=(a)*wthreads[self].vectorsize+c;
-    		    if (memcmp("lastpass rocks\x02\x02", (char *)rule_ptr[self]+(e)*hash_ret_len1, hash_ret_len1-1) == 0)
-    		    {
-            		int flag = 0;
-                	strcpy(plain,&rule_images[self][0]+(e*MAX));
-                	strcat(plain,line);
-                	pthread_mutex_lock(&crackedmutex);
-                	addlist = cracked_list;
-                	while (addlist)
-                	{
-                	    if ((strcmp(addlist->username, mylist->username) == 0) && (memcmp(addlist->hash, mylist->hash, hash_ret_len1) == 0))
-                                flag = 1;
-                    	    addlist = addlist->next;
-                	}
-                	pthread_mutex_unlock(&crackedmutex);
-                	if (flag == 0)
-                	{
-                	    add_cracked_list(mylist->username, mylist->hash, mylist->salt, plain);
-                	    mylist->salt2[0]=1;
-                	}
-    		    }
-		}
+    		_clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, a*hash_ret_len1, hash_ret_len1, rule_ptr[self]+a*hash_ret_len1, 0, NULL, NULL);
+    		if (memcmp("lastpass rocks\x02\x02", (char *)rule_ptr[self]+(a)*hash_ret_len1, 16) == 0)
+    		{
+            	    int flag = 0;
+            	    strcpy(plain,&rule_images[self][0]+(a*MAX));
+            	    strcat(plain,line);
+            	    pthread_mutex_lock(&crackedmutex);
+            	    addlist = cracked_list;
+            	    while (addlist)
+            	    {
+            	        if ((strcmp(addlist->username, mylist->username) == 0) && (memcmp(addlist->hash, mylist->hash, hash_ret_len1) == 0))
+                            flag = 1;
+                        addlist = addlist->next;
+            	    }
+            	    pthread_mutex_unlock(&crackedmutex);
+            	    if (flag == 0)
+            	    {
+            	        add_cracked_list(mylist->username, mylist->hash, mylist->salt, plain);
+            	        mylist->salt2[0]=1;
+            	    }
+    		}
 	    }
 	    bzero(rule_found_ind[self],ocl_rule_workset[self]*sizeof(cl_uint));
     	    _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*sizeof(cl_uint), rule_found_ind[self], 0, NULL, NULL);
@@ -274,8 +272,8 @@ void* ocl_rule_lastpass_thread(void *arg)
 
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
-    ocl_rule_workset[self]=64*64;
-    if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=4;
+    ocl_rule_workset[self]=128*128;
+    if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=2;
     if (ocl_gpu_double) ocl_rule_workset[self]*=2;
     if (interactive_mode==1) ocl_rule_workset[self]/=8;
     
@@ -292,9 +290,9 @@ void* ocl_rule_lastpass_thread(void *arg)
     rule_found_buf[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, 4, NULL, &err );
 
 
-    rule_found_ind[self]=malloc(ocl_rule_workset[self]*sizeof(cl_uint));
-    bzero(rule_found_ind[self],sizeof(uint)*ocl_rule_workset[self]);
-    rule_found_ind_buf[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*sizeof(cl_uint), NULL, &err );
+    rule_found_ind[self]=malloc(ocl_rule_workset[self]*sizeof(cl_uint)*wthreads[self].vectorsize);
+    bzero(rule_found_ind[self],sizeof(uint)*ocl_rule_workset[self]*wthreads[self].vectorsize);
+    rule_found_ind_buf[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*sizeof(cl_uint)*wthreads[self].vectorsize, NULL, &err );
     _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE, 0, 4, &found, 0, NULL, NULL);
     rule_images_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
     rule_images2_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
