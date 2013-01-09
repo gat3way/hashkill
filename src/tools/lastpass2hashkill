@@ -18,7 +18,8 @@ use DBI;
 
 my @mozilla_linux_dirs;
 my @mozilla_linux_dirs_lp;
-my @chrome_linux_dbs;
+my @chrome_dbs;
+my @opera_dbs;
 my @gathered_data;
 
 
@@ -50,10 +51,10 @@ sub scan_mozilla_linux($)
 }
 
 
-sub scan_chrome_linux($)
+sub scan_chrome($)
 {
     my $dir = shift;
-    open(PS,"find $dir -type f |grep /.config/google-chrome/Default/databases/chrome-extension_hdokiejnpimakedhajhdlcegeplioahd_0 |") || die "Failed to exec: $!\n";
+    open(PS,"find $dir -type f |grep /Default/databases/chrome-extension_hdokiejnpimakedhajhdlcegeplioahd_0 |") || die "Failed to exec: $!\n";
     while ( <PS> )
     {
 	my $entry = $_;
@@ -62,10 +63,29 @@ sub scan_chrome_linux($)
 	local $SIG{'__WARN__'} = sub { my $err = "eat the error $_[0]"; };
 	next unless $dbh->prepare("SELECT 1 FROM LastPassData");
 	my $h_entry = { chrome_db => $entry };
-	push(@chrome_linux_dbs, $h_entry);
+	push(@chrome_dbs, $h_entry);
     }
     close(PS);
 }
+
+
+sub scan_opera($)
+{
+    my $dir = shift;
+    open(PS,"find $dir -type f |grep widgets/wuid- |grep pstorage/ |") || die "Failed to exec: $!\n";
+    while ( <PS> )
+    {
+	my $entry = $_;
+	chomp($entry);
+	my $dbh = DBI->connect( "dbi:SQLite:$entry" ) || die ("DBI problem!\n");
+	local $SIG{'__WARN__'} = sub { my $err = "eat the error $_[0]"; };
+	next unless $dbh->prepare("SELECT 1 FROM LastPassData");
+	my $h_entry = { chrome_db => $entry };
+	push(@chrome_dbs, $h_entry);
+    }
+    close(PS);
+}
+
 
 
 
@@ -87,7 +107,7 @@ sub process_mozilla_linux($)
 	if (index($line,"extensions.lastpass.loginusers")>0)
 	{
 	    my @splitted = split("\"",$line);
-	    $splitted[3] =~ s/%40/@/d;
+	    $splitted[3] =~ s/\%40/\@/g;
 	    # hash it!
 	    my $sha256 = new Digest::SHA 256;
 	    $sha256->add($splitted[3]);
@@ -112,8 +132,9 @@ sub process_mozilla_linux($)
 }
 
 
-# Process mozilla (linux) entry
-sub process_chrome_linux($)
+
+# Process chrome entry
+sub process_chrome($)
 {
     my $entry = shift;
     my $chrome_db = $entry->{chrome_db};
@@ -158,6 +179,7 @@ sub process_chrome_linux($)
 
 
 
+
 # We have the correct syntax?
 my $argc = @ARGV;
 if ($argc != 1)
@@ -170,8 +192,12 @@ my $dir = $ARGV[0];
 print "Scanning for Firefox (Linux) LastPass databases...\n";
 scan_mozilla_linux($dir);
 
-print "Scanning for Chrome (Linux) LastPass databases...\n";
-scan_chrome_linux($dir);
+print "Scanning for Chrome (Linux/Windows/OSX) LastPass databases...\n";
+scan_chrome($dir);
+
+# This one will reuse chrome's sqlite mechanism so no separate analyze function required
+print "Scanning for Opera (Linux/Windows/OSX) LastPass databases...\n";
+scan_opera($dir);
 
 
 
@@ -181,10 +207,12 @@ foreach my $elem (@mozilla_linux_dirs)
 {
     process_mozilla_linux($elem);
 }
-foreach my $elem (@chrome_linux_dbs)
+foreach my $elem (@chrome_dbs)
 {
-    process_chrome_linux($elem);
+    process_chrome($elem);
 }
+
+
 
 print "\n\n";
 
