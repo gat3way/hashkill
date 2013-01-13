@@ -113,7 +113,7 @@ static int bytes=0;
 
 char * hash_plugin_summary(void)
 {
-    return("truecrypt \t\ttruecrypt encrypted block device plugin");
+    return("truecrypt \ttruecrypt encrypted block device plugin");
 }
 
 
