@@ -376,12 +376,12 @@ static void ocl_keepass_crack_callback(char *line, int self)
     {
         salt = keepass_getsalt();
         salt.sA=a;
-        salt.sB=a+100;
+        salt.sB=a+200;
         if (salt.sB>rounds) salt.sB=rounds;
         _clSetKernelArg(rule_kernelbl1[self], 6, sizeof(cl_uint16), (void*) &salt);
         _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
         _clFinish(rule_oclqueue[self]);
-        wthreads[self].tries+=(ocl_rule_workset[self]/(rounds/100));
+        wthreads[self].tries+=(ocl_rule_workset[self]/(rounds/200));
     }
     addline = keepass_getstr();
     salt = keepass_getsalt2();
