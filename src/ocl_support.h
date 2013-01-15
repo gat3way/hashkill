@@ -270,6 +270,11 @@ hash_stat ocl_bruteforce_lastpass(void);
 hash_stat ocl_markov_lastpass(void);
 hash_stat ocl_rule_lastpass(void);
 
+/* keepass plugin support */
+hash_stat ocl_bruteforce_keepass(void);
+hash_stat ocl_markov_keepass(void);
+hash_stat ocl_rule_keepass(void);
+
 
 /* supported plugins struct array*/
 struct ocl_supported_plugins_s

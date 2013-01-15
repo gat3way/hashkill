@@ -95,6 +95,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"whirlpool",&ocl_bruteforce_whirlpool, &ocl_markov_whirlpool, &ocl_rule_whirlpool},
                             {1,"truecrypt",&ocl_bruteforce_truecrypt, &ocl_markov_truecrypt, &ocl_rule_truecrypt},
                             {1,"lastpass",&ocl_bruteforce_lastpass, &ocl_markov_lastpass, &ocl_rule_lastpass},
+                            {1,"keepass",&ocl_bruteforce_keepass, &ocl_markov_keepass, &ocl_rule_keepass},
                             {0, "", NULL, NULL, NULL}
                         };
 
@@ -342,6 +343,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"md5md5")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"o5logon")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"keepass")==0)) ocl_vector=1;
 
 		/* GCN/VLIW-specific */
 		if ((strcmp(get_current_plugin(),"phpbb3")==0)&&(ocl_have_gcn)) ocl_vector=1;
@@ -376,6 +378,7 @@ hash_stat ocl_get_device()
 	    {
 		if ((strcmp(get_current_plugin(),"oracle-old")==0)) {loops=1;ocl_vector=1;}
 		if ((strcmp(get_current_plugin(),"rar")==0)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"keepass")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) {ocl_vector=1;loops=1;}
 		if ((strcmp(get_current_plugin(),"mscash")==0)) {loops=2;ocl_vector=1;}
 		if ((strcmp(get_current_plugin(),"oracle11g")==0)) {ocl_vector=1;loops=2;}
@@ -401,6 +404,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"smf")==0)) {ocl_vector=4;loops=1;}
 		if ((strcmp(get_current_plugin(),"django256")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"lastpass")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"rar")==0)) ocl_vector=2;
 	    }
 	    else if (ocl_dev_nvidia==1)
 	    {
