@@ -7,7 +7,7 @@ CFLAGS += -Wall -I../ -shared -g -O3 -fpic  -fomit-frame-pointer -funroll-loops 
 #CFLAGS = -Wall -I../ -shared  -O2 -fpic  -fomit-frame-pointer -minline-all-stringops  -Wall -funroll-loops -m32
 
 
-CC = gcc 
+CC = gcc
 
 
 all: plugin_md5 plugin_md5md5 plugin_joomla plugin_sha1 plugin_smf plugin_md4 \
@@ -19,8 +19,8 @@ all: plugin_md5 plugin_md5md5 plugin_joomla plugin_sha1 plugin_smf plugin_md4 \
      plugin_mscash2 plugin_wpa plugin_rar plugin_dmg plugin_osx-old plugin_bfunix plugin_drupal7 \
      plugin_django256 plugin_sha256unix plugin_o5logon plugin_mssql2012 plugin_msoffice \
      plugin_msoffice-old plugin_luks plugin_whirlpool plugin_truecrypt plugin_lastpass \
-     plugin_keepass
-     #plugin_bitcoin  plugin_mysql-old 
+     plugin_keepass plugin_pdf
+     #plugin_bitcoin  plugin_mysql-old
 
 
 plugin_md5:
@@ -194,18 +194,20 @@ plugin_lastpass:
 plugin_keepass:
 	@if [ ! -e keepass.so ]; then  $(CC)  plugin.c keepass.c -o keepass.so $(CFLAGS) $(LDFLAGS) -Wall ;fi
 
+plugin_pdf:
+	@if [ ! -e pdf.so ]; then  $(CC)  plugin.c pdf.c -o pdf.so $(CFLAGS) $(LDFLAGS) -Wall ;fi
 
 install:
 	@echo Copying plugins...
 	@mkdir -p $(IDESTDIR)$(IDATADIR)/hashkill/plugins
-	@cp -vf *.so $(IDESTDIR)$(IDATADIR)/hashkill/plugins 
+	@cp -vf *.so $(IDESTDIR)$(IDATADIR)/hashkill/plugins
 	@echo Done
 
 install-strip:
 	@echo Copying plugins...
 	-strip *.so
 	@mkdir -p $(IDESTDIR)$(IDATADIR)/hashkill/plugins
-	@cp -vf *.so $(IDESTDIR)$(IDATADIR)/hashkill/plugins 
+	@cp -vf *.so $(IDESTDIR)$(IDATADIR)/hashkill/plugins
 	@echo Done
 
 
