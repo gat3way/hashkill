@@ -3,6 +3,8 @@
  * Add support for cracking PDF files
  * Copyright (C) 2013 Dhiru Kholia <dhiru at openwall.com>
  *
+ * pdf.c uses code from Sumatra PDF and MuPDF which are under GPL
+ *
  * hashkill - a hash cracking tool
  * Copyright (C) 2010 Milen Rangelov <gat3way@gat3way.eu>
  *
