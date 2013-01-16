@@ -32,7 +32,7 @@
 #define HASHKILL_VERSION PACKAGE_VERSION		// hashkill version
 #define HASHKILL_MAXTHREADS (unsigned int)128		// maximum threads
 #define HASHKILL_MAXQUEUESIZE 128 			// maximum queue size
-#define HASHFILE_MAX_LINE_LENGTH 4096			// maximum line length
+#define HASHFILE_MAX_LINE_LENGTH 256			// maximum line length
 #define HASHFILE_MAX_PLAIN_LENGTH 128
 #define VECTORSIZE 128
 #define THREAD_LENPROVIDED 1000
