@@ -133,7 +133,7 @@ static void header2_byteorder_fix(cencrypted_v2_pwheader *pwhdr)
 }
 
 
-unsigned char* _memmem(unsigned char* haystack, int hlen, char* needle, int nlen) 
+static unsigned char* _memmem(unsigned char* haystack, int hlen, char* needle, int nlen) 
 {
     if (nlen > hlen) return 0;
     int i,j=0;
