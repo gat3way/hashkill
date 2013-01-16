@@ -29,9 +29,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <arpa/inet.h>
-#include <openssl/evp.h>
-#include <openssl/hmac.h>
+#include <openssl/sha.h>
 #include "err.h"
 #include "ocl-base.h"
 #include "ocl-threads.h"
@@ -54,7 +52,7 @@ static unsigned char iv[16];
 static unsigned char v1hash[32];
 static unsigned char transseed[32];
 static unsigned char *v1data = NULL;
-static unsigned char *v1dec[VECTORSIZE];
+static unsigned char *v1dec;
 static unsigned int v1datasize;
 
 /* v2 data */
@@ -70,15 +68,11 @@ static unsigned char v2enc[32];
 
 
 
-
-
 static hash_stat load_keepass(char *filename)
 {
     int fd;
     off_t size;
     unsigned int u32,u321;
-    int a;
-
 
     fd = open(filename, O_RDONLY);
     if (fd < 1) return hash_err;
@@ -115,7 +109,7 @@ static hash_stat load_keepass(char *filename)
         }
         datasize = size-124;
         v1data = malloc(datasize);
-        for (a=0;a<vectorsize;a++) v1dec[a] = malloc(datasize);
+        v1dec = malloc(datasize);
         lseek(fd,124,SEEK_SET);
         read(fd,v1data,datasize);
         v1datasize = datasize;
@@ -216,28 +210,58 @@ static hash_stat load_keepass(char *filename)
 }
 
 
-
-
-
-static hash_stat check_keepass(unsigned char *derived_key, char *pwd)
+static hash_stat check_keepass(unsigned char *derived_key)
 {
+    unsigned char myiv[16];
+    AES_KEY akey;
+    unsigned int pad;
+    int v1size;
+    unsigned char dec[32];
+    SHA256_CTX ctx;
+
+    OAES_SET_DECRYPT_KEY((const unsigned char *)derived_key, 256, &akey);
+    memcpy(myiv,iv,16);
+    OAES_CBC_ENCRYPT((unsigned char*)v1data,(unsigned char*)v1dec,v1datasize,&akey,myiv,AES_DECRYPT);
+    pad = v1dec[v1datasize-1];
+    v1size = v1datasize - pad;
+
+    SHA256_Init(&ctx);
+    SHA256_Update(&ctx, v1dec, v1size);
+    SHA256_Final(dec, &ctx);
+    if (memcmp(dec,v1hash,32)==0)
+    {
+	return hash_ok;
+    }
     return hash_err;
 }
-
 
 
 static cl_uint16 keepass_getsalt()
 {
     cl_uint16 t;
 
-    t.s0=(v2transseed[0]&255)|((v2transseed[1]&255)<<8)|((v2transseed[2]&255)<<16)|((v2transseed[3]&255)<<24);
-    t.s1=(v2transseed[4]&255)|((v2transseed[5]&255)<<8)|((v2transseed[6]&255)<<16)|((v2transseed[7]&255)<<24);
-    t.s2=(v2transseed[8]&255)|((v2transseed[9]&255)<<8)|((v2transseed[10]&255)<<16)|((v2transseed[11]&255)<<24);
-    t.s3=(v2transseed[12]&255)|((v2transseed[13]&255)<<8)|((v2transseed[14]&255)<<16)|((v2transseed[15]&255)<<24);
-    t.s4=(v2transseed[16]&255)|((v2transseed[17]&255)<<8)|((v2transseed[18]&255)<<16)|((v2transseed[19]&255)<<24);
-    t.s5=(v2transseed[20]&255)|((v2transseed[21]&255)<<8)|((v2transseed[22]&255)<<16)|((v2transseed[23]&255)<<24);
-    t.s6=(v2transseed[24]&255)|((v2transseed[25]&255)<<8)|((v2transseed[26]&255)<<16)|((v2transseed[27]&255)<<24);
-    t.s7=(v2transseed[28]&255)|((v2transseed[29]&255)<<8)|((v2transseed[30]&255)<<16)|((v2transseed[31]&255)<<24);
+    if (version==1)
+    {
+	t.s0=(transseed[0]&255)|((transseed[1]&255)<<8)|((transseed[2]&255)<<16)|((transseed[3]&255)<<24);
+	t.s1=(transseed[4]&255)|((transseed[5]&255)<<8)|((transseed[6]&255)<<16)|((transseed[7]&255)<<24);
+	t.s2=(transseed[8]&255)|((transseed[9]&255)<<8)|((transseed[10]&255)<<16)|((transseed[11]&255)<<24);
+	t.s3=(transseed[12]&255)|((transseed[13]&255)<<8)|((transseed[14]&255)<<16)|((transseed[15]&255)<<24);
+	t.s4=(transseed[16]&255)|((transseed[17]&255)<<8)|((transseed[18]&255)<<16)|((transseed[19]&255)<<24);
+	t.s5=(transseed[20]&255)|((transseed[21]&255)<<8)|((transseed[22]&255)<<16)|((transseed[23]&255)<<24);
+	t.s6=(transseed[24]&255)|((transseed[25]&255)<<8)|((transseed[26]&255)<<16)|((transseed[27]&255)<<24);
+	t.s7=(transseed[28]&255)|((transseed[29]&255)<<8)|((transseed[30]&255)<<16)|((transseed[31]&255)<<24);
+    }
+    else
+    {
+	t.s0=(v2transseed[0]&255)|((v2transseed[1]&255)<<8)|((v2transseed[2]&255)<<16)|((v2transseed[3]&255)<<24);
+	t.s1=(v2transseed[4]&255)|((v2transseed[5]&255)<<8)|((v2transseed[6]&255)<<16)|((v2transseed[7]&255)<<24);
+	t.s2=(v2transseed[8]&255)|((v2transseed[9]&255)<<8)|((v2transseed[10]&255)<<16)|((v2transseed[11]&255)<<24);
+	t.s3=(v2transseed[12]&255)|((v2transseed[13]&255)<<8)|((v2transseed[14]&255)<<16)|((v2transseed[15]&255)<<24);
+	t.s4=(v2transseed[16]&255)|((v2transseed[17]&255)<<8)|((v2transseed[18]&255)<<16)|((v2transseed[19]&255)<<24);
+	t.s5=(v2transseed[20]&255)|((v2transseed[21]&255)<<8)|((v2transseed[22]&255)<<16)|((v2transseed[23]&255)<<24);
+	t.s6=(v2transseed[24]&255)|((v2transseed[25]&255)<<8)|((v2transseed[26]&255)<<16)|((v2transseed[27]&255)<<24);
+	t.s7=(v2transseed[28]&255)|((v2transseed[29]&255)<<8)|((v2transseed[30]&255)<<16)|((v2transseed[31]&255)<<24);
+    }
     return t;
 }
 
@@ -246,19 +270,32 @@ static cl_uint16 keepass_getstr()
 {
     cl_uint16 t;
 
-    t.s0=(v2masterseed[0]&255)|((v2masterseed[1]&255)<<8)|((v2masterseed[2]&255)<<16)|((v2masterseed[3]&255)<<24);
-    t.s1=(v2masterseed[4]&255)|((v2masterseed[5]&255)<<8)|((v2masterseed[6]&255)<<16)|((v2masterseed[7]&255)<<24);
-    t.s2=(v2masterseed[8]&255)|((v2masterseed[9]&255)<<8)|((v2masterseed[10]&255)<<16)|((v2masterseed[11]&255)<<24);
-    t.s3=(v2masterseed[12]&255)|((v2masterseed[13]&255)<<8)|((v2masterseed[14]&255)<<16)|((v2masterseed[15]&255)<<24);
-    t.s4=(v2masterseed[16]&255)|((v2masterseed[17]&255)<<8)|((v2masterseed[18]&255)<<16)|((v2masterseed[19]&255)<<24);
-    t.s5=(v2masterseed[20]&255)|((v2masterseed[21]&255)<<8)|((v2masterseed[22]&255)<<16)|((v2masterseed[23]&255)<<24);
-    t.s6=(v2masterseed[24]&255)|((v2masterseed[25]&255)<<8)|((v2masterseed[26]&255)<<16)|((v2masterseed[27]&255)<<24);
-    t.s7=(v2masterseed[28]&255)|((v2masterseed[29]&255)<<8)|((v2masterseed[30]&255)<<16)|((v2masterseed[31]&255)<<24);
-
-    t.s8=(v2iv[0]&255)|((v2iv[1]&255)<<8)|((v2iv[2]&255)<<16)|((v2iv[3]&255)<<24);
-    t.s9=(v2iv[4]&255)|((v2iv[5]&255)<<8)|((v2iv[6]&255)<<16)|((v2iv[7]&255)<<24);
-    t.sA=(v2iv[8]&255)|((v2iv[9]&255)<<8)|((v2iv[10]&255)<<16)|((v2iv[11]&255)<<24);
-    t.sB=(v2iv[12]&255)|((v2iv[13]&255)<<8)|((v2iv[14]&255)<<16)|((v2iv[15]&255)<<24);
+    if (version==1)
+    {
+	t.s0=(finalseed[0]&255)|((finalseed[1]&255)<<8)|((finalseed[2]&255)<<16)|((finalseed[3]&255)<<24);
+	t.s1=(finalseed[4]&255)|((finalseed[5]&255)<<8)|((finalseed[6]&255)<<16)|((finalseed[7]&255)<<24);
+	t.s2=(finalseed[8]&255)|((finalseed[9]&255)<<8)|((finalseed[10]&255)<<16)|((finalseed[11]&255)<<24);
+	t.s3=(finalseed[12]&255)|((finalseed[13]&255)<<8)|((finalseed[14]&255)<<16)|((finalseed[15]&255)<<24);
+	t.s8=(v2iv[0]&255)|((v2iv[1]&255)<<8)|((v2iv[2]&255)<<16)|((v2iv[3]&255)<<24);
+	t.s9=(v2iv[4]&255)|((v2iv[5]&255)<<8)|((v2iv[6]&255)<<16)|((v2iv[7]&255)<<24);
+	t.sA=(v2iv[8]&255)|((v2iv[9]&255)<<8)|((v2iv[10]&255)<<16)|((v2iv[11]&255)<<24);
+	t.sB=(v2iv[12]&255)|((v2iv[13]&255)<<8)|((v2iv[14]&255)<<16)|((v2iv[15]&255)<<24);
+    }
+    else
+    {
+	t.s0=(v2masterseed[0]&255)|((v2masterseed[1]&255)<<8)|((v2masterseed[2]&255)<<16)|((v2masterseed[3]&255)<<24);
+	t.s1=(v2masterseed[4]&255)|((v2masterseed[5]&255)<<8)|((v2masterseed[6]&255)<<16)|((v2masterseed[7]&255)<<24);
+	t.s2=(v2masterseed[8]&255)|((v2masterseed[9]&255)<<8)|((v2masterseed[10]&255)<<16)|((v2masterseed[11]&255)<<24);
+	t.s3=(v2masterseed[12]&255)|((v2masterseed[13]&255)<<8)|((v2masterseed[14]&255)<<16)|((v2masterseed[15]&255)<<24);
+	t.s4=(v2masterseed[16]&255)|((v2masterseed[17]&255)<<8)|((v2masterseed[18]&255)<<16)|((v2masterseed[19]&255)<<24);
+	t.s5=(v2masterseed[20]&255)|((v2masterseed[21]&255)<<8)|((v2masterseed[22]&255)<<16)|((v2masterseed[23]&255)<<24);
+	t.s6=(v2masterseed[24]&255)|((v2masterseed[25]&255)<<8)|((v2masterseed[26]&255)<<16)|((v2masterseed[27]&255)<<24);
+	t.s7=(v2masterseed[28]&255)|((v2masterseed[29]&255)<<8)|((v2masterseed[30]&255)<<16)|((v2masterseed[31]&255)<<24);
+	t.s8=(v2iv[0]&255)|((v2iv[1]&255)<<8)|((v2iv[2]&255)<<16)|((v2iv[3]&255)<<24);
+	t.s9=(v2iv[4]&255)|((v2iv[5]&255)<<8)|((v2iv[6]&255)<<16)|((v2iv[7]&255)<<24);
+	t.sA=(v2iv[8]&255)|((v2iv[9]&255)<<8)|((v2iv[10]&255)<<16)|((v2iv[11]&255)<<24);
+	t.sB=(v2iv[12]&255)|((v2iv[13]&255)<<8)|((v2iv[14]&255)<<16)|((v2iv[15]&255)<<24);
+    }
 
     return t;
 }
@@ -293,6 +330,7 @@ static cl_uint16 keepass_getsinglehash()
     t.s5=(v2streambytes[20]&255)|((v2streambytes[21]&255)<<8)|((v2streambytes[22]&255)<<16)|((v2streambytes[23]&255)<<24);
     t.s6=(v2streambytes[24]&255)|((v2streambytes[25]&255)<<8)|((v2streambytes[26]&255)<<16)|((v2streambytes[27]&255)<<24);
     t.s7=(v2streambytes[28]&255)|((v2streambytes[29]&255)<<8)|((v2streambytes[30]&255)<<16)|((v2streambytes[31]&255)<<24);
+
     return t;
 }
 
@@ -372,8 +410,10 @@ static void ocl_keepass_crack_callback(char *line, int self)
     _clSetKernelArg(rule_kernelpre1[self], 6, sizeof(cl_uint16), (void*) &salt);
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
     _clFinish(rule_oclqueue[self]);
+
     for (a=0;a<rounds;a+=200)
     {
+	if (attack_over!=0) return;
         salt = keepass_getsalt();
         salt.sA=a;
         salt.sB=a+200;
@@ -388,41 +428,49 @@ static void ocl_keepass_crack_callback(char *line, int self)
     _clSetKernelArg(rule_kernellast[self], 6, sizeof(cl_uint16), (void*) &salt);
     _clSetKernelArg(rule_kernellast[self], 7, sizeof(cl_uint16), (void*) &addline);
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernellast[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
-/*
-if ((strlen(rule_images[self])>1))
-{
-int i;
-printf("%s - ",rule_images[self]);
-_clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, 32, rule_ptr[self], 0, NULL, NULL);
-for (i=0;i<32;i++) printf("%02x",rule_ptr[self][i]&255);
-printf("\n");
-printf("v2streambytes=");
-for (i=0;i<32;i++) printf("%02x",v2streambytes[i]&255);
-printf("\n");
-}
-*/
-    found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
-    if (*found>0) 
+
+    if (version==1)
     {
-        _clEnqueueReadBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_TRUE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint), rule_found_ind[self], 0, NULL, NULL);
-        for (a=0;a<ocl_rule_workset[self]*wthreads[self].vectorsize;a++)
-        if (rule_found_ind[self][a]==1)
-        {
-            _clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, a*hash_ret_len1, hash_ret_len1, rule_ptr[self]+a*hash_ret_len1, 0, NULL, NULL);
-            e=a;
-            if (memcmp(v2streambytes, (char *)rule_ptr[self]+(e)*hash_ret_len1, hash_ret_len1) == 0)
-            {
+    	_clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, hash_ret_len1*gws1, rule_ptr[self], 0, NULL, NULL);
+    	for (a=0;a<gws1;a++)
+    	{
+    	    if (attack_over!=0) return;
+    	    e=a;
+    	    if (check_keepass((unsigned char *)rule_ptr[self]+(e)*hash_ret_len1) == hash_ok)
+    	    {
                 strcpy(plain,&rule_images[self][0]+(e*MAX));
                 strcat(plain,line);
                 if (!cracked_list) add_cracked_list(hash_list->username, hash_list->hash, hash_list->salt, plain);
-            }
-        }
-        bzero(rule_found_ind[self],ocl_rule_workset[self]*sizeof(cl_uint));
-        _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*sizeof(cl_uint), rule_found_ind[self], 0, NULL, NULL);
-        *found = 0;
-        _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_buf[self], CL_FALSE, 0, 4, found, 0, NULL, NULL);
+                return;
+    	    }
+    	}
     }
-    _clEnqueueUnmapMemObject(rule_oclqueue[self],rule_found_buf[self],(void *)found,0,NULL,NULL);
+    else
+    {
+	found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
+	if (*found>0) 
+        {
+    	    _clEnqueueReadBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_TRUE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint), rule_found_ind[self], 0, NULL, NULL);
+    	    for (a=0;a<ocl_rule_workset[self]*wthreads[self].vectorsize;a++)
+    	    if (rule_found_ind[self][a]==1)
+    	    {
+        	_clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, a*hash_ret_len1, hash_ret_len1, rule_ptr[self]+a*hash_ret_len1, 0, NULL, NULL);
+        	e=a;
+        	if (memcmp(v2streambytes, (char *)rule_ptr[self]+(e)*hash_ret_len1, hash_ret_len1) == 0)
+        	{
+            	    strcpy(plain,&rule_images[self][0]+(e*MAX));
+            	    strcat(plain,line);
+            	    if (!cracked_list) add_cracked_list(hash_list->username, hash_list->hash, hash_list->salt, plain);
+            	    return;
+        	}
+    	    }
+    	    bzero(rule_found_ind[self],ocl_rule_workset[self]*sizeof(cl_uint));
+    	    _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*sizeof(cl_uint), rule_found_ind[self], 0, NULL, NULL);
+    	    *found = 0;
+    	    _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_buf[self], CL_FALSE, 0, 4, found, 0, NULL, NULL);
+	}
+	_clEnqueueUnmapMemObject(rule_oclqueue[self],rule_found_buf[self],(void *)found,0,NULL,NULL);
+    }
 }
 
 
@@ -506,7 +554,6 @@ void* ocl_rule_keepass_thread(void *arg)
 
 
 
-
 hash_stat ocl_bruteforce_keepass(void)
 {
     suggest_rule_attack();
@@ -520,8 +567,6 @@ hash_stat ocl_markov_keepass(void)
     suggest_rule_attack();
     return hash_ok;
 }
-
-
 
 
 
@@ -555,7 +600,8 @@ hash_stat ocl_rule_keepass(void)
             bzero(pbuf,100);
             char kernelfile[255];
             _clGetDeviceInfo(device[wthreads[i].deviceid], CL_DEVICE_NAME, sizeof(pbuf),pbuf, NULL );
-    	    sprintf(kernelfile,"%s/hashkill/kernels/amd_keepass__%s.bin",DATADIR,pbuf);
+    	    if (version==1) sprintf(kernelfile,"%s/hashkill/kernels/amd_keepass__%s.bin",DATADIR,pbuf);
+	    else sprintf(kernelfile,"%s/hashkill/kernels/amd_keepass2__%s.bin",DATADIR,pbuf);
 
     	    char *ofname = kernel_decompress(kernelfile);
             if (!ofname) return hash_err;
@@ -600,7 +646,8 @@ hash_stat ocl_rule_keepass(void)
             if ((compute_capability_major==2)&&(compute_capability_minor==0)) sprintf(pbuf,"sm20");
             if ((compute_capability_major==2)&&(compute_capability_minor==1)) sprintf(pbuf,"sm21");
 	    if ((compute_capability_major==3)&&(compute_capability_minor==0)) sprintf(pbuf,"sm30");
-    	    sprintf(kernelfile,"%s/hashkill/kernels/nvidia_keepass__%s.ptx",DATADIR,pbuf);
+    	    if (version==1) sprintf(kernelfile,"%s/hashkill/kernels/nvidia_keepass__%s.ptx",DATADIR,pbuf);
+    	    else sprintf(kernelfile,"%s/hashkill/kernels/nvidia_keepass2__%s.ptx",DATADIR,pbuf);
 
     	    char *ofname = kernel_decompress(kernelfile);
             if (!ofname) return hash_err;

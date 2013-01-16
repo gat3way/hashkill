@@ -971,6 +971,104 @@ G=G+(uint)H6;
 H=H+(uint)H7;
 
 
+
+w0=A;
+w1=B;
+w2=C;
+w3=D;
+w4=E;
+w5=F;
+w6=G;
+w7=H;
+w8=0x80000000;
+w9=w10=w11=w12=w13=w14=(uint)0;
+SIZE=(uint)32<<3;
+
+
+A=(uint)H0;
+B=(uint)H1;
+C=(uint)H2;
+D=(uint)H3;
+E=(uint)H4;
+F=(uint)H5;
+G=(uint)H6;
+H=(uint)H7;
+P(A, B, C, D, E, F, G, H, w0, 0x428A2F98);
+P(H, A, B, C, D, E, F, G, w1, 0x71374491);
+P(G, H, A, B, C, D, E, F, w2, 0xB5C0FBCF);
+P(F, G, H, A, B, C, D, E, w3, 0xE9B5DBA5);
+P(E, F, G, H, A, B, C, D, w4, 0x3956C25B);
+P(D, E, F, G, H, A, B, C, w5, 0x59F111F1);
+P(C, D, E, F, G, H, A, B, w6, 0x923F82A4);
+P(B, C, D, E, F, G, H, A, w7, 0xAB1C5ED5);
+P(A, B, C, D, E, F, G, H, w8, 0xD807AA98);
+P(H, A, B, C, D, E, F, G, w9, 0x12835B01);
+P(G, H, A, B, C, D, E, F, w10, 0x243185BE);
+P(F, G, H, A, B, C, D, E, w11, 0x550C7DC3);
+P(E, F, G, H, A, B, C, D, w12, 0x72BE5D74);
+P(D, E, F, G, H, A, B, C, w13, 0x80DEB1FE);
+P(C, D, E, F, G, H, A, B, w14, 0x9BDC06A7);
+P(B, C, D, E, F, G, H, A, SIZE, 0xC19BF174);
+w16=S1(w14)+w9+S0(w1)+w0; P(A, B, C, D, E, F, G, H, w16, 0xE49B69C1);
+w0=S1(SIZE)+w10+S0(w2)+w1; P(H, A, B, C, D, E, F, G, w0,  0xEFBE4786);
+w1=S1(w16)+w11+S0(w3)+w2;  P(G, H, A, B, C, D, E, F, w1, 0x0FC19DC6);
+w2=S1(w0)+w12+S0(w4)+w3; P(F, G, H, A, B, C, D, E, w2, 0x240CA1CC);
+w3=S1(w1)+w13+S0(w5)+w4; P(E, F, G, H, A, B, C, D, w3, 0x2DE92C6F);
+w4=S1(w2)+w14+S0(w6)+w5; P(D, E, F, G, H, A, B, C, w4, 0x4A7484AA);
+w5=S1(w3)+SIZE+S0(w7)+w6; P(C, D, E, F, G, H, A, B, w5, 0x5CB0A9DC);
+w6=S1(w4)+w16+S0(w8)+w7; P(B, C, D, E, F, G, H, A, w6, 0x76F988DA);
+w7=S1(w5)+w0+S0(w9)+w8; P(A, B, C, D, E, F, G, H, w7, 0x983E5152);
+w8=S1(w6)+w1+S0(w10)+w9; P(H, A, B, C, D, E, F, G, w8, 0xA831C66D);
+w9=S1(w7)+w2+S0(w11)+w10; P(G, H, A, B, C, D, E, F, w9, 0xB00327C8);
+w10=S1(w8)+w3+S0(w12)+w11; P(F, G, H, A, B, C, D, E, w10, 0xBF597FC7);
+w11=S1(w9)+w4+S0(w13)+w12; P(E, F, G, H, A, B, C, D, w11, 0xC6E00BF3);
+w12=S1(w10)+w5+S0(w14)+w13; P(D, E, F, G, H, A, B, C, w12, 0xD5A79147);
+w13=S1(w11)+w6+S0(SIZE)+w14; P(C, D, E, F, G, H, A, B, w13, 0x06CA6351);
+w14=S1(w12)+w7+S0(w16)+SIZE; P(B, C, D, E, F, G, H, A, w14, 0x14292967);
+SIZE=S1(w13)+w8+S0(w0)+w16; P(A, B, C, D, E, F, G, H, SIZE, 0x27B70A85);
+w16=S1(w14)+w9+S0(w1)+w0; P(H, A, B, C, D, E, F, G, w16, 0x2E1B2138);
+w0=S1(SIZE)+w10+S0(w2)+w1; P(G, H, A, B, C, D, E, F, w0, 0x4D2C6DFC);
+w1=S1(w16)+w11+S0(w3)+w2; P(F, G, H, A, B, C, D, E, w1, 0x53380D13);
+w2=S1(w0)+w12+S0(w4)+w3; P(E, F, G, H, A, B, C, D, w2, 0x650A7354);
+w3=S1(w1)+w13+S0(w5)+w4; P(D, E, F, G, H, A, B, C, w3, 0x766A0ABB);
+w4=S1(w2)+w14+S0(w6)+w5; P(C, D, E, F, G, H, A, B, w4, 0x81C2C92E);
+w5=S1(w3)+SIZE+S0(w7)+w6; P(B, C, D, E, F, G, H, A, w5, 0x92722C85);
+w6=S1(w4)+w16+S0(w8)+w7; P(A, B, C, D, E, F, G, H, w6, 0xA2BFE8A1);
+w7=S1(w5)+w0+S0(w9)+w8; P(H, A, B, C, D, E, F, G, w7, 0xA81A664B);
+w8=S1(w6)+w1+S0(w10)+w9; P(G, H, A, B, C, D, E, F, w8, 0xC24B8B70);
+w9=S1(w7)+w2+S0(w11)+w10; P(F, G, H, A, B, C, D, E, w9, 0xC76C51A3);
+w10=S1(w8)+w3+S0(w12)+w11; P(E, F, G, H, A, B, C, D, w10, 0xD192E819);
+w11=S1(w9)+w4+S0(w13)+w12; P(D, E, F, G, H, A, B, C, w11, 0xD6990624);
+w12=S1(w10)+w5+S0(w14)+w13; P(C, D, E, F, G, H, A, B, w12, 0xF40E3585);
+w13=S1(w11)+w6+S0(SIZE)+w14; P(B, C, D, E, F, G, H, A, w13, 0x106AA070);
+w14=S1(w12)+w7+S0(w16)+SIZE; P(A, B, C, D, E, F, G, H, w14, 0x19A4C116);
+SIZE=S1(w13)+w8+S0(w0)+w16; P(H, A, B, C, D, E, F, G, SIZE, 0x1E376C08);
+w16=S1(w14)+w9+S0(w1)+w0; P(G, H, A, B, C, D, E, F, w16, 0x2748774C);
+w0=S1(SIZE)+w10+S0(w2)+w1; P(F, G, H, A, B, C, D, E, w0, 0x34B0BCB5);
+w1=S1(w16)+w11+S0(w3)+w2; P(E, F, G, H, A, B, C, D, w1, 0x391C0CB3);
+w2=S1(w0)+w12+S0(w4)+w3; P(D, E, F, G, H, A, B, C, w2, 0x4ED8AA4A);
+w3=S1(w1)+w13+S0(w5)+w4; P(C, D, E, F, G, H, A, B, w3, 0x5B9CCA4F);
+w4=S1(w2)+w14+S0(w6)+w5; P(B, C, D, E, F, G, H, A, w4, 0x682E6FF3);
+w5=S1(w3)+SIZE+S0(w7)+w6; P(A, B, C, D, E, F, G, H, w5, 0x748F82EE);
+w6=S1(w4)+w16+S0(w8)+w7; P(H, A, B, C, D, E, F, G, w6, 0x78A5636F);
+w7=S1(w5)+w0+S0(w9)+w8; P(G, H, A, B, C, D, E, F, w7, 0x84C87814);
+w8=S1(w6)+w1+S0(w10)+w9; P(F, G, H, A, B, C, D, E, w8, 0x8CC70208);
+w9=S1(w7)+w2+S0(w11)+w10; P(E, F, G, H, A, B, C, D, w9, 0x90BEFFFA);
+w10=S1(w8)+w3+S0(w12)+w11; P(D, E, F, G, H, A, B, C, w10, 0xA4506CEB);
+w11=S1(w9)+w4+S0(w13)+w12; P(C, D, E, F, G, H, A, B, w11, 0xBEF9A3F7);
+w12=S1(w10)+w5+S0(w14)+w13; P(B, C, D, E, F, G, H, A, w12, 0xC67178F2);
+
+A=A+(uint)H0;
+B=B+(uint)H1;
+C=C+(uint)H2;
+D=D+(uint)H3;
+E=E+(uint)H4;
+F=F+(uint)H5;
+G=G+(uint)H6;
+H=H+(uint)H7;
+
+
+
 dst[(get_global_id(0)*8)+0]=A;
 dst[(get_global_id(0)*8)+1]=B;
 dst[(get_global_id(0)*8)+2]=C;
@@ -1164,6 +1262,31 @@ uint TTA,TTB,TTC,TTD,TTE,TTF,TTG,TTH;
 uint w0, w1, w2, w3, w4, w5, w6, w7,w8,w9,w10,w11,w12,w13,w14,w16;
 uint A,B,C,D,E,F,G,H,l,tmp1,tmp2,temp, SIZE;
 
+__local uint lTe[256];
+__local uint lTd[256];
+__local uint lTdK[256];
+uint rk0,rk1,rk2,rk3,rk4,rk5,rk6,rk7;
+uint r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,r13,r14,r15;
+uint k0,k1,k2,k3,k4,k5,k6,k7;
+uint s0, s1, s2, s3, t0, t1, t2, t3;
+uint kcache0,kcache1,kcache2,kcache3,kcache4,kcache5,kcache6,kcache7;
+uint ir0,ir1,ir2,ir3;
+uint ss0,ss1,ss2,ss3,ss4,ss5,ss6,ss7;
+
+// Setup tables
+lTe[GLI]=Te[GLI];
+lTe[64+GLI]=Te[64+GLI];
+lTe[128+GLI]=Te[128+GLI];
+lTe[192+GLI]=Te[192+GLI];
+lTd[GLI]=Td[GLI];
+lTd[64+GLI]=Td[64+GLI];
+lTd[128+GLI]=Td[128+GLI];
+lTd[192+GLI]=Td[192+GLI];
+lTdK[GLI]=TdK[GLI];
+lTdK[64+GLI]=TdK[64+GLI];
+lTdK[128+GLI]=TdK[128+GLI];
+lTdK[192+GLI]=TdK[192+GLI];
+barrier(CLK_LOCAL_MEM_FENCE);
 
 
 A=input[(get_global_id(0)*8)+0];
@@ -1278,17 +1401,18 @@ w0=str.s0;
 w1=str.s1;
 w2=str.s2;
 w3=str.s3;
-w4=A;
-w5=B;
-w6=C;
-w7=D;
-w8=E;
-w9=F;
-w10=G;
-w11=H;
-w12=0x80000000;
-w13=w14=0;
-SIZE=48<<3;
+w4=str.s4;
+w5=str.s5;
+w6=str.s6;
+w7=str.s7;
+w8=A;
+w9=B;
+w10=C;
+w11=D;
+w12=E;
+w13=F;
+w14=G;
+SIZE=H;
 
 A=(uint)H0;
 B=(uint)H1;
@@ -1302,6 +1426,10 @@ Endian_Reverse32(w0);
 Endian_Reverse32(w1);
 Endian_Reverse32(w2);
 Endian_Reverse32(w3);
+Endian_Reverse32(w4);
+Endian_Reverse32(w5);
+Endian_Reverse32(w6);
+Endian_Reverse32(w7);
 P(A, B, C, D, E, F, G, H, w0, 0x428A2F98);
 P(H, A, B, C, D, E, F, G, w1, 0x71374491);
 P(G, H, A, B, C, D, E, F, w2, 0xB5C0FBCF);
@@ -1375,21 +1503,277 @@ E=E+(uint)H4;
 F=F+(uint)H5;
 G=G+(uint)H6;
 H=H+(uint)H7;
+TTA=A;TTB=B;TTC=C;TTD=D;TTE=E;TTF=F;TTG=G;TTH=H;
 
-Endian_Reverse32(A);
-Endian_Reverse32(B);
-Endian_Reverse32(C);
-Endian_Reverse32(D);
-Endian_Reverse32(E);
-Endian_Reverse32(F);
-Endian_Reverse32(G);
-Endian_Reverse32(H);
+w0=0x80000000;
+w1=w2=w3=w4=w5=w6=w7=w8=w9=w10=w11=w12=w13=w14=0;
+SIZE=64<<3;
+P(A, B, C, D, E, F, G, H, w0, 0x428A2F98);
+P(H, A, B, C, D, E, F, G, w1, 0x71374491);
+P(G, H, A, B, C, D, E, F, w2, 0xB5C0FBCF);
+P(F, G, H, A, B, C, D, E, w3, 0xE9B5DBA5);
+P(E, F, G, H, A, B, C, D, w4, 0x3956C25B);
+P(D, E, F, G, H, A, B, C, w5, 0x59F111F1);
+P(C, D, E, F, G, H, A, B, w6, 0x923F82A4);
+P(B, C, D, E, F, G, H, A, w7, 0xAB1C5ED5);
+P(A, B, C, D, E, F, G, H, w8, 0xD807AA98);
+P(H, A, B, C, D, E, F, G, w9, 0x12835B01);
+P(G, H, A, B, C, D, E, F, w10, 0x243185BE);
+P(F, G, H, A, B, C, D, E, w11, 0x550C7DC3);
+P(E, F, G, H, A, B, C, D, w12, 0x72BE5D74);
+P(D, E, F, G, H, A, B, C, w13, 0x80DEB1FE);
+P(C, D, E, F, G, H, A, B, w14, 0x9BDC06A7);
+P(B, C, D, E, F, G, H, A, SIZE, 0xC19BF174);
+w16=S1(w14)+w9+S0(w1)+w0; P(A, B, C, D, E, F, G, H, w16, 0xE49B69C1);
+w0=S1(SIZE)+w10+S0(w2)+w1; P(H, A, B, C, D, E, F, G, w0,  0xEFBE4786);
+w1=S1(w16)+w11+S0(w3)+w2;  P(G, H, A, B, C, D, E, F, w1, 0x0FC19DC6);
+w2=S1(w0)+w12+S0(w4)+w3; P(F, G, H, A, B, C, D, E, w2, 0x240CA1CC);
+w3=S1(w1)+w13+S0(w5)+w4; P(E, F, G, H, A, B, C, D, w3, 0x2DE92C6F);
+w4=S1(w2)+w14+S0(w6)+w5; P(D, E, F, G, H, A, B, C, w4, 0x4A7484AA);
+w5=S1(w3)+SIZE+S0(w7)+w6; P(C, D, E, F, G, H, A, B, w5, 0x5CB0A9DC);
+w6=S1(w4)+w16+S0(w8)+w7; P(B, C, D, E, F, G, H, A, w6, 0x76F988DA);
+w7=S1(w5)+w0+S0(w9)+w8; P(A, B, C, D, E, F, G, H, w7, 0x983E5152);
+w8=S1(w6)+w1+S0(w10)+w9; P(H, A, B, C, D, E, F, G, w8, 0xA831C66D);
+w9=S1(w7)+w2+S0(w11)+w10; P(G, H, A, B, C, D, E, F, w9, 0xB00327C8);
+w10=S1(w8)+w3+S0(w12)+w11; P(F, G, H, A, B, C, D, E, w10, 0xBF597FC7);
+w11=S1(w9)+w4+S0(w13)+w12; P(E, F, G, H, A, B, C, D, w11, 0xC6E00BF3);
+w12=S1(w10)+w5+S0(w14)+w13; P(D, E, F, G, H, A, B, C, w12, 0xD5A79147);
+w13=S1(w11)+w6+S0(SIZE)+w14; P(C, D, E, F, G, H, A, B, w13, 0x06CA6351);
+w14=S1(w12)+w7+S0(w16)+SIZE; P(B, C, D, E, F, G, H, A, w14, 0x14292967);
+SIZE=S1(w13)+w8+S0(w0)+w16; P(A, B, C, D, E, F, G, H, SIZE, 0x27B70A85);
+w16=S1(w14)+w9+S0(w1)+w0; P(H, A, B, C, D, E, F, G, w16, 0x2E1B2138);
+w0=S1(SIZE)+w10+S0(w2)+w1; P(G, H, A, B, C, D, E, F, w0, 0x4D2C6DFC);
+w1=S1(w16)+w11+S0(w3)+w2; P(F, G, H, A, B, C, D, E, w1, 0x53380D13);
+w2=S1(w0)+w12+S0(w4)+w3; P(E, F, G, H, A, B, C, D, w2, 0x650A7354);
+w3=S1(w1)+w13+S0(w5)+w4; P(D, E, F, G, H, A, B, C, w3, 0x766A0ABB);
+w4=S1(w2)+w14+S0(w6)+w5; P(C, D, E, F, G, H, A, B, w4, 0x81C2C92E);
+w5=S1(w3)+SIZE+S0(w7)+w6; P(B, C, D, E, F, G, H, A, w5, 0x92722C85);
+w6=S1(w4)+w16+S0(w8)+w7; P(A, B, C, D, E, F, G, H, w6, 0xA2BFE8A1);
+w7=S1(w5)+w0+S0(w9)+w8; P(H, A, B, C, D, E, F, G, w7, 0xA81A664B);
+w8=S1(w6)+w1+S0(w10)+w9; P(G, H, A, B, C, D, E, F, w8, 0xC24B8B70);
+w9=S1(w7)+w2+S0(w11)+w10; P(F, G, H, A, B, C, D, E, w9, 0xC76C51A3);
+w10=S1(w8)+w3+S0(w12)+w11; P(E, F, G, H, A, B, C, D, w10, 0xD192E819);
+w11=S1(w9)+w4+S0(w13)+w12; P(D, E, F, G, H, A, B, C, w11, 0xD6990624);
+w12=S1(w10)+w5+S0(w14)+w13; P(C, D, E, F, G, H, A, B, w12, 0xF40E3585);
+w13=S1(w11)+w6+S0(SIZE)+w14; P(B, C, D, E, F, G, H, A, w13, 0x106AA070);
+w14=S1(w12)+w7+S0(w16)+SIZE; P(A, B, C, D, E, F, G, H, w14, 0x19A4C116);
+SIZE=S1(w13)+w8+S0(w0)+w16; P(H, A, B, C, D, E, F, G, SIZE, 0x1E376C08);
+w16=S1(w14)+w9+S0(w1)+w0; P(G, H, A, B, C, D, E, F, w16, 0x2748774C);
+w0=S1(SIZE)+w10+S0(w2)+w1; P(F, G, H, A, B, C, D, E, w0, 0x34B0BCB5);
+w1=S1(w16)+w11+S0(w3)+w2; P(E, F, G, H, A, B, C, D, w1, 0x391C0CB3);
+w2=S1(w0)+w12+S0(w4)+w3; P(D, E, F, G, H, A, B, C, w2, 0x4ED8AA4A);
+w3=S1(w1)+w13+S0(w5)+w4; P(C, D, E, F, G, H, A, B, w3, 0x5B9CCA4F);
+w4=S1(w2)+w14+S0(w6)+w5; P(B, C, D, E, F, G, H, A, w4, 0x682E6FF3);
+w5=S1(w3)+SIZE+S0(w7)+w6; P(A, B, C, D, E, F, G, H, w5, 0x748F82EE);
+w6=S1(w4)+w16+S0(w8)+w7; P(H, A, B, C, D, E, F, G, w6, 0x78A5636F);
+w7=S1(w5)+w0+S0(w9)+w8; P(G, H, A, B, C, D, E, F, w7, 0x84C87814);
+w8=S1(w6)+w1+S0(w10)+w9; P(F, G, H, A, B, C, D, E, w8, 0x8CC70208);
+w9=S1(w7)+w2+S0(w11)+w10; P(E, F, G, H, A, B, C, D, w9, 0x90BEFFFA);
+w10=S1(w8)+w3+S0(w12)+w11; P(D, E, F, G, H, A, B, C, w10, 0xA4506CEB);
+w11=S1(w9)+w4+S0(w13)+w12; P(C, D, E, F, G, H, A, B, w11, 0xBEF9A3F7);
+w12=S1(w10)+w5+S0(w14)+w13; P(B, C, D, E, F, G, H, A, w12, 0xC67178F2);
+
+A+=TTA;
+B+=TTB;
+C+=TTC;
+D+=TTD;
+E+=TTE;
+F+=TTF;
+G+=TTG;
+H+=TTH;
+
+
+
+/* Initial key for AES-256 */
+rk0=A;
+rk1=B;
+rk2=C;
+rk3=D;
+rk4=E;
+rk5=F;
+rk6=G;
+rk7=H;
+
+
+/* Setup s0..s3 */
+AES256_GET_KEYS0;
+ir0=salt.s0;
+ir1=salt.s1;
+ir2=salt.s2;
+ir3=salt.s3;
+Endian_Reverse32(ir0);
+Endian_Reverse32(ir1);
+Endian_Reverse32(ir2);
+Endian_Reverse32(ir3);
+s0 = ir0 ^ k0;
+s1 = ir1 ^ k1;
+s2 = ir2 ^ k2;
+s3 = ir3 ^ k3;
+
+AES256_GET_KEYS1;
+AES256_INV_MIX;
+AES256_EVEN_ROUND;
+
+AES256_GET_KEYS2;
+AES256_INV_MIX;
+AES256_ODD_ROUND;
+
+AES256_GET_KEYS3;
+AES256_INV_MIX;
+AES256_EVEN_ROUND;
+
+AES256_GET_KEYS4;
+AES256_INV_MIX;
+AES256_ODD_ROUND;
+
+AES256_GET_KEYS5;
+AES256_INV_MIX;
+AES256_EVEN_ROUND;
+
+AES256_GET_KEYS6;
+AES256_INV_MIX;
+AES256_ODD_ROUND;
+
+AES256_GET_KEYS7;
+AES256_INV_MIX;
+AES256_EVEN_ROUND;
+
+AES256_GET_KEYS8;
+AES256_INV_MIX;
+AES256_ODD_ROUND;
+
+AES256_GET_KEYS9;
+AES256_INV_MIX;
+AES256_EVEN_ROUND;
+
+AES256_GET_KEYS10;
+AES256_INV_MIX;
+AES256_ODD_ROUND;
+
+AES256_GET_KEYS11;
+AES256_INV_MIX;
+AES256_EVEN_ROUND;
+
+AES256_GET_KEYS12;
+AES256_INV_MIX;
+AES256_ODD_ROUND;
+
+AES256_GET_KEYS13;
+AES256_INV_MIX;
+AES256_EVEN_ROUND;
+
+AES256_GET_KEYS14;
+AES256_FINAL;
+
+
+/* CBC mode decryption (XOR ptext with prev. ctext) */
+ir0=str.s8;
+ir1=str.s9;
+ir2=str.sA;
+ir3=str.sB;
+
+ss0 = s0^ir0;
+ss1 = s1^ir1;
+ss2 = s2^ir2;
+ss3 = s3^ir3;
+
+
+
+/* Setup s0..s3 */
+AES256_GET_KEYS0;
+ir0=salt.s4;
+ir1=salt.s5;
+ir2=salt.s6;
+ir3=salt.s7;
+Endian_Reverse32(ir0);
+Endian_Reverse32(ir1);
+Endian_Reverse32(ir2);
+Endian_Reverse32(ir3);
+s0 = ir0 ^ k0;
+s1 = ir1 ^ k1;
+s2 = ir2 ^ k2;
+s3 = ir3 ^ k3;
+
+AES256_GET_KEYS1;
+AES256_INV_MIX;
+AES256_EVEN_ROUND;
+
+AES256_GET_KEYS2;
+AES256_INV_MIX;
+AES256_ODD_ROUND;
+
+AES256_GET_KEYS3;
+AES256_INV_MIX;
+AES256_EVEN_ROUND;
+
+AES256_GET_KEYS4;
+AES256_INV_MIX;
+AES256_ODD_ROUND;
+
+AES256_GET_KEYS5;
+AES256_INV_MIX;
+AES256_EVEN_ROUND;
+
+AES256_GET_KEYS6;
+AES256_INV_MIX;
+AES256_ODD_ROUND;
+
+AES256_GET_KEYS7;
+AES256_INV_MIX;
+AES256_EVEN_ROUND;
+
+AES256_GET_KEYS8;
+AES256_INV_MIX;
+AES256_ODD_ROUND;
+
+AES256_GET_KEYS9;
+AES256_INV_MIX;
+AES256_EVEN_ROUND;
+
+AES256_GET_KEYS10;
+AES256_INV_MIX;
+AES256_ODD_ROUND;
+
+AES256_GET_KEYS11;
+AES256_INV_MIX;
+AES256_EVEN_ROUND;
+
+AES256_GET_KEYS12;
+AES256_INV_MIX;
+AES256_ODD_ROUND;
+
+AES256_GET_KEYS13;
+AES256_INV_MIX;
+AES256_EVEN_ROUND;
+
+AES256_GET_KEYS14;
+AES256_FINAL;
+
+/* CBC mode decryption (XOR ptext with prev. ctext) */
+ir0=salt.s0;
+ir1=salt.s1;
+ir2=salt.s2;
+ir3=salt.s3;
+
+ss4 = s0^ir0;
+ss5 = s1^ir1;
+ss6 = s2^ir2;
+ss7 = s3^ir3;
+
+if ((ss0!=(uint)singlehash.s0)) return;
+if ((ss1!=(uint)singlehash.s1)) return;
+if ((ss2!=(uint)singlehash.s2)) return;
+if ((ss3!=(uint)singlehash.s3)) return;
+if ((ss4!=(uint)singlehash.s4)) return;
+if ((ss5!=(uint)singlehash.s5)) return;
+if ((ss6!=(uint)singlehash.s6)) return;
+if ((ss7!=(uint)singlehash.s7)) return;
 
 
 found[0] = 1;
 found_ind[get_global_id(0)] = 1;
 
-dst[(get_global_id(0)*2)] = (uint4)(A,B,C,D);
-dst[(get_global_id(0)*2)+1] = (uint4)(E,F,G,H);
+dst[(get_global_id(0)*2)] = (uint4)(ss0,ss1,ss2,ss3);
+dst[(get_global_id(0)*2)+1] = (uint4)(ss4,ss5,ss6,ss7);
 
 }

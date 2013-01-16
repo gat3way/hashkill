@@ -92,6 +92,7 @@ build:
 	if [ ! -e amd_truecrypt__Juniper.bin ]; then ./amd-compiler amd_truecrypt no ;fi; \
 	if [ ! -e amd_lastpass__Juniper.bin ]; then ./amd-compiler amd_lastpass n ;fi; \
 	if [ ! -e amd_keepass__Juniper.bin ]; then ./amd-compiler amd_keepass n ;fi; \
+	if [ ! -e amd_keepass2__Juniper.bin ]; then ./amd-compiler amd_keepass2 n ;fi; \
 	fi
 	# NVidia
 	@if [ "$(CL_NVFLAGS)" = "yes" ]; then \
@@ -172,6 +173,8 @@ build:
 	if [ ! -e nvidia_whirlpool__sm10.ptx ]; then ./nvidia-compiler nvidia_whirlpool ns ;fi; \
 	if [ ! -e nvidia_truecrypt__sm10.ptx ]; then ./nvidia-compiler nvidia_truecrypt n ;fi; \
 	if [ ! -e nvidia_lastpass__sm10.ptx ]; then ./nvidia-compiler nvidia_lastpass n ;fi; \
+	if [ ! -e nvidia_keepass__sm10.ptx ]; then ./nvidia-compiler nvidia_keepass n ;fi; \
+	if [ ! -e nvidia_keepass2__sm10.ptx ]; then ./nvidia-compiler nvidia_keepass2 n ;fi; \
 	fi
 
 

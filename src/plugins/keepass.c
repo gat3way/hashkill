@@ -71,7 +71,7 @@ char * hash_plugin_detailed(void)
 	    "Use this module to crack KeePass databases\n"
 	    "Input should be a KeePass db file (.kdb/.kdbx) specified with -f\n"
 	    "Known software that uses this password hashing method:\n"
-	    "KeePass/KeePassX, etc.\n"
+	    "KeePass2/KeePassX, etc.\n"
 	    "\nAuthor: Milen Rangelov <gat3way@gat3way.eu>\n");
 }
 
@@ -196,7 +196,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 		    break;
 	    }
 	}
-	
+
 	if ((v2masterseedsize!=32)||(v2transseedsize!=32)||(v2ivsize!=16)||(v2streambytessize!=32)||(rounds==0))
 	{
 	    close(fd);
@@ -250,7 +250,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	}
 	hash_sha256_unicode(password, buf, lens);
 	hash_aes_set_encrypt_key(transseed, 256, &akey);
-	
+
 	for (a=0;a<vectorsize;a++)
 	{
 	    for (b=0;b<rounds;b++)
@@ -319,7 +319,9 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    memcpy(buf3[a]+32,buf2[a],32);
 	    lens[a]=64;
 	}
+
 	hash_sha256_unicode((const char **)buf3, buf2, lens);
+
 	for (a=0;a<vectorsize;a++)
 	{
 	    hash_aes_set_decrypt_key((const unsigned char *)buf2[a], 256, &akey);
