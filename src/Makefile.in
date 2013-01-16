@@ -137,7 +137,7 @@ am_hashkill_OBJECTS = hashkill-ocl-base.$(OBJEXT) \
 	hashkill-ocl_whirlpool.$(OBJEXT) \
 	hashkill-cpu-serpent.$(OBJEXT) hashkill-cpu-twofish.$(OBJEXT) \
 	hashkill-ocl_truecrypt.$(OBJEXT) \
-	hashkill-ocl_lastpass.$(OBJEXT)
+	hashkill-ocl_lastpass.$(OBJEXT) hashkill-ocl_keepass.$(OBJEXT)
 hashkill_OBJECTS = $(am_hashkill_OBJECTS)
 hashkill_DEPENDENCIES = libtargets.la
 hashkill_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -358,7 +358,7 @@ ocl_mssql-2005.c ocl_nsldaps.c ocl_osx-old.c ocl_osxlion.c ocl_desunix.c ocl_ora
 ocl_pixmd5.c ocl_phpbb3.c ocl_wordpress.c ocl_md5unix.c ocl_sha512unix.c ocl_mscash2.c ocl_apr1.c ocl_wpa.c \
 ocl_dmg.c unrargpu.c ocl_rar.c ocl_bfunix.c ocl_drupal7.c ocl_zip.c ocl_django256.c ocl_sha256unix.c \
 ocl_o5logon.c ocl_mssql-2012.c ocl_msoffice.c ocl_luks.c ocl_ripemd160.c ocl_whirlpool.c \
-cpu-serpent.c cpu-twofish.c ocl_truecrypt.c ocl_lastpass.c
+cpu-serpent.c cpu-twofish.c ocl_truecrypt.c ocl_lastpass.c ocl_keepass.c
 
 
 # forced static linkage below
@@ -532,6 +532,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_drupal7.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_ipb2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_joomla.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_keepass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_lastpass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_lm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_luks.Po@am__quote@
@@ -1695,6 +1696,20 @@ hashkill-ocl_lastpass.obj: ocl_lastpass.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_lastpass.c' object='hashkill-ocl_lastpass.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_lastpass.obj `if test -f 'ocl_lastpass.c'; then $(CYGPATH_W) 'ocl_lastpass.c'; else $(CYGPATH_W) '$(srcdir)/ocl_lastpass.c'; fi`
+
+hashkill-ocl_keepass.o: ocl_keepass.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_keepass.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_keepass.Tpo -c -o hashkill-ocl_keepass.o `test -f 'ocl_keepass.c' || echo '$(srcdir)/'`ocl_keepass.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_keepass.Tpo $(DEPDIR)/hashkill-ocl_keepass.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_keepass.c' object='hashkill-ocl_keepass.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_keepass.o `test -f 'ocl_keepass.c' || echo '$(srcdir)/'`ocl_keepass.c
+
+hashkill-ocl_keepass.obj: ocl_keepass.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_keepass.obj -MD -MP -MF $(DEPDIR)/hashkill-ocl_keepass.Tpo -c -o hashkill-ocl_keepass.obj `if test -f 'ocl_keepass.c'; then $(CYGPATH_W) 'ocl_keepass.c'; else $(CYGPATH_W) '$(srcdir)/ocl_keepass.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_keepass.Tpo $(DEPDIR)/hashkill-ocl_keepass.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_keepass.c' object='hashkill-ocl_keepass.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_keepass.obj `if test -f 'ocl_keepass.c'; then $(CYGPATH_W) 'ocl_keepass.c'; else $(CYGPATH_W) '$(srcdir)/ocl_keepass.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
