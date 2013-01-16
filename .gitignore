@@ -1,0 +1,11 @@
+*.so
+*.o
+*.la
+*.lo
+*.log
+*.status
+*.swp
+src/tools/markovgen
+src/tools/pcap2hcap
+src/kernels/compiler/amd-compiler
+src/kernels/compiler/nvidia-compiler
