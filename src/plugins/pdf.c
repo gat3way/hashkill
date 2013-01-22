@@ -80,10 +80,14 @@ char *hash_plugin_detailed(void)
 
 hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 {
-
-	char *ctcopy = strdup(hashline);
-	char *keeptr = ctcopy;
+	char *ctcopy;
+	char *keeptr;
 	char *p;
+	
+	if (hashline==NULL) return hash_err;
+	if (strlen(hashline)<32) return hash_err;
+	ctcopy  = strdup(hashline);
+	keeptr  = ctcopy;
 	p = strtok(ctcopy, ":");
 	strcpy(myfilename, p);
 	p = strtok(NULL, "*");
