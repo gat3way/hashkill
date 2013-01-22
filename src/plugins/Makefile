@@ -197,6 +197,10 @@ plugin_keepass:
 plugin_pdf:
 	@if [ ! -e pdf.so ]; then  $(CC)  plugin.c pdf.c -o pdf.so $(CFLAGS) $(LDFLAGS) -Wall ;fi
 
+plugin_pwsafe:
+	@if [ ! -e pdf.so ]; then  $(CC)  plugin.c pwsafe.c -o pwsafe.so $(CFLAGS) $(LDFLAGS) -Wall ;fi
+
+
 install:
 	@echo Copying plugins...
 	@mkdir -p $(IDESTDIR)$(IDATADIR)/hashkill/plugins
