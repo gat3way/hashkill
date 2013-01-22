@@ -77,38 +77,52 @@ char *hash_plugin_detailed(void)
 	    "\nAuthor: Dhiru Kholia <dhiru at openwall.com>\n");
 }
 
-
 hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 {
 
 	char *ctcopy = strdup(hashline);
 	char *keeptr = ctcopy;
 	char *p;
-	p = strtok(ctcopy, ":");
-	strcpy(myfilename, p);
-	p = strtok(NULL, "*");
-	cs.V = atoi(p);
-	p = strtok(NULL, "*");
-	cs.R = atoi(p);
-	p = strtok(NULL, "*");
-	cs.length = atoi(p);
-	p = strtok(NULL, "*");
-	cs.P = atoi(p);
-	p = strtok(NULL, "*");
-	cs.encrypt_metadata = atoi(p);
-	p = strtok(NULL, "*");
-	cs.length_id = atoi(p);
-	p = strtok(NULL, "*");
-	hex2str((char *) cs.id, p, cs.length_id);
-	p = strtok(NULL, "*");
-	cs.length_u = atoi(p);
-	p = strtok(NULL, "*");
-	hex2str((char *) cs.u, p, cs.length_u);
-	p = strtok(NULL, "*");
-	cs.length_o = atoi(p);
-	p = strtok(NULL, "*");
-	hex2str((char *) cs.o, p, cs.length_o);
 
+	if ((p = strtok(ctcopy, ":")) == NULL)
+		goto err;
+	strcpy(myfilename, p);
+	if ((p = strtok(NULL, "*")) == NULL)
+		goto err;
+	if (strncmp(p, "$pdf$", 5) != 0)
+		goto err;
+	p += 5;
+	cs.V = atoi(p);
+	if ((p = strtok(NULL, "*")) == NULL)
+		goto err;
+	cs.R = atoi(p);
+	if ((p = strtok(NULL, "*")) == NULL)
+		goto err;
+	cs.length = atoi(p);
+	if ((p = strtok(NULL, "*")) == NULL)
+		goto err;
+	cs.P = atoi(p);
+	if ((p = strtok(NULL, "*")) == NULL)
+		goto err;
+	cs.encrypt_metadata = atoi(p);
+	if ((p = strtok(NULL, "*")) == NULL)
+		goto err;
+	cs.length_id = atoi(p);
+	if ((p = strtok(NULL, "*")) == NULL)
+		goto err;
+	hex2str((char *) cs.id, p, cs.length_id * 2);
+	if ((p = strtok(NULL, "*")) == NULL)
+		goto err;
+	cs.length_u = atoi(p);
+	if ((p = strtok(NULL, "*")) == NULL)
+		goto err;
+	hex2str((char *) cs.u, p, cs.length_u);
+	if ((p = strtok(NULL, "*")) == NULL)
+		goto err;
+	cs.length_o = atoi(p);
+	if ((p = strtok(NULL, "*")) == NULL)
+		goto err;
+	hex2str((char *) cs.o, p, cs.length_o * 2);
 	free(keeptr);
 
 	(void) hash_add_username(myfilename);
@@ -116,6 +130,9 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	(void) hash_add_salt("123");
 	(void) hash_add_salt2("                              ");
 	return hash_ok;
+err:
+	free(keeptr);
+	return hash_err;
 }
 
 static const unsigned char padding[32] = {
