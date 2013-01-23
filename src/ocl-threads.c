@@ -96,6 +96,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"truecrypt",&ocl_bruteforce_truecrypt, &ocl_markov_truecrypt, &ocl_rule_truecrypt},
                             {1,"lastpass",&ocl_bruteforce_lastpass, &ocl_markov_lastpass, &ocl_rule_lastpass},
                             {1,"keepass",&ocl_bruteforce_keepass, &ocl_markov_keepass, &ocl_rule_keepass},
+                            {1,"mozilla",&ocl_bruteforce_mozilla, &ocl_markov_mozilla, &ocl_rule_mozilla},
                             {0, "", NULL, NULL, NULL}
                         };
 
@@ -274,6 +275,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"osx-old")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"zip")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"o5logon")==0)) {ocl_vector=1;loops=1;}
+		if ((strcmp(get_current_plugin(),"mozilla")==0)) {ocl_vector=1;loops=1;}
 	    }
 	    /* GCN loops hacks */
 	    if ((ocl_have_gcn==1)&&(!ocl_dev_nvidia))
@@ -296,6 +298,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"mscash")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"oracle-old")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"o5logon")==0)) {ocl_vector=1;loops=1;}
+		if ((strcmp(get_current_plugin(),"mozilla")==0)) {ocl_vector=1;loops=1;}
 		if ((strcmp(get_current_plugin(),"vbulletin")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"ipb2")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"joomla")==0)) loops=2;
@@ -344,6 +347,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"oracle-old")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"o5logon")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"keepass")==0)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"mozilla")==0)) ocl_vector=1;
 
 		/* GCN/VLIW-specific */
 		if ((strcmp(get_current_plugin(),"phpbb3")==0)&&(ocl_have_gcn)) ocl_vector=1;
@@ -379,6 +383,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"oracle-old")==0)) {loops=1;ocl_vector=1;}
 		if ((strcmp(get_current_plugin(),"rar")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"keepass")==0)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"mozilla")==0)) {ocl_vector=1;loops=1;}
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) {ocl_vector=1;loops=1;}
 		if ((strcmp(get_current_plugin(),"mscash")==0)) {loops=2;ocl_vector=1;}
 		if ((strcmp(get_current_plugin(),"oracle11g")==0)) {ocl_vector=1;loops=2;}

@@ -19,7 +19,7 @@ all: plugin_md5 plugin_md5md5 plugin_joomla plugin_sha1 plugin_smf plugin_md4 \
      plugin_mscash2 plugin_wpa plugin_rar plugin_dmg plugin_osx-old plugin_bfunix plugin_drupal7 \
      plugin_django256 plugin_sha256unix plugin_o5logon plugin_mssql2012 plugin_msoffice \
      plugin_msoffice-old plugin_luks plugin_whirlpool plugin_truecrypt plugin_lastpass \
-     plugin_keepass plugin_pdf plugin_keyring
+     plugin_keepass plugin_pdf plugin_keyring plugin_pwsafe plugin_mozilla
      #plugin_bitcoin  plugin_mysql-old
 
 
@@ -195,13 +195,16 @@ plugin_keepass:
 	@if [ ! -e keepass.so ]; then  $(CC)  plugin.c keepass.c -o keepass.so $(CFLAGS) $(LDFLAGS) -Wall ;fi
 
 plugin_pdf:
-	@if [ ! -e pdf.so ]; then  $(CC)  plugin.c pdf.c -o pdf.so $(CFLAGS) $(LDFLAGS) -Wall ;fi
+	@if [ ! -e pdf.so ]; then  $(CC)  plugin.c pdf.c -o pdf.so $(CFLAGS) $(LDFLAGS) -Wall -lcrypto;fi
+
+plugin_mozilla:
+	@if [ ! -e mozilla.so ]; then  $(CC)  plugin.c mozilla.c -o mozilla.so $(CFLAGS) $(LDFLAGS) -Wall -lcrypto;fi
 
 plugin_keyring:
 	@if [ ! -e keyring.so ]; then  $(CC)  plugin.c keyring.c -o keyring.so $(CFLAGS) $(LDFLAGS) -Wall ;fi
 
 plugin_pwsafe:
-	@if [ ! -e pdf.so ]; then  $(CC)  plugin.c pwsafe.c -o pwsafe.so $(CFLAGS) $(LDFLAGS) -Wall ;fi
+	@if [ ! -e pwsafe.so ]; then  $(CC)  plugin.c pwsafe.c -o pwsafe.so $(CFLAGS) $(LDFLAGS) -Wall ;fi
 
 
 install:

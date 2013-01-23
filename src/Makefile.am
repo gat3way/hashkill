@@ -43,7 +43,7 @@ ocl_mssql-2005.c ocl_nsldaps.c ocl_osx-old.c ocl_osxlion.c ocl_desunix.c ocl_ora
 ocl_pixmd5.c ocl_phpbb3.c ocl_wordpress.c ocl_md5unix.c ocl_sha512unix.c ocl_mscash2.c ocl_apr1.c ocl_wpa.c \
 ocl_dmg.c unrargpu.c ocl_rar.c ocl_bfunix.c ocl_drupal7.c ocl_zip.c ocl_django256.c ocl_sha256unix.c \
 ocl_o5logon.c ocl_mssql-2012.c ocl_msoffice.c ocl_luks.c ocl_ripemd160.c ocl_whirlpool.c \
-cpu-serpent.c cpu-twofish.c ocl_truecrypt.c ocl_lastpass.c ocl_keepass.c
+cpu-serpent.c cpu-twofish.c ocl_truecrypt.c ocl_lastpass.c ocl_keepass.c ocl_mozilla.c
 
 # forced static linkage below
 hashkill_LDFLAGS =  -static-libtool-libs -ldl -static -Bstatic -lcrypto  -L/lib  -lrt -lz -lm $(JS_LIBS)
