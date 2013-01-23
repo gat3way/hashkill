@@ -311,10 +311,10 @@ static void ocl_execute(cl_command_queue queue, cl_kernel kernel, size_t *global
     {
 	if (interactive_mode==1)
 	{
-	    for (try=0;try<512;try++)
+	    for (try=0;try<64;try++)
 	    {
 		lglobal_work_size[0]=global_work_size[0];
-		lglobal_work_size[1]=(global_work_size[1]+511)/512;
+		lglobal_work_size[1]=(global_work_size[1]+63)/64;
 		offset[1] = try*lglobal_work_size[1];
 		offset[0] = 0;
 		if (attack_over!=0) pthread_exit(NULL);
@@ -332,15 +332,15 @@ static void ocl_execute(cl_command_queue queue, cl_kernel kernel, size_t *global
     		    _clEnqueueWriteBuffer(queue, found_buf, CL_TRUE, 0, 4, found, 0, NULL, NULL);
 		}
     		_clEnqueueUnmapMemObject(queue,found_buf,(void *)found,0,NULL,NULL);
-		wthreads[self].tries += (charset_size*charset_size*charset_size*charset_size*wthreads[self].loops)/(512);
+		wthreads[self].tries += (charset_size*charset_size*charset_size*charset_size*wthreads[self].loops)/(128);
 	    }
 	}
 	else
 	{
-	    for (try=0;try<256;try++)
+	    for (try=0;try<16;try++)
 	    {
 		lglobal_work_size[0]=global_work_size[0];
-		lglobal_work_size[1]=(global_work_size[1]+255)/256;
+		lglobal_work_size[1]=(global_work_size[1]+15)/16;
 		offset[1] = try*lglobal_work_size[1];
 		offset[0] = 0;
 		if (attack_over!=0) pthread_exit(NULL);
@@ -358,7 +358,7 @@ static void ocl_execute(cl_command_queue queue, cl_kernel kernel, size_t *global
     		    _clEnqueueWriteBuffer(queue, found_buf, CL_TRUE, 0, 4, found, 0, NULL, NULL);
 		}
     		_clEnqueueUnmapMemObject(queue,found_buf,(void *)found,0,NULL,NULL);
-		wthreads[self].tries += (charset_size*charset_size*charset_size*charset_size*wthreads[self].loops)/(256);
+		wthreads[self].tries += (charset_size*charset_size*charset_size*charset_size*wthreads[self].loops)/(16);
 	    }
 	}
     }
