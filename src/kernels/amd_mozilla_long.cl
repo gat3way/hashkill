@@ -652,6 +652,8 @@ uint lll,r,t,u;
 uint ll1,ll2;
 uint key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31;
 uint c,d,s,t2;
+uint keys[6];
+
 
 DES_SPtrans[0][get_local_id(0)]=CDES_SPtrans[0][get_local_id(0)];
 DES_SPtrans[1][get_local_id(0)]=CDES_SPtrans[1][get_local_id(0)];
@@ -1831,23 +1833,36 @@ Endian_Reverse32(b8);
 Endian_Reverse32(b9);
 
 
+keys[0]=b4;
+keys[1]=b2;
+keys[2]=b0;
+keys[3]=b5;
+keys[4]=b3;
+keys[5]=b1;
+
+
 
 // FIXME
-DES_set_key(b4,b5, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
 blo11=data1.s9;
 blo12=data1.sA;
-DES_ecb_decrypt(blo11,blo12,blo11,blo12, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
 blo21=data1.sB;
 blo22=data1.sC;
-DES_ecb_decrypt(blo21,blo22,blo21,blo22, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
 
-DES_set_key(b2,b3, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
+#pragma unroll 1
+for (i=0;i<3;i++)
+{
+DES_set_key(keys[i],keys[i+3], key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
+if (i==1)
+{
 DES_ecb_encrypt(blo11,blo12,blo11,blo12, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
 DES_ecb_encrypt(blo21,blo22,blo21,blo22, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
-
-DES_set_key(b0,b1, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
+}
+else
+{
 DES_ecb_decrypt(blo11,blo12,blo11,blo12, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
 DES_ecb_decrypt(blo21,blo22,blo21,blo22, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
+}
+}
 
 
 blo11^=b8;
@@ -1902,6 +1917,8 @@ uint l,r,t,u;
 uint ll1,ll2;
 uint key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31;
 uint c,d,s,t2;
+uint keys[6];
+
 
 DES_SPtrans[0][get_local_id(0)]=CDES_SPtrans[0][get_local_id(0)];
 DES_SPtrans[1][get_local_id(0)]=CDES_SPtrans[1][get_local_id(0)];
@@ -3083,59 +3100,82 @@ Endian_Reverse32(b9);
 
 
 // FIXME
-DES_set_key(b4.s0,b5.s0, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
 blo11=data1.s9;
 blo12=data1.sA;
-DES_ecb_decrypt(blo11,blo12,blo11,blo12, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
 blo21=data1.sB;
 blo22=data1.sC;
-DES_ecb_decrypt(blo21,blo22,blo21,blo22, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
 
-DES_set_key(b2.s0,b3.s0, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
+keys[0]=b4.s0;
+keys[1]=b2.s0;
+keys[2]=b0.s0;
+keys[3]=b5.s0;
+keys[4]=b3.s0;
+keys[5]=b1.s0;
+
+#pragma unroll 1
+for (i=0;i<3;i++)
+{
+DES_set_key(keys[i],keys[i+3], key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
+if (i==1)
+{
 DES_ecb_encrypt(blo11,blo12,blo11,blo12, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
 DES_ecb_encrypt(blo21,blo22,blo21,blo22, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
-
-DES_set_key(b0.s0,b1.s0, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
+}
+else
+{
 DES_ecb_decrypt(blo11,blo12,blo11,blo12, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
 DES_ecb_decrypt(blo21,blo22,blo21,blo22, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
-
+}
+}
 
 blo11^=b8.s0;
 blo12^=b9.s0;
 blo21^=data1.s9;
 blo22^=data1.sA;
-
 A.s0=blo11;
 B.s0=blo12;
 C.s0=blo21;
 D.s0=blo22;
 
-DES_set_key(b4.s1,b5.s1, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
+
 blo11=data1.s9;
 blo12=data1.sA;
-DES_ecb_decrypt(blo11,blo12,blo11,blo12, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
 blo21=data1.sB;
 blo22=data1.sC;
-DES_ecb_decrypt(blo21,blo22,blo21,blo22, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
 
-DES_set_key(b2.s1,b3.s1, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
+keys[0]=b4.s1;
+keys[1]=b2.s1;
+keys[2]=b0.s1;
+keys[3]=b5.s1;
+keys[4]=b3.s1;
+keys[5]=b1.s1;
+
+#pragma unroll 1
+for (i=0;i<3;i++)
+{
+DES_set_key(keys[i],keys[i+3], key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
+if (i==1)
+{
 DES_ecb_encrypt(blo11,blo12,blo11,blo12, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
 DES_ecb_encrypt(blo21,blo22,blo21,blo22, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
-
-DES_set_key(b0.s1,b1.s1, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
+}
+else
+{
 DES_ecb_decrypt(blo11,blo12,blo11,blo12, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
 DES_ecb_decrypt(blo21,blo22,blo21,blo22, key0,key1,key2,key3,key4,key5,key6,key7,key8,key9,key10,key11,key12,key13,key14,key15,key16,key17,key18,key19,key20,key21,key22,key23,key24,key25,key26,key27,key28,key29,key30,key31);
+}
+}
 
 blo11^=b8.s1;
 blo12^=b9.s1;
 blo21^=data1.s9;
 blo22^=data1.sA;
-
-
 A.s1=blo11;
 B.s1=blo12;
 C.s1=blo21;
 D.s1=blo22;
+
+
 
 
 if (all(A!=(uint2)data2.s9)) return;
@@ -3184,7 +3224,6 @@ uint8 input;
 uint4 singlehash; 
 __local uint DES_SPtrans[8][64];
 __local uint des_skb[8][64];
-
 
 
 SIZE = (uint)(size); 

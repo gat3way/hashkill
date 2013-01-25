@@ -48,20 +48,11 @@
 #define m2 0xFF00FF00U
 
 
-#ifndef OLD_ATI
-#pragma OPENCL EXTENSION cl_amd_media_ops : enable
 #define Endian_Reverse32(aa) { l=(aa);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (aa)=bitselect(tmp2,tmp1,m); } 
 #define F_00_19(bb,cc,dd) (bitselect((dd),(cc),(bb)))
 #define F_20_39(bb,cc,dd)  ((bb) ^ (cc) ^ (dd))  
 #define F_40_59(bb,cc,dd) (bitselect((cc), (bb), ((dd)^(cc))))
 #define F_60_79(bb,cc,dd)  F_20_39((bb),(cc),(dd)) 
-#else
-#define Endian_Reverse32(aa) { l=(aa);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (aa)=bitselect(tmp2,tmp1,m); } 
-#define F_00_19(bb,cc,dd)  ((((cc) ^ (dd)) & (bb)) ^ (dd))
-#define F_20_39(bb,cc,dd)  ((cc) ^ (bb) ^ (dd))  
-#define F_40_59(bb,cc,dd)  (((bb) & (cc)) | (((bb)|(cc)) & (dd)))  
-#define F_60_79(bb,cc,dd)  F_20_39(bb,cc,dd) 
-#endif
 
 
 #define K0 0x5A827999U;

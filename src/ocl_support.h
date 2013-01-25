@@ -275,6 +275,11 @@ hash_stat ocl_bruteforce_keepass(void);
 hash_stat ocl_markov_keepass(void);
 hash_stat ocl_rule_keepass(void);
 
+/* mozilla plugin support */
+hash_stat ocl_bruteforce_mozilla(void);
+hash_stat ocl_markov_mozilla(void);
+hash_stat ocl_rule_mozilla(void);
+
 
 /* supported plugins struct array*/
 struct ocl_supported_plugins_s
