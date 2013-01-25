@@ -79,7 +79,8 @@ char *hash_plugin_detailed(void)
 
 hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 {
-
+	if (!hashline) return hash_err;
+	if (strlen(hashline)<3) return hash_err;
 	char *ctcopy = strdup(hashline);
 	char *keeptr = ctcopy;
 	char *p;
@@ -306,50 +307,67 @@ pdf_compute_hardened_hash_r6(unsigned char *password, int pwlen, unsigned char s
 
 /* Computing the user password (PDF 1.7 algorithm 3.4 and 3.5) */
 
-static void pdf_compute_user_password(unsigned char *password, unsigned char *output)
+static void pdf_compute_user_password(unsigned char *password[VECTORSIZE], unsigned char *output[VECTORSIZE])
 {
-
-	int pwlen = strlen((char *) password);
+	int pwlen;
 	unsigned char key[128];
+	int a;
 
 	if (cs.R == 2) {
+	    for (a=0;a<vectorsize;a++)
+	    {
 		RC4_KEY arc4;
 		int n;
 		n = cs.length / 8;
-		pdf_compute_encryption_key(password, pwlen, key);
+		pwlen = strlen((char *) password[a]);
+		pdf_compute_encryption_key(password[a], pwlen, key);
 		RC4_set_key(&arc4, n, key);
-		RC4(&arc4, 32, padding, output);
+		RC4(&arc4, 32, padding, output[a]);
+	    }
 	}
 
-	if (cs.R == 3 || cs.R == 4) {
+	else if (cs.R == 3 || cs.R == 4) {
+	    for (a=0;a<vectorsize;a++)
+	    {
 		unsigned char xor[32];
 		unsigned char digest[16];
+
+		pwlen = strlen((char *) password[a]);
 		MD5_CTX md5;
 		RC4_KEY arc4;
 		int i, x, n;
 		n = cs.length / 8;
-		pdf_compute_encryption_key(password, pwlen, key);
+		pdf_compute_encryption_key(password[a], pwlen, key);
 		MD5_Init(&md5);
 		MD5_Update(&md5, (char *) padding, 32);
 		MD5_Update(&md5, cs.id, cs.length_id);
 		MD5_Final(digest, &md5);
 		RC4_set_key(&arc4, n, key);
-		RC4(&arc4, 16, digest, output);
+		RC4(&arc4, 16, digest, output[a]);
 		for (x = 1; x <= 19; x++) {
 			for (i = 0; i < n; i++)
 				xor[i] = key[i] ^ x;
 			RC4_set_key(&arc4, n, xor);
-			RC4(&arc4, 16, output, output);
+			RC4(&arc4, 16, output[a], output[a]);
 		}
-		memcpy(output + 16, padding, 16);
+		memcpy(output[a] + 16, padding, 16);
+	    }
 	}
-	if (cs.R == 5) {
-		pdf_compute_encryption_key_r5(password, pwlen, 0, output);
+	else if (cs.R == 5) {
+	    for (a=0;a<vectorsize;a++)
+	    {
+		pwlen = strlen((char *) password[a]);
+		pdf_compute_encryption_key_r5(password[a], pwlen, 0, output[a]);
+	    }
 	}
 
 	/* SumatraPDF: support crypt version 5 revision 6 */
-	if (cs.R == 6)
-		pdf_compute_hardened_hash_r6(password, pwlen, cs.u + 32, NULL, output);
+	else if (cs.R == 6)
+	for (a=0;a<vectorsize;a++)
+	{
+	    pwlen = strlen((char *) password[a]);
+	    pdf_compute_hardened_hash_r6(password[a], pwlen, cs.u + 32, NULL, output[a]);
+	}
 
 }
 
@@ -358,14 +376,15 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     char *salt2[VECTORSIZE], const char *username, int *num, int threadid)
 {
 	char *buf[VECTORSIZE];
-
 	int a;
 
 	for (a = 0; a < vectorsize; a++) {
 		buf[a] = alloca(32);
 	}
+
+	pdf_compute_user_password((unsigned char **)password, (unsigned char **)buf);
 	for (a = 0; a < vectorsize; a++) {
-		pdf_compute_user_password((unsigned char*)password[a], (unsigned char*)buf[a]);
+		
 		if (cs.R == 3 || cs.R == 4)
 			if (memcmp(buf[a], cs.u, 16) == 0) {
 				*num = a;

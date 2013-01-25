@@ -82,13 +82,13 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	unsigned char buf[32];
 
 	if (!(fp = fopen(filename, "rb"))) {
-		fprintf(stderr, "! %s: %s\n", filename, strerror(errno));
+		//fprintf(stderr, "! %s: %s\n", filename, strerror(errno));
 		goto bail;
 	}
 	count = fread(buf, 4, 1, fp);
 	assert(count == 1);
 	if(memcmp(buf, magic, 4)) {
-		fprintf(stderr, "%s : Couldn't find PWS3 magic string. Is this a Password Safe file?\n", filename);
+		//fprintf(stderr, "%s : Couldn't find PWS3 magic string. Is this a Password Safe file?\n", filename);
 		goto bail;
 	}
 	count = fread(buf, 32, 1, fp);
@@ -110,40 +110,33 @@ bail:
 	return hash_err;
 }
 
-static void crypt_all(const char *password, unsigned char *output)
-{
-	SHA256_CTX ctx;
-	int i;
-	SHA256_Init(&ctx);
-	SHA256_Update(&ctx, password, strlen(password));
-	SHA256_Update(&ctx, cs.salt, 32);
-	SHA256_Final(output, &ctx);
-	for(i = 0; i <= cs.iterations; i++)  {
-		SHA256_Init(&ctx);
-		SHA256_Update(&ctx, output, 32);
-		SHA256_Final(output, &ctx);
-	}
-}
-
 
 hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSIZE], const char *salt,
     char *salt2[VECTORSIZE], const char *username, int *num, int threadid)
 {
-	unsigned char *buf[VECTORSIZE];
-
+	char *buf[VECTORSIZE];
+	char *buf2[VECTORSIZE];
+	int lens[VECTORSIZE];
+	int lens2[VECTORSIZE];
 	int a;
 
 	for (a = 0; a < vectorsize; a++) {
 		buf[a] = alloca(32);
+		buf2[a] = alloca(128);
+		lens[a]=strlen(password[a]);
+		memcpy(buf2[a],password[a],lens[a]);
+		memcpy(buf2[a]+lens[a],cs.salt,32);
+		lens[a]+=32;
+		lens2[a]=32;
 	}
+	hash_sha256_unicode((const char**)buf2, buf, lens);
+	for (a=0;a<=cs.iterations;a++) hash_sha256_unicode((const char**)buf, buf, lens2);
 	for (a = 0; a < vectorsize; a++) {
-		crypt_all(password[a], buf[a]);
 		if (!memcmp(buf[a], cs.hash, 32)) {
 			*num = a;
 			return hash_ok;
 		}
 	}
-
 	return hash_err;
 }
 
