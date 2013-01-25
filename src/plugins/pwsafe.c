@@ -83,10 +83,10 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 
 	if (!(fp = fopen(filename, "rb"))) {
 		//fprintf(stderr, "! %s: %s\n", filename, strerror(errno));
-		goto bail;
+		return hash_err;
 	}
 	count = fread(buf, 4, 1, fp);
-	assert(count == 1);
+	//assert(count == 1);
 	if(memcmp(buf, magic, 4)) {
 		//fprintf(stderr, "%s : Couldn't find PWS3 magic string. Is this a Password Safe file?\n", filename);
 		goto bail;
@@ -96,7 +96,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 
 	memcpy(cs.salt, buf, 32);
 	count = fread(buf, 32, 1, fp);
-	assert(count == 1);
+	//assert(count == 1);
 	memcpy(cs.hash, buf, 32);
 	fclose(fp);
 
@@ -107,6 +107,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	return hash_ok;
 
 bail:
+	fclose(fp);
 	return hash_err;
 }
 
@@ -130,7 +131,11 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 		lens2[a]=32;
 	}
 	hash_sha256_unicode((const char**)buf2, buf, lens);
-	for (a=0;a<=cs.iterations;a++) hash_sha256_unicode((const char**)buf, buf, lens2);
+	for (a=0;a<=cs.iterations;a++) 
+	{
+	    hash_sha256_unicode((const char**)buf, buf, lens2);
+	}
+
 	for (a = 0; a < vectorsize; a++) {
 		if (!memcmp(buf[a], cs.hash, 32)) {
 			*num = a;

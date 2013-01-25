@@ -171,9 +171,9 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 		return hash_err;
 	}
 	count = fread(buf, KEYRING_FILE_HEADER_LEN, 1, fp);
-	assert(count == 1);
+	//assert(count == 1);
 	if (memcmp(buf, KEYRING_FILE_HEADER, KEYRING_FILE_HEADER_LEN) != 0) {
-		fprintf(stderr, "%s : Not a GNOME Keyring file!\n", filename);
+		//fprintf(stderr, "%s : Not a GNOME Keyring file!\n", filename);
 		return hash_err;
 	}
 	offset = KEYRING_FILE_HEADER_LEN;
@@ -184,8 +184,9 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	offset += 4;
 
 	if (major != 0 || minor != 0 || crypto != 0 || hash != 0) {
-		fprintf(stderr, "%s : Un-supported GNOME Keyring file!\n",
-		    filename);
+		//fprintf(stderr, "%s : Un-supported GNOME Keyring file!\n",
+		//    filename);
+		fclose(fp);
 		return hash_err;
 	}
 	// Keyring name
@@ -241,7 +242,8 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	return hash_ok;
 
 bail:
-	fprintf(stderr, "%s: Possible bug found, please report this upstream!\n", filename);
+	//fprintf(stderr, "%s: Possible bug found, please report this upstream!\n", filename);
+	fclose(fp);
 	return hash_err;
 }
 
