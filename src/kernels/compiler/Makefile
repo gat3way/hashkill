@@ -95,6 +95,7 @@ build:
 	if [ ! -e amd_keepass2__Juniper.bin ]; then ./amd-compiler amd_keepass2 n ;fi; \
 	if [ ! -e amd_mozilla_long__Juniper.bin ]; then ./amd-compiler amd_mozilla_long n ;fi; \
 	if [ ! -e amd_mozilla__Juniper.bin ]; then ./amd-compiler amd_mozilla n ;fi; \
+	if [ ! -e amd_pwsafe__Juniper.bin ]; then ./amd-compiler amd_pwsafe n ;fi; \
 	fi
 	# NVidia
 	@if [ "$(CL_NVFLAGS)" = "yes" ]; then \
@@ -179,6 +180,7 @@ build:
 	if [ ! -e nvidia_keepass2__sm10.ptx ]; then ./nvidia-compiler nvidia_keepass2 n ;fi; \
 	if [ ! -e nvidia_mozilla__sm10.ptx ]; then ./nvidia-compiler nvidia_mozilla n ;fi; \
 	if [ ! -e nvidia_mozilla_long__sm10.ptx ]; then ./nvidia-compiler nvidia_mozilla_long n ;fi; \
+	if [ ! -e nvidia_pwsafe__sm10.ptx ]; then ./nvidia-compiler nvidia_pwsafe n ;fi; \
 	fi
 
 

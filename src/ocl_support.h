@@ -280,6 +280,11 @@ hash_stat ocl_bruteforce_mozilla(void);
 hash_stat ocl_markov_mozilla(void);
 hash_stat ocl_rule_mozilla(void);
 
+/* pwsafe plugin support */
+hash_stat ocl_bruteforce_pwsafe(void);
+hash_stat ocl_markov_pwsafe(void);
+hash_stat ocl_rule_pwsafe(void);
+
 
 /* supported plugins struct array*/
 struct ocl_supported_plugins_s
