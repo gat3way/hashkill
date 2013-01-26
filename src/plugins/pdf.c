@@ -64,7 +64,7 @@ static struct custom_salt {
 
 char *hash_plugin_summary(void)
 {
-	return ("pdf \tpdf passphrase plugin");
+	return ("pdf \t\tpdf passphrase plugin");
 }
 
 

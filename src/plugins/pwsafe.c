@@ -50,7 +50,7 @@ static struct custom_salt {
 
 char *hash_plugin_summary(void)
 {
-	return ("pwsafe \tPassword Safe pwsafe passphrase plugin");
+	return ("pwsafe \t\tPassword Safe pwsafe passphrase plugin");
 }
 
 char *hash_plugin_detailed(void)
