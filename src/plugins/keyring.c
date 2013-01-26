@@ -26,8 +26,6 @@
 #include <string.h>
 #include <alloca.h>
 #include <sys/types.h>
-#include <openssl/sha.h>
-#include <openssl/md5.h>
 #include <fcntl.h>
 #include <assert.h>
 #include <stdint.h>
@@ -110,7 +108,7 @@ static int get_utf8_string(FILE * fp, int *next_offset)
 	}
 	/* read len bytes */
 	count = fread(buf, len, 1, fp);
-	assert(count == 1);
+	//assert(count == 1);
 	*next_offset = *next_offset + len;
 	return 1;
 }
@@ -121,7 +119,6 @@ static void buffer_get_attributes(FILE * fp, int *next_offset)
 	guint type;
 	guint val;
 	int i;
-
 	get_uint32(fp, next_offset, &list_size);
 	for (i = 0; i < list_size; i++) {
 		get_utf8_string(fp, next_offset);
@@ -171,6 +168,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 		return hash_err;
 	}
 	count = fread(buf, KEYRING_FILE_HEADER_LEN, 1, fp);
+	if (count!=1) return hash_err;
 	//assert(count == 1);
 	if (memcmp(buf, KEYRING_FILE_HEADER, KEYRING_FILE_HEADER_LEN) != 0) {
 		//fprintf(stderr, "%s : Not a GNOME Keyring file!\n", filename);
@@ -194,7 +192,12 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 		goto bail;
 	// ctime
 	count = fread(buf, 8, 1, fp);
-	assert(count == 1);
+	//assert(count == 1);
+	if (count!=1)
+	{
+	    fclose(fp);
+	    return hash_err;
+	}
 	offset += 8;
 	// mtime
 	count = fread(buf, 8, 1, fp);
@@ -247,113 +250,56 @@ bail:
 	return hash_err;
 }
 
-static void symkey_generate_simple(const char *password, int n_password, unsigned char *salt, int n_salt, int iterations, unsigned char *key, unsigned char *iv)
-{
-
-	SHA256_CTX ctx;
-	guchar digest[64];
-	guint n_digest;
-	gint pass, i;
-	gint needed_iv, needed_key;
-	guchar *at_iv, *at_key;
-
-	at_key = key;
-	at_iv = iv;
-
-	needed_key = 16;
-	needed_iv = 16;
-	n_digest = 32;		/* SHA256 digest size */
-
-	for (pass = 0;; ++pass) {
-		SHA256_Init(&ctx);
-
-		/* Hash in the previous buffer on later passes */
-		if (pass > 0) {
-			SHA256_Update(&ctx, digest, n_digest);
-		}
-
-		if (password) {
-			SHA256_Update(&ctx, password, n_password);
-
-		}
-		if (salt && n_salt) {
-			SHA256_Update(&ctx, salt, n_salt);
-		}
-		SHA256_Final(digest, &ctx);
-
-		for (i = 1; i < iterations; ++i) {
-			SHA256_Init(&ctx);
-			SHA256_Update(&ctx, digest, n_digest);
-			SHA256_Final(digest, &ctx);
-		}
-		/* Copy as much as possible into the destinations */
-		i = 0;
-		while (needed_key && i < n_digest) {
-			*(at_key++) = digest[i];
-			needed_key--;
-			i++;
-		}
-		while (needed_iv && i < n_digest) {
-			if (at_iv)
-				*(at_iv++) = digest[i];
-			needed_iv--;
-			i++;
-		}
-
-		if (needed_key == 0 && needed_iv == 0)
-			break;
-
-	}
-}
-
-static void decrypt_buffer(unsigned char *buffer, unsigned int len,
-    unsigned char *salt, int iterations, char *password)
-{
-	unsigned char key[32];
-	unsigned char iv[32];
-	AES_KEY akey;
-	int n_password = strlen(password);
-
-	symkey_generate_simple(password, n_password, salt, 8, iterations, key, iv);
-
-	memset(&akey, 0, sizeof(AES_KEY));
-	if (AES_set_decrypt_key(key, 128, &akey) < 0) {
-		fprintf(stderr, "AES_set_derypt_key failed!\n");
-	}
-	AES_cbc_encrypt(buffer, buffer, len, &akey, iv, AES_DECRYPT);
-}
-
-static int verify_decrypted_buffer(unsigned char *buffer, int len)
-{
-	guchar digest[16];
-	MD5_CTX ctx;
-	MD5_Init(&ctx);
-	MD5_Update(&ctx, buffer + 16, len - 16);
-	MD5_Final(digest, &ctx);
-	return memcmp(buffer, digest, 16) == 0;
-}
 
 hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSIZE], const char *salt,
     char *salt2[VECTORSIZE], const char *username, int *num, int threadid)
 {
 	unsigned char *buf[VECTORSIZE];
-
+	unsigned char *buf2[VECTORSIZE];
+	unsigned char *buf3[VECTORSIZE];
+	unsigned char *key[VECTORSIZE];
+	unsigned char *iv[VECTORSIZE];
+	int lens[VECTORSIZE];
+	int lens2[VECTORSIZE];
+	AES_KEY aeskey;
 	int a;
 
 	for (a = 0; a < vectorsize; a++) {
-		buf[a] = alloca(cs.crypto_size + 1);
+		buf[a] = alloca((cs.crypto_size + 1)>64 ? (cs.crypto_size + 1) : 64);
+		buf3[a] = alloca(cs.crypto_size - 15);
+		buf2[a] = alloca(32);
+		key[a] = alloca(16);
+		iv[a] = alloca(16);
+		lens[a] = strlen(password[a]);
+		memcpy(buf[a],password[a],lens[a]);
+		memcpy(buf[a]+lens[a],cs.salt,8);
+		lens[a]+=8;
+		lens2[a]=32;
 	}
-	for (a = 0; a < vectorsize; a++) {
-		int res;
-		memcpy(buf[a], cs.ct, cs.crypto_size);
-		decrypt_buffer(buf[a], cs.crypto_size, cs.salt, cs.iterations, (char *)password[a]);
-		res = verify_decrypted_buffer(buf[a], cs.crypto_size);
-		if (res) {
-			*num = a;
-			return hash_ok;
-		}
+	hash_sha256_unicode((const char **)buf,(char **)buf2,lens);
+	for (a=1;a<cs.iterations;a++)
+	{
+	    hash_sha256_unicode((const char **)buf2,(char **)buf2,lens2);
 	}
-
+	for (a = 0; a < vectorsize; a++) 
+	{
+	    memcpy(key[a],buf2[a],16);
+	    memcpy(iv[a],buf2[a]+16,16);
+	    memcpy(buf[a], cs.ct, cs.crypto_size);
+	    hash_aes_set_decrypt_key(key[a], 128, &aeskey);
+	    hash_aes_cbc_encrypt(buf[a], buf[a], cs.crypto_size, &aeskey, iv[a], AES_DECRYPT);
+	    memcpy(buf3[a],buf[a]+16,cs.crypto_size-16);
+	    lens[a]=cs.crypto_size-16;
+	}
+	hash_md5_unicode_slow((const char **)buf3, (char **)buf2, lens);
+	for (a = 0; a < vectorsize; a++) 
+	{
+	    if (memcmp(buf[a], buf2[a], 16) == 0)
+	    {
+		*num = a;
+		return hash_ok;
+	    }
+	}
 	return hash_err;
 }
 
