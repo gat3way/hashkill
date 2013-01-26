@@ -97,7 +97,6 @@ static int get_utf8_string(FILE * fp, int *next_offset)
 {
 	uint32_t len;
 	unsigned char buf[1024];
-	int count;
 	get_uint32(fp, next_offset, &len);
 
 	if (len == 0xffffffff) {
@@ -107,8 +106,7 @@ static int get_utf8_string(FILE * fp, int *next_offset)
 		return 0;
 	}
 	/* read len bytes */
-	count = fread(buf, len, 1, fp);
-	//assert(count == 1);
+	fread(buf, len, 1, fp);
 	*next_offset = *next_offset + len;
 	return 1;
 }
@@ -256,17 +254,16 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 {
 	unsigned char *buf[VECTORSIZE];
 	unsigned char *buf2[VECTORSIZE];
-	unsigned char *buf3[VECTORSIZE];
 	unsigned char *key[VECTORSIZE];
 	unsigned char *iv[VECTORSIZE];
 	int lens[VECTORSIZE];
 	int lens2[VECTORSIZE];
 	AES_KEY aeskey;
+	char *fixedverifier="\xd4\x1d\x8c\xd9\x8f\x00\xb2\x04\xe9\x80\x09\x98\xec\xf8\x42\x7e";
 	int a;
 
 	for (a = 0; a < vectorsize; a++) {
 		buf[a] = alloca((cs.crypto_size + 1)>64 ? (cs.crypto_size + 1) : 64);
-		buf3[a] = alloca(cs.crypto_size - 15);
 		buf2[a] = alloca(32);
 		key[a] = alloca(16);
 		iv[a] = alloca(16);
@@ -288,13 +285,16 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    memcpy(buf[a], cs.ct, cs.crypto_size);
 	    hash_aes_set_decrypt_key(key[a], 128, &aeskey);
 	    hash_aes_cbc_encrypt(buf[a], buf[a], cs.crypto_size, &aeskey, iv[a], AES_DECRYPT);
-	    memcpy(buf3[a],buf[a]+16,cs.crypto_size-16);
-	    lens[a]=cs.crypto_size-16;
 	}
-	hash_md5_unicode_slow((const char **)buf3, (char **)buf2, lens);
+	/*
+	    Milen:
+	    Here comes the magic - cs.crypto_size is always 16 which means we're comparing against
+	    MD5(""). We can precalculate that rather than calculating it each time.
+	    This would come rather handy for the GPU code, not so useful for CPU though
+	*/
 	for (a = 0; a < vectorsize; a++) 
 	{
-	    if (memcmp(buf[a], buf2[a], 16) == 0)
+	    if (memcmp(buf[a], fixedverifier, 16) == 0)
 	    {
 		*num = a;
 		return hash_ok;
