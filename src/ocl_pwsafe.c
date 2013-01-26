@@ -197,13 +197,13 @@ static void ocl_pwsafe_crack_callback(char *line, int self)
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
     _clFinish(rule_oclqueue[self]);
 
-    for (a=0;a<((cs.iterations+1)/500);a++)
+    for (a=0;a<((cs.iterations+1)/200);a++)
     {
     	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
-	wthreads[self].tries+=(gws1)/(cs.iterations/500);
+	wthreads[self].tries+=(gws1)/(cs.iterations/200);
     }
-    salt.sA=((cs.iterations+1)%500);
+    salt.sA=((cs.iterations+1)%200);
     _clSetKernelArg(rule_kernellast[self], 6, sizeof(cl_uint16), (void*) &salt);
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernellast[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
     found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);

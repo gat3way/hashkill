@@ -496,7 +496,7 @@ G.s1=input[(get_global_id(0)*8*2)+14];
 H.s1=input[(get_global_id(0)*8*2)+15];
 
 
-for (ic=0;ic<500;ic++)
+for (ic=0;ic<200;ic++)
 {
 w0=A;
 w1=B;
@@ -1160,7 +1160,7 @@ G=input[(get_global_id(0)*8)+6];
 H=input[(get_global_id(0)*8)+7];
 
 
-for (ic=0;ic<500;ic++)
+for (ic=0;ic<200;ic++)
 {
 w0=A;
 w1=B;
