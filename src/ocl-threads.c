@@ -98,6 +98,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"keepass",&ocl_bruteforce_keepass, &ocl_markov_keepass, &ocl_rule_keepass},
                             {1,"mozilla",&ocl_bruteforce_mozilla, &ocl_markov_mozilla, &ocl_rule_mozilla},
                             {1,"pwsafe",&ocl_bruteforce_pwsafe, &ocl_markov_pwsafe, &ocl_rule_pwsafe},
+                            {1,"keyring",&ocl_bruteforce_keyring, &ocl_markov_keyring, &ocl_rule_keyring},
                             {0, "", NULL, NULL, NULL}
                         };
 
@@ -375,6 +376,8 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"django256")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"pwsafe")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"pwsafe")==0)&&(ocl_have_gcn)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"keyring")==0)&&(!ocl_have_gcn)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"keyring")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"lastpass")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"lastpass")==0)&&(ocl_have_gcn)) ocl_vector=1;
 	    }
@@ -412,6 +415,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"smf")==0)) {ocl_vector=4;loops=1;}
 		if ((strcmp(get_current_plugin(),"django256")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"pwsafe")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"keyring")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"lastpass")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"rar")==0)) ocl_vector=2;
 	    }

@@ -285,6 +285,11 @@ hash_stat ocl_bruteforce_pwsafe(void);
 hash_stat ocl_markov_pwsafe(void);
 hash_stat ocl_rule_pwsafe(void);
 
+/* keyring plugin support */
+hash_stat ocl_bruteforce_keyring(void);
+hash_stat ocl_markov_keyring(void);
+hash_stat ocl_rule_keyring(void);
+
 
 /* supported plugins struct array*/
 struct ocl_supported_plugins_s
