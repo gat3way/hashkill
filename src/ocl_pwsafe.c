@@ -72,13 +72,13 @@ static hash_stat load_pwsafe(char *filename)
     if(memcmp(buf, magic, 4)) 
     {
         fclose(fp);
-	return hash_err;
+        return hash_err;
     }
     count = fread(buf, 32, 1, fp);
     if (count!=1)
     {
-	fclose(fp);
-	return hash_err;
+        fclose(fp);
+        return hash_err;
     }
     cs.iterations = fget32(fp);
 
@@ -89,6 +89,7 @@ static hash_stat load_pwsafe(char *filename)
 
     return hash_ok;
 }
+
 
 
 

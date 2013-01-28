@@ -278,6 +278,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	{
 	    hash_sha256_unicode((const char **)buf2,(char **)buf2,lens2);
 	}
+
 	for (a = 0; a < vectorsize; a++) 
 	{
 	    memcpy(key[a],buf2[a],16);
