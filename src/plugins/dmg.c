@@ -211,7 +211,6 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     }
     if (strncmp(buf8,"encrcdsa",8)==0)
     {
-	if (!hashline) elog("File %s is not a DMG file!\n", filename);
 	//return hash_err;
 	headerver=2;
     }
