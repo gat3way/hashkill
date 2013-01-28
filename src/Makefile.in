@@ -139,7 +139,8 @@ am_hashkill_OBJECTS = hashkill-ocl-base.$(OBJEXT) \
 	hashkill-ocl_truecrypt.$(OBJEXT) \
 	hashkill-ocl_lastpass.$(OBJEXT) hashkill-ocl_keepass.$(OBJEXT) \
 	hashkill-ocl_mozilla.$(OBJEXT) hashkill-ocl_pwsafe.$(OBJEXT) \
-	hashkill-ocl_keyring.$(OBJEXT)
+	hashkill-ocl_keyring.$(OBJEXT) hashkill-ocl_kwallet.$(OBJEXT) \
+	hashkill-bad_blowfish.$(OBJEXT)
 hashkill_OBJECTS = $(am_hashkill_OBJECTS)
 hashkill_DEPENDENCIES = libtargets.la
 hashkill_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -361,7 +362,7 @@ ocl_pixmd5.c ocl_phpbb3.c ocl_wordpress.c ocl_md5unix.c ocl_sha512unix.c ocl_msc
 ocl_dmg.c unrargpu.c ocl_rar.c ocl_bfunix.c ocl_drupal7.c ocl_zip.c ocl_django256.c ocl_sha256unix.c \
 ocl_o5logon.c ocl_mssql-2012.c ocl_msoffice.c ocl_luks.c ocl_ripemd160.c ocl_whirlpool.c \
 cpu-serpent.c cpu-twofish.c ocl_truecrypt.c ocl_lastpass.c ocl_keepass.c ocl_mozilla.c ocl_pwsafe.c \
-ocl_keyring.c
+ocl_keyring.c ocl_kwallet.c bad_blowfish.c
 
 
 # forced static linkage below
@@ -510,6 +511,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-LzFind.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-LzmaDec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-LzmaEnc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-bad_blowfish.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-base64.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-cpu-feat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-cpu-serpent.Po@am__quote@
@@ -537,6 +539,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_joomla.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_keepass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_keyring.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_kwallet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_lastpass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_lm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_luks.Po@am__quote@
@@ -1758,6 +1761,34 @@ hashkill-ocl_keyring.obj: ocl_keyring.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_keyring.c' object='hashkill-ocl_keyring.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_keyring.obj `if test -f 'ocl_keyring.c'; then $(CYGPATH_W) 'ocl_keyring.c'; else $(CYGPATH_W) '$(srcdir)/ocl_keyring.c'; fi`
+
+hashkill-ocl_kwallet.o: ocl_kwallet.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_kwallet.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_kwallet.Tpo -c -o hashkill-ocl_kwallet.o `test -f 'ocl_kwallet.c' || echo '$(srcdir)/'`ocl_kwallet.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_kwallet.Tpo $(DEPDIR)/hashkill-ocl_kwallet.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_kwallet.c' object='hashkill-ocl_kwallet.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_kwallet.o `test -f 'ocl_kwallet.c' || echo '$(srcdir)/'`ocl_kwallet.c
+
+hashkill-ocl_kwallet.obj: ocl_kwallet.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_kwallet.obj -MD -MP -MF $(DEPDIR)/hashkill-ocl_kwallet.Tpo -c -o hashkill-ocl_kwallet.obj `if test -f 'ocl_kwallet.c'; then $(CYGPATH_W) 'ocl_kwallet.c'; else $(CYGPATH_W) '$(srcdir)/ocl_kwallet.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_kwallet.Tpo $(DEPDIR)/hashkill-ocl_kwallet.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_kwallet.c' object='hashkill-ocl_kwallet.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_kwallet.obj `if test -f 'ocl_kwallet.c'; then $(CYGPATH_W) 'ocl_kwallet.c'; else $(CYGPATH_W) '$(srcdir)/ocl_kwallet.c'; fi`
+
+hashkill-bad_blowfish.o: bad_blowfish.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-bad_blowfish.o -MD -MP -MF $(DEPDIR)/hashkill-bad_blowfish.Tpo -c -o hashkill-bad_blowfish.o `test -f 'bad_blowfish.c' || echo '$(srcdir)/'`bad_blowfish.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-bad_blowfish.Tpo $(DEPDIR)/hashkill-bad_blowfish.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='bad_blowfish.c' object='hashkill-bad_blowfish.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-bad_blowfish.o `test -f 'bad_blowfish.c' || echo '$(srcdir)/'`bad_blowfish.c
+
+hashkill-bad_blowfish.obj: bad_blowfish.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-bad_blowfish.obj -MD -MP -MF $(DEPDIR)/hashkill-bad_blowfish.Tpo -c -o hashkill-bad_blowfish.obj `if test -f 'bad_blowfish.c'; then $(CYGPATH_W) 'bad_blowfish.c'; else $(CYGPATH_W) '$(srcdir)/bad_blowfish.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-bad_blowfish.Tpo $(DEPDIR)/hashkill-bad_blowfish.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='bad_blowfish.c' object='hashkill-bad_blowfish.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-bad_blowfish.obj `if test -f 'bad_blowfish.c'; then $(CYGPATH_W) 'bad_blowfish.c'; else $(CYGPATH_W) '$(srcdir)/bad_blowfish.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
