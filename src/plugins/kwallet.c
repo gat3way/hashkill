@@ -100,7 +100,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	uint32_t n;
 
 	if (!(fp = fopen(filename, "rb"))) {
-		fprintf(stderr, "%s : %s\n", filename, strerror(errno));
+		//fprintf(stderr, "%s : %s\n", filename, strerror(errno));
 		return hash_err;
 	}
 
@@ -110,7 +110,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 
 	count = fread(buf, KWMAGIC_LEN, 1, fp);
 	if (memcmp(buf, KWMAGIC, KWMAGIC_LEN) != 0) {
-		fprintf(stderr, "%s : Not a KDE KWallet file!\n", filename);
+		//fprintf(stderr, "%s : Not a KDE KWallet file!\n", filename);
 		goto bail;
 	}
 
@@ -120,29 +120,29 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 
 	/* First byte is major version, second byte is minor version */
 	if (buf[0] != KWALLET_VERSION_MAJOR) {
-		fprintf(stderr, "%s : Unknown version!\n", filename);
+		//fprintf(stderr, "%s : Unknown version!\n", filename);
 		goto bail;
 	}
 
 	if (buf[1] != KWALLET_VERSION_MINOR) {
-		fprintf(stderr, "%s : Unknown version!\n", filename);
+		//fprintf(stderr, "%s : Unknown version!\n", filename);
 		goto bail;
 	}
 
 	if (buf[2] != KWALLET_CIPHER_BLOWFISH_CBC) {
-		fprintf(stderr, "%s : Unsupported cipher\n", filename);
+		//fprintf(stderr, "%s : Unsupported cipher\n", filename);
 		goto bail;
 	}
 
 	if (buf[3] != KWALLET_HASH_SHA1) {
-		fprintf(stderr, "%s : Unsupported hash\n", filename);
+		//fprintf(stderr, "%s : Unsupported hash\n", filename);
 		goto bail;
 	}
 
 	/* Read in the hashes */
 	n = fget32_(fp);
 	if (n > 0xffff) {
-		fprintf(stderr, "%s : sanity check failed!\n", filename);
+		//fprintf(stderr, "%s : sanity check failed!\n", filename);
 		goto bail;
 	}
 	offset += 4;
@@ -165,8 +165,8 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	count = fread(cs.ct, encrypted_size, 1, fp);
 
 	if ((encrypted_size % 8) != 0) {
-		fprintf(stderr, "%s : invalid file structure!\n", filename);
-		exit(7);
+		//fprintf(stderr, "%s : invalid file structure!\n", filename);
+		return hash_err;
 	}
 	fclose(fp);
 	cs.ctlen = encrypted_size;
@@ -182,160 +182,88 @@ bail:
 	return hash_err;
 }
 
-static int password2hash(char *password, unsigned char *hash)
-{
-	SHA_CTX ctx;
-	unsigned char block1[20] = { 0 };
-	int i;
-
-	SHA1_Init(&ctx);
-	SHA1_Update(&ctx, password, MIN(strlen(password), 16));
-	// To make brute force take longer
-	for (i = 0; i < 2000; i++) {
-		SHA1_Final(block1, &ctx);
-		SHA1_Init(&ctx);
-		SHA1_Update(&ctx, block1, 20);
-	}
-	memcpy(hash, block1, 20);
-
-	/*if (password.size() > 16) {
-
-	   sha.process(password.data() + 16, qMin(password.size() - 16, 16));
-	   QByteArray block2(shasz, 0);
-	   // To make brute force take longer
-	   for (int i = 0; i < 2000; i++) {
-	   memcpy(block2.data(), sha.hash(), shasz);
-	   sha.reset();
-	   sha.process(block2.data(), shasz);
-	   }
-
-	   sha.reset();
-
-	   if (password.size() > 32) {
-	   sha.process(password.data() + 32, qMin(password.size() - 32, 16));
-
-	   QByteArray block3(shasz, 0);
-	   // To make brute force take longer
-	   for (int i = 0; i < 2000; i++) {
-	   memcpy(block3.data(), sha.hash(), shasz);
-	   sha.reset();
-	   sha.process(block3.data(), shasz);
-	   }
-
-	   sha.reset();
-
-	   if (password.size() > 48) {
-	   sha.process(password.data() + 48, password.size() - 48);
-
-	   QByteArray block4(shasz, 0);
-	   // To make brute force take longer
-	   for (int i = 0; i < 2000; i++) {
-	   memcpy(block4.data(), sha.hash(), shasz);
-	   sha.reset();
-	   sha.process(block4.data(), shasz);
-	   }
-
-	   sha.reset();
-	   // split 14/14/14/14
-	   hash.resize(56);
-	   memcpy(hash.data(),      block1.data(), 14);
-	   memcpy(hash.data() + 14, block2.data(), 14);
-	   memcpy(hash.data() + 28, block3.data(), 14);
-	   memcpy(hash.data() + 42, block4.data(), 14);
-	   block4.fill(0);
-	   } else {
-	   // split 20/20/16
-	   hash.resize(56);
-	   memcpy(hash.data(),      block1.data(), 20);
-	   memcpy(hash.data() + 20, block2.data(), 20);
-	   memcpy(hash.data() + 40, block3.data(), 16);
-	   }
-	   block3.fill(0);
-	   } else {
-	   // split 20/20
-	   hash.resize(40);
-	   memcpy(hash.data(),      block1.data(), 20);
-	   memcpy(hash.data() + 20, block2.data(), 20);
-	   }
-	   block2.fill(0);
-	   } else {
-	   // entirely block1
-	   hash.resize(20);
-	   memcpy(hash.data(), block1.data(), 20);
-	   }
-
-	   block1.fill(0); */
-	return 0;
-}
-
-static int verify_passphrase(char *passphrase)
-{
-	unsigned char key[20];
-	SHA_CTX ctx;
-	BlowFish _bf;
-	int sz;
-	int i;
-	unsigned char testhash[20];
-	unsigned char buffer[0x10000];
-	const char *t;
-	long fsize;
-	CipherBlockChain bf;
-	password2hash(passphrase, key);
-	CipherBlockChain_constructor(&bf, &_bf);
-	CipherBlockChain_setKey(&bf, (void *) key, 20 * 8);
-	memcpy(buffer, cs.ct, cs.ctlen);
-	CipherBlockChain_decrypt(&bf, buffer, cs.ctlen);
-
-	t = (char *) buffer;
-
-	// strip the leading data
-	t += 8;			// one block of random data
-
-	// strip the file size off
-	fsize = 0;
-	fsize |= ((long) (*t) << 24) & 0xff000000;
-	t++;
-	fsize |= ((long) (*t) << 16) & 0x00ff0000;
-	t++;
-	fsize |= ((long) (*t) << 8) & 0x0000ff00;
-	t++;
-	fsize |= (long) (*t) & 0x000000ff;
-	t++;
-	if (fsize < 0 || fsize > (long) (cs.ctlen) - 8 - 4) {
-		// file structure error
-		return -1;
-	}
-	SHA1_Init(&ctx);
-	SHA1_Update(&ctx, t, fsize);
-	SHA1_Final(testhash, &ctx);
-	// compare hashes
-	sz = cs.ctlen;
-	for (i = 0; i < 20; i++) {
-		if (testhash[i] != buffer[sz - 20 + i]) {
-			return -2;
-		}
-	}
-	return 0;
-}
 
 
 hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSIZE], const char *salt,
     char *salt2[VECTORSIZE], const char *username, int *num, int threadid)
 {
 	int a;
+	unsigned char *buf[VECTORSIZE];
+	unsigned char *buf2[VECTORSIZE];
+	int lens[VECTORSIZE];
+	int lens2[VECTORSIZE];
+	BlowFish _bf;
+	int sz;
+	unsigned char buffer[0x10000];
+	const char *t;
+	long fsize;
+        CipherBlockChain bf;
 
-	for (a = 0; a < vectorsize; a++) {
-		if (verify_passphrase((char*)password[a]) == 0) {
-			*num = a;
-			return hash_ok;
-		}
+	for (a = 0; a < vectorsize; a++) 
+	{
+	    buf[a]=alloca(256);
+	    buf2[a]=alloca(64);
+	    memset(buf[a],0,256);
+	    lens[a]=MIN(strlen(password[a]), 16);
+	    memcpy(buf[a],password[a],lens[a]);
+	    lens2[a]=20;
+	}
+	
+	hash_sha1_slow((const char **)buf,(char **)buf,lens);
+	for (a = 0; a < 1999; a++) 
+	{
+	    hash_sha1_unicode((const char **)buf,(char **)buf,lens2);
+	}
+
+	for (a = 0; a < vectorsize; a++) 
+	{
+	    CipherBlockChain_constructor(&bf, &_bf);
+	    CipherBlockChain_setKey(&bf, (void *) buf[a], 20 * 8);
+	    memcpy(buffer, cs.ct, cs.ctlen);
+	    CipherBlockChain_decrypt(&bf, buffer, cs.ctlen);
+    	    t = (char *) buffer;
+	    // strip the leading data
+	    t += 8; 
+	    // strip the file size off
+	    fsize = 0;
+	    fsize |= ((long) (*t) << 24) & 0xff000000;
+	    t++;
+	    fsize |= ((long) (*t) << 16) & 0x00ff0000;
+	    t++;
+	    fsize |= ((long) (*t) << 8) & 0x0000ff00;
+	    t++;
+	    fsize |= (long) (*t) & 0x000000ff;
+	    t++;
+	    if (fsize < 0 || fsize > (long) (cs.ctlen) - 8 - 4) 
+	    {
+		// file structure error
+		lens[a]=1;
+		buf2[a][0]='_';
+		continue;
+	    }
+	    lens[a]=fsize;
+	    memcpy(buf[a],t,fsize);
+	    sz = cs.ctlen;
+	    memcpy(buf2[a],buffer+(sz-20),20);
+	}
+
+	hash_sha1_slow((const char **)buf,(char **)buf,lens);
+	
+	for (a = 0; a < vectorsize; a++) 
+	{
+	    sz = cs.ctlen;
+	    if (memcmp(buf2[a],buf[a],20)==0)
+	    {
+		*num = a;
+		return hash_ok;
+	    }
 	}
 	return hash_err;
 }
 
 int hash_plugin_hash_length(void)
 {
-	return 16;
+	return 20;
 }
 
 int hash_plugin_is_raw(void)

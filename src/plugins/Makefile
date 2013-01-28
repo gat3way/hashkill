@@ -207,7 +207,7 @@ plugin_pwsafe:
 	@if [ ! -e pwsafe.so ]; then  $(CC)  plugin.c pwsafe.c -o pwsafe.so $(CFLAGS) $(LDFLAGS) -Wall ;fi
 
 plugin_kwallet:
-	@if [ ! -e kwallet.so ]; then  $(CC)  plugin.c kwallet.c -o kwallet.so $(CFLAGS) $(LDFLAGS) -Wall ;fi
+	@if [ ! -e kwallet.so ]; then  $(CC)  plugin.c kwallet.c -o kwallet.so $(CFLAGS) $(LDFLAGS) -lcrypto -Wall ;fi
 
 
 install:
