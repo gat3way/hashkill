@@ -606,7 +606,7 @@ Endian_Reverse32(s3); \
 
 
 
-#ifndef GCN
+#ifdef SM21
 
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))

@@ -426,7 +426,16 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	    free (myline);
 	}
     }
-
+    else
+    {
+        sha512=ripemd=whirlpool=1;
+        boot=aes=twofish=serpent=1;
+        aes_twofish=aes_twofish_serpent=1;
+        serpent_aes=serpent_twofish_aes=1;
+        twofish_serpent=xts=lrw=normal=1;
+        hidden=0;
+        keyfile=0;
+    }
 
     if ((hidden==0)&&(normal==0)) normal=1;
 

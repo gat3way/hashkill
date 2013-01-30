@@ -191,6 +191,16 @@ hash_stat load_truecrypt(char *filename)
 
     keyfile=0;
 
+    if (hashline[0]==0)
+    {
+	sha512=ripemd=whirlpool=1;
+	boot=aes=twofish=serpent=1;
+	aes_twofish=aes_twofish_serpent=1;
+	serpent_aes=serpent_twofish_aes=1;
+	twofish_serpent=xts=lrw=normal=1;
+	hidden=0;keyfile=0;
+    }
+    else
     {
         myline = malloc(strlen(hashline)+1);
         strcpy(myline,hashline);

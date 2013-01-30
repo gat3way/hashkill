@@ -56,6 +56,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 
     if (!hashline) return hash_err;
     if (strlen(hashline)<2) return hash_err;
+    if (strlen(hashline)>48) return hash_err;
     tempstr = strtok(hashline,":");
     tempstr2 = strtok(NULL,":");
     if (tempstr2)
