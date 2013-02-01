@@ -157,12 +157,6 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	memcpy(buf[a],buf4[a],20);
 	memcpy(buf[a]+20,entrysalt,20);
         hash_hmac_sha1(buf2[a],20,(unsigned char *)buf[a],40,(unsigned char *)buf3[a]+20,20);
-if (strcmp(password[a],"test")==0)
-{
-int i;
-for (i=20;i<40;i++) printf("%02x",buf3[a][i]&255);
-printf("\n");
-}
 	EVP_CIPHER_CTX_init(&ctx);
 	EVP_DecryptInit_ex(&ctx, EVP_des_ede3_cbc(), NULL, (const unsigned char *)buf3[a], (unsigned char *)buf3[a]+32);
 	EVP_DecryptUpdate(&ctx, (unsigned char *)buf[a], &b, verifier, 16);
