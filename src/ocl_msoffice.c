@@ -750,26 +750,7 @@ static void ocl_msoffice_crack_callback(char *line, int self)
     }
 
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelend[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
-
     _clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, hash_ret_len1*wthreads[self].vectorsize*ocl_rule_workset[self], rule_ptr[self], 0, NULL, NULL);
-/*
-int i;
-printf("%s - ",rule_images[self]);
-for (i=0;i<64;i++) printf("%02x",rule_ptr[self][i]&255);
-printf("\n");
-for (i=64;i<128;i++) printf("%02x",rule_ptr[self][i]&255);
-printf("\n");
-printf("%s - ",rule_images[self]+32);
-for (i=128;i<192;i++) printf("%02x",rule_ptr[self][i]&255);
-printf("\n");
-for (i=192;i<256;i++) printf("%02x",rule_ptr[self][i]&255);
-printf("\n");
-printf("%s - ",rule_images[self]+64);
-for (i=256;i<320;i++) printf("%02x",rule_ptr[self][i]&255);
-printf("\n");
-for (i=320;i<384;i++) printf("%02x",rule_ptr[self][i]&255);
-printf("\n");
-*/
 
     for (a=0;a<ocl_rule_workset[self];a++)
     {

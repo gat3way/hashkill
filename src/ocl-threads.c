@@ -54,6 +54,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"md5md5",&ocl_bruteforce_md5md5, &ocl_markov_md5md5, &ocl_rule_md5md5},
                             {1,"mysql5",&ocl_bruteforce_mysql5, &ocl_markov_mysql5, &ocl_rule_mysql5},
                             //{1,"mysql-old",&ocl_bruteforce_mysql_old, &ocl_markov_mysql_old, &ocl_rule_mysql_old},
+                            //{1,"test",&ocl_bruteforce_test, &ocl_markov_test, &ocl_rule_test},
                             {1,"sha256",&ocl_bruteforce_sha256, &ocl_markov_sha256, &ocl_rule_sha256},
                             {1,"sha512",&ocl_bruteforce_sha512, &ocl_markov_sha512, &ocl_rule_sha512},
                             {1,"lm",&ocl_bruteforce_lm, &ocl_markov_lm, &ocl_rule_lm},
@@ -100,6 +101,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"pwsafe",&ocl_bruteforce_pwsafe, &ocl_markov_pwsafe, &ocl_rule_pwsafe},
                             {1,"keyring",&ocl_bruteforce_keyring, &ocl_markov_keyring, &ocl_rule_keyring},
                             {1,"kwallet",&ocl_bruteforce_kwallet, &ocl_markov_kwallet, &ocl_rule_kwallet},
+                            {1,"msoffice-old",&ocl_bruteforce_msoffice_old, &ocl_markov_msoffice_old, &ocl_rule_msoffice_old},
                             {0, "", NULL, NULL, NULL}
                         };
 
@@ -312,6 +314,8 @@ hash_stat ocl_get_device()
 	    if ((attack_method==attack_method_rule)&&(ocl_dev_nvidia==0))
 	    {
 		/* Global */
+		if ((strcmp(get_current_plugin(),"test")==0)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"msoffice-old")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"desunix")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=2;
@@ -391,6 +395,7 @@ hash_stat ocl_get_device()
 	    {
 		if ((strcmp(get_current_plugin(),"oracle-old")==0)) {loops=1;ocl_vector=1;}
 		if ((strcmp(get_current_plugin(),"rar")==0)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"msoffice-old")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"keepass")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"mozilla")==0)) {ocl_vector=1;loops=1;}
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) {ocl_vector=1;loops=1;}

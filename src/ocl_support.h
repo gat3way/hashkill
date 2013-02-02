@@ -295,7 +295,16 @@ hash_stat ocl_bruteforce_kwallet(void);
 hash_stat ocl_markov_kwallet(void);
 hash_stat ocl_rule_kwallet(void);
 
+/* msoffice-old plugin support */
+hash_stat ocl_bruteforce_msoffice_old(void);
+hash_stat ocl_markov_msoffice_old(void);
+hash_stat ocl_rule_msoffice_old(void);
 
+
+/* test plugin support */
+//hash_stat ocl_bruteforce_test(void);
+//hash_stat ocl_markov_test(void);
+//hash_stat ocl_rule_test(void);
 
 /* supported plugins struct array*/
 struct ocl_supported_plugins_s

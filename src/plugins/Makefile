@@ -19,7 +19,8 @@ all: plugin_md5 plugin_md5md5 plugin_joomla plugin_sha1 plugin_smf plugin_md4 \
      plugin_mscash2 plugin_wpa plugin_rar plugin_dmg plugin_osx-old plugin_bfunix plugin_drupal7 \
      plugin_django256 plugin_sha256unix plugin_o5logon plugin_mssql2012 plugin_msoffice \
      plugin_msoffice-old plugin_luks plugin_whirlpool plugin_truecrypt plugin_lastpass \
-     plugin_keepass plugin_pdf plugin_keyring plugin_pwsafe plugin_mozilla plugin_kwallet
+     plugin_keepass plugin_pdf plugin_keyring plugin_pwsafe plugin_mozilla plugin_kwallet \
+     plugin_test
      #plugin_bitcoin  plugin_mysql-old
 
 
@@ -208,6 +209,15 @@ plugin_pwsafe:
 
 plugin_kwallet:
 	@if [ ! -e kwallet.so ]; then  $(CC)  plugin.c kwallet.c -o kwallet.so $(CFLAGS) $(LDFLAGS) -lcrypto -Wall ;fi
+
+
+
+
+
+
+plugin_test:
+	@if [ ! -e test.so ]; then  $(CC)  plugin.c test.c -o test.so $(CFLAGS) $(LDFLAGS) ;fi
+
 
 
 install:

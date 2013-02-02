@@ -98,6 +98,9 @@ build:
 	if [ ! -e amd_pwsafe__Juniper.bin ]; then ./amd-compiler amd_pwsafe n ;fi; \
 	if [ ! -e amd_keyring__Juniper.bin ]; then ./amd-compiler amd_keyring n ;fi; \
 	if [ ! -e amd_kwallet__Juniper.bin ]; then ./amd-compiler amd_kwallet n ;fi; \
+	if [ ! -e amd_test__Juniper.bin ]; then ./amd-compiler amd_test n ;fi; \
+	if [ ! -e amd_msoffice_old__Juniper.bin ]; then ./amd-compiler amd_msoffice_old n ;fi; \
+	if [ ! -e amd_msoffice_old_md5__Juniper.bin ]; then ./amd-compiler amd_msoffice_old_md5 n ;fi; \
 	fi
 	# NVidia
 	@if [ "$(CL_NVFLAGS)" = "yes" ]; then \
@@ -185,6 +188,8 @@ build:
 	if [ ! -e nvidia_pwsafe__sm10.ptx ]; then ./nvidia-compiler nvidia_pwsafe n ;fi; \
 	if [ ! -e nvidia_keyring__sm10.ptx ]; then ./nvidia-compiler nvidia_keyring n ;fi; \
 	if [ ! -e nvidia_kwallet__sm10.ptx ]; then ./nvidia-compiler nvidia_kwallet n ;fi; \
+	if [ ! -e nvidia_msoffice_old__sm10.ptx ]; then ./nvidia-compiler nvidia_msoffice_old n ;fi; \
+	if [ ! -e nvidia_msoffice_old_md5__sm10.ptx ]; then ./nvidia-compiler nvidia_msoffice_old_md5 n ;fi; \
 	fi
 
 
