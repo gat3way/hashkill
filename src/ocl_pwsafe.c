@@ -207,6 +207,7 @@ static void ocl_pwsafe_crack_callback(char *line, int self)
     salt.sA=((cs.iterations+1)%200);
     _clSetKernelArg(rule_kernellast[self], 6, sizeof(cl_uint16), (void*) &salt);
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernellast[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
+    wthreads[self].tries+=(gws1)/((cs.iterations*salt.sA/200*200));
     found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
     if (*found>0) 
     {
@@ -279,7 +280,7 @@ void* ocl_rule_pwsafe_thread(void *arg)
 
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
-    ocl_rule_workset[self]=128*128;
+    ocl_rule_workset[self]=128*256;
     if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=2;
     if (ocl_gpu_double) ocl_rule_workset[self]*=2;
     if (interactive_mode==1) ocl_rule_workset[self]/=8;
