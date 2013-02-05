@@ -279,6 +279,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 
     close(fd);
 
+
     (void)hash_add_username(filename);
     (void)hash_add_hash("DMG file        ",0);
     (void)hash_add_salt("123");

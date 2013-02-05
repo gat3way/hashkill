@@ -631,7 +631,6 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	}
 	hash_sha1_slow(derivedkey,hbuf,lens);
 	// hbuf now holds the key 
-
 	for (a=0;a<vectorsize;a++)
 	{
 	    decryptedverifier[a]=alloca(16);
@@ -704,7 +703,6 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    }
 	    hash_sha1_unicode(hbuf,ibuf,lens);
 	}
-
 	for (a=0;a<vectorsize;a++)
 	{
 	    sbuf[a]=alloca(64);
@@ -714,7 +712,6 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    lens[a]=28;
 	}
 	hash_sha1_slow(hbuf,sbuf,lens);
-
 	for (a=0;a<vectorsize;a++)
 	{
 	    tbuf[a]=alloca(64);
@@ -763,7 +760,6 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    hash_aes_cbc_encrypt(verifierhashvalue, decryptedhashvalue[a], 32, &aeskey, iv, AES_DECRYPT);
 	}
 
-
 	for (a=0;a<vectorsize;a++) lens[a]=16;
 	hash_sha1_slow(decryptedhashinput,hbuf,lens);
 	for (a=0;a<vectorsize;a++)
@@ -806,7 +802,6 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	}
 	hash_sha512_unicode(ibuf,hbuf,lens);
 
-
 	for (a=0;a<vectorsize;a++) memcpy(ibuf[a],hbuf[a],64);
 
 	for (b=0;b<spincount;b++)
@@ -820,7 +815,6 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    }
 	    hash_sha512_unicode(hbuf,ibuf,lens);
 	}
-
 
 	for (a=0;a<vectorsize;a++)
 	{
@@ -841,6 +835,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    lens[a]=72;
 	}
 	hash_sha512_unicode(hbuf,tbuf,lens);
+
 
 	for (a=0;a<vectorsize;a++)
 	{
@@ -876,6 +871,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 
 	for (a=0;a<vectorsize;a++) lens[a]=16;
 	hash_sha512_unicode(decryptedhashinput,hbuf,lens);
+
 
 	for (a=0;a<vectorsize;a++)
 	{

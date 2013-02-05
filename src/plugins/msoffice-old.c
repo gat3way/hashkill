@@ -569,7 +569,6 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
             lens[a]=20;
 	}
 	hash_md5_unicode(hbuf,ibuf, lens);
-
 	for (a=0;a<vectorsize;a++)
         {
 	    decryptedverifier[a]=alloca(64);
@@ -621,7 +620,6 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
             lens[a]=24;
 	}
 	hash_sha1_unicode(hbuf,ibuf, lens);
-
 	for (a=0;a<vectorsize;a++)
         {
 	    decryptedverifier[a]=alloca(64);
@@ -634,6 +632,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    RC4(&key, 20, verifierhash, decryptedverifierhash[a]);
 	    lens[a]=16;
 	}
+
 	//hash_sha1_slow(decryptedverifier,hbuf,lens);
 	hash_sha1_unicode(decryptedverifier,hbuf,lens);
 	for (a=0;a<vectorsize;a++)

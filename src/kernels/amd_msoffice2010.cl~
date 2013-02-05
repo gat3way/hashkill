@@ -663,7 +663,6 @@ Endian_Reverse32(s3); \
 }
 
 
-
 #define AES128_INV_MIX { \
 k0 = lTd[lTe1((k0 >> 24)) & 0xff] ^ lTd1(lTe1((k0 >> 16) & 0xff) & 0xff) ^ \
         lTd2(lTe1((k0 >> 8) & 0xff) & 0xff) ^ lTd3(lTe1((k0) & 0xff) & 0xff); \
@@ -1819,7 +1818,7 @@ dst[GGI*5+4]=(uint)SE;
 
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))
-void officefinal256( __global uint4 *dst,  __global uint *inp, uint16 salt,uint16 salt2,__global uint *found_ind, __global uint *found)
+void officefinal256( __global uint4 *dst,  __global ulong *inp, uint16 salt,uint16 salt2,__global uint *found_ind, __global uint *found)
 {
 uint SIZE;
 uint ib,ic,id,i;  
@@ -1879,8 +1878,8 @@ w1=SB;
 w2=SC;
 w3=SD;
 w4=SE;
-w5=(uint)salt2.s9;
-w6=(uint)salt2.sA;
+w5=(uint)salt.s9;
+w6=(uint)salt.sA;
 w7=0x80000000;
 Endian_Reverse32(w5);
 Endian_Reverse32(w6);
@@ -1996,8 +1995,8 @@ w1=SB;
 w2=SC;
 w3=SD;
 w4=SE;
-w5=(uint)salt2.sB;
-w6=(uint)salt2.sC;
+w5=(uint)salt.sB;
+w6=(uint)salt.sC;
 w7=0x80000000;
 Endian_Reverse32(w5);
 Endian_Reverse32(w6);
@@ -2214,14 +2213,10 @@ s3=s3^d;
 
 w0=s0;
 w1=s1;
-w2=s2;
-w3=s3;
-w4=0x80000000U;
+w2=0x80000000U;
 
 Endian_Reverse32(w0);
 Endian_Reverse32(w1);
-Endian_Reverse32(w2);
-Endian_Reverse32(w3);
 
 A=H0;
 B=H1;
@@ -2230,7 +2225,7 @@ D=H3;
 E=H4;
 
 SIZE=(uint)16<<3;
-w5=w6=w7=w8=w9=w10=w11=w12=w13=w14=w16=(uint)0;
+w3=w4=w5=w6=w7=w8=w9=w10=w11=w12=w13=w14=w16=(uint)0;
 
 K = K0;
 ROTATE1(A, B, C, D, E, w0);
@@ -2317,11 +2312,6 @@ w9 = rotate(w6 ^ w1 ^ w12 ^ w10,S1); ROTATE4_F(D, E, A, B, C, w9);
 w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10);
 w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
 A=A+H0;B=B+H1;C=C+H2;D=D+H3;E=E+H4;
-
-Endian_Reverse32(A);
-Endian_Reverse32(B);
-Endian_Reverse32(C);
-Endian_Reverse32(D);
 
 
 /* Initial key for AES-256 */
@@ -2425,10 +2415,10 @@ s1=s1^b;
 s2=s2^c;
 s3=s3^d;
 
-a=(A);
-b=(B);
-c=(C);
-d=(D);
+a=(A&0xFFFFFFFF);
+b=(A>>32);
+c=(B&0xFFFFFFFF);
+d=(B>>32);
 
 
 if ((s0!=(uint)a)) return;
@@ -2447,7 +2437,7 @@ dst[(get_global_id(0))] = (uint4)(s0,s1,s2,s3);
 
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))
-void officefinal128( __global uint4 *dst,  __global uint *inp, uint16 salt,uint16 salt2,__global uint *found_ind, __global uint *found)
+void officefinal128( __global uint4 *dst,  __global ulong *inp, uint16 salt,uint16 salt2,__global uint *found_ind, __global uint *found)
 {
 uint SIZE;
 uint ib,ic,id,i;  
@@ -2507,9 +2497,9 @@ w1=SB;
 w2=SC;
 w3=SD;
 w4=SE;
-w5=(uint)salt2.s9;
-w6=(uint)salt2.sA;
-w7=0x80000000U;
+w5=(uint)salt.s9;
+w6=(uint)salt.sA;
+w7=0x80000000;
 Endian_Reverse32(w5);
 Endian_Reverse32(w6);
 
@@ -2618,14 +2608,13 @@ SSG=0x36363636U;
 SSH=0x36363636U;
 
 
-
 w0=SA;
 w1=SB;
 w2=SC;
 w3=SD;
 w4=SE;
-w5=(uint)salt2.sB;
-w6=(uint)salt2.sC;
+w5=(uint)salt.sB;
+w6=(uint)salt.sC;
 w7=0x80000000;
 Endian_Reverse32(w5);
 Endian_Reverse32(w6);
@@ -2737,10 +2726,16 @@ SSSH=0x36363636U;
 
 
 /* Initial key for AES-128 */
-rk0=SSA;
-rk1=SSB;
-rk2=SSC;
-rk3=SSD;
+TTA=SSA;
+TTB=SSB;
+TTC=SSC;
+TTD=SSD;
+
+
+rk0=TTA;
+rk1=TTB;
+rk2=TTC;
+rk3=TTD;
 
 
 /* Setup s0..s3 */
@@ -2808,16 +2803,16 @@ s2=s2^c;
 s3=s3^d;
 
 
+dst[(get_global_id(0))] = (uint4)(s0,s1,s2,s3);
+return;
+
+
 w0=s0;
 w1=s1;
-w2=s2;
-w3=s3;
-w4=0x80000000U;
+w2=0x80000000U;
 
 Endian_Reverse32(w0);
 Endian_Reverse32(w1);
-Endian_Reverse32(w2);
-Endian_Reverse32(w3);
 
 A=H0;
 B=H1;
@@ -2826,7 +2821,7 @@ D=H3;
 E=H4;
 
 SIZE=(uint)16<<3;
-w5=w6=w7=w8=w9=w10=w11=w12=w13=w14=w16=(uint)0;
+w3=w4=w5=w6=w7=w8=w9=w10=w11=w12=w13=w14=w16=(uint)0;
 
 K = K0;
 ROTATE1(A, B, C, D, E, w0);
@@ -2914,10 +2909,9 @@ w10 = rotate(w7 ^ w2 ^ w13 ^ w11,S1); ROTATE4_F(C, D, E, A, B, w10);
 w11 = rotate(w8 ^ w3 ^ w14 ^ w12,S1); ROTATE4_F(B, C, D, E, A, w11);
 A=A+H0;B=B+H1;C=C+H2;D=D+H3;E=E+H4;
 
-Endian_Reverse32(A);
-Endian_Reverse32(B);
-Endian_Reverse32(C);
-Endian_Reverse32(D);
+
+
+
 
 
 /* Initial key for AES-256 */
@@ -3005,12 +2999,10 @@ s1=s1^b;
 s2=s2^c;
 s3=s3^d;
 
-a=(A);
-b=(B);
-c=(C);
-d=(D);
-
-
+a=(A&0xFFFFFFFF);
+b=(A>>32);
+c=(B&0xFFFFFFFF);
+d=(B>>32);
 
 if ((s0!=(uint)a)) return;
 if ((s1!=(uint)b)) return;

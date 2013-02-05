@@ -1438,7 +1438,6 @@ s2 = s2^ir2;
 s3 = s3^ir3;
 
 
-dst[(get_global_id(0))] = (uint4)(s0,s1,s2,s3);
 
 if ((s0!=(uint)singlehash.s0)) return;
 if ((s1!=(uint)singlehash.s1)) return;

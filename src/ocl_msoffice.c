@@ -555,115 +555,6 @@ static hash_stat load_msoffice(char *filename)
 
 
 
-
-
-
-
-static hash_stat check_msoffice(unsigned char *key, char *pwd)
-{
-    if (fileversion==2007)
-    {
-	unsigned char decryptedverifier[32];
-	unsigned char decryptedverifierhash[32];
-	unsigned char hbuf[32];
-	AES_KEY aeskey;
-	unsigned char iv[16];
-	int len;
-	SHA_CTX ctx;
-
-	memset(&aeskey,0,sizeof(AES_KEY));
-	memset(iv,0,16);
-	OAES_SET_DECRYPT_KEY(key, 128, &aeskey);
-	OAES_CBC_ENCRYPT(verifier,decryptedverifier,16,&aeskey,iv,AES_DECRYPT);
-	memset(&aeskey,0,sizeof(AES_KEY));
-	memset(iv,0,16);
-	OAES_SET_DECRYPT_KEY(key, 128, &aeskey);
-	OAES_CBC_ENCRYPT(verifierhash,decryptedverifierhash,16,&aeskey,iv,AES_DECRYPT);
-	memset(&aeskey,0,sizeof(AES_KEY));
-	memset(iv,0,16);
-	OAES_SET_DECRYPT_KEY(key, 128, &aeskey);
-	OAES_CBC_ENCRYPT(verifierhash+16,decryptedverifierhash+16,16,&aeskey,iv,AES_DECRYPT);
-	len=16;
-	SHA1_Init(&ctx);
-	SHA1_Update(&ctx, decryptedverifier, len);
-	SHA1_Final(hbuf, &ctx);
-	if (memcmp(decryptedverifierhash,hbuf,16)==0)
-	{
-	    return hash_ok;
-	}
-    }
-    else if (fileversion==2010)
-    {
-	unsigned char decryptedhashinput[32];
-	unsigned char decryptedhashvalue[32];
-	unsigned char hbuf[32];
-	unsigned char sbuf[32];
-	unsigned char tbuf[32];
-	AES_KEY aeskey;
-	unsigned char iv[16];
-	int len;
-	SHA_CTX ctx;
-
-	memcpy(sbuf,key,32);
-	memcpy(tbuf,key+32,32);
-	memset(&aeskey,0,sizeof(AES_KEY));
-	memcpy(iv,docsalt,16);
-	if (keybits==128) OAES_SET_DECRYPT_KEY(sbuf, 128, &aeskey);
-	else OAES_SET_DECRYPT_KEY(sbuf, 256, &aeskey);
-	OAES_CBC_ENCRYPT(verifierhashinput,decryptedhashinput,16,&aeskey,iv,AES_DECRYPT);
-	memset(&aeskey,0,sizeof(AES_KEY));
-	memcpy(iv,docsalt,16);
-	if (keybits==128) OAES_SET_DECRYPT_KEY(tbuf, 128, &aeskey);
-	else OAES_SET_DECRYPT_KEY(tbuf, 256, &aeskey);
-	OAES_CBC_ENCRYPT(verifierhashvalue,decryptedhashvalue,32,&aeskey,iv,AES_DECRYPT);
-	len=16;
-	SHA1_Init(&ctx);
-	SHA1_Update(&ctx, decryptedhashinput, len);
-	SHA1_Final(hbuf, &ctx);
-	if (memcmp(decryptedhashvalue,hbuf,20)==0)
-	{
-	    return hash_ok;
-	}
-    }
-    else
-    {
-	unsigned char decryptedhashinput[32];
-	unsigned char decryptedhashvalue[32];
-	unsigned char hbuf[128];
-	unsigned char sbuf[128];
-	unsigned char tbuf[128];
-	AES_KEY aeskey;
-	unsigned char iv[16];
-	int len;
-	SHA512_CTX ctx;
-
-	memcpy(sbuf,key,64);
-	memcpy(tbuf,key+64,64);
-	memset(&aeskey,0,sizeof(AES_KEY));
-	memcpy(iv,docsalt,16);
-	if (keybits==128) OAES_SET_DECRYPT_KEY(sbuf, 128, &aeskey);
-	else OAES_SET_DECRYPT_KEY(sbuf, 256, &aeskey);
-	OAES_CBC_ENCRYPT(verifierhashinput,decryptedhashinput,16,&aeskey,iv,AES_DECRYPT);
-	memset(&aeskey,0,sizeof(AES_KEY));
-	memcpy(iv,docsalt,16);
-	if (keybits==128) OAES_SET_DECRYPT_KEY(tbuf, 128, &aeskey);
-	else OAES_SET_DECRYPT_KEY(tbuf, 256, &aeskey);
-	OAES_CBC_ENCRYPT(verifierhashvalue,decryptedhashvalue,32,&aeskey,iv,AES_DECRYPT);
-	len=16;
-	SHA512_Init(&ctx);
-	SHA512_Update(&ctx, decryptedhashinput, len);
-	SHA512_Final(hbuf, &ctx);
-	if (memcmp(decryptedhashvalue,hbuf,32)==0)
-	{
-	    return hash_ok;
-	}
-    }
-
-    return hash_err;
-}
-
-
-
 static cl_uint16 msoffice_getsalt()
 {
     cl_uint16 t;
@@ -692,19 +583,57 @@ static cl_uint16 msoffice_getsalt()
 }
 
 
+static cl_uint16 msoffice_getsalt_final()
+{
+    cl_uint16 t;
+    unsigned char salt2[64];
 
+    if (fileversion==2007)
+    {
+	bzero(salt2,64);
+	memcpy(salt2,docsalt,16);
+	memcpy(salt2+16,verifier,16);
+	memcpy(salt2+32,verifierhash,32);
+    }
+    else
+    {
+	bzero(salt2,64);
+	memcpy(salt2,docsalt,16);
+	memcpy(salt2+16,verifierhashinput,16);
+	memcpy(salt2+32,verifierhashvalue,32);
+    }
+
+    t.s0=(salt2[0]&255)|((salt2[1]&255)<<8)|((salt2[2]&255)<<16)|((salt2[3]&255)<<24);
+    t.s1=(salt2[4]&255)|((salt2[5]&255)<<8)|((salt2[6]&255)<<16)|((salt2[7]&255)<<24);
+    t.s2=(salt2[8]&255)|((salt2[9]&255)<<8)|((salt2[10]&255)<<16)|((salt2[11]&255)<<24);
+    t.s3=(salt2[12]&255)|((salt2[13]&255)<<8)|((salt2[14]&255)<<16)|((salt2[15]&255)<<24);
+    t.s4=(salt2[16]&255)|((salt2[17]&255)<<8)|((salt2[18]&255)<<16)|((salt2[19]&255)<<24);
+    t.s5=(salt2[20]&255)|((salt2[21]&255)<<8)|((salt2[22]&255)<<16)|((salt2[23]&255)<<24);
+    t.s6=(salt2[24]&255)|((salt2[25]&255)<<8)|((salt2[26]&255)<<16)|((salt2[27]&255)<<24);
+    t.s7=(salt2[28]&255)|((salt2[29]&255)<<8)|((salt2[30]&255)<<16)|((salt2[31]&255)<<24);
+    t.s8=(salt2[32]&255)|((salt2[33]&255)<<8)|((salt2[34]&255)<<16)|((salt2[35]&255)<<24);
+    t.s9=(salt2[36]&255)|((salt2[37]&255)<<8)|((salt2[38]&255)<<16)|((salt2[39]&255)<<24);
+    t.sA=(salt2[40]&255)|((salt2[41]&255)<<8)|((salt2[42]&255)<<16)|((salt2[43]&255)<<24);
+    t.sB=(salt2[44]&255)|((salt2[45]&255)<<8)|((salt2[46]&255)<<16)|((salt2[47]&255)<<24);
+    t.sC=(salt2[48]&255)|((salt2[49]&255)<<8)|((salt2[50]&255)<<16)|((salt2[51]&255)<<24);
+    t.sD=(salt2[52]&255)|((salt2[53]&255)<<8)|((salt2[54]&255)<<16)|((salt2[55]&255)<<24);
+    t.sE=(salt2[56]&255)|((salt2[57]&255)<<8)|((salt2[58]&255)<<16)|((salt2[59]&255)<<24);
+    t.sF=(salt2[60]&255)|((salt2[61]&255)<<8)|((salt2[62]&255)<<16)|((salt2[63]&255)<<24);
+
+    return t;
+}
 
 
 
 /* Crack callback */
 static void ocl_msoffice_crack_callback(char *line, int self)
 {
-    int a,c,d,e;
+    int a;
     cl_uint16 addline;
     cl_uint16 salt;
-    unsigned char key[128];
-    char plainimg[MAXCAND+1];
+    char plain[32];
     size_t gws,gws1;
+    int *found,err;
 
     if (rule_counts[self][0]==-1) return;
     gws = (rule_counts[self][0] / wthreads[self].vectorsize);
@@ -729,6 +658,7 @@ static void ocl_msoffice_crack_callback(char *line, int self)
     _clSetKernelArg(rule_kernelpre1[self], 3, sizeof(cl_uint16), (void*) &salt);
     _clSetKernelArg(rule_kernelbl1[self], 2, sizeof(cl_uint16), (void*) &salt);
     _clSetKernelArg(rule_kernelend[self], 2, sizeof(cl_uint16), (void*) &salt);
+    _clSetKernelArg(rule_kernelend[self], 3, sizeof(cl_uint16), (void*) &salt);
 
     if (attack_over!=0) pthread_exit(NULL);
     pthread_mutex_lock(&wthreads[self].tempmutex);
@@ -749,23 +679,35 @@ static void ocl_msoffice_crack_callback(char *line, int self)
     	wthreads[self].tries+=(gws1)/(spincount/1000);
     }
 
-    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelend[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
-    _clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, hash_ret_len1*wthreads[self].vectorsize*ocl_rule_workset[self], rule_ptr[self], 0, NULL, NULL);
+    salt = msoffice_getsalt_final();
+    _clSetKernelArg(rule_kernelend[self], 2, sizeof(cl_uint16), (void*) &salt);
+    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelend[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
+    found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
 
-    for (a=0;a<ocl_rule_workset[self];a++)
+    if (*found>0) 
     {
-        for (c=0;c<wthreads[self].vectorsize;c++)
+        _clEnqueueReadBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_TRUE, 0, ocl_rule_workset[self]*sizeof(cl_uint), rule_found_ind[self], 0, NULL, NULL);
+        for (a=0;a<ocl_rule_workset[self]*wthreads[self].vectorsize;a++)
+        if (rule_found_ind[self][a]==1)
         {
-            e=(a)*wthreads[self].vectorsize+c;
-            memcpy(key,(char *)rule_ptr[self]+(e)*hash_ret_len1,hash_ret_len1);
-            for (d=0;d<MAX;d++) plainimg[d] = rule_images[self][e*MAX+d];
-            if (check_msoffice(key,plainimg)==hash_ok)
             {
-                for (d=0;d<MAX;d++) plainimg[d] = rule_images[self][e*MAX+d];
-                if (!cracked_list) add_cracked_list(hash_list->username, hash_list->hash, hash_list->salt, (char *)plainimg);
+                strcpy(plain,&rule_images[self][0]+(a*MAX));
+                strcat(plain,line);
+                pthread_mutex_lock(&crackedmutex);
+                if (!cracked_list)
+                {
+                    pthread_mutex_unlock(&crackedmutex);
+                    add_cracked_list(hash_list->username, hash_list->hash, hash_list->salt, plain);
+                }
+                else pthread_mutex_unlock(&crackedmutex);
             }
         }
+        bzero(rule_found_ind[self],ocl_rule_workset[self]*sizeof(cl_uint));
+        _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*sizeof(cl_uint), rule_found_ind[self], 0, NULL, NULL);
+        *found = 0;
+        _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_buf[self], CL_FALSE, 0, 4, found, 0, NULL, NULL);
     }
+    _clEnqueueUnmapMemObject(rule_oclqueue[self],rule_found_buf[self],(void *)found,0,NULL,NULL);
 }
 
 
@@ -790,23 +732,22 @@ static void ocl_msoffice_callback(char *line, int self)
 
 
 
-
 /* Worker thread - rule attack */
 void* ocl_rule_msoffice_thread(void *arg)
 {
     cl_int err;
-    int found;
     size_t nvidia_local_work_size[3]={64,1,1};
     size_t amd_local_work_size[3]={64,1,1};
     int self;
     int factor;
+    int found=0;
 
     memcpy(&self,arg,sizeof(int));
     pthread_mutex_lock(&biglock);
 
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
-    ocl_rule_workset[self]=128*128;
+    ocl_rule_workset[self]=128*64;
     if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=2;
     if (ocl_gpu_double) ocl_rule_workset[self]*=4;
     if (interactive_mode==1) ocl_rule_workset[self]/=8;
@@ -876,7 +817,8 @@ void* ocl_rule_msoffice_thread(void *arg)
     rule_kernel[self] = _clCreateKernel(program[self], "strmodify", &err );
     rule_kernelpre1[self] = _clCreateKernel(program[self], "officeprep", &err );
     rule_kernelbl1[self] = _clCreateKernel(program[self], "officeiter", &err );
-    rule_kernelend[self] = _clCreateKernel(program[self], "officefinal", &err );
+    if (keybits==256) rule_kernelend[self] = _clCreateKernel(program[self], "officefinal256", &err );
+    else rule_kernelend[self] = _clCreateKernel(program[self], "officefinal128", &err );
 
     rule_oclqueue[self] = _clCreateCommandQueue(context[self], wthreads[self].cldeviceid, 0, &err );
     rule_buffer[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*wthreads[self].vectorsize*hash_ret_len1, NULL, &err );
@@ -906,6 +848,13 @@ void* ocl_rule_msoffice_thread(void *arg)
     bzero(&rule_images3[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*factor);
     bzero(rule_sizes[self],ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
     bzero(rule_sizes2[self],ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
+
+    rule_found_buf[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, 4, NULL, &err );
+    rule_found_ind[self]=malloc(ocl_rule_workset[self]*sizeof(cl_uint));
+    bzero(rule_found_ind[self],sizeof(uint)*ocl_rule_workset[self]);
+    rule_found_ind_buf[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*sizeof(cl_uint), NULL, &err );
+     _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE, 0, 4, &found, 0, NULL, NULL);
+
     _clSetKernelArg(rule_kernel[self], 0, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
     _clSetKernelArg(rule_kernel[self], 1, sizeof(cl_mem), (void*) &rule_images_buf[self]);
     _clSetKernelArg(rule_kernel[self], 2, sizeof(cl_mem), (void*) &rule_sizes2_buf[self]);
@@ -920,13 +869,11 @@ void* ocl_rule_msoffice_thread(void *arg)
 
     _clSetKernelArg(rule_kernelend[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
     _clSetKernelArg(rule_kernelend[self], 1, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
-
-
+    _clSetKernelArg(rule_kernelend[self], 4, sizeof(cl_mem), (void*) &rule_found_ind_buf[self]);
+    _clSetKernelArg(rule_kernelend[self], 5, sizeof(cl_mem), (void*) &rule_found_buf[self]);
 
     pthread_mutex_unlock(&biglock); 
-
     worker_gen(self,ocl_msoffice_callback);
-
     return hash_ok;
 }
 

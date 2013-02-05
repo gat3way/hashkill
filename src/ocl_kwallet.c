@@ -209,14 +209,10 @@ static hash_stat check_kwallet(char *key)
 /* Crack callback */
 static void ocl_kwallet_crack_callback(char *line, int self)
 {
-    int a,b,c,d,e;
-    int *found;
-    int err;
+    int a,c,d,e;
     char plainimg[MAX*2];
-    char hex1[16];
     cl_uint16 addline;
     cl_uint16 salt;
-    cl_uint16 singlehash;
     char key[20];
     size_t gws,gws1;
 
