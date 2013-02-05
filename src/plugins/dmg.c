@@ -302,7 +302,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     {
 	for (a=0;a<vectorsize;a++)
 	{
-	    hash_pbkdf2_len(password[a], strlen(password[a]), (unsigned char *)header.kdf_salt, 20, 1000, sizeof(derived_key), derived_key);
+	    hash_pbkdf2_len(password[a], strlen(password[a]), (unsigned char *)header.kdf_salt, 20, header.kdf_iteration_count, sizeof(derived_key), derived_key);
 	    if (
 	     (apple_des3_ede_unwrap_key1(header.wrapped_aes_key, 40, derived_key)==0) &&
              (apple_des3_ede_unwrap_key1(header.wrapped_hmac_sha1_key, 48, derived_key)==0)
@@ -327,7 +327,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    unsigned char outbuf2[4096];
 	    unsigned char iv[20];
 
-	    hash_pbkdf2_len(password[a], strlen(password[a]), (unsigned char *)header2.kdf_salt, 20, 1000, sizeof(derived_key), derived_key);
+	    hash_pbkdf2_len(password[a], strlen(password[a]), (unsigned char *)header2.kdf_salt, 20, header2.kdf_iteration_count, sizeof(derived_key), derived_key);
 
 	    EVP_CIPHER_CTX_init(&ctx);
 	    TEMP1 = alloca(header2.encrypted_keyblob_size);
@@ -353,11 +353,13 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
         	// Valid koly block
         	if ((memmem(outbuf2,4096,"koly\x00\x00\x00\x04\x00\x00\x02\x00",12))||(memmem(outbuf2,4096,"koly\x00\x00\x00\x05\x00\x00\x02\x00",12)))
         	{
+            	    *num=a;
             	    return hash_ok;
         	}
         	// Valid EFI header
         	if (memcmp(outbuf2+(4096-(512-chunkoffset)),"EFI PART",8)==0)
         	{
+            	    *num=a;
             	    return hash_ok;
         	}
         	// Valid HFS volume header
@@ -365,6 +367,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
             	    && ((memcmp(outbuf2+(4096-(1024-chunkoffset)+2),"\x00\x04",2)==0)||(memcmp(outbuf2+(4096-(1024-chunkoffset)+2),"\x00\x05",2)==0))
             	    && ((memcmp(outbuf2+(4096-(1024-chunkoffset)+8),"8.10",4)==0) ||(memcmp(outbuf2+(4096-(1024-chunkoffset)+8),"10.0",4)==0)||(memcmp(outbuf2+(4096-(1024-chunkoffset)+8),"HFSJ",4)==0)))
         	{
+            	    *num=a;
             	    return hash_ok;
         	}
     	    }
@@ -382,11 +385,13 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
         	// Valid koly block
         	if ((memmem(outbuf2,4096,"koly\x00\x00\x00\x04\x00\x00\x02\x00",12))||(memmem(outbuf2,4096,"koly\x00\x00\x00\x05\x00\x00\x02\x00",12)))
         	{
+            	    *num=a;
             	    return hash_ok;
         	}
         	// Valid EFI header
         	if (memcmp(outbuf2+(4096-(512-chunkoffset)),"EFI PART",8)==0)
         	{
+            	    *num=a;
             	    return hash_ok;
         	}
         	// Valid HFS volume header
@@ -394,6 +399,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
             	    && ((memcmp(outbuf2+(4096-(1024-chunkoffset)+2),"\x00\x04",2)==0)||(memcmp(outbuf2+(4096-(1024-chunkoffset)+2),"\x00\x05",2)==0))
             	    && ((memcmp(outbuf2+(4096-(1024-chunkoffset)+8),"8.10",4)==0) ||(memcmp(outbuf2+(4096-(1024-chunkoffset)+8),"10.0",4)==0)||(memcmp(outbuf2+(4096-(1024-chunkoffset)+8),"HFSJ",4)==0)))
         	{
+            	    *num=a;
             	    return hash_ok;
         	}
     	    }
