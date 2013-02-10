@@ -34,7 +34,7 @@
 #define MAXFOUND 1024*64
 
 /* Used by rule engine GPU offload */
-typedef void (*callback_final_t)(char *line, int self);
+typedef void (*callback_final_t)(char* line, int self);
 
 
 

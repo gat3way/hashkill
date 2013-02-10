@@ -102,6 +102,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"keyring",&ocl_bruteforce_keyring, &ocl_markov_keyring, &ocl_rule_keyring},
                             {1,"kwallet",&ocl_bruteforce_kwallet, &ocl_markov_kwallet, &ocl_rule_kwallet},
                             {1,"msoffice-old",&ocl_bruteforce_msoffice_old, &ocl_markov_msoffice_old, &ocl_rule_msoffice_old},
+                            {1,"pdf",&ocl_bruteforce_pdf, &ocl_markov_pdf, &ocl_rule_pdf},
                             {0, "", NULL, NULL, NULL}
                         };
 
@@ -355,6 +356,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"o5logon")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"keepass")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"mozilla")==0)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"pdf")==0)) ocl_vector=1;
 
 		/* GCN/VLIW-specific */
 		if ((strcmp(get_current_plugin(),"phpbb3")==0)&&(ocl_have_gcn)) ocl_vector=1;

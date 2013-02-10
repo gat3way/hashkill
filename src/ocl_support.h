@@ -300,6 +300,11 @@ hash_stat ocl_bruteforce_msoffice_old(void);
 hash_stat ocl_markov_msoffice_old(void);
 hash_stat ocl_rule_msoffice_old(void);
 
+/* pdf plugin support */
+hash_stat ocl_bruteforce_pdf(void);
+hash_stat ocl_markov_pdf(void);
+hash_stat ocl_rule_pdf(void);
+
 
 /* test plugin support */
 //hash_stat ocl_bruteforce_test(void);
