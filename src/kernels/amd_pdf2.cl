@@ -52,12 +52,14 @@ SET_AB(inpc[GLI],str.s1,SIZE+4,0);
 SET_AB(inpc[GLI],str.s2,SIZE+8,0);
 SET_AB(inpc[GLI],str.s3,SIZE+12,0);
 SIZE+=str.sF;
+
 j=0;
-for (i=SIZE;i<32;i++)
+for (i=SIZE;i<36;i+=4)
 {
-    SET_AB(inpc[GLI],cpadding[j],i,0);
+    SET_AB(inpc[GLI],cipadding[j],i,0);
     j++;
 }
+
 
 sizein[GGI] = (SIZE);
 dst[GGI*8+0] = inpc[GLI][0];
@@ -427,7 +429,7 @@ si=state[GLI][i>>2];
 
 u=si&0xff;
 j=(j+(key[i%5])+u)&0xff;
-sj=state[GLI][j>>2];
+sj=((j>>2)==(i>>2)) ? si : state[GLI][j>>2];
 shiftj=(j&3)<<3;
 v=(sj>>shiftj)&0xff;
 si = bitselect(v,si,0xffffff00U);
@@ -437,7 +439,7 @@ si = ((j>>2)==(i>>2)) ? bitselect(u<<shiftj,si,~(0xffu<<shiftj)) : si;
 
 u=(si>>8)&0xff;
 j=(j+(key[(i+1)%5])+u)&0xff;
-sj=state[GLI][j>>2];
+sj=((j>>2)==(i>>2)) ? si : state[GLI][j>>2];
 shiftj=(j&3)<<3;
 v=(sj>>shiftj)&0xff;
 si = bitselect(v<<8,si,0xffff00ffU);
@@ -447,7 +449,7 @@ si = ((j>>2)==(i>>2)) ? bitselect(u<<shiftj,si,~(0xffu<<shiftj)) : si;
 
 u=(si>>16)&0xff;
 j=(j+(key[(i+2)%5])+u)&0xff;
-sj=state[GLI][j>>2];
+sj=((j>>2)==(i>>2)) ? si : state[GLI][j>>2];
 shiftj=(j&3)<<3;
 v=(sj>>shiftj)&0xff;
 si = bitselect(v<<16,si,0xff00ffffU);
@@ -457,7 +459,7 @@ si = ((j>>2)==(i>>2)) ? bitselect(u<<shiftj,si,~(0xffu<<shiftj)) : si;
 
 u=(si>>24)&0xff;
 j=(j+(key[(i+3)%5])+u)&0xff;
-sj=state[GLI][j>>2];
+sj=((j>>2)==(i>>2)) ? si : state[GLI][j>>2];
 shiftj=(j&3)<<3;
 v=(sj>>shiftj)&0xff;
 si = bitselect(v<<24,si,0x00ffffffU);

@@ -553,11 +553,11 @@ static void ocl_pdf_crack_callback(char *line, int self)
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
     _clFinish(rule_oclqueue[self]);
 
-
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
     _clFinish(rule_oclqueue[self]);
+
 /*
-if (strcmp(rule_images[self],"test")==0)
+if (strcmp(rule_images[self],"testpassword")==0)
 {
 int i;
 _clEnqueueReadBuffer(rule_oclqueue[self], rule_images3_buf[self], CL_TRUE, 0, 32, rule_images3[self], 0, NULL, NULL);
@@ -576,7 +576,7 @@ printf("\n");
     if (*found>0) 
     {
         _clEnqueueReadBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_TRUE, 0, ocl_rule_workset[self]*sizeof(cl_uint), rule_found_ind[self], 0, NULL, NULL);
-    	for (a=0;a<ocl_rule_workset[self]*wthreads[self].vectorsize;a++)
+    	for (a=0;a<ocl_rule_workset[self];a++)
 	if (rule_found_ind[self][a]==1)
 	{
     	    {
@@ -726,6 +726,7 @@ hash_stat ocl_rule_pdf(void)
             char kernelfile[255];
             _clGetDeviceInfo(device[wthreads[i].deviceid], CL_DEVICE_NAME, sizeof(pbuf),pbuf, NULL );
     	    if (cs.R==2) sprintf(kernelfile,"%s/hashkill/kernels/amd_pdf2__%s.bin",DATADIR,pbuf);
+    	    else if (cs.R==3) sprintf(kernelfile,"%s/hashkill/kernels/amd_pdf3__%s.bin",DATADIR,pbuf);
     	    else sprintf(kernelfile,"%s/hashkill/kernels/amd_pdf_md5__%s.bin",DATADIR,pbuf);
 
     	    char *ofname = kernel_decompress(kernelfile);
@@ -772,6 +773,7 @@ hash_stat ocl_rule_pdf(void)
             if ((compute_capability_major==2)&&(compute_capability_minor==1)) sprintf(pbuf,"sm21");
 	    if ((compute_capability_major==3)&&(compute_capability_minor==0)) sprintf(pbuf,"sm30");
     	    if (cs.R==2) sprintf(kernelfile,"%s/hashkill/kernels/nvidia_pdf2__%s.ptx",DATADIR,pbuf);
+    	    else if (cs.R==3) sprintf(kernelfile,"%s/hashkill/kernels/nvidia_pdf3__%s.ptx",DATADIR,pbuf);
     	    else sprintf(kernelfile,"%s/hashkill/kernels/nvidia_pdf_md5__%s.ptx",DATADIR,pbuf);
 
     	    char *ofname = kernel_decompress(kernelfile);

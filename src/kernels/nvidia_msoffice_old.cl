@@ -701,7 +701,7 @@ si=state[GLI][i>>2];
 
 u=si&0xff;
 j=(j+(key[(i>>2)&3])+u)&0xff;
-sj=state[GLI][j>>2];
+sj=((j>>2)==(i>>2)) ? si : state[GLI][j>>2];
 shiftj=(j&3)<<3;
 v=(sj>>shiftj)&0xff;
 si = bitselect(v,si,0xffffff00U);
@@ -711,7 +711,7 @@ si = ((j>>2)==(i>>2)) ? bitselect(u<<shiftj,si,~(0xffu<<shiftj)) : si;
 
 u=(si>>8)&0xff;
 j=(j+(key[(i>>2)&3]>>8)+u)&0xff;
-sj=state[GLI][j>>2];
+sj=((j>>2)==(i>>2)) ? si : state[GLI][j>>2];
 shiftj=(j&3)<<3;
 v=(sj>>shiftj)&0xff;
 si = bitselect(v<<8,si,0xffff00ffU);
@@ -721,7 +721,7 @@ si = ((j>>2)==(i>>2)) ? bitselect(u<<shiftj,si,~(0xffu<<shiftj)) : si;
 
 u=(si>>16)&0xff;
 j=(j+(key[(i>>2)&3]>>16)+u)&0xff;
-sj=state[GLI][j>>2];
+sj=((j>>2)==(i>>2)) ? si : state[GLI][j>>2];
 shiftj=(j&3)<<3;
 v=(sj>>shiftj)&0xff;
 si = bitselect(v<<16,si,0xff00ffffU);
@@ -731,7 +731,7 @@ si = ((j>>2)==(i>>2)) ? bitselect(u<<shiftj,si,~(0xffu<<shiftj)) : si;
 
 u=(si>>24)&0xff;
 j=(j+(key[(i>>2)&3]>>24)+u)&0xff;
-sj=state[GLI][j>>2];
+sj=((j>>2)==(i>>2)) ? si : state[GLI][j>>2];
 shiftj=(j&3)<<3;
 v=(sj>>shiftj)&0xff;
 si = bitselect(v<<24,si,0x00ffffffU);

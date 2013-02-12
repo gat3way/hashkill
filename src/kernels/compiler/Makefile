@@ -102,6 +102,7 @@ build:
 	if [ ! -e amd_msoffice_old__Juniper.bin ]; then ./amd-compiler amd_msoffice_old n ;fi; \
 	if [ ! -e amd_msoffice_old_md5__Juniper.bin ]; then ./amd-compiler amd_msoffice_old_md5 n ;fi; \
 	if [ ! -e amd_pdf2__Juniper.bin ]; then ./amd-compiler amd_pdf2 n ;fi; \
+	if [ ! -e amd_pdf3__Juniper.bin ]; then ./amd-compiler amd_pdf3 n ;fi; \
 	fi
 	# NVidia
 	@if [ "$(CL_NVFLAGS)" = "yes" ]; then \
@@ -192,6 +193,7 @@ build:
 	if [ ! -e nvidia_msoffice_old__sm10.ptx ]; then ./nvidia-compiler nvidia_msoffice_old n ;fi; \
 	if [ ! -e nvidia_msoffice_old_md5__sm10.ptx ]; then ./nvidia-compiler nvidia_msoffice_old_md5 n ;fi; \
 	if [ ! -e nvidia_pdf2__sm10.ptx ]; then ./nvidia-compiler nvidia_pdf2 n ;fi; \
+	if [ ! -e nvidia_pdf3__sm10.ptx ]; then ./nvidia-compiler nvidia_pdf3 n ;fi; \
 	fi
 
 

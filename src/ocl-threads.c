@@ -507,6 +507,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"smf")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"vbulletin")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"o5logon")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"pdf")==0)) ocl_vector=1;
 	    }
 
 	    /* Zip (non-rule) exception for NVidia */
