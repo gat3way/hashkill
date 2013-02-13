@@ -709,6 +709,134 @@ dst[(get_global_id(0)*8)+3]=d;
 }
 
 
+__kernel 
+__attribute__((reqd_work_group_size(64, 1, 1)))
+void block2( __global uint *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *found, uint16 singlehash,uint16 salt)
+{
+uint w0,w1,w2,w3,w4,w5,w6,w7;
+uint i,j,k,l,id,a,b,c,d,e,f,g,h,v,shiftj,sj,u,si,sit,sw,tmp,tmp1,elem;
+__local uint state[64][64];
+__private uint key[5];
+__private uint skey[5];
+__private uint out[5];
+__private uint sout[5];
+
+#pragma unroll 32
+for (i=0;i<64;i++) state[GLI][i]=ident[i];
+
+
+i=input[(get_global_id(0)*8)+0];
+j=input[(get_global_id(0)*8)+1];
+sout[0]=input[(get_global_id(0)*8)+4];
+sout[1]=input[(get_global_id(0)*8)+5];
+sout[2]=input[(get_global_id(0)*8)+6];
+sout[3]=input[(get_global_id(0)*8)+7];
+
+key[0]=i&255;
+key[1]=(i>>8)&255;
+key[2]=(i>>16)&255;
+key[3]=(i>>24)&255;
+key[4]=(j)&255;
+
+
+for (l=0;l<20;l++)
+{
+skey[0]=key[0]^l;
+skey[1]=key[1]^l;
+skey[2]=key[2]^l;
+skey[3]=key[3]^l;
+skey[4]=key[4]^l;
+
+#pragma unroll 32
+for (i=0;i<64;i++) state[GLI][i]=ident[i];
+
+
+
+j=0;
+for (i=0;i<256;i+=4)
+{
+si=state[GLI][i>>2];
+
+u=si&0xff;
+j=(j+(skey[i%5])+u)&0xff;
+sj=((j>>2)==(i>>2)) ? si : state[GLI][j>>2];
+shiftj=(j&3)<<3;
+v=(sj>>shiftj)&0xff;
+si = bitselect(v,si,0xffffff00U);
+sj = bitselect(u<<shiftj,sj,~(0xffu<<shiftj));
+state[GLI][j>>2] = sj;
+si = ((j>>2)==(i>>2)) ? bitselect(u<<shiftj,si,~(0xffu<<shiftj)) : si;
+
+u=(si>>8)&0xff;
+j=(j+(skey[(i+1)%5])+u)&0xff;
+sj=((j>>2)==(i>>2)) ? si : state[GLI][j>>2];
+shiftj=(j&3)<<3;
+v=(sj>>shiftj)&0xff;
+si = bitselect(v<<8,si,0xffff00ffU);
+sj = bitselect(u<<shiftj,sj,~(0xffu<<shiftj));
+state[GLI][j>>2] = sj;
+si = ((j>>2)==(i>>2)) ? bitselect(u<<shiftj,si,~(0xffu<<shiftj)) : si;
+
+u=(si>>16)&0xff;
+j=(j+(skey[(i+2)%5])+u)&0xff;
+sj=((j>>2)==(i>>2)) ? si : state[GLI][j>>2];
+shiftj=(j&3)<<3;
+v=(sj>>shiftj)&0xff;
+si = bitselect(v<<16,si,0xff00ffffU);
+sj = bitselect(u<<shiftj,sj,~(0xffu<<shiftj));
+state[GLI][j>>2] = sj;
+si = ((j>>2)==(i>>2)) ? bitselect(u<<shiftj,si,~(0xffu<<shiftj)) : si;
+
+u=(si>>24)&0xff;
+j=(j+(skey[(i+3)%5])+u)&0xff;
+sj=((j>>2)==(i>>2)) ? si : state[GLI][j>>2];
+shiftj=(j&3)<<3;
+v=(sj>>shiftj)&0xff;
+si = bitselect(v<<24,si,0x00ffffffU);
+sj = bitselect(u<<shiftj,sj,~(0xffu<<shiftj));
+state[GLI][j>>2] = sj;
+si = ((j>>2)==(i>>2)) ? bitselect(u<<shiftj,si,~(0xffu<<shiftj)) : si;
+
+state[GLI][i>>2]=si;
+}
+
+
+i=0;
+j=0;
+for (k=0;k<16;k++)
+{
+i=(i+1)&255;
+v=GETCHAR(state[GLI],i);
+j=(j+v)&255;
+shiftj=GETCHAR(state[GLI],j);
+PUTCHAR(state[GLI],i,shiftj);
+PUTCHAR(state[GLI],j,v);
+PUTCHAR(out,k,GETCHAR(state[GLI],(v+shiftj)&255));
+}
+
+sout[0]=out[0]^sout[0];
+sout[1]=out[1]^sout[1];
+sout[2]=out[2]^sout[2];
+sout[3]=out[3]^sout[3];
+
+}
+
+a=sout[0];
+b=sout[1];
+c=sout[2];
+d=sout[3];
+
+
+dst[(get_global_id(0)*8)+0]=a;
+dst[(get_global_id(0)*8)+1]=b;
+dst[(get_global_id(0)*8)+2]=c;
+dst[(get_global_id(0)*8)+3]=d;
+
+}
+
+
+
+
 
 
 __kernel 

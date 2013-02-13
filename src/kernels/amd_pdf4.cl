@@ -305,16 +305,30 @@ B=b+(uint)Cb;
 C=c+(uint)Cc;
 D=d+(uint)Cd;
 
-
+if (salt.sE!=0)
+{
 w0=salt.sF;
 w1=salt.sA;
 w2=salt.sB;
 w3=salt.sC;
 w4=salt.sD;
 w5=0x80;
-
 w6=w7=w8=w9=w10=w11=w12=w13=w15=(uint)0;
 SIZE = (uint)84<<3;
+}
+else
+{
+w0=salt.sF;
+w1=salt.sA;
+w2=salt.sB;
+w3=salt.sC;
+w4=salt.sD;
+w5=0xFFFFFFFFU;
+w6=0x80;
+w7=w8=w9=w10=w11=w12=w13=w15=(uint)0;
+SIZE = (uint)88<<3;
+}
+
 
 a=(uint)A;
 b=(uint)B;
@@ -860,6 +874,5 @@ found_ind[get_global_id(0)] = 1;
 dst[(get_global_id(0))] = (uint8)(d1,d2,d3,d4,d5,d6,d7,d8);
 
 }
-
 
 

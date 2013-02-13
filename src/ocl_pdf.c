@@ -450,19 +450,37 @@ static hash_stat load_pdf(char *filename)
 
 static cl_uint16 get_singlehash()
 {
-    unsigned char sh[32];
+    unsigned char sh[64];
     cl_uint16 t;
 
-    memset(sh,0,32);
-    memcpy(sh, cs.u, (cs.length_u>32) ? 32 : cs.length_u);
-    t.s0 = (sh[0])|(sh[1]<<8)|(sh[2]<<16)|(sh[3]<<24);
-    t.s1 = (sh[4])|(sh[5]<<8)|(sh[6]<<16)|(sh[7]<<24);
-    t.s2 = (sh[8])|(sh[9]<<8)|(sh[10]<<16)|(sh[11]<<24);
-    t.s3 = (sh[12])|(sh[13]<<8)|(sh[14]<<16)|(sh[15]<<24);
-    t.s4 = (sh[16])|(sh[17]<<8)|(sh[18]<<16)|(sh[19]<<24);
-    t.s5 = (sh[20])|(sh[21]<<8)|(sh[22]<<16)|(sh[23]<<24);
-    t.s6 = (sh[24])|(sh[25]<<8)|(sh[26]<<16)|(sh[27]<<24);
-    t.s7 = (sh[28])|(sh[29]<<8)|(sh[30]<<16)|(sh[31]<<24);
+    if (cs.R!=5)
+    {
+	memset(sh,0,32);
+	memcpy(sh, cs.u, (cs.length_u>32) ? 32 : cs.length_u);
+	t.s0 = (sh[0])|(sh[1]<<8)|(sh[2]<<16)|(sh[3]<<24);
+	t.s1 = (sh[4])|(sh[5]<<8)|(sh[6]<<16)|(sh[7]<<24);
+	t.s2 = (sh[8])|(sh[9]<<8)|(sh[10]<<16)|(sh[11]<<24);
+	t.s3 = (sh[12])|(sh[13]<<8)|(sh[14]<<16)|(sh[15]<<24);
+	t.s4 = (sh[16])|(sh[17]<<8)|(sh[18]<<16)|(sh[19]<<24);
+	t.s5 = (sh[20])|(sh[21]<<8)|(sh[22]<<16)|(sh[23]<<24);
+	t.s6 = (sh[24])|(sh[25]<<8)|(sh[26]<<16)|(sh[27]<<24);
+	t.s7 = (sh[28])|(sh[29]<<8)|(sh[30]<<16)|(sh[31]<<24);
+    }
+    else
+    {
+	memset(sh,0,64);
+	memcpy(sh, cs.u, (cs.length_u>40) ? 40 : cs.length_u);
+	t.s0 = (sh[0])|(sh[1]<<8)|(sh[2]<<16)|(sh[3]<<24);
+	t.s1 = (sh[4])|(sh[5]<<8)|(sh[6]<<16)|(sh[7]<<24);
+	t.s2 = (sh[8])|(sh[9]<<8)|(sh[10]<<16)|(sh[11]<<24);
+	t.s3 = (sh[12])|(sh[13]<<8)|(sh[14]<<16)|(sh[15]<<24);
+	t.s4 = (sh[16])|(sh[17]<<8)|(sh[18]<<16)|(sh[19]<<24);
+	t.s5 = (sh[20])|(sh[21]<<8)|(sh[22]<<16)|(sh[23]<<24);
+	t.s6 = (sh[24])|(sh[25]<<8)|(sh[26]<<16)|(sh[27]<<24);
+	t.s7 = (sh[28])|(sh[29]<<8)|(sh[30]<<16)|(sh[31]<<24);
+	t.s8 = (sh[32])|(sh[33]<<8)|(sh[34]<<16)|(sh[35]<<24);
+	t.s9 = (sh[36])|(sh[37]<<8)|(sh[38]<<16)|(sh[39]<<24);
+    }
 
     return t;
 }
@@ -553,9 +571,10 @@ static void ocl_pdf_crack_callback(char *line, int self)
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
     _clFinish(rule_oclqueue[self]);
 
-    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
-    _clFinish(rule_oclqueue[self]);
-
+    if (cs.R!=5)
+    {
+	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
+	_clFinish(rule_oclqueue[self]);
 /*
 if (strcmp(rule_images[self],"testpassword")==0)
 {
@@ -568,8 +587,9 @@ printf("%02x",rule_images3[self][i]&255);
 printf("\n");
 }
 */
-    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernellast[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
-    _clFinish(rule_oclqueue[self]);
+	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernellast[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
+	_clFinish(rule_oclqueue[self]);
+    }
 
     found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
     wthreads[self].tries+=(gws);
@@ -608,7 +628,7 @@ static void ocl_pdf_callback(char *line, int self)
     rule_sizes[self][rule_counts[self][0]] = strlen(line);
     strcpy(&rule_images[self][0]+(rule_counts[self][0]*MAX),line);
 
-    if ((rule_counts[self][0]>=ocl_rule_workset[self]*wthreads[self].vectorsize-1)||(line[0]==0x01))
+    if ((rule_counts[self][0]>=(ocl_rule_workset[self]*wthreads[self].vectorsize-1))||(line[0]==0x01))
     {
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, rule_images[self], 0, NULL, NULL);
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_sizes_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), rule_sizes[self], 0, NULL, NULL);
@@ -626,7 +646,7 @@ static void ocl_pdf_callback(char *line, int self)
 void* ocl_rule_pdf_thread(void *arg)
 {
     cl_int err;
-    int found;
+    int found=0;
     size_t nvidia_local_work_size[3]={64,1,1};
     size_t amd_local_work_size[3]={64,1,1};
     int self;
@@ -646,7 +666,15 @@ void* ocl_rule_pdf_thread(void *arg)
 
     rule_kernelmod[self] = _clCreateKernel(program[self], "strmodify", &err );
     rule_kernelpre1[self] = _clCreateKernel(program[self], "prepare", &err );
-    rule_kernelbl1[self] = _clCreateKernel(program[self], "block", &err );
+    if ((cs.R==3)||(cs.R==4))
+    {
+	if (cs.length==40) rule_kernelbl1[self] = _clCreateKernel(program[self], "block2", &err );
+	else rule_kernelbl1[self] = _clCreateKernel(program[self], "block", &err );
+    }
+    else
+    {
+	rule_kernelbl1[self] = _clCreateKernel(program[self], "block", &err );
+    }
     rule_kernellast[self] = _clCreateKernel(program[self], "final", &err );
 
     rule_oclqueue[self] = _clCreateCommandQueue(context[self], wthreads[self].cldeviceid, 0, &err );
@@ -655,8 +683,8 @@ void* ocl_rule_pdf_thread(void *arg)
 
 
     rule_found_ind[self]=malloc(ocl_rule_workset[self]*sizeof(cl_uint));
-    bzero(rule_found_ind[self],sizeof(uint)*ocl_rule_workset[self]);
-    rule_found_ind_buf[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*sizeof(cl_uint), NULL, &err );
+    bzero(rule_found_ind[self],sizeof(uint)*ocl_rule_workset[self]*wthreads[self].vectorsize);
+    rule_found_ind_buf[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*sizeof(cl_uint)*wthreads[self].vectorsize, NULL, &err );
     _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE, 0, 4, &found, 0, NULL, NULL);
     rule_images_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
     rule_images2_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*32, NULL, &err );
@@ -727,6 +755,8 @@ hash_stat ocl_rule_pdf(void)
             _clGetDeviceInfo(device[wthreads[i].deviceid], CL_DEVICE_NAME, sizeof(pbuf),pbuf, NULL );
     	    if (cs.R==2) sprintf(kernelfile,"%s/hashkill/kernels/amd_pdf2__%s.bin",DATADIR,pbuf);
     	    else if (cs.R==3) sprintf(kernelfile,"%s/hashkill/kernels/amd_pdf3__%s.bin",DATADIR,pbuf);
+    	    else if (cs.R==4) sprintf(kernelfile,"%s/hashkill/kernels/amd_pdf4__%s.bin",DATADIR,pbuf);
+    	    else if (cs.R==5) sprintf(kernelfile,"%s/hashkill/kernels/amd_pdf5__%s.bin",DATADIR,pbuf);
     	    else sprintf(kernelfile,"%s/hashkill/kernels/amd_pdf_md5__%s.bin",DATADIR,pbuf);
 
     	    char *ofname = kernel_decompress(kernelfile);
@@ -774,6 +804,8 @@ hash_stat ocl_rule_pdf(void)
 	    if ((compute_capability_major==3)&&(compute_capability_minor==0)) sprintf(pbuf,"sm30");
     	    if (cs.R==2) sprintf(kernelfile,"%s/hashkill/kernels/nvidia_pdf2__%s.ptx",DATADIR,pbuf);
     	    else if (cs.R==3) sprintf(kernelfile,"%s/hashkill/kernels/nvidia_pdf3__%s.ptx",DATADIR,pbuf);
+    	    else if (cs.R==4) sprintf(kernelfile,"%s/hashkill/kernels/nvidia_pdf4__%s.ptx",DATADIR,pbuf);
+    	    else if (cs.R==5) sprintf(kernelfile,"%s/hashkill/kernels/nvidia_pdf5__%s.ptx",DATADIR,pbuf);
     	    else sprintf(kernelfile,"%s/hashkill/kernels/nvidia_pdf_md5__%s.ptx",DATADIR,pbuf);
 
     	    char *ofname = kernel_decompress(kernelfile);
