@@ -245,6 +245,7 @@ void hash_proto_sha1_hex(const char *hash[VECTORSIZE], char *hashhex[VECTORSIZE]
 void hash_proto_sha256_unicode(const char *plaintext[VECTORSIZE], char *hashmd5[VECTORSIZE], int len[VECTORSIZE]);
 void hash_proto_sha256_hex(const char *hash[VECTORSIZE], char *hashhex[VECTORSIZE]);
 void hash_proto_sha512_unicode(const char *plaintext[VECTORSIZE], char *hashmd5[VECTORSIZE], int len[VECTORSIZE]);
+void hash_proto_sha384_unicode(const char *plaintext[VECTORSIZE], char *hashmd5[VECTORSIZE], int len[VECTORSIZE]);
 void hash_proto_sha512_hex(const char *hash[VECTORSIZE], char *hashhex[VECTORSIZE]);
 hash_stat hash_proto_fcrypt(const char *password[VECTORSIZE], const char *salt, char *ret[VECTORSIZE]);
 hash_stat hash_proto_fcrypt_slow(const char *password[VECTORSIZE], const char *salt, char *ret[VECTORSIZE]);

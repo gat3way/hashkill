@@ -46,6 +46,7 @@ void register_sha1_hex(void * (*sha1_hex)(const char *hash[VECTORSIZE], char *ha
 void register_sha256_unicode(void * (*sha256_unicode)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE]));
 void register_sha256_hex(void * (*sha256_hex)(const char *hash[VECTORSIZE], char *hashhex[VECTORSIZE]));
 void register_sha512_unicode(void * (*sha512_unicode)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE]));
+void register_sha384_unicode(void * (*sha384_unicode)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE]));
 void register_sha512_hex(void * (*sha512_hex)(const char *hash[VECTORSIZE], char *hashhex[VECTORSIZE]));
 void register_fcrypt(hash_stat (*hfcrypt)(const char *password[VECTORSIZE], const char *salt, char *ret[VECTORSIZE]));
 void register_fcrypt_slow(hash_stat (*hfcrypt_slow)(const char *password[VECTORSIZE], const char *salt, char *ret[VECTORSIZE]));
@@ -193,6 +194,11 @@ void register_sha256_hex(void * (*sha256_hex)(const char *hash[VECTORSIZE], char
 void register_sha512_unicode(void * (*sha512_unicode)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE]))
 {
     hash_sha512_unicode = sha512_unicode;
+}
+
+void register_sha384_unicode(void * (*sha384_unicode)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE]))
+{
+    hash_sha384_unicode = sha384_unicode;
 }
 
 void register_sha512_hex(void * (*sha512_hex)(const char *hash[VECTORSIZE], char *hashhex[VECTORSIZE]))

@@ -92,6 +92,7 @@ void hash_proto_sha1_hex(const char *hash[VECTORSIZE], char *hashhex[VECTORSIZE]
 void hash_proto_sha256_unicode(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE]);
 void hash_proto_sha256_hex(const char *hash[VECTORSIZE], char *hashhex[VECTORSIZE]);
 void hash_proto_sha512_unicode(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE]);
+void hash_proto_sha384_unicode(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE]);
 void hash_proto_sha512_hex(const char *hash[VECTORSIZE], char *hashhex[VECTORSIZE]);
 hash_stat hash_proto_fcrypt(const char *password[VECTORSIZE], const char *salt, char *ret[VECTORSIZE]);
 hash_stat hash_proto_fcrypt_slow(const char *password[VECTORSIZE], const char *salt, char *ret[VECTORSIZE]);
@@ -668,6 +669,20 @@ void hash_proto_sha512_unicode(const char *plaintext[VECTORSIZE], char *hash[VEC
 	SHA512_Init(&ctx);
 	SHA512_Update(&ctx, plaintext[a], len[a]);
 	SHA512_Final((unsigned char *)hash[a],&ctx);
+    }
+}
+
+/* proto SHA384 function */
+void hash_proto_sha384_unicode(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE])
+{
+    SHA512_CTX ctx;
+    int a;
+    
+    for (a=0;a<vectorsize;a++)
+    {
+	SHA384_Init(&ctx);
+	SHA384_Update(&ctx, plaintext[a], len[a]);
+	SHA384_Final((unsigned char *)hash[a],&ctx);
     }
 }
 

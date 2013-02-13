@@ -192,6 +192,7 @@ hash_stat load_plugin(void)
 	void(*register_sha256_unicode)(void (*sha256_unicode)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE])) = dlsym(dlhandle, "register_sha256_unicode");
 	void(*register_sha256_hex)(void (*sha256_hex)(const char *hash[VECTORSIZE], char *hashhex[VECTORSIZE])) = dlsym(dlhandle, "register_sha256_hex");
 	void(*register_sha512_unicode)(void (*sha512_unicode)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE])) = dlsym(dlhandle, "register_sha512_unicode");
+	void(*register_sha384_unicode)(void (*sha384_unicode)(const char *plaintext[VECTORSIZE], char *hash[VECTORSIZE], int len[VECTORSIZE])) = dlsym(dlhandle, "register_sha384_unicode");
 	void(*register_sha512_hex)(void (*sha512_hex)(const char *hash[VECTORSIZE], char *hashhex[VECTORSIZE])) = dlsym(dlhandle, "register_sha512_hex");
 	void(*register_fcrypt)(hash_stat (*fcrypt)(const char *password[VECTORSIZE], const char *salt, char *ret[VECTORSIZE])) = dlsym(dlhandle, "register_fcrypt");
 	void(*register_fcrypt_slow)(hash_stat (*fcrypt_slow)(const char *password[VECTORSIZE], const char *salt, char *ret[VECTORSIZE])) = dlsym(dlhandle, "register_fcrypt_slow");
@@ -247,6 +248,7 @@ hash_stat load_plugin(void)
 	    register_sha256_unicode(hash_proto_sha256_unicode);
 	    register_sha256_hex(hash_proto_sha256_hex);
 	    register_sha512_unicode(hash_proto_sha512_unicode);
+	    register_sha384_unicode(hash_proto_sha384_unicode);
 	    register_sha512_hex(hash_proto_sha512_hex);
 	    register_fcrypt(hash_proto_fcrypt);
 	    register_fcrypt_slow(hash_proto_fcrypt_slow);
