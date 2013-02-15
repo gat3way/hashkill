@@ -103,6 +103,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"kwallet",&ocl_bruteforce_kwallet, &ocl_markov_kwallet, &ocl_rule_kwallet},
                             {1,"msoffice-old",&ocl_bruteforce_msoffice_old, &ocl_markov_msoffice_old, &ocl_rule_msoffice_old},
                             {1,"pdf",&ocl_bruteforce_pdf, &ocl_markov_pdf, &ocl_rule_pdf},
+                            {1,"sha384",&ocl_bruteforce_sha384, &ocl_markov_sha384, &ocl_rule_sha384},
                             {0, "", NULL, NULL, NULL}
                         };
 
@@ -276,6 +277,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"desunix")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"phpbb3")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"sha384")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"whirlpool")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"osx-old")==0)) ocl_vector=4;
@@ -297,6 +299,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"lm")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"desunix")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"sha512")==0)) loops=1;
+		if ((strcmp(get_current_plugin(),"sha384")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"whirlpool")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"osx-old")==0)) loops=2;
@@ -320,6 +323,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"desunix")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"sha384")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"whirlpool")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"joomla")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"oscommerce")==0)) ocl_vector=4;
@@ -418,6 +422,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"oracle11g")==0)) {ocl_vector=4;loops=1;}
 		if ((strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"sha384")==0)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"whirlpool")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) {ocl_vector=2;loops=1;}
 		if ((strcmp(get_current_plugin(),"zip")==0)) loops=1;
@@ -443,6 +448,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"lm")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"desunix")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"sha512")==0)) loops=1;
+		if ((strcmp(get_current_plugin(),"sha384")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"whirlpool")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) loops=1;
 		if ((strcmp(get_current_plugin(),"osx-old")==0)) loops=2;
@@ -486,6 +492,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"lm")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"sha256")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"sha512")==0)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"sha384")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"whirlpool")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"ntlm")==0)) ocl_vector=8;
 		if ((strcmp(get_current_plugin(),"md5md5")==0)) ocl_vector=4;

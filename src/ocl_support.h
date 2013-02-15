@@ -305,6 +305,11 @@ hash_stat ocl_bruteforce_pdf(void);
 hash_stat ocl_markov_pdf(void);
 hash_stat ocl_rule_pdf(void);
 
+/* sha384 plugin support */
+hash_stat ocl_bruteforce_sha384(void);
+hash_stat ocl_markov_sha384(void);
+hash_stat ocl_rule_sha384(void);
+
 
 /* test plugin support */
 //hash_stat ocl_bruteforce_test(void);
