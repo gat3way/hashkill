@@ -107,6 +107,7 @@ build:
 	if [ ! -e amd_pdf5__Juniper.bin ]; then ./amd-compiler amd_pdf5 n ;fi; \
 	if [ ! -e amd_sha384__Juniper.bin ]; then ./amd-compiler amd_sha384 ns ;fi; \
 	if [ ! -e amd_sha384_long__Juniper.bin ]; then ./amd-compiler amd_sha384_long ns ;fi; \
+	if [ ! -e amd_pdf6__Juniper.bin ]; then ./amd-compiler amd_pdf6 n ;fi; \
 	fi
 	# NVidia
 	@if [ "$(CL_NVFLAGS)" = "yes" ]; then \
@@ -202,6 +203,7 @@ build:
 	if [ ! -e nvidia_pdf5__sm10.ptx ]; then ./nvidia-compiler nvidia_pdf5 n ;fi; \
 	if [ ! -e nvidia_sha384__sm10.ptx ]; then ./nvidia-compiler nvidia_sha384 ns ;fi; \
 	if [ ! -e nvidia_sha384_long__sm10.ptx ]; then ./nvidia-compiler nvidia_sha384_long ns ;fi; \
+	if [ ! -e nvidia_pdf6__sm10.ptx ]; then ./nvidia-compiler nvidia_pdf6 n ;fi; \
 	fi
 
 

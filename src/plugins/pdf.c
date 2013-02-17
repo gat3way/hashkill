@@ -616,11 +616,6 @@ static void pdf_compute_encryption_key_r5 (unsigned char *password[VECTORSIZE], 
 	{
 	    /* Step 3/4 - test password against owner/user key and compute encryption key */
 	    memcpy(buffer[a], password[a], pwlen[a]);
-	    /*
-	    if (ownerkey) {
-		memcpy(buffer + pwlen, cs.o + 32, 8);
-		memcpy(buffer + pwlen + 8, cs.u, 48);
-	    } else*/
 	    memcpy(buffer[a] + pwlen[a], cs.u + 32, 8);
 	    lens[a] = pwlen[a] + 8;
 	}
@@ -659,6 +654,7 @@ static void pdf_compute_hardened_hash_r6(unsigned char *password[VECTORSIZE], in
                 data_len = pwlen[a] + block_size;
                 for (j = 1; j < 64; j++)
                         memcpy(data + j * data_len, data, data_len);
+
 
                 /* Step 3: encrypt data using data block as key and iv */
                 hash_aes_set_encrypt_key(block, 128, &aes);
@@ -722,13 +718,7 @@ static void pdf_compute_user_password(unsigned char *password[VECTORSIZE], unsig
 		RC4_set_key(&arc4, n, key[a]);
 		RC4(&arc4, 32, padding, output[a]);
 	    }
-if (strcmp(password[0],"test")==0)
-{
-int i;
-for (i=0;i<16;i++) printf("%02x",output[0][i]&255);
-printf("\n");
-}	}
-
+	}
 	else if (cs.R == 3 || cs.R == 4) 
 	{
 	    unsigned char xor[32];

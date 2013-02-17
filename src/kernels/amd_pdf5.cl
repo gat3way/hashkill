@@ -111,7 +111,7 @@ f1=input[get_global_id(0)*8+5];
 g1=input[get_global_id(0)*8+6];
 h1=input[get_global_id(0)*8+7];
 
-x[8]=x[9]=x[10]=x[11]=x[12]=x[13]=x[14]=x[15]=x[16]=x[17]=0;
+x[8]=x[9]=x[10]=x[11]=0;
 x[0]=a1;
 x[1]=b1;
 x[2]=c1;

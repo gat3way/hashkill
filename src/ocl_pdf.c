@@ -94,12 +94,9 @@ static hash_stat load_pdf(char *filename)
     char finalobject[1024];
     char id[255];
     char ostr[255],ustr[255];
-    char oestr[255],uestr[255];
     int v,r,length,p,meta;
     size_t hashsize,usize,osize;
-    size_t uesize,oesize;
 
-    oesize=uesize=0;
     osize=usize=0;
     fd = open(filename,O_RDONLY);
     size = lseek(fd,0,SEEK_END);
@@ -275,79 +272,6 @@ static hash_stat load_pdf(char *filename)
             }
             if (osize==255) flag=1;
         }
-
-        // Search for 'UE' in letters
-        tok = memmem(encdict,encdictsize,"/UE(",strlen("/UE("));
-        if (!tok) goto out;
-        tok+=strlen("/UE(");
-        a=0;flag=0;uesize=0;
-        while (flag==0)
-        {
-            if (tok[a]=='\\') 
-            {
-                a++;
-                switch (tok[a])
-                {
-                    case 'n' : uestr[uesize]='\n';break;
-                    case 'r' : uestr[uesize]='\r';break;
-                    case 't' : uestr[uesize]='\t';break;
-                    case 'v' : uestr[uesize]='\v';break;
-                    case 'f' : uestr[uesize]='\f';break;
-                    case 'b' : uestr[uesize]='\b';break;
-                    case 'a' : uestr[uesize]='\a';break;
-                    case ')' : uestr[uesize]=')';break;
-                    case '(' : uestr[uesize]='(';break;
-                    case '\\' : uestr[uesize]='\\';break;
-                    case '0' : uestr[uesize]=0;break;
-                }
-                uesize++;
-                a++;
-            }
-            else if ((tok[a]==')')&&(tok[a-1]!='\\')) flag=1;
-            else 
-            {
-                uestr[uesize]=tok[a];
-                a++;
-                uesize++;
-            }
-            if (uesize==255) flag=1;
-        }
-        // Search for 'OE' in letters
-        tok = memmem(encdict,encdictsize,"/OE(",strlen("/OE("));
-        if (!tok) goto out;
-        tok+=strlen("/OE(");
-        a=0;flag=0;oesize=0;
-        while (flag==0)
-        {
-            if (tok[a]=='\\') 
-            {
-                a++;
-                switch (tok[a])
-                {
-                    case 'n' : oestr[oesize]='\n';break;
-                    case 'r' : oestr[oesize]='\r';break;
-                    case 't' : oestr[oesize]='\t';break;
-                    case 'v' : oestr[oesize]='\v';break;
-                    case 'f' : oestr[oesize]='\f';break;
-                    case 'b' : oestr[oesize]='\b';break;
-                    case 'a' : oestr[oesize]='\a';break;
-                    case ')' : oestr[oesize]=')';break;
-                    case '(' : oestr[oesize]='(';break;
-                    case '\\' : oestr[oesize]='\\';break;
-                    case '0' : oestr[oesize]=0;break;
-                }
-                oesize++;
-                a++;
-            }
-            else if ((tok[a]==')')&&(tok[a-1]!='\\')) flag=1;
-            else 
-            {
-                oestr[oesize]=tok[a];
-                a++;
-                oesize++;
-            }
-            if (oesize==255) flag=1;
-        }
     }
     else
     {
@@ -453,7 +377,7 @@ static cl_uint16 get_singlehash()
     unsigned char sh[64];
     cl_uint16 t;
 
-    if (cs.R!=5)
+    if (cs.R<5)
     {
 	memset(sh,0,32);
 	memcpy(sh, cs.u, (cs.length_u>32) ? 32 : cs.length_u);
@@ -543,13 +467,27 @@ static void ocl_pdf_crack_callback(char *line, int self)
     _clSetKernelArg(rule_kernelpre1[self], 4, sizeof(cl_mem), (void*) &rule_found_buf[self]);
     _clSetKernelArg(rule_kernelpre1[self], 5, sizeof(cl_uint16), (void*) &singlehash);
     _clSetKernelArg(rule_kernelpre1[self], 6, sizeof(cl_uint16), (void*) &salt);
-    _clSetKernelArg(rule_kernelbl1[self], 0, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
-    _clSetKernelArg(rule_kernelbl1[self], 1, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
-    _clSetKernelArg(rule_kernelbl1[self], 2, sizeof(cl_mem), (void*) &rule_sizes_buf[self]);
-    _clSetKernelArg(rule_kernelbl1[self], 3, sizeof(cl_mem), (void*) &rule_found_ind_buf[self]);
-    _clSetKernelArg(rule_kernelbl1[self], 4, sizeof(cl_mem), (void*) &rule_found_buf[self]);
-    _clSetKernelArg(rule_kernelbl1[self], 5, sizeof(cl_uint16), (void*) &singlehash);
-    _clSetKernelArg(rule_kernelbl1[self], 6, sizeof(cl_uint16), (void*) &salt);
+    if (cs.R==6)
+    {
+	_clSetKernelArg(rule_kernelbl1[self], 0, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
+	_clSetKernelArg(rule_kernelbl1[self], 1, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
+	_clSetKernelArg(rule_kernelbl1[self], 2, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
+	_clSetKernelArg(rule_kernelbl1[self], 3, sizeof(cl_mem), (void*) &rule_sizes_buf[self]);
+	_clSetKernelArg(rule_kernelbl1[self], 4, sizeof(cl_mem), (void*) &rule_found_ind_buf[self]);
+	_clSetKernelArg(rule_kernelbl1[self], 5, sizeof(cl_mem), (void*) &rule_found_buf[self]);
+	_clSetKernelArg(rule_kernelbl1[self], 6, sizeof(cl_uint16), (void*) &singlehash);
+	_clSetKernelArg(rule_kernelbl1[self], 7, sizeof(cl_uint16), (void*) &salt);
+    }
+    else
+    {
+	_clSetKernelArg(rule_kernelbl1[self], 0, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
+	_clSetKernelArg(rule_kernelbl1[self], 1, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
+	_clSetKernelArg(rule_kernelbl1[self], 2, sizeof(cl_mem), (void*) &rule_sizes_buf[self]);
+	_clSetKernelArg(rule_kernelbl1[self], 3, sizeof(cl_mem), (void*) &rule_found_ind_buf[self]);
+	_clSetKernelArg(rule_kernelbl1[self], 4, sizeof(cl_mem), (void*) &rule_found_buf[self]);
+	_clSetKernelArg(rule_kernelbl1[self], 5, sizeof(cl_uint16), (void*) &singlehash);
+	_clSetKernelArg(rule_kernelbl1[self], 6, sizeof(cl_uint16), (void*) &salt);
+    }
     _clSetKernelArg(rule_kernellast[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
     _clSetKernelArg(rule_kernellast[self], 1, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
     _clSetKernelArg(rule_kernellast[self], 2, sizeof(cl_mem), (void*) &rule_sizes_buf[self]);
@@ -571,28 +509,31 @@ static void ocl_pdf_crack_callback(char *line, int self)
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
     _clFinish(rule_oclqueue[self]);
 
-    if (cs.R!=5)
+    if (cs.R==6)
+    {
+	for (a=0;a<256+32;a++)
+	{
+	    if (attack_over!=0) return;
+	    singlehash.sE = a;
+	    _clSetKernelArg(rule_kernelbl1[self], 6, sizeof(cl_uint16), (void*) &singlehash);
+	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
+	    _clFinish(rule_oclqueue[self]);
+	    wthreads[self].tries+=(gws)/(256+32);
+	}
+	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernellast[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
+	_clFinish(rule_oclqueue[self]);
+
+    }
+    else if (cs.R<5)
     {
 	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
-/*
-if (strcmp(rule_images[self],"testpassword")==0)
-{
-int i;
-_clEnqueueReadBuffer(rule_oclqueue[self], rule_images3_buf[self], CL_TRUE, 0, 32, rule_images3[self], 0, NULL, NULL);
-for (i=0;i<16;i++)
-{
-printf("%02x",rule_images3[self][i]&255);
-}
-printf("\n");
-}
-*/
 	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernellast[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
     }
 
     found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
-    wthreads[self].tries+=(gws);
+    if (cs.R!=6) wthreads[self].tries+=(gws);
     if (*found>0) 
     {
         _clEnqueueReadBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_TRUE, 0, ocl_rule_workset[self]*sizeof(cl_uint), rule_found_ind[self], 0, NULL, NULL);
@@ -681,23 +622,46 @@ void* ocl_rule_pdf_thread(void *arg)
     rule_buffer[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*wthreads[self].vectorsize*hash_ret_len1, NULL, &err );
     rule_found_buf[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, 4, NULL, &err );
 
+    if (cs.R!=6)
+    {
+	rule_found_ind[self]=malloc(ocl_rule_workset[self]*sizeof(cl_uint));
+	bzero(rule_found_ind[self],sizeof(uint)*ocl_rule_workset[self]*wthreads[self].vectorsize);
+	rule_found_ind_buf[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*sizeof(cl_uint)*wthreads[self].vectorsize, NULL, &err );
+	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE, 0, 4, &found, 0, NULL, NULL);
+	rule_images_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
+	rule_images2_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*32, NULL, &err );
+	rule_images3_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*32, NULL, &err );
+	rule_sizes_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint), NULL, &err );
+	rule_sizes[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int));
+	rule_images[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
+	rule_images2[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*32);
+	rule_images3[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*32);
+	bzero(&rule_images[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
+	bzero(&rule_images2[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*32);
+	bzero(&rule_images3[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*32);
+	bzero(&rule_sizes[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
+    }
+    else
+    {
+	wlog("Warning: this is a PDF R6 file, you are very likely better off using the CPU to crack it. Use -c option for that\n%s","");
+	rule_found_ind[self]=malloc(ocl_rule_workset[self]*sizeof(cl_uint));
+	bzero(rule_found_ind[self],sizeof(uint)*ocl_rule_workset[self]*wthreads[self].vectorsize);
+	rule_found_ind_buf[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*sizeof(cl_uint)*wthreads[self].vectorsize, NULL, &err );
+	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE, 0, 4, &found, 0, NULL, NULL);
+	rule_images_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
+	rule_images2_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*32, NULL, &err );
+	rule_images3_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*72, NULL, &err );
+	rule_sizes_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint), NULL, &err );
+	rule_sizes[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int));
+	rule_images[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
+	rule_images2[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*32);
+	rule_images3[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*72);
+	bzero(&rule_images[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
+	bzero(&rule_images2[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*32);
+	bzero(&rule_images3[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*72);
+	bzero(&rule_sizes[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
+    }
 
-    rule_found_ind[self]=malloc(ocl_rule_workset[self]*sizeof(cl_uint));
-    bzero(rule_found_ind[self],sizeof(uint)*ocl_rule_workset[self]*wthreads[self].vectorsize);
-    rule_found_ind_buf[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*sizeof(cl_uint)*wthreads[self].vectorsize, NULL, &err );
-    _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE, 0, 4, &found, 0, NULL, NULL);
-    rule_images_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
-    rule_images2_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*32, NULL, &err );
-    rule_images3_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*32, NULL, &err );
-    rule_sizes_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint), NULL, &err );
-    rule_sizes[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int));
-    rule_images[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
-    rule_images2[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*32);
-    rule_images3[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*32);
-    bzero(&rule_images[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
-    bzero(&rule_images2[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*32);
-    bzero(&rule_images3[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*32);
-    bzero(&rule_sizes[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
     pthread_mutex_unlock(&biglock); 
 
     worker_gen(self,ocl_pdf_callback);
@@ -757,7 +721,7 @@ hash_stat ocl_rule_pdf(void)
     	    else if (cs.R==3) sprintf(kernelfile,"%s/hashkill/kernels/amd_pdf3__%s.bin",DATADIR,pbuf);
     	    else if (cs.R==4) sprintf(kernelfile,"%s/hashkill/kernels/amd_pdf4__%s.bin",DATADIR,pbuf);
     	    else if (cs.R==5) sprintf(kernelfile,"%s/hashkill/kernels/amd_pdf5__%s.bin",DATADIR,pbuf);
-    	    else sprintf(kernelfile,"%s/hashkill/kernels/amd_pdf_md5__%s.bin",DATADIR,pbuf);
+    	    else sprintf(kernelfile,"%s/hashkill/kernels/amd_pdf6__%s.bin",DATADIR,pbuf);
 
     	    char *ofname = kernel_decompress(kernelfile);
             if (!ofname) return hash_err;
@@ -806,7 +770,7 @@ hash_stat ocl_rule_pdf(void)
     	    else if (cs.R==3) sprintf(kernelfile,"%s/hashkill/kernels/nvidia_pdf3__%s.ptx",DATADIR,pbuf);
     	    else if (cs.R==4) sprintf(kernelfile,"%s/hashkill/kernels/nvidia_pdf4__%s.ptx",DATADIR,pbuf);
     	    else if (cs.R==5) sprintf(kernelfile,"%s/hashkill/kernels/nvidia_pdf5__%s.ptx",DATADIR,pbuf);
-    	    else sprintf(kernelfile,"%s/hashkill/kernels/nvidia_pdf_md5__%s.ptx",DATADIR,pbuf);
+    	    else sprintf(kernelfile,"%s/hashkill/kernels/nvidia_pdf6__%s.ptx",DATADIR,pbuf);
 
     	    char *ofname = kernel_decompress(kernelfile);
             if (!ofname) return hash_err;
