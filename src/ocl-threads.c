@@ -104,6 +104,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"msoffice-old",&ocl_bruteforce_msoffice_old, &ocl_markov_msoffice_old, &ocl_rule_msoffice_old},
                             {1,"pdf",&ocl_bruteforce_pdf, &ocl_markov_pdf, &ocl_rule_pdf},
                             {1,"sha384",&ocl_bruteforce_sha384, &ocl_markov_sha384, &ocl_rule_sha384},
+                            {1,"odf",&ocl_bruteforce_odf, &ocl_markov_odf, &ocl_rule_odf},
                             {0, "", NULL, NULL, NULL}
                         };
 
@@ -381,6 +382,8 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"truecrypt")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"dmg")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"dmg")==0)&&(!ocl_have_gcn)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"odf")==0)&&(ocl_have_gcn)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"odf")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"rar")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"rar")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"django256")==0)&&(!ocl_have_gcn)) ocl_vector=2;
@@ -485,6 +488,8 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"truecrypt")==0)&&(ocl_have_sm21)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"dmg")==0)&&(!ocl_have_sm21)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"dmg")==0)&&(ocl_have_sm21)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"odf")==0)&&(!ocl_have_sm21)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"odf")==0)&&(ocl_have_sm21)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"md5")==0)) ocl_vector=8;
 		if ((strcmp(get_current_plugin(),"md4")==0)) ocl_vector=8;
 		if ((strcmp(get_current_plugin(),"sha1")==0)) ocl_vector=4;

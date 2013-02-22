@@ -310,6 +310,11 @@ hash_stat ocl_bruteforce_sha384(void);
 hash_stat ocl_markov_sha384(void);
 hash_stat ocl_rule_sha384(void);
 
+/* odf plugin support */
+hash_stat ocl_bruteforce_odf(void);
+hash_stat ocl_markov_odf(void);
+hash_stat ocl_rule_odf(void);
+
 
 /* test plugin support */
 //hash_stat ocl_bruteforce_test(void);

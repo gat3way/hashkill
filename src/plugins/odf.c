@@ -33,17 +33,9 @@
 #include "err.h"
 #include "hashinterface.h"
 
-#define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
-
 
 int vectorsize;
-
-
 char myfilename[255];
-FILE *myfile;
-unsigned int g_CrcTable[256];
-
-
 
 static int filenamelen;
 static int comprsize, ucomprsize;
@@ -72,7 +64,7 @@ extern int b64_pton(char const *src, unsigned char *target, size_t targsize);
 
 char * hash_plugin_summary(void)
 {
-    return("odf \t\todf passwords plugin");
+    return("odf \t\tOpenOffice passwords plugin");
 }
 
 
@@ -462,9 +454,21 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    lens[a]=strlen(password[a]);
 	}
 	hash_sha1_slow(password,buf,lens);
+if (strcmp(password[0],"testpassword")==0)
+{
+int i;
+for (i=0;i<20;i++) printf("%02x",buf[0][i]&255);
+printf("\n");
+}
 	for (a=0;a<vectorsize;a++)
 	{
 	    hash_pbkdf2((char *)buf[a], (unsigned char *)bsalt, 16,iterations, keysize/8, (unsigned char*)buf2[a]);
+if (strcmp(password[a],"testpassword")==0)
+{
+int i;
+for (i=0;i<20;i++) printf("%02x",buf2[a][i]&255);
+printf("\n");
+}
 	    pos=0;
 	    memcpy(localiv,iv,8);
 	    BF_set_key(&bf_key, keysize/8, (const unsigned char*)buf2[a]);
