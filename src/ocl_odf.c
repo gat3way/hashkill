@@ -643,7 +643,6 @@ void* ocl_rule_odf_thread(void *arg)
     else rule_local_work_size = amd_local_work_size;
     ocl_rule_workset[self]=128*128*2;
     if (wthreads[self].type==nv_thread) ocl_rule_workset[self]/=2;
-    if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=4;
     if (ocl_gpu_double) ocl_rule_workset[self]*=2;
     if (interactive_mode==1) ocl_rule_workset[self]/=8;
     
