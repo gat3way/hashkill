@@ -252,12 +252,12 @@ static hash_stat load_dmg(char *filename)
     }
     if (read(fd,buf8,8)<=0)
     {
-        elog("File %s is not a DMG file!\n", filename);
+        elog("File %s is not a dmg file!\n", filename);
         return hash_err;
     }
     if (strncmp(buf8,"encrcdsa",8)==0)
     {
-        //elog("File %s is not a DMG file!\n", filename);
+        //elog("File %s is not a dmg file!\n", filename);
         //return hash_err;
         headerver=2;
     }
@@ -266,7 +266,7 @@ static hash_stat load_dmg(char *filename)
         lseek(fd,-8,SEEK_END);
         if (read(fd,buf8,8)<=0)
         {
-            elog("File %s is not a DMG file!\n", filename);
+            elog("File %s is not a dmg file!\n", filename);
             return hash_err;
         }
         if (strncmp(buf8,"cdsaencr",8)==0)
@@ -276,7 +276,7 @@ static hash_stat load_dmg(char *filename)
     }
     if (headerver==0)
     {
-        elog("File %s is not a DMG file!\n", filename);
+        elog("File %s is not a dmg file!\n", filename);
         return hash_err;
     }
 
@@ -285,7 +285,7 @@ static hash_stat load_dmg(char *filename)
         lseek(fd,-sizeof(cencrypted_v1_header), SEEK_END);
         if (read(fd,&header, sizeof(cencrypted_v1_header)) < 1)
         {
-            elog("File %s is not a DMG file!\n", filename);
+            elog("File %s is not a dmg file!\n", filename);
             return hash_err;
         }
         header_byteorder_fix(&header);
@@ -295,7 +295,7 @@ static hash_stat load_dmg(char *filename)
         lseek(fd,0, SEEK_SET);
         if (read(fd,&header2, sizeof(cencrypted_v2_pwheader)) < 1)
         {
-            elog("File %s is not a DMG file!\n", filename);
+            elog("File %s is not a dmg file!\n", filename);
             return hash_err;
         }
         header2_byteorder_fix(&header2);
