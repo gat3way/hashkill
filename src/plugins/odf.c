@@ -388,12 +388,12 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	    //printf("algorithm-name=%s\n",s_algo_name);
 	    //printf("iteration-count=%s\n",s_iterations);
 	    //printf("key-size=%s\n",s_key_size);
-	    if (strcmp((char*)s_algo_name,"Blowfish CFB")==0) algorithm=0;
-	    else if (strcmp((char*)s_algo_name,"aes256-cbc")==0) algorithm=1;
+	    if (strstr((char*)s_algo_name,"Blowfish CFB")) algorithm=0;
+	    else if (strstr((char*)s_algo_name,"aes256-cbc")) algorithm=1;
 	    else goto out;
 
 	    if (!strstr((char*)s_checksum_type,"SHA1")==0) csalgorithm=0;
-	    else if (!strstr((char*)s_checksum_type,"SHA256")==0) csalgorithm=1;
+	    else if (!strstr((char*)s_checksum_type,"sha256")==0) csalgorithm=1;
 	    else goto out;
 
 	    keysize = atoi((const char *)s_key_size);
@@ -454,21 +454,9 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	    lens[a]=strlen(password[a]);
 	}
 	hash_sha1_slow(password,buf,lens);
-if (strcmp(password[0],"testpassword")==0)
-{
-int i;
-for (i=0;i<20;i++) printf("%02x",buf[0][i]&255);
-printf("\n");
-}
 	for (a=0;a<vectorsize;a++)
 	{
 	    hash_pbkdf2((char *)buf[a], (unsigned char *)bsalt, 16,iterations, keysize/8, (unsigned char*)buf2[a]);
-if (strcmp(password[a],"testpassword")==0)
-{
-int i;
-for (i=0;i<20;i++) printf("%02x",buf2[a][i]&255);
-printf("\n");
-}
 	    pos=0;
 	    memcpy(localiv,iv,8);
 	    BF_set_key(&bf_key, keysize/8, (const unsigned char*)buf2[a]);

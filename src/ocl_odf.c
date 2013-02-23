@@ -374,12 +374,12 @@ hash_stat load_odf(char *filename)
             //printf("algorithm-name=%s\n",s_algo_name);
             //printf("iteration-count=%s\n",s_iterations);
             //printf("key-size=%s\n",s_key_size);
-            if (strcmp((char*)s_algo_name,"Blowfish CFB")==0) algorithm=0;
-            else if (strcmp((char*)s_algo_name,"aes256-cbc")==0) algorithm=1;
+            if (strstr((char*)s_algo_name,"Blowfish CFB")) algorithm=0;
+            else if (strstr((char*)s_algo_name,"aes256-cbc")) algorithm=1;
             else goto out;
 
             if (!strstr((char*)s_checksum_type,"SHA1")==0) csalgorithm=0;
-            else if (!strstr((char*)s_checksum_type,"SHA256")==0) csalgorithm=1;
+            else if (!strstr((char*)s_checksum_type,"sha256")==0) csalgorithm=1;
             else goto out;
 
             keysize = atoi((const char *)s_key_size);
@@ -483,6 +483,33 @@ static cl_uint16 odf_getsalt()
     t.s4=(salt2[16]&255)|((salt2[17]&255)<<8)|((salt2[18]&255)<<16)|((salt2[19]&255)<<24);
 
     t.sF=((len)+64+4)<<3;
+    t.sE=0;
+    return t;
+}
+
+
+static cl_uint16 odf_getsalt2()
+{
+    cl_uint16 t;
+    int len;
+    unsigned char salt2[32];
+
+    bzero(salt2,32);
+    memcpy(salt2,bsalt,16);
+    len=16;
+    salt2[len]=0;
+    salt2[len+1]=0;
+    salt2[len+2]=0;
+    salt2[len+3]=2;
+
+    t.s0=(salt2[0]&255)|((salt2[1]&255)<<8)|((salt2[2]&255)<<16)|((salt2[3]&255)<<24);
+    t.s1=(salt2[4]&255)|((salt2[5]&255)<<8)|((salt2[6]&255)<<16)|((salt2[7]&255)<<24);
+    t.s2=(salt2[8]&255)|((salt2[9]&255)<<8)|((salt2[10]&255)<<16)|((salt2[11]&255)<<24);
+    t.s3=(salt2[12]&255)|((salt2[13]&255)<<8)|((salt2[14]&255)<<16)|((salt2[15]&255)<<24);
+    t.s4=(salt2[16]&255)|((salt2[17]&255)<<8)|((salt2[18]&255)<<16)|((salt2[19]&255)<<24);
+
+    t.sF=((len)+64+4)<<3;
+    t.sE=1;
     return t;
 }
 
@@ -555,16 +582,46 @@ static void ocl_odf_crack_callback(char *line, int self)
     _clFinish(rule_oclqueue[self]);
     for (a=1;a<iterations;a+=128)
     {
+	if (attack_over!=0) pthread_exit(NULL);
 	salt.sA=a;
 	salt.sB=a+128;
 	if (salt.sB>iterations) salt.sB=iterations;
 	_clSetKernelArg(rule_kernelbl1[self], 5, sizeof(cl_uint16), (void*) &salt);
 	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
-	wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/(iterations/128);
+	if (keysize==128)
+	{
+	    wthreads[self].tries+=(gws1)/(iterations/128);
+	}
+	else
+	{
+	    wthreads[self].tries+=(gws1)/((iterations/128)*2);
+	}
     }
     _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelend[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
     _clFinish(rule_oclqueue[self]);
+
+    if (keysize==256)
+    {
+	if (attack_over!=0) pthread_exit(NULL);
+	salt=odf_getsalt2();
+	_clSetKernelArg(rule_kernelpre1[self], 5, sizeof(cl_uint16), (void*) &salt);
+	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
+	_clFinish(rule_oclqueue[self]);
+	for (a=1;a<iterations;a+=128)
+	{
+	    salt.sA=a;
+	    salt.sB=a+128;
+	    if (salt.sB>iterations) salt.sB=iterations;
+	    _clSetKernelArg(rule_kernelbl1[self], 5, sizeof(cl_uint16), (void*) &salt);
+	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
+	    _clFinish(rule_oclqueue[self]);
+	    wthreads[self].tries+=(gws1)/((iterations/128)*2);
+	}
+	_clSetKernelArg(rule_kernelend[self], 5, sizeof(cl_uint16), (void*) &salt);
+	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelend[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
+	_clFinish(rule_oclqueue[self]);
+    }
 
     _clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, 0, hash_ret_len1*wthreads[self].vectorsize*ocl_rule_workset[self], rule_ptr[self], 0, NULL, NULL);
     for (a=0;a<gws;a++)
@@ -574,14 +631,6 @@ static void ocl_odf_crack_callback(char *line, int self)
             e=(a)*wthreads[self].vectorsize+c;
             memcpy(key,(char *)rule_ptr[self]+(e)*hash_ret_len1,hash_ret_len1);
             for (d=0;d<MAX;d++) plainimg[d] = rule_images[self][e*MAX+d];
-/*
-if (strcmp(plainimg,"testpassword")==0)
-{
-int i;
-for (i=0;i<20;i++) printf("%02x",key[i]&255);
-printf("\n");
-}
-*/
             if (check_odf(key)==hash_ok)
             {
                 for (d=0;d<MAX;d++) plainimg[d] = rule_images[self][e*MAX+d];
