@@ -115,6 +115,7 @@ typedef struct workthreads_s
     pthread_mutex_t tempmutex;	// Used to lock the thread (ADL)
     int templocked;		// Device is locked cause of overheating
     int ocl_have_sm21;		// Device is sm_21 ?
+    int ocl_have_sm10;		// Device is sm_10 ?
     int ocl_have_old_ati;	// Device is 4xxx ?
     int ocl_have_vliw4;		// Device is VLIW4 ?
     int ocl_have_gcn;		// Device is GCN?

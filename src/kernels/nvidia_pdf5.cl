@@ -1,3 +1,4 @@
+#ifndef SM10
 #define rotate(a,b) ((a) << (b)) + ((a) >> (32-(b)))
 
 #define GGI (get_global_id(0))
@@ -282,3 +283,4 @@ void final( __global uint8 *dst,  __global uint *input, __global uint *size,  __
 }
 
 
+#endif

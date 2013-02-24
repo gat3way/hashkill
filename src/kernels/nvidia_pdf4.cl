@@ -1,3 +1,4 @@
+#ifndef SM10
 #define rotate(a,b) ((a) << (b)) + ((a) >> (32-(b)))
 
 
@@ -879,3 +880,4 @@ dst[(get_global_id(0))] = (uint8)(d1,d2,d3,d4,d5,d6,d7,d8);
 }
 
 
+#endif

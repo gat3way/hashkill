@@ -1,3 +1,4 @@
+#ifndef SM10
 #define GGI (get_global_id(0))
 #define GLI (get_local_id(0))
 
@@ -2646,3 +2647,4 @@ dst[(get_global_id(0))] = (uint8)(d1,d2,d3,d4,d5,d6,d7,d8);
 
 
 
+#endif

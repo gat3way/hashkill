@@ -169,6 +169,7 @@ hash_stat ocl_get_device()
     int ocl_vector=1;
     int ocl_have_old_ati;
     int ocl_have_sm21;
+    int ocl_have_sm10;
     int ocl_have_69xx;
     int ocl_have_gcn;
 
@@ -199,6 +200,7 @@ hash_stat ocl_get_device()
 	    ocl_have_old_ati = 0;
 	    ocl_dev_nvidia = 0;
 	    ocl_have_sm21 = 0;
+	    ocl_have_sm10 = 0;
 	    ocl_have_69xx = 0;
 	    ocl_have_gcn = 0;
 	    ocl_threads = 2;
@@ -234,6 +236,7 @@ hash_stat ocl_get_device()
         		_clGetDeviceInfoNoErr(device_id[a], CL_DEVICE_COMPUTE_CAPABILITY_MAJOR_NV, sizeof(cl_uint), &compute_capability_major, NULL);
             		_clGetDeviceInfoNoErr(device_id[a], CL_DEVICE_COMPUTE_CAPABILITY_MINOR_NV, sizeof(cl_uint), &compute_capability_minor, NULL);
             		if ((compute_capability_major==2)&&(compute_capability_minor==1)) ocl_have_sm21 = 1;
+            		if ((compute_capability_major==1)&&(compute_capability_minor==0)) ocl_have_sm10 = 1;
 			break;
 		    }
 	    }
@@ -547,6 +550,7 @@ hash_stat ocl_get_device()
 		wthreads[nwthreads].loops = loops;
 		wthreads[nwthreads].cldeviceid = device_id[a];
 		wthreads[nwthreads].ocl_have_sm21 = ocl_have_sm21;
+		wthreads[nwthreads].ocl_have_sm10 = ocl_have_sm10;
 		wthreads[nwthreads].ocl_have_vliw4 = ocl_have_69xx;
 		wthreads[nwthreads].ocl_have_gcn = ocl_have_gcn;
 		wthreads[nwthreads].ocl_have_old_ati = ocl_have_old_ati;

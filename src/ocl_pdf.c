@@ -595,6 +595,11 @@ void* ocl_rule_pdf_thread(void *arg)
     memcpy(&self,arg,sizeof(int));
     pthread_mutex_lock(&biglock);
 
+    if (wthreads[self].ocl_have_sm10 == 1) 
+    {
+	wlog("This plugin is not supported on compute capability 1.0 hardware. Try CPU attack (-c) instead!\n%s","");
+	return;
+    }
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
     ocl_rule_workset[self]=256*256;
