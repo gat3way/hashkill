@@ -299,4 +299,5 @@ hash_stat create_hash_indexes(void);
 /* util functions */
 void disable_term_linebuffer(void);
 char *str_replace(char *orig, char *rep, char *with);
+void process_addopts(char *addopt_parm);
 #endif

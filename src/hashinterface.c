@@ -2493,3 +2493,44 @@ char *str_replace(char *orig, char *rep, char *with)
     return result;
 }
 
+void process_addopts(char *addopt_parm)
+{
+    char *option;
+    int a;
+    char *addopt1,*addopt;
+    int free1=0,free2=0;
+
+    if (strstr(addopt_parm,"::")) 
+    {
+        free2=1;
+        addopt1 = str_replace(addopt_parm,"::",":\x01:");
+    }
+    else addopt1 = addopt_parm;
+    if (strstr(addopt1,": :")) 
+    {
+        free1=1;
+        addopt = str_replace(addopt1,": :",":\x02:");
+    }
+    else addopt = addopt1;
+
+    for (a=0;a<10;a++) addopts[a]=NULL;
+
+    option = strtok(addopt,":");
+    if (!option)
+    {
+	return;
+    }
+    addopts[0]=malloc(strlen(option)+1);
+    strcpy(addopts[0],option);
+    a=0;
+    while ( ((option=strtok(NULL,":"))!=NULL)&&(a<9))
+    {
+        a++;
+        addopts[a]=malloc(strlen(option));
+        strcpy(addopts[a],option);
+    }
+    if (free2) free(addopt1);
+    if (free1) free(addopt);
+}
+
+

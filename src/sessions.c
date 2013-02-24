@@ -700,6 +700,8 @@ hash_stat session_write_parameters(char *plugin, attack_method_t attacktype, uin
     json_object_object_add(main_header_node,"commandline", jobj);
     jobj = json_object_new_string(plugin);
     json_object_object_add(main_header_node,"plugin", jobj);
+    jobj = json_object_new_string(additional_options);
+    json_object_object_add(main_header_node,"addopts", jobj);
     jobj = json_object_new_int((int)progress);
     json_object_object_add(main_header_node,"progress", jobj);
     jobj = json_object_new_int(attack_method);
@@ -709,7 +711,7 @@ hash_stat session_write_parameters(char *plugin, attack_method_t attacktype, uin
     jobj = json_object_new_int(hash_crack_speed);
     json_object_object_add(main_header_node,"attackspeed", jobj);
     myclock=time(NULL);
-    if (myclock != ((time_t) -1)) return hash_err;
+    if (myclock == ((time_t) -1)) return hash_err;
     lotime = localtime(&myclock);
     if (!lotime) return hash_err;
     jobj = json_object_new_string(asctime(lotime));
@@ -996,6 +998,10 @@ hash_stat session_restore(char *sessionname)
     set_current_plugin(json_object_get_string(json_object_object_get(main_header_node,"plugin")));
     if (load_plugin() == hash_err) exit(EXIT_FAILURE);
     attack_method  = json_object_get_int(json_object_object_get(main_header_node,"attacktype"));
+
+    additional_options = malloc(strlen(json_object_get_string(json_object_object_get(main_header_node,"addopts")))+1);
+    strcpy(additional_options,json_object_get_string(json_object_object_get(main_header_node,"addopts")));
+    process_addopts(json_object_get_string(json_object_object_get(main_header_node,"addopts")));
 
     out_cracked_file=malloc(strlen(json_object_get_string(json_object_object_get(main_header_node,"outcrackedfile")))+1);
     out_uncracked_file=malloc(strlen(json_object_get_string(json_object_object_get(main_header_node,"outuncrackedfile")))+1);
