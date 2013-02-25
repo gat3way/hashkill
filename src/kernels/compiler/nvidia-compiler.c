@@ -1,17 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "lzma/lzma.h"
-#include "err.h"
-#include "ocl-base.h"
+#include "compiler.h"
 
-
-
-void checkErr( char * func, cl_int err );
-char *readProgramSrc( char * filename );
-int bfimagic=0;
-int optdisable=0;
-int big16=0;
 int iter = 0;
 
 int compile(char *filename, char *buildparams)
@@ -522,69 +510,7 @@ int compile_big16(char *filename, char *buildparams)
 
     free(platforms);
     free(devices);
-    return (0);}
-
-
-
-
-
-
-char *
-readProgramSrc( char *filename )
-{
-    FILE * input = NULL;
-    size_t size = 0;
-    char * programSrc = NULL;
-
-    input = fopen( filename, "rb" );
-    if( input == NULL )
-    {
-        return( NULL );
-    }
-    fseek( input, 0L, SEEK_END );
-    size = ftell( input );
-    rewind( input );
-    programSrc = (char *)malloc( size + 1 );
-    fread( programSrc, sizeof(char), size, input );
-    programSrc[size] = 0;
-    fclose (input);
-
-    return( programSrc );
-}
-
-
-void
-checkErr( char *func, cl_int err )
-{
-    if( err != CL_SUCCESS )
-    {
-        fprintf( stderr, "%s(): ", func );
-        switch( err )
-        {
-        case CL_BUILD_PROGRAM_FAILURE:  fprintf (stderr, "CL_BUILD_PROGRAM_FAILURE"); break;
-        case CL_COMPILER_NOT_AVAILABLE: fprintf (stderr, "CL_COMPILER_NOT_AVAILABLE"); break;
-        case CL_DEVICE_NOT_AVAILABLE:   fprintf (stderr, "CL_DEVICE_NOT_AVAILABLE"); break;
-        case CL_DEVICE_NOT_FOUND:       fprintf (stderr, "CL_DEVICE_NOT_FOUND"); break;
-        case CL_INVALID_BINARY:         fprintf (stderr, "CL_INVALID_BINARY"); break;
-        case CL_INVALID_BUILD_OPTIONS:  fprintf (stderr, "CL_INVALID_BUILD_OPTIONS"); break;
-        case CL_INVALID_CONTEXT:        fprintf (stderr, "CL_INVALID_CONTEXT"); break;
-        case CL_INVALID_DEVICE:         fprintf (stderr, "CL_INVALID_DEVICE"); break;
-        case CL_INVALID_DEVICE_TYPE:    fprintf (stderr, "CL_INVALID_DEVICE_TYPE"); break;
-        case CL_INVALID_OPERATION:      fprintf (stderr, "CL_INVALID_OPERATION"); break;
-        case CL_INVALID_PLATFORM:        fprintf (stderr, "CL_INVALID_PLATFORM"); break;
-        case CL_INVALID_PROGRAM:        fprintf (stderr, "CL_INVALID_PROGRAM"); break;
-        case CL_INVALID_VALUE:          fprintf (stderr, "CL_INVALID_VALUE"); break;
-        case CL_OUT_OF_HOST_MEMORY:     fprintf (stderr, "CL_OUT_OF_HOST_MEMORY"); break;
-        default:                        fprintf (stderr, "Unknown error code: %d", err); break;
-        }
-        fprintf (stderr, "\n");
-    }
-}
-
-void usage()
-{
-    printf("Usage: compile kernel.cl <nsdmb>\n");
-    exit(1);
+    return (0);
 }
 
 int main(int argc, char *argv[])
@@ -659,6 +585,5 @@ int main(int argc, char *argv[])
 	printf("\nCompiling %s with DOUBLE and MAX8...\n",argv[1]);
 	compile(argv[1],"-DDOUBLE -DMAX8");
     }
-
-
+    return 0;
 }
