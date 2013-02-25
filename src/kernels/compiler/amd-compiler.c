@@ -1,26 +1,11 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include "lzma/lzma.h"
-#include "err.h"
-#include "ocl-base.h"
+#include "compiler.h"
 
 #define CL_CONTEXT_OFFLINE_DEVICES_AMD        0x403F
-
-void checkErr( char * func, cl_int err );
-
-
-char *readProgramSrc( char * filename );
-int bfimagic=0;
-int optdisable=0;
-int big16=0;
 
 #define ALGO_THRESHOLD 100
 #define ALGO_THRESHOLD_BIG 180
 #define ALGO_THRESHOLD_XXL 280
 #define ALGO_THRESHOLD_SMALL 16
-
 
 
 static void bfi_int_magic(unsigned char *kernel, int len,int shortk)
@@ -79,9 +64,6 @@ static void bfi_int_magic(unsigned char *kernel, int len,int shortk)
 
 }
 
-
-
-
 static void bfi_int_magic_old(unsigned char *kernel, int len,int shortk)
 {
     unsigned int j,i,k;
@@ -115,12 +97,6 @@ static void bfi_int_magic_old(unsigned char *kernel, int len,int shortk)
         }
     }
 }
-
-
-
-
-
-
 
 int compile(char *filename, char *buildparams)
 {
@@ -390,65 +366,6 @@ int compile(char *filename, char *buildparams)
     free(platforms);
     free(devices);
     return 0;
-}
-
-char *
-readProgramSrc( char *filename )
-{
-    FILE * input = NULL;
-    size_t size = 0;
-    char * programSrc = NULL;
-
-    input = fopen( filename, "rb" );
-    if( input == NULL )
-    {
-        return( NULL );
-    }
-    fseek( input, 0L, SEEK_END );
-    size = ftell( input );
-    rewind( input );
-    programSrc = (char *)malloc( size + 1 );
-    fread( programSrc, sizeof(char), size, input );
-    programSrc[size] = 0;
-    fclose (input);
-
-    return( programSrc );
-}
-
-void
-checkErr( char *func, cl_int err )
-{
-    if( err != CL_SUCCESS )
-    {
-        fprintf( stderr, "%s(): ", func );
-        switch( err )
-        {
-        case CL_BUILD_PROGRAM_FAILURE:  fprintf (stderr, "CL_BUILD_PROGRAM_FAILURE"); break;
-        case CL_COMPILER_NOT_AVAILABLE: fprintf (stderr, "CL_COMPILER_NOT_AVAILABLE"); break;
-        case CL_DEVICE_NOT_AVAILABLE:   fprintf (stderr, "CL_DEVICE_NOT_AVAILABLE"); break;
-        case CL_DEVICE_NOT_FOUND:       fprintf (stderr, "CL_DEVICE_NOT_FOUND"); break;
-        case CL_INVALID_BINARY:         fprintf (stderr, "CL_INVALID_BINARY"); break;
-        case CL_INVALID_BUILD_OPTIONS:  fprintf (stderr, "CL_INVALID_BUILD_OPTIONS"); break;
-        case CL_INVALID_CONTEXT:        fprintf (stderr, "CL_INVALID_CONTEXT"); break;
-        case CL_INVALID_DEVICE:         fprintf (stderr, "CL_INVALID_DEVICE"); break;
-        case CL_INVALID_DEVICE_TYPE:    fprintf (stderr, "CL_INVALID_DEVICE_TYPE"); break;
-        case CL_INVALID_OPERATION:      fprintf (stderr, "CL_INVALID_OPERATION"); break;
-        case CL_INVALID_PLATFORM:        fprintf (stderr, "CL_INVALID_PLATFORM"); break;
-        case CL_INVALID_PROGRAM:        fprintf (stderr, "CL_INVALID_PROGRAM"); break;
-        case CL_INVALID_VALUE:          fprintf (stderr, "CL_INVALID_VALUE"); break;
-        case CL_OUT_OF_HOST_MEMORY:     fprintf (stderr, "CL_OUT_OF_HOST_MEMORY"); break;
-        default:                        fprintf (stderr, "Unknown error code: %d", err); break;
-        }
-        fprintf (stderr, "\n");
-    }
-}
-
-
-
-void usage()
-{
-    printf("Usage: compile kernel.cl <nsdmb>\n");
-    exit(1);
 }
 
 int main(int argc, char *argv[])

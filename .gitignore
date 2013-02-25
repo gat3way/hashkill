@@ -1,10 +1,16 @@
 *.so
 *.o
+*.a
 *.la
+*.lai
 *.lo
+*.Po
+*.Plo
 *.log
 *.status
 *.swp
+*.bin
+*.ptx
 src/tools/markovgen
 src/tools/pcap2hcap
 src/kernels/compiler/amd-compiler
