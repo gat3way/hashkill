@@ -8,10 +8,11 @@ OPENCL_SRC = ../../ocl-base.c
 
 all: build
 
-build: 
+%: %.c compiler.c
+	$(CC) -o $@ compiler.c $< $(LZMA_SRC) $(OPENCL_SRC) -Wno-unused-result -D_7ZIP_ST -ldl
+
+build: amd-compiler nvidia-compiler
 	# AMD
-	$(CC) -o amd-compiler amd-compiler.c $(LZMA_SRC) $(OPENCL_SRC) -Wno-unused-result -D_7ZIP_ST -ldl
-	$(CC) -o nvidia-compiler nvidia-compiler.c $(LZMA_SRC) $(OPENCL_SRC) -Wno-unused-result -D_7ZIP_ST -ldl
 	@if [ "$(CL_AMDFLAGS)" = "yes" ]; then \
 	if [ ! -e amd_ipb2_long__Juniper.bin ]; then ./amd-compiler amd_ipb2_long n ;fi; \
 	if [ ! -e amd_ipb2__Juniper.bin ]; then ./amd-compiler amd_ipb2 n ;fi; \
