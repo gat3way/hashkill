@@ -17,10 +17,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <unistd.h>
-#define _GNU_SOURCE
 #include <string.h>
 #include <alloca.h>
 #include <fcntl.h>
@@ -351,7 +349,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
         	hash_aes_set_decrypt_key(aes_key_, 128, &aes_decrypt_key);
         	hash_aes_cbc_encrypt(chunk2, outbuf2, 4096, &aes_decrypt_key, iv, AES_DECRYPT);
         	// Valid koly block
-        	if ((memmem(outbuf2,4096,"koly\x00\x00\x00\x04\x00\x00\x02\x00",12))||(memmem(outbuf2,4096,"koly\x00\x00\x00\x05\x00\x00\x02\x00",12)))
+        	if ((hash_memmem(outbuf2,4096,"koly\x00\x00\x00\x04\x00\x00\x02\x00",12))||(hash_memmem(outbuf2,4096,"koly\x00\x00\x00\x05\x00\x00\x02\x00",12)))
         	{
             	    *num=a;
             	    return hash_ok;
@@ -383,7 +381,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
         	hash_aes_cbc_encrypt(chunk2, outbuf2, 4096, &aes_decrypt_key, iv, AES_DECRYPT);
 
         	// Valid koly block
-        	if ((memmem(outbuf2,4096,"koly\x00\x00\x00\x04\x00\x00\x02\x00",12))||(memmem(outbuf2,4096,"koly\x00\x00\x00\x05\x00\x00\x02\x00",12)))
+        	if ((hash_memmem(outbuf2,4096,"koly\x00\x00\x00\x04\x00\x00\x02\x00",12))||(hash_memmem(outbuf2,4096,"koly\x00\x00\x00\x05\x00\x00\x02\x00",12)))
         	{
             	    *num=a;
             	    return hash_ok;

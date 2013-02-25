@@ -133,57 +133,6 @@ static void header2_byteorder_fix(cencrypted_v2_pwheader *pwhdr)
 }
 
 
-static unsigned char* _memmem(unsigned char* haystack, int hlen, char* needle, int nlen) 
-{
-    if (nlen > hlen) return 0;
-    int i,j=0;
-    switch(nlen) {
-    case 0:
-    	    return haystack;
-    case 1:
-	return memchr(haystack, needle[0], hlen);
-    case 2:
-	for (i=0; i<hlen-nlen+1; i++) 
-	{
-		if (*(uint16_t*)(haystack+i)==*(uint16_t*)needle) 
-		{
-		    return haystack+i;
-		}
-	}
-	break;
-    case 4:
-	for (i=0; i<hlen-nlen+1; i++) 
-	{
-	    if (*(uint32_t*)(haystack+i)==*(uint32_t*)needle) 
-	    {
-		return haystack+i;
-	    }
-	}
-	break;
-    default:
-	for (i=0; i<hlen-nlen+1; i++) 
-	{
-	    if (haystack[i]==needle[j]) 
-	    {
-	        if (j==nlen-1) 
-	        {
-		    return haystack+i-j;
-		} 
-		else 
-		{
-		    j++;
-		}
-	    } 
-	    else 
-	    {
-	        i-=j;
-	        j=0;
-	    }
-	}
-    }
-    return NULL;
-}
-
 
 
 static int apple_des3_ede_unwrap_key1(unsigned char *wrapped_key, int wrapped_key_len, unsigned char *decryptKey) 
@@ -380,7 +329,7 @@ static hash_stat check_dmg(unsigned char *derived_key, char *pwd)
             OAES_CBC_ENCRYPT(chunk2, outbuf2, 4096, &aes_decrypt_key, iv, AES_DECRYPT);
 
             // Valid koly block
-            if ((_memmem(outbuf2,4096,"koly\x00\x00\x00\x04\x00\x00\x02\x00",12))||(_memmem(outbuf2,4096,"koly\x00\x00\x00\x05\x00\x00\x02\x00",12)))
+            if ((hash_memmem(outbuf2,4096,"koly\x00\x00\x00\x04\x00\x00\x02\x00",12))||(hash_memmem(outbuf2,4096,"koly\x00\x00\x00\x05\x00\x00\x02\x00",12)))
             {
                 return hash_ok;
             }
@@ -410,7 +359,7 @@ static hash_stat check_dmg(unsigned char *derived_key, char *pwd)
             OAES_CBC_ENCRYPT(chunk2, outbuf2, 4096, &aes_decrypt_key, iv, AES_DECRYPT);
 
             // Valid koly block
-            if ((_memmem(outbuf2,4096,"koly\x00\x00\x00\x04\x00\x00\x02\x00",12))||(_memmem(outbuf2,4096,"koly\x00\x00\x00\x05\x00\x00\x02\x00",12)))
+            if ((hash_memmem(outbuf2,4096,"koly\x00\x00\x00\x04\x00\x00\x02\x00",12))||(hash_memmem(outbuf2,4096,"koly\x00\x00\x00\x05\x00\x00\x02\x00",12)))
             {
                 return hash_ok;
             }

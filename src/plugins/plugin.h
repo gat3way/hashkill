@@ -139,7 +139,7 @@ char* strupr(char* ioString);
 char* strlow(char* ioString);
 void hex2str(char *str, char *hex, int len);
 void _to64(char *s, unsigned long v, int n);
-
+unsigned char* hash_memmem(unsigned char* haystack, int hlen, char* needle, int nlen);
 
 
 #endif
