@@ -999,6 +999,7 @@ hash_stat session_restore(char *sessionname)
     if (load_plugin() == hash_err) exit(EXIT_FAILURE);
     attack_method  = json_object_get_int(json_object_object_get(main_header_node,"attacktype"));
 
+    free(additional_options);
     additional_options = malloc(strlen(json_object_get_string(json_object_object_get(main_header_node,"addopts")))+1);
     strcpy(additional_options,json_object_get_string(json_object_object_get(main_header_node,"addopts")));
     process_addopts(json_object_get_string(json_object_object_get(main_header_node,"addopts")));

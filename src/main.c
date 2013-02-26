@@ -330,6 +330,8 @@ int main(int argc, char *argv[])
     markovstat = NULL;
     attack_checkpoints=0;
     attack_avgspeed=0;
+    additional_options=malloc(1);
+    additional_options[0]=0;
 
     while ((argv[cnt])&&(cnt<MAXARGV))
     {
@@ -427,12 +429,14 @@ int main(int argc, char *argv[])
 	break;
 
 	case 'a':
+	    free(additional_options);
 	    additional_options = malloc(strlen(optarg)+1);
 	    strcpy(additional_options,optarg);
 	    process_addopts(optarg);
 	break;
 
 	case 'A':
+	    free(additional_options);
 	    additional_options = malloc(strlen(optarg)+1);
 	    strcpy(additional_options,optarg);
 	break;
