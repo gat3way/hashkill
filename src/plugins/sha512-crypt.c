@@ -287,6 +287,7 @@ __sha512_crypt_r (key, salt, buffer, buflen, vectorsize)
   }
 
 
+
   /* Now we can construct the result string.  It consists of three
      parts. */
   for (i=0;i<vectorsize;i++)

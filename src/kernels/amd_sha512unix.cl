@@ -1,8 +1,89 @@
+#define Sl 8U
+#define Sr 24U 
+#define m 0x00FF00FFU
+#define m2 0xFF00FF00U
+#define Endian_Reverse32(aa) { l=(aa);tmp1=rotate(l,Sl);tmp2=rotate(l,Sr); (aa)=bitselect(tmp2,tmp1,m); } 
+#define GLI (get_local_id(0))
+
 // Dummy one
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str, uint16 salt)
 {
+uint a,tmp1,tmp2,elem,l;
+
 size[get_global_id(0)]=sizein[get_global_id(0)];
+a=inp[get_global_id(0)*24];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24]=a;
+a=inp[get_global_id(0)*24+1];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+1]=a;
+a=inp[get_global_id(0)*24+2];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+2]=a;
+a=inp[get_global_id(0)*24+3];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+3]=a;
+a=inp[get_global_id(0)*24+4];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+4]=a;
+a=inp[get_global_id(0)*24+5];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+5]=a;
+a=inp[get_global_id(0)*24+6];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+6]=a;
+a=inp[get_global_id(0)*24+7];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+7]=a;
+a=inp[get_global_id(0)*24+8];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+8]=a;
+a=inp[get_global_id(0)*24+9];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+9]=a;
+a=inp[get_global_id(0)*24+10];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+10]=a;
+a=inp[get_global_id(0)*24+11];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+11]=a;
+a=inp[get_global_id(0)*24+12];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+12]=a;
+a=inp[get_global_id(0)*24+13];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+13]=a;
+a=inp[get_global_id(0)*24+14];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+14]=a;
+a=inp[get_global_id(0)*24+15];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+15]=a;
+a=inp[get_global_id(0)*24+16];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+16]=a;
+a=inp[get_global_id(0)*24+17];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+17]=a;
+a=inp[get_global_id(0)*24+18];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+18]=a;
+a=inp[get_global_id(0)*24+19];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+19]=a;
+a=inp[get_global_id(0)*24+20];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+20]=a;
+a=inp[get_global_id(0)*24+21];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+21]=a;
+a=inp[get_global_id(0)*24+22];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+22]=a;
+a=inp[get_global_id(0)*24+23];
+Endian_Reverse32(a);
+dst[get_global_id(0)*24+23]=a;
 }
 
 
@@ -29,556 +110,24 @@ size[get_global_id(0)]=sizein[get_global_id(0)];
 	ai1[elem+1] = select(ai2<<(64-tmp1),(ulong)0,(ulong)(tmp1==0));\
         }
 
-
-
-
-
-#define gli (get_local_id(0))
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-transform00( __global ulong8 *dst,  __global ulong *input,__global ulong *input1,uint psize,uint ssize)
-{
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
-__local ulong sbytes[64][2];
-__local ulong pbytes[64][2];
-uint ic;
-__local ulong w[64][17]; 
-ulong alt[8]; 
-ulong SIZE;
-
-
-elem=input[(get_global_id(0)*12)];
-elem=Endian_Reverse64(elem);
-input[(get_global_id(0)*12)]=elem;
-elem=input[(get_global_id(0)*12)+1];
-elem=Endian_Reverse64(elem);
-input[(get_global_id(0)*12)+1]=elem;
-elem=input[(get_global_id(0)*12)+2];
-elem=Endian_Reverse64(elem);
-input[(get_global_id(0)*12)+2]=elem;
-input1[(get_global_id(0)*8)+0]=elem;
-elem=input[(get_global_id(0)*12)+3];
-elem=Endian_Reverse64(elem);
-input[(get_global_id(0)*12)+3]=elem;
-input1[(get_global_id(0)*8)+1]=elem;
-elem=input[(get_global_id(0)*12)+4];
-elem=Endian_Reverse64(elem);
-input[(get_global_id(0)*12)+4]=elem;
-input1[(get_global_id(0)*8)+2]=elem;
-elem=input[(get_global_id(0)*12)+5];
-elem=Endian_Reverse64(elem);
-input[(get_global_id(0)*12)+5]=elem;
-input1[(get_global_id(0)*8)+3]=elem;
-elem=input[(get_global_id(0)*12)+6];
-elem=Endian_Reverse64(elem);
-input[(get_global_id(0)*12)+6]=elem;
-input1[(get_global_id(0)*8)+4]=elem;
-elem=input[(get_global_id(0)*12)+7];
-elem=Endian_Reverse64(elem);
-input[(get_global_id(0)*12)+7]=elem;
-input1[(get_global_id(0)*8)+5]=elem;
-elem=input[(get_global_id(0)*12)+8];
-elem=Endian_Reverse64(elem);
-input[(get_global_id(0)*12)+8]=elem;
-input1[(get_global_id(0)*8)+6]=elem;
-elem=input[(get_global_id(0)*12)+9];
-elem=Endian_Reverse64(elem);
-input[(get_global_id(0)*12)+9]=elem;
-input1[(get_global_id(0)*8)+7]=elem;
-elem=input[(get_global_id(0)*12)+10];
-elem=Endian_Reverse64(elem);
-input[(get_global_id(0)*12)+10]=elem;
-elem=input[(get_global_id(0)*12)+11];
-elem=Endian_Reverse64(elem);
-input[(get_global_id(0)*12)+11]=elem;
-
-}
-
-
-
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-transform0( __global ulong8 *dst,  __global ulong *input,__global ulong *input1,uint psize,uint ssize)
-{
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
-__local ulong sbytes[64][2];
-__local ulong pbytes[64][2];
-uint ic;
-__local ulong w[64][17]; 
-ulong alt[8]; 
-ulong SIZE;
-
-sbytes[gli][0]=input[(get_global_id(0)*12)];
-sbytes[gli][1]=input[(get_global_id(0)*12)+1];
-pbytes[gli][0]=input[(get_global_id(0)*12)+10];
-pbytes[gli][1]=input[(get_global_id(0)*12)+11];
-A=alt[0]=input1[(get_global_id(0)*8)];
-B=alt[1]=input1[(get_global_id(0)*8)+1];
-C=alt[2]=input1[(get_global_id(0)*8)+2];
-D=alt[3]=input1[(get_global_id(0)*8)+3];
-E=alt[4]=input1[(get_global_id(0)*8)+4];
-F=alt[5]=input1[(get_global_id(0)*8)+5];
-G=alt[6]=input1[(get_global_id(0)*8)+6];
-H=alt[7]=input1[(get_global_id(0)*8)+7];
-
-
-
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
-ii=0;
-
-ii=(uint)0;
-
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(uint)64;
-
-jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=8;
-ii=jj+psize;
-
-SET_AB(w[gli],ii,(ulong)0x80);
-SIZE=(ulong)(ii<<3);
-
-dst[(get_global_id(0)*2)] = (ulong8)(w[gli][0],w[gli][1],w[gli][2],w[gli][3],w[gli][4],w[gli][5],w[gli][6],w[gli][7]);
-dst[(get_global_id(0)*2)+1] = (ulong8)(w[gli][8],w[gli][9],w[gli][10],w[gli][11],w[gli][12],w[gli][13],w[gli][14],SIZE);
-}
-
-
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-transform03( __global ulong8 *dst,  __global ulong *input,__global ulong *input1,uint psize,uint ssize)
-{
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
-__local ulong sbytes[64][2];
-__local ulong pbytes[64][2];
-uint ic;
-__local ulong w[64][17]; 
-ulong alt[8]; 
-ulong SIZE;
-
-sbytes[gli][0]=input[(get_global_id(0)*12)];
-sbytes[gli][1]=input[(get_global_id(0)*12)+1];
-pbytes[gli][0]=input[(get_global_id(0)*12)+10];
-pbytes[gli][1]=input[(get_global_id(0)*12)+11];
-A=alt[0]=input1[(get_global_id(0)*8)];
-B=alt[1]=input1[(get_global_id(0)*8)+1];
-C=alt[2]=input1[(get_global_id(0)*8)+2];
-D=alt[3]=input1[(get_global_id(0)*8)+3];
-E=alt[4]=input1[(get_global_id(0)*8)+4];
-F=alt[5]=input1[(get_global_id(0)*8)+5];
-G=alt[6]=input1[(get_global_id(0)*8)+6];
-H=alt[7]=input1[(get_global_id(0)*8)+7];
-
-
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
-ii=0;
-
-ii=(uint)0;
-
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(uint)64;
-
-jj=ii;
-SET_AIS(w[gli],sbytes[gli][0],ii,0);ii+=8;
-SET_AIS(w[gli],sbytes[gli][1],ii,8);ii+=8;
-ii=jj+ssize;
-
-jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=8;
-ii=jj+psize;
-
-SET_AB(w[gli],ii,(ulong)0x80);
-SIZE=(ulong)(ii<<3);
-
-
-
-
-dst[(get_global_id(0)*2)] = (ulong8)(w[gli][0],w[gli][1],w[gli][2],w[gli][3],w[gli][4],w[gli][5],w[gli][6],w[gli][7]);
-dst[(get_global_id(0)*2)+1] = (ulong8)(w[gli][8],w[gli][9],w[gli][10],w[gli][11],w[gli][12],w[gli][13],w[gli][14],SIZE);
-}
-
-
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-transform07( __global ulong8 *dst,  __global ulong *input,__global ulong *input1,uint psize,uint ssize)
-{
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
-__local ulong sbytes[64][2];
-__local ulong pbytes[64][2];
-uint ic;
-__local ulong w[64][17]; 
-ulong alt[8]; 
-ulong SIZE;
-
-sbytes[gli][0]=input[(get_global_id(0)*12)];
-sbytes[gli][1]=input[(get_global_id(0)*12)+1];
-pbytes[gli][0]=input[(get_global_id(0)*12)+10];
-pbytes[gli][1]=input[(get_global_id(0)*12)+11];
-A=alt[0]=input1[(get_global_id(0)*8)];
-B=alt[1]=input1[(get_global_id(0)*8)+1];
-C=alt[2]=input1[(get_global_id(0)*8)+2];
-D=alt[3]=input1[(get_global_id(0)*8)+3];
-E=alt[4]=input1[(get_global_id(0)*8)+4];
-F=alt[5]=input1[(get_global_id(0)*8)+5];
-G=alt[6]=input1[(get_global_id(0)*8)+6];
-H=alt[7]=input1[(get_global_id(0)*8)+7];
-
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
-ii=0;
-
-ii=(uint)0;
-
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(uint)64;
-
-
-jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=8;
-ii=jj+psize;
-jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=8;
-ii=jj+psize;
-
-SET_AB(w[gli],ii,(ulong)0x80);
-SIZE=(ulong)(ii<<3);
-
-dst[(get_global_id(0)*2)] = (ulong8)(w[gli][0],w[gli][1],w[gli][2],w[gli][3],w[gli][4],w[gli][5],w[gli][6],w[gli][7]);
-dst[(get_global_id(0)*2)+1] = (ulong8)(w[gli][8],w[gli][9],w[gli][10],w[gli][11],w[gli][12],w[gli][13],w[gli][14],SIZE);
-}
-
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-transform037( __global ulong8 *dst,  __global ulong *input,__global ulong *input1,uint psize,uint ssize)
-{
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
-__local ulong sbytes[64][2];
-__local ulong pbytes[64][2];
-uint ic;
-__local ulong w[64][17]; 
-ulong alt[8]; 
-ulong SIZE;
-
-sbytes[gli][0]=input[(get_global_id(0)*12)];
-sbytes[gli][1]=input[(get_global_id(0)*12)+1];
-pbytes[gli][0]=input[(get_global_id(0)*12)+10];
-pbytes[gli][1]=input[(get_global_id(0)*12)+11];
-A=alt[0]=input1[(get_global_id(0)*8)];
-B=alt[1]=input1[(get_global_id(0)*8)+1];
-C=alt[2]=input1[(get_global_id(0)*8)+2];
-D=alt[3]=input1[(get_global_id(0)*8)+3];
-E=alt[4]=input1[(get_global_id(0)*8)+4];
-F=alt[5]=input1[(get_global_id(0)*8)+5];
-G=alt[6]=input1[(get_global_id(0)*8)+6];
-H=alt[7]=input1[(get_global_id(0)*8)+7];
-
-
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
-ii=0;
-
-ii=(uint)0;
-
-w[gli][0]=A;
-w[gli][1]=B;
-w[gli][2]=C;
-w[gli][3]=D;
-w[gli][4]=E;
-w[gli][5]=F;
-w[gli][6]=G;
-w[gli][7]=H;
-ii=(uint)64;
-
-jj=ii;
-SET_AIS(w[gli],sbytes[gli][0],ii,0);ii+=8;
-SET_AIS(w[gli],sbytes[gli][1],ii,8);ii+=8;
-ii=jj+ssize;
-
-jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=8;
-ii=jj+psize;
-
-
-jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=8;
-ii=jj+psize;
-
-SET_AB(w[gli],ii,(ulong)0x80);
-SIZE=(ulong)(ii<<3);
-
-dst[(get_global_id(0)*2)] = (ulong8)(w[gli][0],w[gli][1],w[gli][2],w[gli][3],w[gli][4],w[gli][5],w[gli][6],w[gli][7]);
-dst[(get_global_id(0)*2)+1] = (ulong8)(w[gli][8],w[gli][9],w[gli][10],w[gli][11],w[gli][12],w[gli][13],w[gli][14],SIZE);
-}
-
-
-
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-transform1( __global ulong8 *dst,  __global ulong *input,__global ulong *input1,uint psize,uint ssize)
-{
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
-__local ulong sbytes[64][2];
-__local ulong pbytes[64][2];
-uint ic;
-__local ulong w[64][17]; 
-ulong alt[8]; 
-ulong SIZE;
-
-sbytes[gli][0]=input[(get_global_id(0)*12)];
-sbytes[gli][1]=input[(get_global_id(0)*12)+1];
-pbytes[gli][0]=input[(get_global_id(0)*12)+10];
-pbytes[gli][1]=input[(get_global_id(0)*12)+11];
-A=alt[0]=input1[(get_global_id(0)*8)];
-B=alt[1]=input1[(get_global_id(0)*8)+1];
-C=alt[2]=input1[(get_global_id(0)*8)+2];
-D=alt[3]=input1[(get_global_id(0)*8)+3];
-E=alt[4]=input1[(get_global_id(0)*8)+4];
-F=alt[5]=input1[(get_global_id(0)*8)+5];
-G=alt[6]=input1[(get_global_id(0)*8)+6];
-H=alt[7]=input1[(get_global_id(0)*8)+7];
-
-
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
-ii=0;
-
-ii=(uint)psize;
-
-w[gli][0]=pbytes[gli][0];
-w[gli][1]=pbytes[gli][1];
-
-
-
-SET_AIS(w[gli],alt[0],ii,0);ii+=(uint)8;
-SET_AIS(w[gli],alt[1],ii,8);ii+=(uint)8;
-SET_AIS(w[gli],alt[2],ii,16);ii+=(uint)8;
-SET_AIS(w[gli],alt[3],ii,24);ii+=(uint)8;
-SET_AIS(w[gli],alt[4],ii,32);ii+=(uint)8;
-SET_AIS(w[gli],alt[5],ii,40);ii+=(uint)8;
-SET_AIS(w[gli],alt[6],ii,48);ii+=(uint)8;
-SET_AIS(w[gli],alt[7],ii,56);ii+=(uint)8;
-
-
-SET_AB(w[gli],ii,(ulong)0x80);
-SIZE=(ulong)(ii<<3);
-
-dst[(get_global_id(0)*2)] = (ulong8)(w[gli][0],w[gli][1],w[gli][2],w[gli][3],w[gli][4],w[gli][5],w[gli][6],w[gli][7]);
-dst[(get_global_id(0)*2)+1] = (ulong8)(w[gli][8],w[gli][9],w[gli][10],w[gli][11],w[gli][12],w[gli][13],w[gli][14],SIZE);
-}
-
-
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-transform13( __global ulong8 *dst,  __global ulong *input,__global ulong *input1,uint psize,uint ssize)
-{
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
-__local ulong sbytes[64][2];
-__local ulong pbytes[64][2];
-uint ic;
-__local ulong w[64][17]; 
-ulong alt[8]; 
-ulong SIZE;
-
-sbytes[gli][0]=input[(get_global_id(0)*12)];
-sbytes[gli][1]=input[(get_global_id(0)*12)+1];
-pbytes[gli][0]=input[(get_global_id(0)*12)+10];
-pbytes[gli][1]=input[(get_global_id(0)*12)+11];
-A=alt[0]=input1[(get_global_id(0)*8)];
-B=alt[1]=input1[(get_global_id(0)*8)+1];
-C=alt[2]=input1[(get_global_id(0)*8)+2];
-D=alt[3]=input1[(get_global_id(0)*8)+3];
-E=alt[4]=input1[(get_global_id(0)*8)+4];
-F=alt[5]=input1[(get_global_id(0)*8)+5];
-G=alt[6]=input1[(get_global_id(0)*8)+6];
-H=alt[7]=input1[(get_global_id(0)*8)+7];
-
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
-ii=0;
-
-ii=(uint)psize;
-
-w[gli][0]=pbytes[gli][0];
-w[gli][1]=pbytes[gli][1];
-
-jj=ii;
-SET_AIS(w[gli],sbytes[gli][0],ii,0);ii+=(uint)8;
-SET_AIS(w[gli],sbytes[gli][1],ii,8);ii+=(uint)8;
-ii=jj+ssize;
-
-
-SET_AIS(w[gli],alt[0],ii,0);ii+=(uint)8;
-SET_AIS(w[gli],alt[1],ii,8);ii+=(uint)8;
-SET_AIS(w[gli],alt[2],ii,16);ii+=(uint)8;
-SET_AIS(w[gli],alt[3],ii,24);ii+=(uint)8;
-SET_AIS(w[gli],alt[4],ii,32);ii+=(uint)8;
-SET_AIS(w[gli],alt[5],ii,40);ii+=(uint)8;
-SET_AIS(w[gli],alt[6],ii,48);ii+=(uint)8;
-SET_AIS(w[gli],alt[7],ii,56);ii+=(uint)8;
-
-
-SET_AB(w[gli],ii,(ulong)0x80);
-SIZE=(ulong)(ii<<3);
-
-dst[(get_global_id(0)*2)] = (ulong8)(w[gli][0],w[gli][1],w[gli][2],w[gli][3],w[gli][4],w[gli][5],w[gli][6],w[gli][7]);
-dst[(get_global_id(0)*2)+1] = (ulong8)(w[gli][8],w[gli][9],w[gli][10],w[gli][11],w[gli][12],w[gli][13],w[gli][14],SIZE);
-}
-
-
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-transform17( __global ulong8 *dst,  __global ulong *input,__global ulong *input1,uint psize,uint ssize)
-{
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
-__local ulong sbytes[64][2];
-__local ulong pbytes[64][2];
-uint ic;
-__local ulong w[64][17]; 
-ulong alt[8]; 
-ulong SIZE;
-
-sbytes[gli][0]=input[(get_global_id(0)*12)];
-sbytes[gli][1]=input[(get_global_id(0)*12)+1];
-pbytes[gli][0]=input[(get_global_id(0)*12)+10];
-pbytes[gli][1]=input[(get_global_id(0)*12)+11];
-A=alt[0]=input1[(get_global_id(0)*8)];
-B=alt[1]=input1[(get_global_id(0)*8)+1];
-C=alt[2]=input1[(get_global_id(0)*8)+2];
-D=alt[3]=input1[(get_global_id(0)*8)+3];
-E=alt[4]=input1[(get_global_id(0)*8)+4];
-F=alt[5]=input1[(get_global_id(0)*8)+5];
-G=alt[6]=input1[(get_global_id(0)*8)+6];
-H=alt[7]=input1[(get_global_id(0)*8)+7];
-
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
-ii=0;
-
-ii=(uint)psize;
-
-w[gli][0]=pbytes[gli][0];
-w[gli][1]=pbytes[gli][1];
-
-jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(uint)8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=(uint)8;
-ii=jj+psize;
-
-SET_AIS(w[gli],alt[0],ii,0);ii+=(uint)8;
-SET_AIS(w[gli],alt[1],ii,8);ii+=(uint)8;
-SET_AIS(w[gli],alt[2],ii,16);ii+=(uint)8;
-SET_AIS(w[gli],alt[3],ii,24);ii+=(uint)8;
-SET_AIS(w[gli],alt[4],ii,32);ii+=(uint)8;
-SET_AIS(w[gli],alt[5],ii,40);ii+=(uint)8;
-SET_AIS(w[gli],alt[6],ii,48);ii+=(uint)8;
-SET_AIS(w[gli],alt[7],ii,56);ii+=(uint)8;
-
-
-SET_AB(w[gli],ii,(ulong)0x80);
-SIZE=(ulong)(ii<<3);
-
-dst[(get_global_id(0)*2)] = (ulong8)(w[gli][0],w[gli][1],w[gli][2],w[gli][3],w[gli][4],w[gli][5],w[gli][6],w[gli][7]);
-dst[(get_global_id(0)*2)+1] = (ulong8)(w[gli][8],w[gli][9],w[gli][10],w[gli][11],w[gli][12],w[gli][13],w[gli][14],SIZE);
-}
-
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-transform137( __global ulong8 *dst,  __global ulong *input,__global ulong *input1,uint psize,uint ssize)
-{
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
-__local ulong sbytes[64][2];
-__local ulong pbytes[64][2];
-uint ic;
-__local ulong w[64][17]; 
-ulong alt[8]; 
-ulong SIZE;
-
-sbytes[gli][0]=input[(get_global_id(0)*12)];
-sbytes[gli][1]=input[(get_global_id(0)*12)+1];
-pbytes[gli][0]=input[(get_global_id(0)*12)+10];
-pbytes[gli][1]=input[(get_global_id(0)*12)+11];
-A=alt[0]=input1[(get_global_id(0)*8)];
-B=alt[1]=input1[(get_global_id(0)*8)+1];
-C=alt[2]=input1[(get_global_id(0)*8)+2];
-D=alt[3]=input1[(get_global_id(0)*8)+3];
-E=alt[4]=input1[(get_global_id(0)*8)+4];
-F=alt[5]=input1[(get_global_id(0)*8)+5];
-G=alt[6]=input1[(get_global_id(0)*8)+6];
-H=alt[7]=input1[(get_global_id(0)*8)+7];
-
-w[gli][0]=w[gli][1]=w[gli][2]=w[gli][3]=w[gli][4]=w[gli][5]=w[gli][6]=w[gli][7]=w[gli][8]=w[gli][9]=w[gli][10]=w[gli][11]=w[gli][12]=w[gli][13]=w[gli][14]=w[gli][16]=(ulong)0;
-ii=0;
-
-ii=(uint)psize;
-
-w[gli][0]=pbytes[gli][0];
-w[gli][1]=pbytes[gli][1];
-
-jj=ii;
-SET_AIS(w[gli],sbytes[gli][0],ii,0);ii+=(uint)8;
-SET_AIS(w[gli],sbytes[gli][1],ii,8);ii+=(uint)8;
-ii=jj+ssize;
-
-jj=ii;
-SET_AIS(w[gli],pbytes[gli][0],ii,0);ii+=(uint)8;
-SET_AIS(w[gli],pbytes[gli][1],ii,8);ii+=(uint)8;
-ii=jj+psize;
-
-SET_AIS(w[gli],alt[0],ii,0);ii+=(uint)8;
-SET_AIS(w[gli],alt[1],ii,8);ii+=(uint)8;
-SET_AIS(w[gli],alt[2],ii,16);ii+=(uint)8;
-SET_AIS(w[gli],alt[3],ii,24);ii+=(uint)8;
-SET_AIS(w[gli],alt[4],ii,32);ii+=(uint)8;
-SET_AIS(w[gli],alt[5],ii,40);ii+=(uint)8;
-SET_AIS(w[gli],alt[6],ii,48);ii+=(uint)8;
-SET_AIS(w[gli],alt[7],ii,56);ii+=(uint)8;
-
-
-SET_AB(w[gli],ii,(ulong)0x80);
-SIZE=(ulong)(ii<<3);
-
-dst[(get_global_id(0)*2)] = (ulong8)(w[gli][0],w[gli][1],w[gli][2],w[gli][3],w[gli][4],w[gli][5],w[gli][6],w[gli][7]);
-dst[(get_global_id(0)*2)+1] = (ulong8)(w[gli][8],w[gli][9],w[gli][10],w[gli][11],w[gli][12],w[gli][13],w[gli][14],SIZE);
-}
-
-
-
-
-
-#define gli get_local_id(0)
-
-
-#define ROTATE(b,x)     (((x) >> (b)) | ((x) << (64ULL - (b))))
+#define SET_ABR(ai1,ai2,ii1) { \
+        elem=ii1>>2; \
+        tmp1=(ii1&3)<<3; \
+        ai1[elem] = ai1[elem]|(ai2>>(tmp1)); \
+        ai1[elem+1] = select(ai2<<(32-tmp1),0U,(tmp1==0));\
+    }
+
+
+#define ROTATE(b,x)     (((x) >> (b)) | ((x) << (64UL - (b))))
 #define R(b,x)          ((x) >> (b))
 #define Ch(x,y,z)       ((z)^((x)&((y)^(z))))
 #define Maj(x,y,z)      (((x) & (y)) | ((z)&((x)|(y))))
 
 
-#define Sigma0_512(x)   (ROTATE(28ULL, (x)) ^ ROTATE(34ULL, (x)) ^ ROTATE(39ULL, (x)))
-#define Sigma1_512(x)   (ROTATE(14ULL, (x)) ^ ROTATE(18ULL, (x)) ^ ROTATE(41ULL, (x)))
-#define sigma0_512(x)   (ROTATE( 1ULL, (x)) ^ ROTATE( 8ULL, (x)) ^ R( 7ULL,   (x)))
-#define sigma1_512(x)   (ROTATE(19ULL, (x)) ^ ROTATE(61ULL, (x)) ^ R( 6ULL,   (x)))
+#define Sigma0_512(x)   (ROTATE(28UL, (x)) ^ ROTATE(34UL, (x)) ^ ROTATE(39UL, (x)))
+#define Sigma1_512(x)   (ROTATE(14UL, (x)) ^ ROTATE(18UL, (x)) ^ ROTATE(41UL, (x)))
+#define sigma0_512(x)   (ROTATE( 1UL, (x)) ^ ROTATE( 8UL, (x)) ^ R( 7UL,   (x)))
+#define sigma1_512(x)   (ROTATE(19UL, (x)) ^ ROTATE(61UL, (x)) ^ R( 6UL,   (x)))
 
 
 #define ROUND512_0_TO_15(a,b,c,d,e,f,g,h,AC,x) T1 = (h) + Sigma1_512(e) + Ch((e), (f), (g)) + AC + x; \
@@ -686,169 +235,185 @@ dst[(get_global_id(0)*2)+1] = (ulong8)(w[gli][8],w[gli][9],w[gli][10],w[gli][11]
 #define AC80 0x6c44198c4a475817L
 
 
-
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-sha512unixm( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint salt) 
+__kernel 
+__attribute__((reqd_work_group_size(64, 1, 1)))
+void prepare( __global uint *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *found, uint16 salt,ulong8 singlehash)
 {
-
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
-ulong w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w16; 
-ulong SIZE;
-
-w0=input[(get_global_id(0)*16)];
-w1=input[(get_global_id(0)*16)+1];
-w2=input[(get_global_id(0)*16)+2];
-w3=input[(get_global_id(0)*16)+3];
-w4=input[(get_global_id(0)*16)+4];
-w5=input[(get_global_id(0)*16)+5];
-w6=input[(get_global_id(0)*16)+6];
-w7=input[(get_global_id(0)*16)+7];
-w8=input[(get_global_id(0)*16)+8];
-w9=input[(get_global_id(0)*16)+9];
-w10=input[(get_global_id(0)*16)+10];
-w11=input[(get_global_id(0)*16)+11];
-w12=input[(get_global_id(0)*16)+12];
-w13=input[(get_global_id(0)*16)+13];
-w14=input[(get_global_id(0)*16)+14];
-SIZE=input[(get_global_id(0)*16)+15];
-
-
-A=(ulong)H0;
-B=(ulong)H1;
-C=(ulong)H2;
-D=(ulong)H3;
-E=(ulong)H4;
-F=(ulong)H5;
-G=(ulong)H6;
-H=(ulong)H7;
-
-
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC1,w0);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC2,w1);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC3,w2);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC4,w3);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC5,w4);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC6,w5);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC7,w6);
-ROUND512_0_TO_15(B,C,D,E,F,G,H,A,AC8,w7);
-ROUND512_0_TO_15(A,B,C,D,E,F,G,H,AC9,w8);
-ROUND512_0_TO_15(H,A,B,C,D,E,F,G,AC10,w9);
-ROUND512_0_TO_15(G,H,A,B,C,D,E,F,AC11,w10);
-ROUND512_0_TO_15(F,G,H,A,B,C,D,E,AC12,w11);
-ROUND512_0_TO_15(E,F,G,H,A,B,C,D,AC13,w12);
-ROUND512_0_TO_15(D,E,F,G,H,A,B,C,AC14,w13);
-ROUND512_0_TO_15(C,D,E,F,G,H,A,B,AC15,w14);
-ROUND512_0_TO_15(B,C,D,E,F,G,H,A,SIZE,AC16);
-
-
-w16 = sigma1_512(w14)+w9+sigma0_512(w1)+w0; ROUND512(A,B,C,D,E,F,G,H,w16,AC17);
-w0 = sigma1_512(SIZE)+w10+sigma0_512(w2)+w1; ROUND512(H,A,B,C,D,E,F,G,w0,AC18);
-w1 = sigma1_512(w16)+w11+sigma0_512(w3)+w2; ROUND512(G,H,A,B,C,D,E,F,w1,AC19);
-w2 = sigma1_512(w0)+w12+sigma0_512(w4)+w3; ROUND512(F,G,H,A,B,C,D,E,w2,AC20);
-w3 = sigma1_512(w1)+w13+sigma0_512(w5)+w4; ROUND512(E,F,G,H,A,B,C,D,w3,AC21);
-w4 = sigma1_512(w2)+w14+sigma0_512(w6)+w5; ROUND512(D,E,F,G,H,A,B,C,w4,AC22);
-w5 = sigma1_512(w3)+SIZE+sigma0_512(w7)+w6; ROUND512(C,D,E,F,G,H,A,B,w5,AC23);
-w6 = sigma1_512(w4)+w16+sigma0_512(w8)+w7; ROUND512(B,C,D,E,F,G,H,A,w6,AC24);
-w7 = sigma1_512(w5)+w0+sigma0_512(w9)+w8; ROUND512(A,B,C,D,E,F,G,H,w7,AC25);
-w8 = sigma1_512(w6)+w1+sigma0_512(w10)+w9; ROUND512(H,A,B,C,D,E,F,G,w8,AC26);
-w9 = sigma1_512(w7)+w2+sigma0_512(w11)+w10; ROUND512(G,H,A,B,C,D,E,F,w9,AC27);
-w10 = sigma1_512(w8)+w3+sigma0_512(w12)+w11; ROUND512(F,G,H,A,B,C,D,E,w10,AC28);
-w11 = sigma1_512(w9)+w4+sigma0_512(w13)+w12; ROUND512(E,F,G,H,A,B,C,D,w11,AC29);
-w12 = sigma1_512(w10)+w5+sigma0_512(w14)+w13; ROUND512(D,E,F,G,H,A,B,C,w12,AC30);
-w13 = sigma1_512(w11)+w6+sigma0_512(SIZE)+w14; ROUND512(C,D,E,F,G,H,A,B,w13,AC31);
-w14 = sigma1_512(w12)+w7+sigma0_512(w16)+SIZE; ROUND512(B,C,D,E,F,G,H,A,w14,AC32);
-SIZE = sigma1_512(w13)+w8+sigma0_512(w0)+w16; ROUND512(A,B,C,D,E,F,G,H,SIZE,AC33);
-w16 = sigma1_512(w14)+w9+sigma0_512(w1)+w0; ROUND512(H,A,B,C,D,E,F,G,w16,AC34);
-w0 = sigma1_512(SIZE)+w10+sigma0_512(w2)+w1; ROUND512(G,H,A,B,C,D,E,F,w0,AC35);
-w1 = sigma1_512(w16)+w11+sigma0_512(w3)+w2; ROUND512(F,G,H,A,B,C,D,E,w1,AC36);
-w2 = sigma1_512(w0)+w12+sigma0_512(w4)+w3; ROUND512(E,F,G,H,A,B,C,D,w2,AC37);
-w3 = sigma1_512(w1)+w13+sigma0_512(w5)+w4; ROUND512(D,E,F,G,H,A,B,C,w3,AC38);
-w4 = sigma1_512(w2)+w14+sigma0_512(w6)+w5; ROUND512(C,D,E,F,G,H,A,B,w4,AC39);
-w5 = sigma1_512(w3)+SIZE+sigma0_512(w7)+w6; ROUND512(B,C,D,E,F,G,H,A,w5,AC40);
-w6 = sigma1_512(w4)+w16+sigma0_512(w8)+w7; ROUND512(A,B,C,D,E,F,G,H,w6,AC41);
-w7 = sigma1_512(w5)+w0+sigma0_512(w9)+w8; ROUND512(H,A,B,C,D,E,F,G,w7,AC42);
-w8 = sigma1_512(w6)+w1+sigma0_512(w10)+w9; ROUND512(G,H,A,B,C,D,E,F,w8,AC43);
-w9 = sigma1_512(w7)+w2+sigma0_512(w11)+w10; ROUND512(F,G,H,A,B,C,D,E,w9,AC44);
-w10 = sigma1_512(w8)+w3+sigma0_512(w12)+w11; ROUND512(E,F,G,H,A,B,C,D,w10,AC45);
-w11 = sigma1_512(w9)+w4+sigma0_512(w13)+w12; ROUND512(D,E,F,G,H,A,B,C,w11,AC46);
-w12 = sigma1_512(w10)+w5+sigma0_512(w14)+w13; ROUND512(C,D,E,F,G,H,A,B,w12,AC47);
-w13 = sigma1_512(w11)+w6+sigma0_512(SIZE)+w14; ROUND512(B,C,D,E,F,G,H,A,w13,AC48);
-w14 = sigma1_512(w12)+w7+sigma0_512(w16)+SIZE; ROUND512(A,B,C,D,E,F,G,H,w14,AC49);
-SIZE = sigma1_512(w13)+w8+sigma0_512(w0)+w16; ROUND512(H,A,B,C,D,E,F,G,SIZE,AC50);
-w16 = sigma1_512(w14)+w9+sigma0_512(w1)+w0; ROUND512(G,H,A,B,C,D,E,F,w16,AC51);
-w0 = sigma1_512(SIZE)+w10+sigma0_512(w2)+w1; ROUND512(F,G,H,A,B,C,D,E,w0,AC52);
-w1 = sigma1_512(w16)+w11+sigma0_512(w3)+w2; ROUND512(E,F,G,H,A,B,C,D,w1,AC53);
-w2 = sigma1_512(w0)+w12+sigma0_512(w4)+w3; ROUND512(D,E,F,G,H,A,B,C,w2,AC54);
-w3 = sigma1_512(w1)+w13+sigma0_512(w5)+w4; ROUND512(C,D,E,F,G,H,A,B,w3,AC55);
-w4 = sigma1_512(w2)+w14+sigma0_512(w6)+w5; ROUND512(B,C,D,E,F,G,H,A,w4,AC56);
-w5 = sigma1_512(w3)+SIZE+sigma0_512(w7)+w6; ROUND512(A,B,C,D,E,F,G,H,w5,AC57);
-w6 = sigma1_512(w4)+w16+sigma0_512(w8)+w7; ROUND512(H,A,B,C,D,E,F,G,w6,AC58);
-w7 = sigma1_512(w5)+w0+sigma0_512(w9)+w8; ROUND512(G,H,A,B,C,D,E,F,w7,AC59);
-w8 = sigma1_512(w6)+w1+sigma0_512(w10)+w9; ROUND512(F,G,H,A,B,C,D,E,w8,AC60);
-w9 = sigma1_512(w7)+w2+sigma0_512(w11)+w10; ROUND512(E,F,G,H,A,B,C,D,w9,AC61);
-w10 = sigma1_512(w8)+w3+sigma0_512(w12)+w11; ROUND512(D,E,F,G,H,A,B,C,w10,AC62);
-w11 = sigma1_512(w9)+w4+sigma0_512(w13)+w12; ROUND512(C,D,E,F,G,H,A,B,w11,AC63);
-w12 = sigma1_512(w10)+w5+sigma0_512(w14)+w13; ROUND512(B,C,D,E,F,G,H,A,w12,AC64);
-w13 = sigma1_512(w11)+w6+sigma0_512(SIZE)+w14; ROUND512(A,B,C,D,E,F,G,H,w13,AC65);
-w14 = sigma1_512(w12)+w7+sigma0_512(w16)+SIZE; ROUND512(H,A,B,C,D,E,F,G,w14,AC66);
-SIZE = sigma1_512(w13)+w8+sigma0_512(w0)+w16; ROUND512(G,H,A,B,C,D,E,F,SIZE,AC67);
-w16 = sigma1_512(w14)+w9+sigma0_512(w1)+w0; ROUND512(F,G,H,A,B,C,D,E,w16,AC68);
-w0 = sigma1_512(SIZE)+w10+sigma0_512(w2)+w1; ROUND512(E,F,G,H,A,B,C,D,w0,AC69);
-w1 = sigma1_512(w16)+w11+sigma0_512(w3)+w2; ROUND512(D,E,F,G,H,A,B,C,w1,AC70);
-w2 = sigma1_512(w0)+w12+sigma0_512(w4)+w3; ROUND512(C,D,E,F,G,H,A,B,w2,AC71);
-w3 = sigma1_512(w1)+w13+sigma0_512(w5)+w4; ROUND512(B,C,D,E,F,G,H,A,w3,AC72);
-w4 = sigma1_512(w2)+w14+sigma0_512(w6)+w5; ROUND512(A,B,C,D,E,F,G,H,w4,AC73);
-w5 = sigma1_512(w3)+SIZE+sigma0_512(w7)+w6; ROUND512(H,A,B,C,D,E,F,G,w5,AC74);
-w6 = sigma1_512(w4)+w16+sigma0_512(w8)+w7; ROUND512(G,H,A,B,C,D,E,F,w6,AC75);
-w7 = sigma1_512(w5)+w0+sigma0_512(w9)+w8; ROUND512(F,G,H,A,B,C,D,E,w7,AC76);
-w8 = sigma1_512(w6)+w1+sigma0_512(w10)+w9; ROUND512(E,F,G,H,A,B,C,D,w8,AC77);
-w9 = sigma1_512(w7)+w2+sigma0_512(w11)+w10; ROUND512(D,E,F,G,H,A,B,C,w9,AC78);
-w10 = sigma1_512(w8)+w3+sigma0_512(w12)+w11; ROUND512(C,D,E,F,G,H,A,B,w10,AC79);
-w11 = sigma1_512(w9)+w4+sigma0_512(w13)+w12; ROUND512(B,C,D,E,F,G,H,A,w11,AC80);
-
-A+=(ulong)H0;
-B+=(ulong)H1;
-C+=(ulong)H2;
-D+=(ulong)H3;
-E+=(ulong)H4;
-F+=(ulong)H5;
-G+=(ulong)H6;
-H+=(ulong)H7;
-
-dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
 }
 
 
-
-
-__kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
-sha512unixe( __global ulong8 *dst,  __global ulong *input,   __global uint *found_ind, __global uint *found,  ulong8 singlehash, uint salt) 
+__kernel 
+__attribute__((reqd_work_group_size(64, 1, 1)))
+void block( __global uint *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *found, uint16 salt,ulong8 singlehash)
 {
-ulong A,B,C,D,E,F,G,H,jj,T1,tmp2,ii,tmp1,elem;
-__local ulong sbytes[64][2];
-__local ulong pbytes[64][2];
-uint ic;
+ulong A,B,C,D,E,F,G,H,jj,T1;
+uint tmp1,tmp2,elem,l,sz;
+__local uint x[64][30];
+uint a1,a2,a3,a4,b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16,c1,c2,c3,c4,i,ic;
 ulong w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w16; 
-ulong alt[8]; 
 ulong SIZE;
 
-w0=input[(get_global_id(0)*16)];
-w1=input[(get_global_id(0)*16)+1];
-w2=input[(get_global_id(0)*16)+2];
-w3=input[(get_global_id(0)*16)+3];
-w4=input[(get_global_id(0)*16)+4];
-w5=input[(get_global_id(0)*16)+5];
-w6=input[(get_global_id(0)*16)+6];
-w7=input[(get_global_id(0)*16)+7];
-w8=input[(get_global_id(0)*16)+8];
-w9=input[(get_global_id(0)*16)+9];
-w10=input[(get_global_id(0)*16)+10];
-w11=input[(get_global_id(0)*16)+11];
-w12=input[(get_global_id(0)*16)+12];
-w13=input[(get_global_id(0)*16)+13];
-w14=input[(get_global_id(0)*16)+14];
-SIZE=input[(get_global_id(0)*16)+15];
+
+a1=input[get_global_id(0)*24];
+a2=input[get_global_id(0)*24+1];
+a3=input[get_global_id(0)*24+2];
+a4=input[get_global_id(0)*24+3];
+
+b1=input[get_global_id(0)*24+4];
+b2=input[get_global_id(0)*24+5];
+b3=input[get_global_id(0)*24+6];
+b4=input[get_global_id(0)*24+7];
+b5=input[get_global_id(0)*24+8];
+b6=input[get_global_id(0)*24+9];
+b7=input[get_global_id(0)*24+10];
+b8=input[get_global_id(0)*24+11];
+b9=input[get_global_id(0)*24+12];
+b10=input[get_global_id(0)*24+13];
+b11=input[get_global_id(0)*24+14];
+b12=input[get_global_id(0)*24+15];
+b13=input[get_global_id(0)*24+16];
+b14=input[get_global_id(0)*24+17];
+b15=input[get_global_id(0)*24+18];
+b16=input[get_global_id(0)*24+19];
+
+c1=input[get_global_id(0)*24+20];
+c2=input[get_global_id(0)*24+21];
+c3=input[get_global_id(0)*24+22];
+c4=input[get_global_id(0)*24+23];
+
+sz = salt.sC;
+
+
+for (i=salt.sA;i<salt.sB;i++)
+{
+x[GLI][0]=x[GLI][1]=x[GLI][2]=x[GLI][3]=x[GLI][4]=x[GLI][5]=x[GLI][6]=x[GLI][7]=0;
+x[GLI][8]=x[GLI][9]=x[GLI][10]=x[GLI][11]=x[GLI][12]=x[GLI][13]=x[GLI][14]=x[GLI][15]=0;
+x[GLI][16]=x[GLI][17]=x[GLI][18]=x[GLI][19]=x[GLI][20]=x[GLI][21]=x[GLI][22]=x[GLI][23]=0;
+x[GLI][24]=x[GLI][25]=x[GLI][26]=x[GLI][27]=x[GLI][28]=x[GLI][29]=0;
+ic=0;
+if ((i&1)==0)
+{
+x[GLI][0]=b1;
+x[GLI][1]=b2;
+x[GLI][2]=b3;
+x[GLI][3]=b4;
+x[GLI][4]=b5;
+x[GLI][5]=b6;
+x[GLI][6]=b7;
+x[GLI][7]=b8;
+x[GLI][8]=b9;
+x[GLI][9]=b10;
+x[GLI][10]=b11;
+x[GLI][11]=b12;
+x[GLI][12]=b13;
+x[GLI][13]=b14;
+x[GLI][14]=b15;
+x[GLI][15]=b16;
+ic=64;
+}
+else
+{
+x[GLI][0]=c1;
+x[GLI][1]=c2;
+x[GLI][2]=c3;
+x[GLI][3]=c4;
+ic=sz;
+}
+
+if ((i%3)!=0)
+{
+SET_ABR(x[GLI],a1,ic);
+SET_ABR(x[GLI],a2,ic+4);
+SET_ABR(x[GLI],a3,ic+8);
+SET_ABR(x[GLI],a4,ic+12);
+ic+=salt.sD;
+}
+if ((i%7)!=0)
+{
+SET_ABR(x[GLI],c1,ic);
+SET_ABR(x[GLI],c2,ic+4);
+SET_ABR(x[GLI],c3,ic+8);
+SET_ABR(x[GLI],c4,ic+12);
+ic+=sz;
+}
+if ((i&1)==0)
+{
+SET_ABR(x[GLI],c1,ic);
+SET_ABR(x[GLI],c2,ic+4);
+SET_ABR(x[GLI],c3,ic+8);
+SET_ABR(x[GLI],c4,ic+12);
+ic+=sz;
+}
+else
+{
+SET_ABR(x[GLI],b1,ic);
+SET_ABR(x[GLI],b2,ic+4);
+SET_ABR(x[GLI],b3,ic+8);
+SET_ABR(x[GLI],b4,ic+12);
+SET_ABR(x[GLI],b5,ic+16);
+SET_ABR(x[GLI],b6,ic+20);
+SET_ABR(x[GLI],b7,ic+24);
+SET_ABR(x[GLI],b8,ic+28);
+SET_ABR(x[GLI],b9,ic+32);
+SET_ABR(x[GLI],b10,ic+36);
+SET_ABR(x[GLI],b11,ic+40);
+SET_ABR(x[GLI],b12,ic+44);
+SET_ABR(x[GLI],b13,ic+48);
+SET_ABR(x[GLI],b14,ic+52);
+SET_ABR(x[GLI],b15,ic+56);
+SET_ABR(x[GLI],b16,ic+60);
+ic+=64;
+}
+
+SET_ABR(x[GLI],0x80000000,ic);
+
+
+w0=x[GLI][0];
+w0=w0<<32;
+w0|=x[GLI][1];
+w1=x[GLI][2];
+w1=w1<<32;
+w1|=x[GLI][3];
+w2=x[GLI][4];
+w2=w2<<32;
+w2|=x[GLI][5];
+w3=x[GLI][6];
+w3=w3<<32;
+w3|=x[GLI][7];
+w4=x[GLI][8];
+w4=w4<<32;
+w4|=x[GLI][9];
+w5=x[GLI][10];
+w5=w5<<32;
+w5|=x[GLI][11];
+w6=x[GLI][12];
+w6=w6<<32;
+w6|=x[GLI][13];
+w7=x[GLI][14];
+w7=w7<<32;
+w7|=x[GLI][15];
+w8=x[GLI][16];
+w8=w8<<32;
+w8|=x[GLI][17];
+w9=x[GLI][18];
+w9=w9<<32;
+w9|=x[GLI][19];
+w10=x[GLI][20];
+w10=w10<<32;
+w10|=x[GLI][21];
+w11=x[GLI][22];
+w11=w11<<32;
+w11|=x[GLI][23];
+w12=x[GLI][24];
+w12=w12<<32;
+w12|=x[GLI][25];
+w13=x[GLI][26];
+w13=w13<<32;
+w13|=x[GLI][27];
+w14=x[GLI][28];
+w14=w13<<32;
+w14|=x[GLI][29];
+SIZE = ic<<3;
 
 
 A=(ulong)H0;
@@ -953,15 +518,112 @@ F+=(ulong)H5;
 G+=(ulong)H6;
 H+=(ulong)H7;
 
+b2 = (uint)((ulong)A/*&0xFFFFFFFF*/);
+b1 = (uint)((ulong)A>>32);
+b4 = (uint)((ulong)B/*&0xFFFFFFFF*/);
+b3 = (uint)((ulong)B>>32);
+b6 = (uint)((ulong)C/*&0xFFFFFFFF*/);
+b5 = (uint)((ulong)C>>32);
+b8 = (uint)((ulong)D/*&0xFFFFFFFF*/);
+b7 = (uint)((ulong)D>>32);
+b10 = (uint)((ulong)E/*&0xFFFFFFFF*/);
+b9 = (uint)((ulong)E>>32);
+b12 = (uint)((ulong)F/*&0xFFFFFFFF*/);
+b11 = (uint)((ulong)F>>32);
+b14 = (uint)((ulong)G/*&0xFFFFFFFF*/);
+b13 = (uint)((ulong)G>>32);
+b16 = (uint)((ulong)H/*&0xFFFFFFFF*/);
+b15 = (uint)((ulong)H>>32);
+}
 
-A=Endian_Reverse64(A);
-B=Endian_Reverse64(B);
-C=Endian_Reverse64(C);
-D=Endian_Reverse64(D);
-E=Endian_Reverse64(E);
-F=Endian_Reverse64(F);
-G=Endian_Reverse64(G);
-H=Endian_Reverse64(H);
+
+dst[get_global_id(0)*24+4]=b1;
+dst[get_global_id(0)*24+5]=b2;
+dst[get_global_id(0)*24+6]=b3;
+dst[get_global_id(0)*24+7]=b4;
+dst[get_global_id(0)*24+8]=b5;
+dst[get_global_id(0)*24+9]=b6;
+dst[get_global_id(0)*24+10]=b7;
+dst[get_global_id(0)*24+11]=b8;
+dst[get_global_id(0)*24+12]=b9;
+dst[get_global_id(0)*24+13]=b10;
+dst[get_global_id(0)*24+14]=b11;
+dst[get_global_id(0)*24+15]=b12;
+dst[get_global_id(0)*24+16]=b13;
+dst[get_global_id(0)*24+17]=b14;
+dst[get_global_id(0)*24+18]=b15;
+dst[get_global_id(0)*24+19]=b16;
+
+}
+
+
+__kernel 
+__attribute__((reqd_work_group_size(64, 1, 1)))
+void final( __global ulong8 *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *found, uint16 salt,ulong8 singlehash)
+{
+ulong A,B,C,D,E,F,G,H;
+uint b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,b11,b12,b13,b14,b15,b16;
+uint tmp1,tmp2,elem,l;
+
+b1=input[get_global_id(0)*24+4];
+b2=input[get_global_id(0)*24+5];
+b3=input[get_global_id(0)*24+6];
+b4=input[get_global_id(0)*24+7];
+b5=input[get_global_id(0)*24+8];
+b6=input[get_global_id(0)*24+9];
+b7=input[get_global_id(0)*24+10];
+b8=input[get_global_id(0)*24+11];
+b9=input[get_global_id(0)*24+12];
+b10=input[get_global_id(0)*24+13];
+b11=input[get_global_id(0)*24+14];
+b12=input[get_global_id(0)*24+15];
+b13=input[get_global_id(0)*24+16];
+b14=input[get_global_id(0)*24+17];
+b15=input[get_global_id(0)*24+18];
+b16=input[get_global_id(0)*24+19];
+
+Endian_Reverse32(b1);
+Endian_Reverse32(b2);
+Endian_Reverse32(b3);
+Endian_Reverse32(b4);
+Endian_Reverse32(b5);
+Endian_Reverse32(b6);
+Endian_Reverse32(b7);
+Endian_Reverse32(b8);
+Endian_Reverse32(b9);
+Endian_Reverse32(b10);
+Endian_Reverse32(b11);
+Endian_Reverse32(b12);
+Endian_Reverse32(b13);
+Endian_Reverse32(b14);
+Endian_Reverse32(b15);
+Endian_Reverse32(b16);
+
+
+A=b2;
+A=A<<32;
+A|=b1;
+B=b4;
+B=B<<32;
+B|=b3;
+C=b6;
+C=C<<32;
+C|=b5;
+D=b8;
+D=D<<32;
+D|=b7;
+E=b10;
+E=E<<32;
+E|=b9;
+F=b12;
+F=F<<32;
+F|=b11;
+G=b14;
+G=G<<32;
+G|=b13;
+H=b16;
+H=H<<32;
+H|=b15;
 
 if ((ulong)singlehash.s0!=A) return;
 if ((ulong)singlehash.s1!=B) return;
@@ -971,5 +633,5 @@ found[0] = 1;
 found_ind[get_global_id(0)] = 1;
 
 dst[(get_global_id(0))] = (ulong8)(A,B,C,D,E,F,G,H);
-}
 
+}
