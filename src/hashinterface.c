@@ -1434,7 +1434,7 @@ int hash_proto_aes_set_decrypt_key(const unsigned char *userKey, const int bits,
 /* Add username to list temp */
 void hash_proto_add_username(const char *username)
 {
-    if (username) strcpy((char *)&temp_username, username);
+    if (username) strncpy((char *)&temp_username, username,MAX_USERNAME-1);
     else temp_username[0]=0;
 }
 

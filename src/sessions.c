@@ -702,6 +702,8 @@ hash_stat session_write_parameters(char *plugin, attack_method_t attacktype, uin
     json_object_object_add(main_header_node,"plugin", jobj);
     jobj = json_object_new_string(additional_options);
     json_object_object_add(main_header_node,"addopts", jobj);
+    jobj = json_object_new_string(padditional_options);
+    json_object_object_add(main_header_node,"paddopts", jobj);
     jobj = json_object_new_int((int)progress);
     json_object_object_add(main_header_node,"progress", jobj);
     jobj = json_object_new_int(attack_method);
@@ -999,10 +1001,14 @@ hash_stat session_restore(char *sessionname)
     if (load_plugin() == hash_err) exit(EXIT_FAILURE);
     attack_method  = json_object_get_int(json_object_object_get(main_header_node,"attacktype"));
 
+    free(padditional_options);
+    padditional_options = malloc(strlen(json_object_get_string(json_object_object_get(main_header_node,"paddopts")))+1);
+    strcpy(padditional_options,json_object_get_string(json_object_object_get(main_header_node,"paddopts")));
+    process_addopts(json_object_get_string(json_object_object_get(main_header_node,"paddopts")));
+
     free(additional_options);
-    additional_options = malloc(strlen(json_object_get_string(json_object_object_get(main_header_node,"addopts")))+1);
-    strcpy(additional_options,json_object_get_string(json_object_object_get(main_header_node,"addopts")));
-    process_addopts(json_object_get_string(json_object_object_get(main_header_node,"addopts")));
+    padditional_options = malloc(strlen(json_object_get_string(json_object_object_get(main_header_node,"addopts")))+1);
+    strcpy(padditional_options,json_object_get_string(json_object_object_get(main_header_node,"addopts")));
 
     out_cracked_file=malloc(strlen(json_object_get_string(json_object_object_get(main_header_node,"outcrackedfile")))+1);
     out_uncracked_file=malloc(strlen(json_object_get_string(json_object_object_get(main_header_node,"outuncrackedfile")))+1);

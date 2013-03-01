@@ -348,7 +348,7 @@ hash_stat detect_plugin(char *plugindir,char *file, char *hash)
     char *detected_list;
     int detected_list_size=0;
     int j,flag;
-    char lhash[256]; // Local hashline copy cause some plugins play rough with strtok
+    char lhash[HASHFILE_MAX_LINE_LENGTH]; // Local hashline copy cause some plugins play rough with strtok
 
     /* We are now detecting plugins, don't be verbose */
     detecting=1;
@@ -372,7 +372,7 @@ hash_stat detect_plugin(char *plugindir,char *file, char *hash)
 	/* First check preferred plugins */
 	while (preferred_plugins[i])
 	{
-	    strcpy(soname,preferred_plugins[i]);
+	    strncpy(soname,preferred_plugins[i],1024);
 	    set_current_plugin(soname);
 	    if (load_plugin() == hash_ok) 
 	    if (!hash_plugin_is_special())

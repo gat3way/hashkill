@@ -171,7 +171,7 @@ uint64_t attack_avgspeed;;
 
 /* Global variables needed by modules */
 char hashlist_file[255];		// Hashlist file
-char hash_cmdline[255];			// Hash from cmdline
+char hash_cmdline[HASHFILE_MAX_LINE_LENGTH]; // Hash from cmdline
 char bruteforce_set1[255];		// Bruteforce set1
 char bruteforce_set2[255];		// Bruteforce set1
 int bruteforce_start;			// Min len of bruteforce candidates
@@ -206,7 +206,8 @@ char *addopts[10];			// Additional options
 hash_stat have_ocl;			// OCL attack?
 int salt_size;				// salt size as returned by plugin
 char *markovstat;			// Markov statfile
-char *additional_options;		// -a addopts
+char *additional_options;		// -A addopts
+char *padditional_options;		// -a addopts
 
 /* List manipulation routines */
 hash_stat add_hash_list(char *username, char *hash, char *salt, char *salt2);

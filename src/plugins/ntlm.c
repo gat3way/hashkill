@@ -55,9 +55,9 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     char *temp_str;
     
     if (!hashline) return hash_err;
-    
     if (strlen(hashline)<2) return hash_err;
-    
+
+
     /* Special case: that is a pwdump hash format */
     if (strstr(hashline,":::"))
     {

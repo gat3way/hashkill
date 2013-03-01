@@ -332,6 +332,8 @@ int main(int argc, char *argv[])
     attack_avgspeed=0;
     additional_options=malloc(1);
     additional_options[0]=0;
+    padditional_options=malloc(1);
+    padditional_options[0]=0;
 
     while ((argv[cnt])&&(cnt<MAXARGV))
     {
@@ -429,9 +431,9 @@ int main(int argc, char *argv[])
 	break;
 
 	case 'a':
-	    free(additional_options);
-	    additional_options = malloc(strlen(optarg)+1);
-	    strcpy(additional_options,optarg);
+	    free(padditional_options);
+	    padditional_options = malloc(strlen(optarg)+1);
+	    strcpy(padditional_options,optarg);
 	    process_addopts(optarg);
 	break;
 
@@ -608,8 +610,8 @@ int main(int argc, char *argv[])
     		exit(EXIT_FAILURE);
 	    }
 	}
-	strncpy(hash_cmdline,argv[optind],255);
-	if (load_single_hash(argv[optind]) == hash_err)
+	strncpy(hash_cmdline,argv[optind],HASHFILE_MAX_LINE_LENGTH);
+	if (load_single_hash(hash_cmdline) == hash_err)
 	{
 	    if (!fvalue) 
 	    {
