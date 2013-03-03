@@ -30,7 +30,6 @@
 
 
 int vectorsize;
-static int iterations;
 
 
 char * hash_plugin_summary(void)
@@ -107,7 +106,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     char mysalt2[128];
     int rounds,len;
 
-    rounds = iterations;
+    rounds = atoi(salt+128);
     memcpy(mysalt2,salt,128);
     strlow(mysalt2);
     hex2str((char *)mysalt,mysalt2, 128);
