@@ -77,7 +77,6 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     if (temp_str)
     {
 	strcpy(line2, temp_str);
-	iterations = atoi(line2);
 	temp_str2=strtok(NULL,".");
 	if (!temp_str2) return hash_err;
 	strcpy(salt, temp_str2);
