@@ -60,7 +60,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     char *temp_str=NULL, *temp_str2 = NULL, *temp_str3 = NULL;
     
     if (!hashline) return hash_err;
-    
+    if (!strstr(hashline,"$P$")) return hash_err;
     if (strlen(hashline)<2) return hash_err;
     
     snprintf(line, HASHFILE_MAX_LINE_LENGTH-1, "%s", hashline);

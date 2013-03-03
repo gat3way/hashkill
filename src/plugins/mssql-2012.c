@@ -57,8 +57,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     char line[256];
     char *line2 = alloca(256);
     char *temp_str;
-    int len;
-    
+
     if (!hashline) return hash_err;
     if (strlen(hashline)>256) return hash_err;
     if (strlen(hashline)<2) return hash_err;
@@ -73,7 +72,6 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	strcpy(username,"N/A");
     }
     
-    len = strlen(temp_str);
 
     /* Bad constant header */
     if (!strstr(temp_str,"0x0200"))

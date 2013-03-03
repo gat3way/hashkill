@@ -86,16 +86,18 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 		return hash_err;
 	}
 	count = fread(buf, 4, 1, fp);
-	//assert(count == 1);
+	if (count != 1) goto bail;
 	if(memcmp(buf, magic, 4)) {
 		//fprintf(stderr, "%s : Couldn't find PWS3 magic string. Is this a Password Safe file?\n", filename);
 		goto bail;
 	}
 	count = fread(buf, 32, 1, fp);
+	if (count != 1) goto bail;
 	cs.iterations = fget32(fp);
 
 	memcpy(cs.salt, buf, 32);
 	count = fread(buf, 32, 1, fp);
+	if (count != 1) goto bail;
 	//assert(count == 1);
 	memcpy(cs.hash, buf, 32);
 	fclose(fp);

@@ -381,13 +381,6 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 		tok++;
 	    }
 
-	    //printf("checksum=%s\n",s_checksum);
-	    //printf("checksum_type=%s\n",s_checksum_type);
-	    //printf("iv=%s\n",s_iv);
-	    //printf("salt=%s\n",s_salt);
-	    //printf("algorithm-name=%s\n",s_algo_name);
-	    //printf("iteration-count=%s\n",s_iterations);
-	    //printf("key-size=%s\n",s_key_size);
 	    if (strstr((char*)s_algo_name,"Blowfish CFB")) algorithm=0;
 	    else if (strstr((char*)s_algo_name,"aes256-cbc")) algorithm=1;
 	    else goto out;
@@ -480,7 +473,6 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	SHA256_CTX ctx;
 	AES_KEY akey;
 	unsigned char localiv[16];
-	int pos;
 
 	for (a=0;a<vectorsize;a++)
 	{
@@ -492,7 +484,6 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	for (a=0;a<vectorsize;a++)
 	{
 	    hash_pbkdf2((char *)buf[a], (unsigned char *)bsalt, 16,iterations, keysize/8, (unsigned char*)buf2[a]);
-	    pos=0;
 	    memcpy(localiv,iv,16);
 	    hash_aes_set_decrypt_key((const unsigned char*)buf2[a],keysize,&akey);
 	    hash_aes_cbc_encrypt(content,dec,1024,&akey,localiv,AES_DECRYPT);

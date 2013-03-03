@@ -79,7 +79,7 @@ typedef uint64_t __attribute__((__may_alias__)) uint64;
 
 /* Global variables */
 char temp_username[HASHFILE_MAX_PLAIN_LENGTH];	// temporary username
-char temp_salt[HASHFILE_MAX_PLAIN_LENGTH];	// temporary salt
+char temp_salt[256];				// temporary salt
 char temp_salt2[HASHFILE_MAX_PLAIN_LENGTH];	// temporary salt2
 char temp_hash[HASHFILE_MAX_PLAIN_LENGTH];	// temporary hash
 
@@ -1457,9 +1457,8 @@ void hash_proto_add_hash(const char *hash, int len)
 /* Add salt to list temp */
 void hash_proto_add_salt(const char *salt)
 {
-    bzero(temp_salt,64);
+    memset(temp_salt,0,256);
     if (salt) memcpy((char *)&temp_salt, salt, strlen(salt));
-    else temp_salt[0]=0;
 }
 
 
@@ -1525,9 +1524,9 @@ hash_stat add_hash_list(char *username, char *hash, char *salt, char *salt2)
     }
     if (salt)
     {
-	temp_list->salt = malloc(salt_size);
-	salt[MAX_SALT-1]=0;
-	strcpy(temp_list->salt, salt);
+	temp_list->salt = malloc(salt_size+1);
+	memset(temp_list->salt,0,salt_size+1);
+	strncpy(temp_list->salt, salt,salt_size);
     }
     if (salt2)
     {

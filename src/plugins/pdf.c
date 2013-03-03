@@ -162,7 +162,6 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     char finalobject[1024];
     char id[255];
     char ostr[255],ustr[255];
-    char oestr[255],uestr[255];
     int v,r,length,p,meta;
     size_t hashsize,usize,osize;
     size_t uesize,oesize;
@@ -343,7 +342,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
             }
             if (osize==255) flag=1;
         }
-
+	/*
         // Search for 'UE' in letters
         tok = memmem(encdict,encdictsize,"/UE(",strlen("/UE("));
         if (!tok) goto out;
@@ -416,6 +415,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
             }
             if (oesize==255) flag=1;
         }
+        */
     }
     else
     {

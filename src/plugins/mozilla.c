@@ -118,7 +118,6 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     char *buf4[VECTORSIZE];
     int a,b,c;
     char *encver="password-check\x00\x00";
-    HMAC_CTX hctx;
     EVP_CIPHER_CTX ctx;
 
     for (a=0;a<vectorsize;a++)
