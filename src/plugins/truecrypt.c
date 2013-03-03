@@ -231,6 +231,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	strcpy(myline,hashline);
 
 	tok = strtok_r(myline,":",&ptr);
+	if (!tok) return hash_err;
 	if (strcmp(tok,"all")==0)
 	{
 	    // TODO: hidsalt, hidsector stuff
