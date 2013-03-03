@@ -111,6 +111,7 @@ build: amd-compiler nvidia-compiler
 	if [ ! -e amd_pdf6__Juniper.bin ]; then ./amd-compiler amd_pdf6 n ;fi; \
 	if [ ! -e amd_odf__Juniper.bin ]; then ./amd-compiler amd_odf n ;fi; \
 	if [ ! -e amd_odf2__Juniper.bin ]; then ./amd-compiler amd_odf2 n ;fi; \
+	if [ ! -e amd_grub2__Juniper.bin ]; then ./amd-compiler amd_grub2 n ;fi; \
 	fi
 	# NVidia
 	@if [ "$(CL_NVFLAGS)" = "yes" ]; then \
@@ -209,6 +210,7 @@ build: amd-compiler nvidia-compiler
 	if [ ! -e nvidia_pdf6__sm10.ptx ]; then ./nvidia-compiler nvidia_pdf6 n ;fi; \
 	if [ ! -e nvidia_odf__sm10.ptx ]; then ./nvidia-compiler nvidia_odf n ;fi; \
 	if [ ! -e nvidia_odf2__sm10.ptx ]; then ./nvidia-compiler nvidia_odf2 n ;fi; \
+	if [ ! -e nvidia_grub2__sm10.ptx ]; then ./nvidia-compiler nvidia_grub2 n ;fi; \
 	fi
 
 

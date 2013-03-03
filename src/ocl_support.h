@@ -315,6 +315,11 @@ hash_stat ocl_bruteforce_odf(void);
 hash_stat ocl_markov_odf(void);
 hash_stat ocl_rule_odf(void);
 
+/* grub2 plugin support */
+hash_stat ocl_bruteforce_grub2(void);
+hash_stat ocl_markov_grub2(void);
+hash_stat ocl_rule_grub2(void);
+
 
 /* test plugin support */
 //hash_stat ocl_bruteforce_test(void);

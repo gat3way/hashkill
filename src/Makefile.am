@@ -44,7 +44,8 @@ ocl_pixmd5.c ocl_phpbb3.c ocl_wordpress.c ocl_md5unix.c ocl_sha512unix.c ocl_msc
 ocl_dmg.c unrargpu.c ocl_rar.c ocl_bfunix.c ocl_drupal7.c ocl_zip.c ocl_django256.c ocl_sha256unix.c \
 ocl_o5logon.c ocl_mssql-2012.c ocl_msoffice.c ocl_luks.c ocl_ripemd160.c ocl_whirlpool.c \
 cpu-serpent.c cpu-twofish.c ocl_truecrypt.c ocl_lastpass.c ocl_keepass.c ocl_mozilla.c ocl_pwsafe.c \
-ocl_keyring.c ocl_kwallet.c bad_blowfish.c ocl_msoffice-old.c ocl_pdf.c ocl_sha384.c ocl_odf.c
+ocl_keyring.c ocl_kwallet.c bad_blowfish.c ocl_msoffice-old.c ocl_pdf.c ocl_sha384.c ocl_odf.c \
+ocl_grub2.c
 
 #ocl_test.c
 
