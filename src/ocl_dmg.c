@@ -109,6 +109,7 @@ static char myfilename[255];
 static void header_byteorder_fix(cencrypted_v1_header *hdr) 
 {
     hdr->kdf_iteration_count = htonl(hdr->kdf_iteration_count);
+    if (hdr->kdf_iteration_count == 0 ) hdr->kdf_iteration_count = 1000;
     hdr->kdf_salt_len = htonl(hdr->kdf_salt_len);
     hdr->len_wrapped_aes_key = htonl(hdr->len_wrapped_aes_key);
     hdr->len_hmac_sha1_key = htonl(hdr->len_hmac_sha1_key);
