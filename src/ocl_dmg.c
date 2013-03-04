@@ -157,7 +157,7 @@ static int apple_des3_ede_unwrap_key1(unsigned char *wrapped_key, int wrapped_ke
     }
     if(!EVP_DecryptFinal_ex(&ctx, TEMP1 + outlen, &tmplen)) 
     {
-        if (header.len_wrapped_aes_key==48) return(-1);
+        return(-1);
     }
     outlen += tmplen;
     EVP_CIPHER_CTX_cleanup(&ctx);
