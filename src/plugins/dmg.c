@@ -303,8 +303,8 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	{
 	    hash_pbkdf2_len(password[a], strlen(password[a]), (unsigned char *)header.kdf_salt, 20, header.kdf_iteration_count, sizeof(derived_key), derived_key);
 	    if (
-	     (apple_des3_ede_unwrap_key1(header.wrapped_aes_key, 40, derived_key)==0) &&
-             (apple_des3_ede_unwrap_key1(header.wrapped_hmac_sha1_key, 48, derived_key)==0)
+	     (apple_des3_ede_unwrap_key1(header.wrapped_aes_key, header.len_wrapped_aes_key, derived_key)==0) &&
+             (apple_des3_ede_unwrap_key1(header.wrapped_hmac_sha1_key, header.len_hmac_sha1_key, derived_key)==0)
             ) 
     	    {
     		memcpy(salt2[a],"DMG file        \0\0\0\0\0\0\0\0\0",20);

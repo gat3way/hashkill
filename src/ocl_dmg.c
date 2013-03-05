@@ -287,8 +287,8 @@ static hash_stat check_dmg(unsigned char *derived_key, char *pwd)
     {
         //hash_pbkdf2_len(password[a], strlen(password[a]), (unsigned char *)header.kdf_salt, 20, 1000, sizeof(derived_key), derived_key);
         if (
-         (apple_des3_ede_unwrap_key1(header.wrapped_aes_key, 40, derived_key)==0) &&
-         (apple_des3_ede_unwrap_key1(header.wrapped_hmac_sha1_key, 48, derived_key)==0)
+         (apple_des3_ede_unwrap_key1(header.wrapped_aes_key, header.len_wrapped_aes_key, derived_key)==0) &&
+         (apple_des3_ede_unwrap_key1(header.wrapped_hmac_sha1_key, header.len_hmac_sha1_key, derived_key)==0)
         ) 
         {
             return hash_ok;
