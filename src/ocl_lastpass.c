@@ -57,6 +57,7 @@ static void ocl_lastpass_crack_callback(char *line, int self)
     cl_uint16 salt;
     cl_uint16 singlehash;
     unsigned char mhash[64];
+    size_t gws,gws1;
 
     mylist = hash_list;
     while (mylist)
@@ -168,10 +169,15 @@ static void ocl_lastpass_crack_callback(char *line, int self)
 	_clSetKernelArg(rule_kernellast[self], 5, sizeof(cl_uint16), (void*) &singlehash);
 	_clSetKernelArg(rule_kernellast[self], 6, sizeof(cl_uint16), (void*) &salt);
 
-        size_t nws = ocl_rule_workset[self]*wthreads[self].vectorsize;
-        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelmod[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+        gws = (rule_counts[self][0] / wthreads[self].vectorsize);
+        while ((gws%64)!=0) gws++;
+        gws1 = gws*wthreads[self].vectorsize;
+        if (gws1==0) gws1=64;
+        if (gws==0) gws=64;
+
+        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelmod[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
-        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
+        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
 
 	for (a=1;a<iterations;a+=100)
@@ -180,9 +186,9 @@ static void ocl_lastpass_crack_callback(char *line, int self)
 	    salt.sB=a+100;
 	    if (salt.sB>iterations) salt.sB=iterations;
 	    _clSetKernelArg(rule_kernelbl1[self], 6, sizeof(cl_uint16), (void*) &salt);
-    	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
+    	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 	    _clFinish(rule_oclqueue[self]);
-    	    wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/(get_hashes_num()*(iterations/100));
+    	    wthreads[self].tries+=(gws1)/(get_hashes_num()*(iterations/100));
 	}
 	
         bzero(mhash,64);
@@ -193,14 +199,14 @@ static void ocl_lastpass_crack_callback(char *line, int self)
         salt.s3=(mhash[12])|(mhash[13]<<8)|(mhash[14]<<16)|(mhash[15]<<24);
 	_clSetKernelArg(rule_kernellast[self], 6, sizeof(cl_uint16), (void*) &salt);
 	_clSetKernelArg(rule_kernellast[self], 6, sizeof(cl_uint16), (void*) &salt);
-    	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernellast[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+    	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernellast[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
 
         found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
         if (err!=CL_SUCCESS) continue;
         if (*found>0) 
         {
             _clEnqueueReadBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_TRUE, 0, ocl_rule_workset[self]*sizeof(cl_uint)*wthreads[self].vectorsize, rule_found_ind[self], 0, NULL, NULL);
-    	    for (a=0;a<ocl_rule_workset[self]*wthreads[self].vectorsize;a++)
+    	    for (a=0;a<gws1;a++)
 	    if (rule_found_ind[self][a]==1)
 	    {
     		_clEnqueueReadBuffer(rule_oclqueue[self], rule_buffer[self], CL_TRUE, a*hash_ret_len1, hash_ret_len1, rule_ptr[self]+a*hash_ret_len1, 0, NULL, NULL);

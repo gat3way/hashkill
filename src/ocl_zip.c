@@ -2048,6 +2048,7 @@ static void ocl_zip_crack_callback(char *line, int self)
     char plain[MAX];
     cl_uint16 addline;
     cl_uint16 salt;
+    size_t gws,gws1;
 
     /* setup addline */
     addline.s0=addline.s1=addline.s2=addline.s3=addline.s4=addline.s5=addline.s6=addline.s7=addline.sF=0;
@@ -2069,10 +2070,15 @@ static void ocl_zip_crack_callback(char *line, int self)
     pthread_mutex_unlock(&wthreads[self].tempmutex);
 
     wthreads[self].tries+=ocl_rule_workset[self]*wthreads[self].vectorsize;
-    size_t nws=ocl_rule_workset[self]*wthreads[self].vectorsize;
-    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel2[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+    gws = (rule_counts[self][0] / wthreads[self].vectorsize);
+    while ((gws%64)!=0) gws++;
+    gws1 = gws*wthreads[self].vectorsize;
+    if (gws1==0) gws1=64;
+    if (gws==0) gws=64;
+
+    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel2[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
     _clFinish(rule_oclqueue[self]);
-    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
+    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernel[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
     found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
     if (*found==1) 
     {

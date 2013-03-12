@@ -192,7 +192,7 @@ static void ocl_wpa_crack_callback(char *line, int self)
     cl_uint16 addline;
     cl_uint16 salt;
     cl_uint16 salt2;
-
+    size_t gws,gws1;
 
     /* setup addline */
     addline.s0=addline.s1=addline.s2=addline.s3=addline.s4=addline.s5=addline.s6=addline.s7=addline.sF=0;
@@ -210,8 +210,11 @@ static void ocl_wpa_crack_callback(char *line, int self)
     pthread_mutex_lock(&wthreads[self].tempmutex);
     pthread_mutex_unlock(&wthreads[self].tempmutex);
 
-    size_t nws1=ocl_rule_workset[self]*wthreads[self].vectorsize;
-    size_t nws=ocl_rule_workset[self];
+    gws = (rule_counts[self][0] / wthreads[self].vectorsize);
+    while ((gws%64)!=0) gws++;
+    gws1 = gws*wthreads[self].vectorsize;
+    if (gws1==0) gws1=64;
+    if (gws==0) gws=64;
 
     _clSetKernelArg(rule_kernelend[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
     _clSetKernelArg(rule_kernelend[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
@@ -265,39 +268,39 @@ static void ocl_wpa_crack_callback(char *line, int self)
     _clSetKernelArg(rule_kernelbl2[self], 7, sizeof(cl_mem), (void*) &block_buf[self]);
     _clSetKernelArg(rule_kernelbl2[self], 8, sizeof(cl_mem), (void*) &eapol_buf[self]);
 
-    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelmod[self], 1, NULL, &nws1, rule_local_work_size, 0, NULL, NULL);
+    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelmod[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
     _clFinish(rule_oclqueue[self]);
-    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
     _clFinish(rule_oclqueue[self]);
     for (a=0;a<7;a++)
     {
 	if (attack_over==1) pthread_exit(NULL);
 	addline.sA=a*1170;
 	_clSetKernelArg(rule_kernelbl1[self], 3, sizeof(cl_uint16), (void*) &addline);
-	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
         wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/14;
     }
 
-    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre2[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre2[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
     _clFinish(rule_oclqueue[self]);
     for (a=0;a<7;a++)
     {
 	if (attack_over==1) pthread_exit(NULL);
 	addline.sA=a*1170;
 	_clSetKernelArg(rule_kernelbl2[self], 3, sizeof(cl_uint16), (void*) &addline);
-	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl2[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl2[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
         wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/14;
     }
-    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelend[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelend[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 
     found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
     if (err!=CL_SUCCESS) return;
     if (*found>0) 
     {
         _clEnqueueReadBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_TRUE, 0, ocl_rule_workset[self]*sizeof(cl_uint), rule_found_ind[self], 0, NULL, NULL);
-        for (a=0;a<ocl_rule_workset[self];a++)
+        for (a=0;a<gws;a++)
         if (rule_found_ind[self][a]==1)
 	{
 	    b=a*wthreads[self].vectorsize;
