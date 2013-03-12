@@ -31,7 +31,7 @@
 
 /* Temp. globals */
 extern char temp_username[HASHFILE_MAX_PLAIN_LENGTH];
-extern char temp_salt[HASHFILE_MAX_PLAIN_LENGTH];
+extern char temp_salt[256];
 extern char temp_salt2[HASHFILE_MAX_PLAIN_LENGTH];
 extern char temp_hash[HASHFILE_MAX_PLAIN_LENGTH];
 
