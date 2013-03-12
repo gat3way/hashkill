@@ -20,8 +20,8 @@ all: plugin_md5 plugin_md5md5 plugin_joomla plugin_sha1 plugin_smf plugin_md4 \
      plugin_django256 plugin_sha256unix plugin_o5logon plugin_mssql2012 plugin_msoffice \
      plugin_msoffice-old plugin_luks plugin_whirlpool plugin_truecrypt plugin_lastpass \
      plugin_keepass plugin_pdf plugin_keyring plugin_pwsafe plugin_mozilla plugin_kwallet \
-     plugin_sha384 plugin_odf plugin_grub2
-     #plugin_bitcoin  plugin_mysql-old plugin_test
+     plugin_sha384 plugin_odf plugin_grub2 
+     #plugin_bitcoin  plugin_mysql-old plugin_test plugin_osx-ml
 
 
 plugin_md5:
@@ -217,7 +217,10 @@ plugin_odf:
 	@if [ ! -e odf.so ]; then  $(CC)  base64.c plugin.c odf.c -o odf.so $(CFLAGS) $(LDFLAGS) -Wall -lz -lcrypto ;fi
 
 plugin_grub2:
-	@if [ ! -e grub2.so ]; then  $(CC)  base64.c plugin.c grub2.c -o grub2.so $(CFLAGS) $(LDFLAGS) -Wall ;fi
+	@if [ ! -e grub2.so ]; then  $(CC)  plugin.c grub2.c -o grub2.so $(CFLAGS) $(LDFLAGS) -Wall ;fi
+
+plugin_osx-ml:
+	@if [ ! -e osx-ml.so ]; then  $(CC)  plugin.c osx-ml.c -o osx-ml.so $(CFLAGS) $(LDFLAGS) -Wall ;fi
 
 
 
