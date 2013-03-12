@@ -34,7 +34,7 @@ int vectorsize;
 
 char * hash_plugin_summary(void)
 {
-    return("grub2 \tGRUB2 plugin");
+    return("grub2 \t\tGRUB2 plugin");
 }
 
 
