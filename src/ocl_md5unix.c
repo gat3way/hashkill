@@ -129,7 +129,7 @@ static void ocl_md5unix_crack_callback(char *line, int self)
     mylist = hash_list;
     while (mylist)
     {
-        //if (attack_over!=0) pthread_exit(NULL);
+        if (attack_over!=0) pthread_exit(NULL);
         if (mylist->salt2[0]==1) {mylist=mylist->next;continue;}
 	/* setup addline */
 	addline.s0=addline.s1=addline.s2=addline.s3=addline.s4=addline.s5=addline.s6=addline.s7=addline.sF=0;
