@@ -239,9 +239,6 @@ Endian_Reverse32(D);
 Endian_Reverse32(E);
 
 
-
-
-
 uint res = atomic_inc(found);
 hashes[res*5] = (uint)(A);
 hashes[res*5+1] = (uint)(B);
@@ -259,7 +256,7 @@ plains[res] = (uint4)(x0,x1,x2,x3);
 
 #undef MAX8
 
-void sha1_long2( __global uint *hashes, uint4 input, uint size , __global uint4 *plains, __global uint *bitmaps, __global uint *found, uint i,  uint4 singlehash, uint16 xors) 
+void sha1_long2( __global uint *hashes, uint4 input, uint size,  __global uint4 *plains, __global uint *bitmaps, __global uint *found, uint i,  uint4 singlehash, uint16 xors) 
 {  
 uint w0,w1,w2,w3,w4,w5,w6,w7,w8,w9,w10,w11,w12,w13,w14,w16;
 uint x0,x1,x2,x3;
@@ -491,15 +488,12 @@ Endian_Reverse32(D);
 Endian_Reverse32(E);
 
 
-
-
-
 uint res = atomic_inc(found);
 hashes[res*5] = (uint)(A);
-hashes[res*5+1] = (uint)(E);
-hashes[res*5+2] = (uint)(D);
-hashes[res*5+3] = (uint)(C);
-hashes[res*5+4] = (uint)(B);
+hashes[res*5+1] = (uint)(B);
+hashes[res*5+2] = (uint)(C);
+hashes[res*5+3] = (uint)(D);
+hashes[res*5+4] = (uint)(E);
 Endian_Reverse32(x0);
 Endian_Reverse32(x1);
 Endian_Reverse32(x2);
@@ -538,17 +532,17 @@ xors=xors1;
 sha1_long1(hashes, input, size, plains, bitmaps, found, i, singlehash, xors);
 
 input=(uint4)(chbase1.s4,chbase1.s5,chbase1.s6,chbase1.s7);
-singlehash=(uint4)(chbase2.s4,chbase2.s5,chbase2.s6,chbase2.s7);
+//singlehash=(uint4)(chbase2.s4,chbase2.s5,chbase2.s6,chbase2.s7);
 xors=xors2;
 sha1_long1(hashes, input, size, plains, bitmaps, found, i, singlehash, xors);
 
 input=(uint4)(chbase1.s8,chbase1.s9,chbase1.sA,chbase1.sB);
-singlehash=(uint4)(chbase2.s8,chbase2.s9,chbase2.sA,chbase2.sB);
+//singlehash=(uint4)(chbase2.s8,chbase2.s9,chbase2.sA,chbase2.sB);
 xors=xors3;
 sha1_long1(hashes, input, size, plains, bitmaps, found, i, singlehash, xors);
 
 input=(uint4)(chbase1.sC,chbase1.sD,chbase1.sE,chbase1.sF);
-singlehash=(uint4)(chbase2.sC,chbase2.sD,chbase2.sE,chbase2.sF);
+//singlehash=(uint4)(chbase2.sC,chbase2.sD,chbase2.sE,chbase2.sF);
 xors=xors4;
 sha1_long1(hashes, input, size, plains, bitmaps, found, i, singlehash, xors);
 
@@ -580,7 +574,7 @@ xors=xors1;
 sha1_long1(hashes, input, size, plains, bitmaps, found, i, singlehash, xors);
 
 input=(uint4)(chbase1.s4,chbase1.s5,chbase1.s6,chbase1.s7);
-singlehash=(uint4)(chbase2.s4,chbase2.s5,chbase2.s6,chbase2.s7);
+//singlehash=(uint4)(chbase2.s4,chbase2.s5,chbase2.s6,chbase2.s7);
 xors=xors2;
 sha1_long1(hashes, input, size, plains, bitmaps, found, i, singlehash, xors);
 
@@ -615,17 +609,17 @@ xors=xors1;
 sha1_long2(hashes, input, size, plains, bitmaps, found, i, singlehash, xors);
 
 input=(uint4)(chbase1.s4,chbase1.s5,chbase1.s6,chbase1.s7);
-singlehash=(uint4)(chbase2.s4,chbase2.s5,chbase2.s6,chbase2.s7);
+//singlehash=(uint4)(chbase2.s4,chbase2.s5,chbase2.s6,chbase2.s7);
 xors=xors2;
 sha1_long2(hashes, input, size, plains, bitmaps, found, i, singlehash, xors);
 
 input=(uint4)(chbase1.s8,chbase1.s9,chbase1.sA,chbase1.sB);
-singlehash=(uint4)(chbase2.s8,chbase2.s9,chbase2.sA,chbase2.sB);
+//singlehash=(uint4)(chbase2.s8,chbase2.s9,chbase2.sA,chbase2.sB);
 xors=xors3;
 sha1_long2(hashes, input, size, plains, bitmaps, found, i, singlehash, xors);
 
 input=(uint4)(chbase1.sC,chbase1.sD,chbase1.sE,chbase1.sF);
-singlehash=(uint4)(chbase2.sC,chbase2.sD,chbase2.sE,chbase2.sF);
+//singlehash=(uint4)(chbase2.sC,chbase2.sD,chbase2.sE,chbase2.sF);
 xors=xors4;
 sha1_long2(hashes, input, size, plains, bitmaps, found, i, singlehash, xors);
 
@@ -656,7 +650,7 @@ xors=xors1;
 sha1_long2(hashes, input, size, plains, bitmaps, found, i, singlehash, xors);
 
 input=(uint4)(chbase1.s4,chbase1.s5,chbase1.s6,chbase1.s7);
-singlehash=(uint4)(chbase2.s4,chbase2.s5,chbase2.s6,chbase2.s7);
+//singlehash=(uint4)(chbase2.s4,chbase2.s5,chbase2.s6,chbase2.s7);
 xors=xors2;
 sha1_long2(hashes, input, size, plains, bitmaps, found, i, singlehash, xors);
 
@@ -928,9 +922,6 @@ Endian_Reverse32(B);
 Endian_Reverse32(C);
 Endian_Reverse32(D);
 Endian_Reverse32(E);
-
-
-
 
 
 #ifndef OLD_ATI
