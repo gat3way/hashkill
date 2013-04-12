@@ -836,6 +836,7 @@ typedef cl_uint             cl_profiling_info;
 #define CL_INVALID_COMPILER_OPTIONS                 -66
 #define CL_INVALID_LINKER_OPTIONS                   -67
 #define CL_INVALID_DEVICE_PARTITION_COUNT           -68
+#define CL_PLATFORM_NOT_FOUND_KHR                   -1001
 
 /* cl_bool */
 #define CL_FALSE                                    0

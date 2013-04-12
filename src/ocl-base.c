@@ -335,6 +335,7 @@ static void checkErr(char *func, cl_int err)
     	    case CL_INVALID_BUFFER_SIZE:	elog("%s: CL_INVALID_BUFFER_SIZE",func); break;
     	    case CL_INVALID_GLOBAL_WORK_SIZE:   elog("%s: CL_INVALID_GLOBAL_WORK_SIZE",func); break;
     	    case CL_INVALID_COMPILER_OPTIONS:   elog("%s: CL_INVALID_COMPILER_OPTIONS",func); break;
+    	    case CL_PLATFORM_NOT_FOUND_KHR:   	elog("%s: PLATFORM_NOT_FOUND_KHR",func); break;
     	    default:                            elog("%s: Unknown error code: %d", func,err); break;
         }
         printf("\n\n");
