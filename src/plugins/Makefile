@@ -20,7 +20,8 @@ all: plugin_md5 plugin_md5md5 plugin_joomla plugin_sha1 plugin_smf plugin_md4 \
      plugin_django256 plugin_sha256unix plugin_o5logon plugin_mssql2012 plugin_msoffice \
      plugin_msoffice-old plugin_luks plugin_whirlpool plugin_truecrypt plugin_lastpass \
      plugin_keepass plugin_pdf plugin_keyring plugin_pwsafe plugin_mozilla plugin_kwallet \
-     plugin_sha384 plugin_odf plugin_grub2 
+     plugin_sha384 plugin_odf plugin_grub2 plugin_androidfde
+     #plugin_androidpin plugin_samsungpin 
      #plugin_bitcoin  plugin_mysql-old plugin_test plugin_osx-ml
 
 
@@ -222,6 +223,14 @@ plugin_grub2:
 plugin_osx-ml:
 	@if [ ! -e osx-ml.so ]; then  $(CC)  plugin.c osx-ml.c -o osx-ml.so $(CFLAGS) $(LDFLAGS) -Wall ;fi
 
+plugin_androidpin:
+	@if [ ! -e androidpin.so ]; then  $(CC)  plugin.c androidpin.c -o androidpin.so $(CFLAGS) $(LDFLAGS) -Wall ;fi
+
+plugin_samsungpin:
+	@if [ ! -e samsungpin.so ]; then  $(CC)  plugin.c samsungpin.c -o samsungpin.so $(CFLAGS) $(LDFLAGS) -Wall ;fi
+
+plugin_androidfde:
+	@if [ ! -e androidfde.so ]; then  $(CC)  plugin.c androidfde.c -o androidfde.so $(CFLAGS) $(LDFLAGS) -lcrypto -Wall ;fi
 
 
 plugin_test:

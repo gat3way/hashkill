@@ -335,6 +335,14 @@ int main(int argc, char *argv[])
     padditional_options=malloc(1);
     padditional_options[0]=0;
 
+
+    /* Detect CPU features and setup optimized routines */
+    if (cpu_feat_setup() == hash_err)
+    {
+        elog("No x86 CPU found! %s\n","");
+        exit(1);
+    }
+
     while ((argv[cnt])&&(cnt<MAXARGV))
     {
 	session_argv[cnt]=malloc(strlen(argv[cnt])+1);
@@ -624,13 +632,6 @@ int main(int argc, char *argv[])
 
     if (strcmp(get_current_plugin(),"bitcoin")!=0)
     {
-
-	/* Detect CPU features and setup optimized routines */
-	if (cpu_feat_setup() == hash_err)
-	{
-	    elog("No x86 CPU found! %s\n","");
-	    exit(1);
-	}
 
 	/* Hashes num */
 	hashes_count = get_hashes_num();

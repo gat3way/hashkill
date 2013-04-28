@@ -320,6 +320,11 @@ hash_stat ocl_bruteforce_grub2(void);
 hash_stat ocl_markov_grub2(void);
 hash_stat ocl_rule_grub2(void);
 
+/* androidfde plugin support */
+hash_stat ocl_bruteforce_androidfde(void);
+hash_stat ocl_markov_androidfde(void);
+hash_stat ocl_rule_androidfde(void);
+
 
 /* test plugin support */
 //hash_stat ocl_bruteforce_test(void);

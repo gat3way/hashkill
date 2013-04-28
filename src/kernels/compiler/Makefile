@@ -15,7 +15,7 @@ all: build
 build_amd: amd_ipb2_long amd_ipb2 amd_md5_long amd_md5 amd_sha1 amd_sha1_long amd_ntlm amd_ntlm_long \
 amd_md4 amd_md4_long amd_pixmd5 amd_pixmd5_long amd_sha256 amd_sha256_long amd_lm amd_lm_long \
 amd_md5md5 amd_md5md5_long amd_md5_passsalt amd_md5_passsalt_long amd_mysql5 amd_mysql5_long \
-amd_sha1_passsalt amd_sha1_passsalt_long amd_sha1_passsaltu amd_sha1_passsaltu_long amd_sha1_passsaltul_long \
+amd_sha1_passsalt amd_sha1_passsalt_long amd_sha1_passsaltu amd_sha1_passsaltu_long  \
 amd_oracle_old amd_oracle_old_long amd_vbulletin amd_vbulletin_long amd_md5_saltpass amd_md5_saltpass_long \
 amd_sha1_saltpass amd_sha1_saltpass_long amd_desunix amd_desunix_long amd_phpass amd_md5unix \
 amd_sha512 amd_sha512_long amd_osxlion amd_osxlion_long amd_sha1_passsalt_ulong amd_mscash amd_mscash_long \
@@ -25,13 +25,13 @@ amd_sha512_passsaltu amd_sha512_passsaltu_long amd_msoffice2007 amd_msoffice2010
 amd_luks128 amd_luks256 amd_ripemd160 amd_ripemd160_long amd_whirlpool amd_whirlpool_long \
 amd_truecrypt amd_lastpass amd_keepass amd_keepass2 amd_mozilla amd_mozilla_long amd_pwsafe \
 amd_keyring amd_kwallet amd_msoffice_old amd_msoffice_old_md5 amd_pdf2 amd_pdf3 amd_pdf4 amd_pdf5 \
-amd_sha384 amd_sha384_long amd_pdf6 amd_odf amd_odf2 amd_grub2
+amd_sha384 amd_sha384_long amd_pdf6 amd_odf amd_odf2 amd_grub2 amd_androidfde
 
 
 build_nvidia: nvidia_ipb2_long nvidia_ipb2 nvidia_md5_long nvidia_md5 nvidia_sha1 nvidia_sha1_long nvidia_ntlm nvidia_ntlm_long \
 nvidia_md4 nvidia_md4_long nvidia_pixmd5 nvidia_pixmd5_long nvidia_sha256 nvidia_sha256_long nvidia_lm nvidia_lm_long \
 nvidia_md5md5 nvidia_md5md5_long nvidia_md5_passsalt nvidia_md5_passsalt_long nvidia_mysql5 nvidia_mysql5_long \
-nvidia_sha1_passsalt nvidia_sha1_passsalt_long nvidia_sha1_passsaltu nvidia_sha1_passsaltu_long nvidia_sha1_passsaltul_long \
+nvidia_sha1_passsalt nvidia_sha1_passsalt_long nvidia_sha1_passsaltu nvidia_sha1_passsaltu_long  \
 nvidia_oracle_old nvidia_oracle_old_long nvidia_vbulletin nvidia_vbulletin_long nvidia_md5_saltpass nvidia_md5_saltpass_long \
 nvidia_sha1_saltpass nvidia_sha1_saltpass_long nvidia_desunix nvidia_desunix_long nvidia_phpass nvidia_md5unix \
 nvidia_sha512 nvidia_sha512_long nvidia_osxlion nvidia_osxlion_long nvidia_sha1_passsalt_ulong nvidia_mscash nvidia_mscash_long \
@@ -41,7 +41,7 @@ nvidia_sha512_passsaltu nvidia_sha512_passsaltu_long nvidia_msoffice2007 nvidia_
 nvidia_luks128 nvidia_luks256 nvidia_ripemd160 nvidia_ripemd160_long nvidia_whirlpool nvidia_whirlpool_long \
 nvidia_truecrypt nvidia_lastpass nvidia_keepass nvidia_keepass2 nvidia_mozilla nvidia_mozilla_long nvidia_pwsafe \
 nvidia_keyring nvidia_kwallet nvidia_msoffice_old nvidia_msoffice_old_md5 nvidia_pdf2 nvidia_pdf3 nvidia_pdf4 nvidia_pdf5 \
-nvidia_sha384 nvidia_sha384_long nvidia_pdf6 nvidia_odf nvidia_odf2 nvidia_grub2
+nvidia_sha384 nvidia_sha384_long nvidia_pdf6 nvidia_odf nvidia_odf2 nvidia_grub2 nvidia_androidfde
 
 
 build: build_amd build_nvidia
@@ -546,6 +546,11 @@ amd_grub2: amd-compiler
 		if [ ! -e amd_grub2__Juniper.bin ]; then ./amd-compiler amd_grub2 n ;fi; \
 		fi
 
+amd_androidfde: amd-compiler
+		@if [ "$(CL_AMDFLAGS)" = "yes" ]; then \
+		if [ ! -e amd_androidfde__Juniper.bin ]; then ./amd-compiler amd_androidfde n ;fi; \
+		fi
+
 
 
 
@@ -1028,3 +1033,9 @@ nvidia_grub2: nvidia-compiler
 		@if [ "$(CL_NVFLAGS)" = "yes" ]; then \
 		if [ ! -e nvidia_grub2__sm10.ptx ]; then ./nvidia-compiler nvidia_grub2 n ;fi; \
 		fi
+
+nvidia_androidfde: nvidia-compiler
+		@if [ "$(CL_NVFLAGS)" = "yes" ]; then \
+		if [ ! -e nvidia_androidfde__sm10.ptx ]; then ./nvidia-compiler nvidia_androidfde n ;fi; \
+		fi
+

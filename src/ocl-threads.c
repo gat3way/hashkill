@@ -106,6 +106,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"sha384",&ocl_bruteforce_sha384, &ocl_markov_sha384, &ocl_rule_sha384},
                             {1,"odf",&ocl_bruteforce_odf, &ocl_markov_odf, &ocl_rule_odf},
                             {1,"grub2",&ocl_bruteforce_grub2, &ocl_markov_grub2, &ocl_rule_grub2},
+                            {1,"androidfde",&ocl_bruteforce_androidfde, &ocl_markov_androidfde, &ocl_rule_androidfde},
                             {0, "", NULL, NULL, NULL}
                         };
 
@@ -383,6 +384,8 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"wpa")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"luks")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"luks")==0)&&(!ocl_have_gcn)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"androidfde")==0)&&(ocl_have_gcn)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"androidfde")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"truecrypt")==0)&&(ocl_have_gcn)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"truecrypt")==0)&&(!ocl_have_gcn)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"dmg")==0)&&(ocl_have_gcn)) ocl_vector=1;
@@ -490,6 +493,8 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"wpa")==0)&&(ocl_have_sm21)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"luks")==0)&&(!ocl_have_sm21)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"luks")==0)&&(ocl_have_sm21)) ocl_vector=2;
+		if ((strcmp(get_current_plugin(),"androidfde")==0)&&(!ocl_have_sm21)) ocl_vector=1;
+		if ((strcmp(get_current_plugin(),"androidfde")==0)&&(ocl_have_sm21)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"truecrypt")==0)&&(!ocl_have_sm21)) ocl_vector=1;
 		if ((strcmp(get_current_plugin(),"truecrypt")==0)&&(ocl_have_sm21)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"dmg")==0)&&(!ocl_have_sm21)) ocl_vector=1;
