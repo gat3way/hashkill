@@ -187,7 +187,7 @@ int compile(char *filename, char *buildparams)
         if (strstr(pbuf,"Cats")) continue;
         if (strstr(pbuf,"Raccoons")) continue;
 
-	printf("building for %s\n",pbuf);
+	printf("Building %s for %s\n",filename,pbuf);
 	char flags[1000];
 	char flags1[1000];
 	//-save-temps=test

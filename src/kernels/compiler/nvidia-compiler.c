@@ -121,24 +121,31 @@ int compile(char *filename, char *buildparams)
 	    {
 		case 0:
 		    sprintf(flags,"%s -cl-nv-arch sm_10 -DSM10",flags);
+		    printf("Building %s for sm_10...\n",filename);
 		    break;
 		case 1:
 		    sprintf(flags,"%s -cl-nv-arch sm_11",flags);
+		    printf("Building %s for sm_11...\n",filename);
 		    break;
 		case 2:
 		    sprintf(flags,"%s -cl-nv-arch sm_12",flags);
+		    printf("Building %s for sm_12...\n",filename);
 		    break;
 		case 3:
 		    sprintf(flags,"%s -cl-nv-arch sm_13",flags);
+		    printf("Building %s for sm_13...\n",filename);
 		    break;
 		case 4:
 		    sprintf(flags,"%s -cl-nv-arch sm_20 ",flags);
+		    printf("Building %s for sm_20...\n",filename);
 		    break;
 		case 5:
 		    sprintf(flags,"%s -cl-nv-arch sm_21 -DSM21",flags);
+		    printf("Building %s for sm_21...\n",filename);
 		    break;
 		case 6:
 		    sprintf(flags,"%s -cl-nv-arch sm_30 ",flags);
+		    printf("Building %s for sm_30...\n",filename);
 		    break;
 	    }
 	    char *eflags="";
