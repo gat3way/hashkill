@@ -193,7 +193,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 	decrypt_aes_cbc_essiv(blockbuf+1024, decrypted2, keycandidate2,2,128);
 
 	// Check for FAT
-	if ((memcmp(decrypted1+3,"MSDOS5.0",8)==0)&&(decrypted1[0]==0xbe))
+	if ((memcmp(decrypted1+3,"MSDOS5.0",8)==0))
 	{
 	    *num=a;
 	    return hash_ok;

@@ -107,7 +107,7 @@ static hash_stat check_androidfde(char *keycandidate)
     decrypt_aes_cbc_essiv(blockbuf+1024, decrypted2, keycandidate2,2,128);
 
     // Check for FAT
-    if ((memcmp(decrypted1+3,"MSDOS5.0",8)==0)&&(decrypted1[0]==0xbe))
+    if ((memcmp(decrypted1+3,"MSDOS5.0",8)==0))
     {
         return hash_ok;
     }
