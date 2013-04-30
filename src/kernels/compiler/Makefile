@@ -403,7 +403,7 @@ amd_msoffice2007: amd-compiler
 
 amd_msoffice2010: amd-compiler
 		@if [ "$(CL_AMDFLAGS)" = "yes" ]; then \
-		if [ ! -e amd_msoffice2010__Juniper.bin ]; then ./amd-compiler amd_msoffice2010 n ;fi; \
+		if [ ! -e amd_msoffice2010__Juniper.bin ]; then ./amd-compiler amd_msoffice2010 no ;fi; \
 		fi
 
 amd_msoffice2013: amd-compiler
