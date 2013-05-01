@@ -31,9 +31,101 @@
 
 #define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
 
+typedef struct 
+{
+    unsigned char op;           /* operation, extra bits, table bits */
+    unsigned char bits;         /* bits in this part of the code */
+    unsigned short val;         /* offset in table or code value */
+} code;
+
+static const code lenfix[512] = {
+        {96,7,0},{0,8,80},{0,8,16},{20,8,115},{18,7,31},{0,8,112},{0,8,48},
+        {0,9,192},{16,7,10},{0,8,96},{0,8,32},{0,9,160},{0,8,0},{0,8,128},
+        {0,8,64},{0,9,224},{16,7,6},{0,8,88},{0,8,24},{0,9,144},{19,7,59},
+        {0,8,120},{0,8,56},{0,9,208},{17,7,17},{0,8,104},{0,8,40},{0,9,176},
+        {0,8,8},{0,8,136},{0,8,72},{0,9,240},{16,7,4},{0,8,84},{0,8,20},
+        {21,8,227},{19,7,43},{0,8,116},{0,8,52},{0,9,200},{17,7,13},{0,8,100},
+        {0,8,36},{0,9,168},{0,8,4},{0,8,132},{0,8,68},{0,9,232},{16,7,8},
+        {0,8,92},{0,8,28},{0,9,152},{20,7,83},{0,8,124},{0,8,60},{0,9,216},
+        {18,7,23},{0,8,108},{0,8,44},{0,9,184},{0,8,12},{0,8,140},{0,8,76},
+        {0,9,248},{16,7,3},{0,8,82},{0,8,18},{21,8,163},{19,7,35},{0,8,114},
+        {0,8,50},{0,9,196},{17,7,11},{0,8,98},{0,8,34},{0,9,164},{0,8,2},
+        {0,8,130},{0,8,66},{0,9,228},{16,7,7},{0,8,90},{0,8,26},{0,9,148},
+        {20,7,67},{0,8,122},{0,8,58},{0,9,212},{18,7,19},{0,8,106},{0,8,42},
+        {0,9,180},{0,8,10},{0,8,138},{0,8,74},{0,9,244},{16,7,5},{0,8,86},
+        {0,8,22},{64,8,0},{19,7,51},{0,8,118},{0,8,54},{0,9,204},{17,7,15},
+        {0,8,102},{0,8,38},{0,9,172},{0,8,6},{0,8,134},{0,8,70},{0,9,236},
+        {16,7,9},{0,8,94},{0,8,30},{0,9,156},{20,7,99},{0,8,126},{0,8,62},
+        {0,9,220},{18,7,27},{0,8,110},{0,8,46},{0,9,188},{0,8,14},{0,8,142},
+        {0,8,78},{0,9,252},{96,7,0},{0,8,81},{0,8,17},{21,8,131},{18,7,31},
+        {0,8,113},{0,8,49},{0,9,194},{16,7,10},{0,8,97},{0,8,33},{0,9,162},
+        {0,8,1},{0,8,129},{0,8,65},{0,9,226},{16,7,6},{0,8,89},{0,8,25},
+        {0,9,146},{19,7,59},{0,8,121},{0,8,57},{0,9,210},{17,7,17},{0,8,105},
+        {0,8,41},{0,9,178},{0,8,9},{0,8,137},{0,8,73},{0,9,242},{16,7,4},
+        {0,8,85},{0,8,21},{16,8,258},{19,7,43},{0,8,117},{0,8,53},{0,9,202},
+        {17,7,13},{0,8,101},{0,8,37},{0,9,170},{0,8,5},{0,8,133},{0,8,69},
+        {0,9,234},{16,7,8},{0,8,93},{0,8,29},{0,9,154},{20,7,83},{0,8,125},
+        {0,8,61},{0,9,218},{18,7,23},{0,8,109},{0,8,45},{0,9,186},{0,8,13},
+        {0,8,141},{0,8,77},{0,9,250},{16,7,3},{0,8,83},{0,8,19},{21,8,195},
+        {19,7,35},{0,8,115},{0,8,51},{0,9,198},{17,7,11},{0,8,99},{0,8,35},
+        {0,9,166},{0,8,3},{0,8,131},{0,8,67},{0,9,230},{16,7,7},{0,8,91},
+        {0,8,27},{0,9,150},{20,7,67},{0,8,123},{0,8,59},{0,9,214},{18,7,19},
+        {0,8,107},{0,8,43},{0,9,182},{0,8,11},{0,8,139},{0,8,75},{0,9,246},
+        {16,7,5},{0,8,87},{0,8,23},{64,8,0},{19,7,51},{0,8,119},{0,8,55},
+        {0,9,206},{17,7,15},{0,8,103},{0,8,39},{0,9,174},{0,8,7},{0,8,135},
+        {0,8,71},{0,9,238},{16,7,9},{0,8,95},{0,8,31},{0,9,158},{20,7,99},
+        {0,8,127},{0,8,63},{0,9,222},{18,7,27},{0,8,111},{0,8,47},{0,9,190},
+        {0,8,15},{0,8,143},{0,8,79},{0,9,254},{96,7,0},{0,8,80},{0,8,16},
+        {20,8,115},{18,7,31},{0,8,112},{0,8,48},{0,9,193},{16,7,10},{0,8,96},
+        {0,8,32},{0,9,161},{0,8,0},{0,8,128},{0,8,64},{0,9,225},{16,7,6},
+        {0,8,88},{0,8,24},{0,9,145},{19,7,59},{0,8,120},{0,8,56},{0,9,209},
+        {17,7,17},{0,8,104},{0,8,40},{0,9,177},{0,8,8},{0,8,136},{0,8,72},
+        {0,9,241},{16,7,4},{0,8,84},{0,8,20},{21,8,227},{19,7,43},{0,8,116},
+        {0,8,52},{0,9,201},{17,7,13},{0,8,100},{0,8,36},{0,9,169},{0,8,4},
+        {0,8,132},{0,8,68},{0,9,233},{16,7,8},{0,8,92},{0,8,28},{0,9,153},
+        {20,7,83},{0,8,124},{0,8,60},{0,9,217},{18,7,23},{0,8,108},{0,8,44},
+        {0,9,185},{0,8,12},{0,8,140},{0,8,76},{0,9,249},{16,7,3},{0,8,82},
+        {0,8,18},{21,8,163},{19,7,35},{0,8,114},{0,8,50},{0,9,197},{17,7,11},
+        {0,8,98},{0,8,34},{0,9,165},{0,8,2},{0,8,130},{0,8,66},{0,9,229},
+        {16,7,7},{0,8,90},{0,8,26},{0,9,149},{20,7,67},{0,8,122},{0,8,58},
+        {0,9,213},{18,7,19},{0,8,106},{0,8,42},{0,9,181},{0,8,10},{0,8,138},
+        {0,8,74},{0,9,245},{16,7,5},{0,8,86},{0,8,22},{64,8,0},{19,7,51},
+        {0,8,118},{0,8,54},{0,9,205},{17,7,15},{0,8,102},{0,8,38},{0,9,173},
+        {0,8,6},{0,8,134},{0,8,70},{0,9,237},{16,7,9},{0,8,94},{0,8,30},
+        {0,9,157},{20,7,99},{0,8,126},{0,8,62},{0,9,221},{18,7,27},{0,8,110},
+        {0,8,46},{0,9,189},{0,8,14},{0,8,142},{0,8,78},{0,9,253},{96,7,0},
+        {0,8,81},{0,8,17},{21,8,131},{18,7,31},{0,8,113},{0,8,49},{0,9,195},
+        {16,7,10},{0,8,97},{0,8,33},{0,9,163},{0,8,1},{0,8,129},{0,8,65},
+        {0,9,227},{16,7,6},{0,8,89},{0,8,25},{0,9,147},{19,7,59},{0,8,121},
+        {0,8,57},{0,9,211},{17,7,17},{0,8,105},{0,8,41},{0,9,179},{0,8,9},
+        {0,8,137},{0,8,73},{0,9,243},{16,7,4},{0,8,85},{0,8,21},{16,8,258},
+        {19,7,43},{0,8,117},{0,8,53},{0,9,203},{17,7,13},{0,8,101},{0,8,37},
+        {0,9,171},{0,8,5},{0,8,133},{0,8,69},{0,9,235},{16,7,8},{0,8,93},
+        {0,8,29},{0,9,155},{20,7,83},{0,8,125},{0,8,61},{0,9,219},{18,7,23},
+        {0,8,109},{0,8,45},{0,9,187},{0,8,13},{0,8,141},{0,8,77},{0,9,251},
+        {16,7,3},{0,8,83},{0,8,19},{21,8,195},{19,7,35},{0,8,115},{0,8,51},
+        {0,9,199},{17,7,11},{0,8,99},{0,8,35},{0,9,167},{0,8,3},{0,8,131},
+        {0,8,67},{0,9,231},{16,7,7},{0,8,91},{0,8,27},{0,9,151},{20,7,67},
+        {0,8,123},{0,8,59},{0,9,215},{18,7,19},{0,8,107},{0,8,43},{0,9,183},
+        {0,8,11},{0,8,139},{0,8,75},{0,9,247},{16,7,5},{0,8,87},{0,8,23},
+        {64,8,0},{19,7,51},{0,8,119},{0,8,55},{0,9,207},{17,7,15},{0,8,103},
+        {0,8,39},{0,9,175},{0,8,7},{0,8,135},{0,8,71},{0,9,239},{16,7,9},
+        {0,8,95},{0,8,31},{0,9,159},{20,7,99},{0,8,127},{0,8,63},{0,9,223},
+        {18,7,27},{0,8,111},{0,8,47},{0,9,191},{0,8,15},{0,8,143},{0,8,79},
+        {0,9,255}
+};
+
+static const code distfix[32] = {
+        {16,5,1},{23,5,257},{19,5,17},{27,5,4097},{17,5,5},{25,5,1025},
+        {21,5,65},{29,5,16385},{16,5,3},{24,5,513},{20,5,33},{28,5,8193},
+        {18,5,9},{26,5,2049},{22,5,129},{64,5,0},{16,5,2},{23,5,385},
+        {19,5,25},{27,5,6145},{17,5,7},{25,5,1537},{21,5,97},{29,5,24577},
+        {16,5,4},{24,5,769},{20,5,49},{28,5,12289},{18,5,13},{26,5,3073},
+        {22,5,193},{64,5,0}
+};
+
+
 int vectorsize;
-
-
 char myfilename[255];
 FILE *myfile;
 unsigned int g_CrcTable[256];
@@ -105,6 +197,12 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     fileoffset = 0;
     CrcGenerateTable();
     strcpy(myfilename, filename);
+    comprsize=ucomprsize=0;
+    fileoffset=0;
+    memset(zipbuf,0,1024*16);
+    memset(verifiers,0,5);
+    memset(zip_crc32,0,4);
+    memset(zip_tim,0,2);
 
     fd = open(filename, O_RDONLY);
     if (fd<1)
@@ -157,7 +255,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
         fileoffset+=4;
 
         /* crc32 */
-        read(fd, zip_crc32, 4);
+        read(fd, &zip_crc32[cur], 4);
         fileoffset+=4;
 
         /* compressed size */
@@ -294,12 +392,184 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 
 
 
+static hash_stat precheck_zip(unsigned int k0,unsigned int k1,unsigned int k2)
+{
+    unsigned int bits,hold,thisget,have,i,ret;
+    int left=0;
+    unsigned int ncode,ncount[2];
+    unsigned char *count;
+    unsigned char *in=alloca(256);
+    unsigned long temp;
+    unsigned char c,temp1;
+    unsigned int key0=k0,key1=k1,key2=k2;
+    unsigned int whave = 0, op,len;
+    code here;
+    
+    memcpy(in,zipbuf,255);
+    for (ret = 0; ret < 255;ret++)
+    {
+        temp = (key2) | 2;
+        temp1 = (((temp * (temp ^1)) >> 8));
+        c = in[ret] ^ temp1;
+        key0=CRC_UPDATE_BYTE(key0, c);
+        key1 += key0 & 0xff;
+        key1 = key1 * 134775813L + 1;
+        key2 = CRC_UPDATE_BYTE(key2,(char)(key1>>24));
+        in[ret] = c;
+    }
+
+    hold = *((unsigned int *)&in[0]);
+    in+=1;
+    hold>>=1;
+
+    if ((hold&3)==2) 
+    {
+        hold>>=2;
+        in+=2;
+        count = (unsigned char*)ncount;
+        if (257+(hold&0x1F) > 286) return hash_err;
+        hold >>= 5;
+        if(1+(hold&0x1F) > 30) return hash_err;
+        hold >>= 5;
+        ncode = 4+(hold&0xF);
+        hold >>= 4;
+        hold += ((unsigned int)(*++in)) << 15;
+        hold += ((unsigned int)(*++in)) << 23;
+        bits = 31;
+        have = 0;
+        ncount[0] = ncount[1] = 0;
+        for (;;) 
+        {
+            if (have+7>ncode) thisget = ncode-have;
+            else thisget = 7;
+            have += thisget;
+            bits -= thisget*3;
+            while (thisget--) 
+            {
+                ++count[hold&7];
+                hold>>=3;
+            }
+            if (have == ncode) break;
+            hold += ((unsigned int)(*++in)) << bits;
+            bits += 8;
+            hold += ((unsigned int)(*++in)) << bits;
+            bits += 8;
+        }
+        count[0] = 0;
+        if (!ncount[0] && !ncount[1]) return hash_err;
+        left = 1;
+        for (i = 1; i <= 7; ++i) 
+        {
+            left <<= 1;
+            left -= count[i];
+            if (left < 0) return hash_err;
+        }
+        if (left > 0) return hash_err;
+    }
+    else if ((hold&3)==1) 
+    {
+        hold>>=2;
+        in+=2;
+        bits = 32-3;
+        for (;;) 
+        {
+            if (bits < 15) 
+            {
+                if (left < 2) return hash_ok;
+                left -= 2;
+                hold += (unsigned int)(*++in) << bits;
+                bits += 8;
+                hold += (unsigned int)(*++in) << bits;
+                bits += 8;
+            }
+            here=lenfix[hold & 0x1FF];
+            op = (unsigned)(here.bits);
+            hold >>= op;
+            bits -= op;
+            op = (unsigned)(here.op);
+            if (op == 0)
+            ++whave;
+            else if (op & 16) 
+            {
+                len = (unsigned)(here.val);
+                op &= 15;
+                if (op) 
+                {
+                    if (bits < op) 
+                    {
+                        if (!left) return hash_ok;
+                        --left;
+                        hold += (unsigned int)(*++in) << bits;
+                        bits += 8;
+                    }
+                    len += (unsigned)hold & ((1U << op) - 1);
+                    hold >>= op;
+                    bits -= op;
+                }
+                if (bits < 15) 
+                {
+                    if (left < 2)
+                    return hash_ok;
+                    left -= 2;
+                    hold += (unsigned int)(*++in) << bits;
+                    bits += 8;
+                    hold += (unsigned int)(*++in) << bits;
+                    bits += 8;
+                }
+                here = distfix[hold & 0x1F];
+                dodist:
+                 op = (unsigned)(here.bits);
+                 hold >>= op;
+                 bits -= op;
+                 op = (unsigned)(here.op);
+                 if (op & 16) 
+                 {
+                    unsigned int dist = (unsigned)(here.val);
+                    op &= 15;
+                    if (bits < op) 
+                    {
+                        if (!left) return hash_ok;
+                        --left;
+                        hold += (unsigned int)(*++in) << bits;
+                        bits += 8;
+                        if (bits < op) 
+                        {
+                            if (!left) return hash_ok;
+                            --left;
+                            hold += (unsigned int)(*++in) << bits;
+                            bits += 8;
+                        }
+                    }
+                    dist += (unsigned)hold & ((1U << op) - 1);
+                    if (dist > whave) return hash_err;
+                    hold >>= op;
+                    bits -= op;
+                    whave += len;
+                }
+                else if ((op & 64) == 0) 
+                {
+                    here = distfix[here.val + (hold & ((1U << op) - 1))];
+                    goto dodist;
+                }
+                else return hash_err;
+            }
+            else 
+            {
+                return hash_err;
+            }
+        }
+    }
+    else return hash_err;
+    return hash_ok;
+}
+
 
 hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSIZE], const char *salt,  char * salt2[VECTORSIZE], const char *username, int *num, int threadid)
 {
     unsigned char key[68];
     unsigned char check[2];
-    unsigned long key0,key1,key2;
+    unsigned long key0=0,key1=0,key2=0;
+    unsigned long k0=0,k1=0,k2=0;
     unsigned char norm_zip_local[12];
     int fd;
     int ret, bsize, rsize, usize,a,b=0;
@@ -307,14 +577,16 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     unsigned char out[1024*16*10+100];
     unsigned char authcode[16];
     unsigned char authresult[16];
+    int iter=0;
 
     for (a=0;a<vectorsize;a++)
+    {
     if (has_winzip_encryption==1) 
     {
 	hash_pbkdf2(password[a], winzip_salt, winzip_salt_size, 1000, 2*(winzip_key_size/8)+2, key);
 	check[0] = key[2*(winzip_key_size/8)];
 	check[1] = key[2*(winzip_key_size/8)+1];
-	
+
 	/* As mentioned in WinZIP documentation, this gives out 1/65535 error probability. Calculate auth codes */
         if (memcmp(winzip_check, check, 2)==0) 
 	{
@@ -344,23 +616,23 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     }
     else
     {
-	int passes=0;
+        int passes=0;
+    	unsigned char temp1;
+    	unsigned char c;
+    	unsigned  long temp;
 	for (b=0;b<cur;b++)
 	{
 	    key0 = 305419896L;
 	    key1 = 591751049L;
 	    key2 = 878082192L;
 	    int i;
-	    for (i=0; i<strlen(password[a]); i++)
+	    for (i=0;i<strlen(password[a]);i++)
 	    {
 		key0=CRC_UPDATE_BYTE(key0, (char)*(password[a]+i));
 		key1 += key0 & 0xff;
 		key1 = key1 * 134775813L + 1;
 		key2 = CRC_UPDATE_BYTE(key2,(char)(key1>>24));
 	    }
-    	    unsigned char temp1;
-    	    unsigned char c;
-    	    unsigned  long temp;
 	    memcpy((char *)&norm_zip_local, (char *)&zip_normbuf[b], 12);
 	    for (i=0;i<12;i++)
 	    {
@@ -374,47 +646,21 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 		norm_zip_local[i] = c;
 	    }
 	    if (verifiers[b] == norm_zip_local[11]) passes++;
-	    else break;
+	    else goto next;
+	    if (b==0)
+	    {
+		k0=key0;k1=key1;k2=key2;
+	    }
 	}
 	if (passes<(cur)) goto next;
-
-	/* all passes OK, go on */
-	key0 = 305419896L;
-	key1 = 591751049L;
-	key2 = 878082192L;
-	int i;
-	for (i=0; i<strlen(password[a]); i++)
-	{
-	    key0=CRC_UPDATE_BYTE(key0, (char)*(password[a]+i));
-	    key1 += key0 & 0xff;
-	    key1 = key1 * 134775813L + 1;
-	    key2 = CRC_UPDATE_BYTE(key2,(char)(key1>>24));
-	}
-        unsigned char temp1;
-        unsigned char c;
-        unsigned  long temp;
-	memcpy((char *)&norm_zip_local, (char *)&zip_normbuf[0], 12);
-	for (i=0;i<12;i++)
-	{
-	    temp = (key2) | 2;
-	    temp1 = (((temp * (temp ^1)) >> 8));
-	    c = norm_zip_local[i] ^ temp1;
-	    key0 = CRC_UPDATE_BYTE(key0,c);
-	    key1 += key0 & 0xff;
-	    key1 = key1 * 134775813L + 1;
-	    key2 = CRC_UPDATE_BYTE(key2,(char)(key1 >> 24));
-	    norm_zip_local[i] = c;
-	}
-
-	
-	if ( verifiers[0] == norm_zip_local[11])
-	{
-	    fd = open(myfilename,O_RDONLY);
-	    lseek(fd, fileoffset, SEEK_SET);
-	    z_stream strm;
-	    strm.zalloc = Z_NULL;
-    	    strm.zfree = Z_NULL;
-    	    strm.opaque = Z_NULL;
+        {
+            key0=k0;key1=k1;key2=k2;
+            if (precheck_zip(key0,key1,key2)==hash_err) goto next;
+            fd = open(myfilename,O_RDONLY);
+            z_stream strm;
+            strm.zalloc = Z_NULL;
+            strm.zfree = Z_NULL;
+            strm.opaque = Z_NULL;
             strm.avail_in = 1024*16;
             strm.avail_out = 1024*16*10;
 
@@ -424,93 +670,111 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
             ret = inflateInit2(&strm,-15);
             if (ret != Z_OK) elog("inflateinit ERROR!\n%s","");
             rsize = 0;usize = 0;
+            iter=0;
             while (rsize < (comprsize-12))
             {
-        	if ((comprsize-rsize)>1024*16) ret = 1024*16;
-		else ret = comprsize-rsize;
-        	bsize = read(fd, in,  ret);
+                if (iter>0)
+                {
+                    if ((comprsize-rsize)>1024*16) ret = 1024*16;
+                    else ret = comprsize-rsize;
+                    bsize = read(fd, in,  ret);
+                    for (ret = 0; ret < bsize;ret++)
+                    {
+                        temp = (key2) | 2;
+                        temp1 = (((temp * (temp ^1)) >> 8));
+                        c = in[ret] ^ temp1;
+                        key0 = CRC_UPDATE_BYTE(key0, c);
+                        key1 += key0 & 0xff;
+                        key1 = key1 * 134775813L + 1;
+                        key2 = CRC_UPDATE_BYTE(key2,(char)(key1>>24));
+                        in[ret] = c;
+                    }
+                    strm.next_in = in;
+                    strm.avail_out = bsize*10;
+                    strm.avail_in = bsize;
+                    strm.next_out = out;
+                    usize = strm.total_in;
+                    ret = inflate(&strm, Z_SYNC_FLUSH);
+                    lseek(fd, fileoffset + strm.total_in,SEEK_SET);
+                    rsize += (strm.total_in - usize);
+                }
+                else
+                {
+                    bsize = 1024*16;
+                    memcpy(in,zipbuf,1024*16);
+                    for (ret = 0; ret < bsize;ret++)
+                    {
+                        temp = (key2) | 2;
+                        temp1 = (((temp * (temp ^1)) >> 8));
+                        c = in[ret] ^ temp1;
+                        key0 = CRC_UPDATE_BYTE(key0, c);
+                        key1 += key0 & 0xff;
+                        key1 = key1 * 134775813L + 1;
+                        key2 = CRC_UPDATE_BYTE(key2,(char)(key1>>24));
+                        in[ret] = c;
+                    }
+                    strm.next_in = in;
+                    strm.avail_out = bsize*10;
+                    strm.avail_in = bsize;
+                    strm.next_out = out;
+                    usize = strm.total_in;
+                    ret = inflate(&strm, Z_SYNC_FLUSH);
+                    rsize += (strm.total_in - usize);
+                }
+                iter++;
 
-        	for (ret = 0; ret < bsize;ret++)
-        	{
-        	    temp = (key2) | 2;
-		    temp1 = (((temp * (temp ^1)) >> 8));
-		    c = in[ret] ^ temp1;
-		    key0=CRC_UPDATE_BYTE(key0, c);
-		    key1 += key0 & 0xff;
-		    key1 = key1 * 134775813L + 1;
-		    key2 = CRC_UPDATE_BYTE(key2,(char)(key1>>24));
-		    in[ret] = c;
-        	}
-        	strm.next_in = in;
-        	strm.avail_out = bsize*10;
-        	strm.avail_in = bsize;
-        	strm.next_out = out;
-        	usize = strm.total_in;
-        	ret = inflate(&strm, Z_SYNC_FLUSH);
-        	lseek(fd, fileoffset + strm.total_in,SEEK_SET);
-		rsize += (strm.total_in - usize);
-        	if (ret == Z_DATA_ERROR) 
-        	{
-        	    close(fd);
-        	    inflateEnd(&strm);
-        	    //return hash_err;
-        	    goto next;
-    		}
+                if (ret == Z_DATA_ERROR) 
+                {
+                    close(fd);
+                    inflateEnd(&strm);
+                    goto next;
+                }
                 if (ret == Z_NEED_DICT) 
-	        {
+                {
 
-        	    close(fd);
-        	    inflateEnd(&strm);
-        	    //return hash_err;
-        	    goto next;
-    		}
-        	if (ret == Z_STREAM_ERROR) 
-        	{
-        	    close(fd);
-        	    inflateEnd(&strm);
-        	    //return hash_err;
-        	    goto next;
-    		}
+                    close(fd);
+                    inflateEnd(&strm);
+                    goto next;
+                }
+                if (ret == Z_STREAM_ERROR) 
+                {
+                    close(fd);
+                    inflateEnd(&strm);
+                    goto next;
+                }
 
-        	if  ((ret == Z_MEM_ERROR))
-		{
-		    close(fd);
-		    inflateEnd(&strm);
-        	    //return hash_err;
-        	    goto next;
-    		}
-    		if (ret == Z_STREAM_END) rsize = comprsize+1;
-	    }
-	    if (has_ext_flag == 0)
-	    {
-		if ((zip_tim[1] == norm_zip_local[11]) && (ucomprsize==strm.total_out))
-		{
-		    memcpy(salt2[a],"ZIP file        \0\0\0\0\0\0\0\0\0",20);
-		    *num=a;
-		    inflateEnd(&strm);
-		    close(fd);
-		    return hash_ok;
-    		}
-    	    }
-    	    else if ((norm_zip_local[11] == zip_crc32[3]) && (ucomprsize==strm.total_out))
-	    {
-		    memcpy(salt2[a],"ZIP file        \0\0\0\0\0\0\0\0\0",20);
-		    *num=a;
-		    inflateEnd(&strm);
-		    close(fd);
-		    return hash_ok;
-    	    }
+                if  ((ret == Z_MEM_ERROR))
+                {
+                    close(fd);
+                    inflateEnd(&strm);
+                    goto next;
+                }
+                if (ret == Z_STREAM_END) rsize = comprsize+1;
+                if (iter==1)
+                {
+                    close(fd);
+                    fd = open(myfilename,O_RDONLY);
+                    lseek(fd, fileoffset + strm.total_in,SEEK_SET);
+                }
+            }
+            if (ucomprsize==strm.total_out)
+            {
+                inflateEnd(&strm);
+                close(fd);
+                *num=a;
+                memcpy(salt2[a],"ZIP file        \0\0",17);
+                return hash_ok;
+            }
 
-	    else
-	    {
-		salt2[a][0]=password[a][0];
-		inflateEnd(&strm);
-		close(fd);
-		//return hash_err;
-	    }
-    
-	close(fd);
-	}
+            else
+            {
+                inflateEnd(&strm);
+                close(fd);
+                goto next;
+            }
+    	    close(fd);
+        }
+    }
     next:;
     }
     return hash_err;

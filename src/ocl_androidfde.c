@@ -59,7 +59,6 @@ static struct android_hdr
 #define CRYPT_FOOTER_OFFSET 0x4000
 #define ACCEPTABLE_BACKLOG 0x2000
 
-static char myfilename[255];
 static unsigned char mkey[32];
 static unsigned char msalt[16];
 static unsigned char blockbuf[512*3];
@@ -95,14 +94,13 @@ static hash_stat check_androidfde(char *keycandidate)
     unsigned char keycandidate2[255];
     unsigned char decrypted1[512]; // FAT
     unsigned char decrypted2[512]; // ext3/4
-    int a;
     AES_KEY aeskey;
     uint16_t v2,v3,v4;
     uint32_t v1,v5;
 
     // Get pbkdf2 of the password to obtain decryption key
-    OAES_SET_DECRYPT_KEY(keycandidate, myphdr.keysize*8, &aeskey);
-    OAES_CBC_ENCRYPT(mkey, keycandidate2, 16, &aeskey, keycandidate+16, AES_DECRYPT);
+    OAES_SET_DECRYPT_KEY((unsigned char*)keycandidate, myphdr.keysize*8, &aeskey);
+    OAES_CBC_ENCRYPT(mkey, keycandidate2, 16, &aeskey, (unsigned char*)(keycandidate+16), AES_DECRYPT);
     decrypt_aes_cbc_essiv(blockbuf, decrypted1, keycandidate2,0,32);
     decrypt_aes_cbc_essiv(blockbuf+1024, decrypted2, keycandidate2,2,128);
 
@@ -263,13 +261,10 @@ static cl_uint16 ocl_get_salt2()
 static void ocl_androidfde_crack_callback(char *line, int self)
 {
     int a,b,c,e;
-    int *found;
-    int err;
     char plain[MAX];
     cl_uint16 addline;
     cl_uint16 salt;
     cl_uint16 salt2;
-    cl_uint16 salt3;
     size_t nws1;
     size_t nws;
 
@@ -427,7 +422,6 @@ void* ocl_rule_androidfde_thread(void *arg)
     size_t nvidia_local_work_size[3]={64,1,1};
     size_t amd_local_work_size[3]={64,1,1};
     int self;
-    char hex1[16];
     cl_uint4 singlehash;
 
 
