@@ -255,7 +255,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
         fileoffset+=4;
 
         /* crc32 */
-        read(fd, &zip_crc32[cur], 4);
+        read(fd, zip_crc32, 4);
         fileoffset+=4;
 
         /* compressed size */
@@ -652,6 +652,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 		k0=key0;k1=key1;k2=key2;
 	    }
 	}
+
 	if (passes<(cur)) goto next;
         {
             key0=k0;key1=k1;key2=k2;
