@@ -145,7 +145,7 @@ static long offsets[5];
 static int has_winzip_encryption, has_ext_flag, winzip_key_size, winzip_salt_size;
 static unsigned char winzip_salt[16];
 static unsigned char winzip_check[2];
-
+static unsigned int fcrc;
 
 
 
@@ -256,6 +256,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 
         /* crc32 */
         read(fd, zip_crc32, 4);
+        if (cur==0) memcpy(&fcrc,zip_crc32,4);
         fileoffset+=4;
 
         /* compressed size */
@@ -578,6 +579,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
     unsigned char authcode[16];
     unsigned char authresult[16];
     int iter=0;
+    unsigned int mcrc=0xffffffff;
 
     for (a=0;a<vectorsize;a++)
     {
@@ -652,8 +654,8 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
 		k0=key0;k1=key1;k2=key2;
 	    }
 	}
-
 	if (passes<(cur)) goto next;
+	mcrc=0xffffffff;
         {
             key0=k0;key1=k1;key2=k2;
             if (precheck_zip(key0,key1,key2)==hash_err) goto next;
@@ -698,6 +700,11 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
                     ret = inflate(&strm, Z_SYNC_FLUSH);
                     lseek(fd, fileoffset + strm.total_in,SEEK_SET);
                     rsize += (strm.total_in - usize);
+                    int d;
+                    for (d=0;d<(bsize*10 - strm.avail_out);d++)
+                    {
+                	mcrc = CRC_UPDATE_BYTE(mcrc, out[d]);
+                    }
                 }
                 else
                 {
@@ -721,6 +728,11 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
                     usize = strm.total_in;
                     ret = inflate(&strm, Z_SYNC_FLUSH);
                     rsize += (strm.total_in - usize);
+                    int d;
+                    for (d=0;d<(bsize*10 - strm.avail_out);d++)
+                    {
+                	mcrc = CRC_UPDATE_BYTE(mcrc, out[d]);
+                    }
                 }
                 iter++;
 
@@ -761,6 +773,7 @@ hash_stat hash_plugin_check_hash(const char *hash, const char *password[VECTORSI
             if (ucomprsize==strm.total_out)
             {
                 inflateEnd(&strm);
+                if (~mcrc!=fcrc) goto next;
                 close(fd);
                 *num=a;
                 memcpy(salt2[a],"ZIP file        \0\0",17);

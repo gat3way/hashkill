@@ -149,6 +149,7 @@ static unsigned char zip_crc32[4];
 static unsigned char zip_tim[2];
 static long fileoffset;
 static int filenamelen;
+static unsigned int fcrc;
 static int comprsize, ucomprsize;
 static char zipbuf[1024*16];
 static char verifiers[5];
@@ -233,6 +234,7 @@ static hash_stat load_zip(char *filename)
 
         /* crc32 */
         read(fd, zip_crc32, 4);
+        if (cur==0) memcpy(&fcrc,zip_crc32,4);
         fileoffset+=4;
 
         /* compressed size */
@@ -579,6 +581,7 @@ static hash_stat check_zip(const char *password,unsigned int key0,unsigned int k
         unsigned char temp1;
         unsigned char c;
         unsigned  long temp;
+        unsigned int mcrc;
         {
             if (precheck_zip(key0,key1,key2)==hash_err) return hash_err;
             fd = open(myfilename,O_RDONLY);
@@ -588,6 +591,7 @@ static hash_stat check_zip(const char *password,unsigned int key0,unsigned int k
             strm.opaque = Z_NULL;
             strm.avail_in = 1024*16;
             strm.avail_out = 1024*16*10;
+            mcrc = 0xFFFFFFFF;
 
             strm.next_in = in;
             strm.next_out = out;
@@ -621,6 +625,8 @@ static hash_stat check_zip(const char *password,unsigned int key0,unsigned int k
                     ret = inflate(&strm, Z_SYNC_FLUSH);
                     lseek(fd, fileoffset + strm.total_in,SEEK_SET);
                     rsize += (strm.total_in - usize);
+                    int d;
+                    for (d=0;d<(bsize*10 - strm.avail_out);d++) mcrc = CRC_UPDATE_BYTE(mcrc,out[d]);
                 }
                 else
                 {
@@ -644,6 +650,8 @@ static hash_stat check_zip(const char *password,unsigned int key0,unsigned int k
                     usize = strm.total_in;
                     ret = inflate(&strm, Z_SYNC_FLUSH);
                     rsize += (strm.total_in - usize);
+                    int d;
+                    for (d=0;d<(bsize*10 - strm.avail_out);d++) mcrc = CRC_UPDATE_BYTE(mcrc,out[d]);
                 }
                 iter++;
 
@@ -685,7 +693,8 @@ static hash_stat check_zip(const char *password,unsigned int key0,unsigned int k
             {
                 inflateEnd(&strm);
                 close(fd);
-                return hash_ok;
+                if (~mcrc==fcrc) return hash_ok;
+                else return hash_err;
             }
 
             else

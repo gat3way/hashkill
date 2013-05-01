@@ -218,7 +218,7 @@ amd_vbulletin: amd-compiler
 
 amd_vbulletin_long: amd-compiler
 		@if [ "$(CL_AMDFLAGS)" = "yes" ]; then \
-		if [ ! -e amd_vbulletin_long__Juniper.bin ]; then ./amd-compiler amd_vbulletin_long no ;fi; \
+		if [ ! -e amd_vbulletin_long__Juniper.bin ]; then ./amd-compiler amd_vbulletin_long n ;fi; \
 		fi
 
 amd_md5_saltpass: amd-compiler
@@ -398,7 +398,7 @@ amd_sha512_passsaltu_long: amd-compiler
 
 amd_msoffice2007: amd-compiler
 		@if [ "$(CL_AMDFLAGS)" = "yes" ]; then \
-		if [ ! -e amd_msoffice2007__Juniper.bin ]; then ./amd-compiler amd_msoffice2007 no ;fi; \
+		if [ ! -e amd_msoffice2007__Juniper.bin ]; then ./amd-compiler amd_msoffice2007 n ;fi; \
 		fi
 
 amd_msoffice2010: amd-compiler
@@ -408,7 +408,7 @@ amd_msoffice2010: amd-compiler
 
 amd_msoffice2013: amd-compiler
 		@if [ "$(CL_AMDFLAGS)" = "yes" ]; then \
-		if [ ! -e amd_msoffice2013__Juniper.bin ]; then ./amd-compiler amd_msoffice2013 no ;fi; \
+		if [ ! -e amd_msoffice2013__Juniper.bin ]; then ./amd-compiler amd_msoffice2013 n ;fi; \
 		fi
 
 amd_luks128: amd-compiler
@@ -706,7 +706,7 @@ nvidia_vbulletin: nvidia-compiler
 
 nvidia_vbulletin_long: nvidia-compiler
 		@if [ "$(CL_NVFLAGS)" = "yes" ]; then \
-		if [ ! -e nvidia_vbulletin_long__sm10.ptx ]; then ./nvidia-compiler nvidia_vbulletin_long no ;fi; \
+		if [ ! -e nvidia_vbulletin_long__sm10.ptx ]; then ./nvidia-compiler nvidia_vbulletin_long n ;fi; \
 		fi
 
 nvidia_md5_saltpass: nvidia-compiler
@@ -886,7 +886,7 @@ nvidia_sha512_passsaltu_long: nvidia-compiler
 
 nvidia_msoffice2007: nvidia-compiler
 		@if [ "$(CL_NVFLAGS)" = "yes" ]; then \
-		if [ ! -e nvidia_msoffice2007__sm10.ptx ]; then ./nvidia-compiler nvidia_msoffice2007 no ;fi; \
+		if [ ! -e nvidia_msoffice2007__sm10.ptx ]; then ./nvidia-compiler nvidia_msoffice2007 n ;fi; \
 		fi
 
 nvidia_msoffice2010: nvidia-compiler
@@ -896,7 +896,7 @@ nvidia_msoffice2010: nvidia-compiler
 
 nvidia_msoffice2013: nvidia-compiler
 		@if [ "$(CL_NVFLAGS)" = "yes" ]; then \
-		if [ ! -e nvidia_msoffice2013__sm10.ptx ]; then ./nvidia-compiler nvidia_msoffice2013 no ;fi; \
+		if [ ! -e nvidia_msoffice2013__sm10.ptx ]; then ./nvidia-compiler nvidia_msoffice2013 n ;fi; \
 		fi
 
 nvidia_luks128: nvidia-compiler
@@ -931,7 +931,7 @@ nvidia_whirlpool_long: nvidia-compiler
 
 nvidia_truecrypt: nvidia-compiler
 		@if [ "$(CL_NVFLAGS)" = "yes" ]; then \
-		if [ ! -e nvidia_truecrypt__sm10.ptx ]; then ./nvidia-compiler nvidia_truecrypt no ;fi; \
+		if [ ! -e nvidia_truecrypt__sm10.ptx ]; then ./nvidia-compiler nvidia_truecrypt n ;fi; \
 		fi
 
 nvidia_lastpass: nvidia-compiler

@@ -60,8 +60,6 @@ dst[GGI*8+7] = inpc[GLI][7];
 #define ROTATE3_F(aa, bb, cc, dd, ee, x) (ee) = (ee) + rotate((aa),S2) + F_40_59((bb),(cc),(dd)) + (x) + K; (bb) = rotate((bb),S3)
 #define ROTATE4_F(aa, bb, cc, dd, ee, x) (ee) = (ee) + rotate((aa),S2) + F_60_79((bb),(cc),(dd)) + (x) + K; (bb) = rotate((bb),S3)
 
-#define GLI get_local_id(0)
-
 
 #define S11 3U
 #define S12 7U
@@ -264,16 +262,14 @@ __constant uint TdK[256] = {
 };
 
 __constant uint rcon[] = {
-	0x01000000, 0x02000000, 0x04000000, 0x08000000,
-	0x10000000, 0x20000000, 0x40000000, 0x80000000,
-	0x1B000000, 0x36000000 
+	0x01000000U, 0x02000000U, 0x04000000U, 0x08000000U,
+	0x10000000U, 0x20000000U, 0x40000000U, 0x80000000U,
+	0x1B000000U, 0x36000000U 
 };
 
 
-#define Sl (uint)8
-#define Sr (uint)24
 #define Endian_Reverse32(aa) { tl=(aa);ttmp1=rotate(tl,Sl);ttmp2=rotate(tl,Sr); (aa)=bitselect(ttmp2,ttmp1,m); }
-#define ROTR(x,n) (rotate(x,(32-n)))
+#define ROTR(x,n) (rotate(x,(32U-n)))
 
 #define lTe1(x) (ROTR(lTe[((x))],8U))
 #define lTe2(x) (ROTR(lTe[((x))],16U))
@@ -283,29 +279,29 @@ __constant uint rcon[] = {
 #define lTd3(x) (ROTR(lTd[((x))],24U))
 
 #define AES256_INV_MIX { \
-k0 = lTd[lTe1((k0 >> 24)) & 0xff] ^ lTd1(lTe1((k0 >> 16) & 0xff) & 0xff) ^ \
-        lTd2(lTe1((k0 >> 8) & 0xff) & 0xff) ^ lTd3(lTe1((k0) & 0xff) & 0xff); \
-k1 = lTd[lTe1((k1 >> 24)) & 0xff] ^ lTd1(lTe1((k1 >> 16) & 0xff) & 0xff) ^ \
-        lTd2(lTe1((k1 >>  8) & 0xff) & 0xff) ^lTd3(lTe1((k1) & 0xff) & 0xff); \
-k2 = lTd[lTe1((k2 >> 24)) & 0xff] ^ lTd1(lTe1((k2 >> 16) & 0xff) & 0xff) ^ \
-        lTd2(lTe1((k2 >>  8) & 0xff) & 0xff) ^lTd3(lTe1((k2) & 0xff) & 0xff); \
-k3 = lTd[lTe1((k3 >> 24)) & 0xff] ^ lTd1(lTe1((k3 >> 16) & 0xff) & 0xff) ^ \
-        lTd2(lTe1((k3 >>  8) & 0xff) & 0xff) ^lTd3(lTe1((k3) & 0xff) & 0xff); \
+k0 = lTd[lTe1((k0 >> 24U)) & 0xff] ^ lTd1(lTe1((k0 >> 16U) & 0xff) & 0xff) ^ \
+        lTd2(lTe1((k0 >> 8U) & 0xff) & 0xff) ^ lTd3(lTe1((k0) & 0xff) & 0xff); \
+k1 = lTd[lTe1((k1 >> 24U)) & 0xff] ^ lTd1(lTe1((k1 >> 16U) & 0xff) & 0xff) ^ \
+        lTd2(lTe1((k1 >>  8U) & 0xff) & 0xff) ^lTd3(lTe1((k1) & 0xff) & 0xff); \
+k2 = lTd[lTe1((k2 >> 24U)) & 0xff] ^ lTd1(lTe1((k2 >> 16U) & 0xff) & 0xff) ^ \
+        lTd2(lTe1((k2 >>  8U) & 0xff) & 0xff) ^lTd3(lTe1((k2) & 0xff) & 0xff); \
+k3 = lTd[lTe1((k3 >> 24U)) & 0xff] ^ lTd1(lTe1((k3 >> 16U) & 0xff) & 0xff) ^ \
+        lTd2(lTe1((k3 >>  8U) & 0xff) & 0xff) ^lTd3(lTe1((k3) & 0xff) & 0xff); \
 }
 
 
 #define AES256_EVEN_ROUND { \
-t0 = lTd[s0 >> 24] ^ lTd1((s3 >> 16) & 0xff) ^ lTd2((s2 >>  8) & 0xff) ^ lTd3(s1 & 0xff) ^ k0; \
-t1 = lTd[s1 >> 24] ^ lTd1((s0 >> 16) & 0xff) ^ lTd2((s3 >>  8) & 0xff) ^ lTd3(s2 & 0xff) ^ k1; \
-t2 = lTd[s2 >> 24] ^ lTd1((s1 >> 16) & 0xff) ^ lTd2((s0 >>  8) & 0xff) ^ lTd3(s3 & 0xff) ^ k2; \
-t3 = lTd[s3 >> 24] ^ lTd1((s2 >> 16) & 0xff) ^ lTd2((s1 >>  8) & 0xff) ^ lTd3(s0 & 0xff) ^ k3; \
+t0 = lTd[s0 >> 24U] ^ lTd1((s3 >> 16U) & 0xff) ^ lTd2((s2 >>  8U) & 0xff) ^ lTd3(s1 & 0xff) ^ k0; \
+t1 = lTd[s1 >> 24U] ^ lTd1((s0 >> 16U) & 0xff) ^ lTd2((s3 >>  8U) & 0xff) ^ lTd3(s2 & 0xff) ^ k1; \
+t2 = lTd[s2 >> 24U] ^ lTd1((s1 >> 16U) & 0xff) ^ lTd2((s0 >>  8U) & 0xff) ^ lTd3(s3 & 0xff) ^ k2; \
+t3 = lTd[s3 >> 24U] ^ lTd1((s2 >> 16U) & 0xff) ^ lTd2((s1 >>  8U) & 0xff) ^ lTd3(s0 & 0xff) ^ k3; \
 }
 
 #define AES256_ODD_ROUND { \
-s0 = lTd[t0 >> 24] ^ lTd1((t3 >> 16) & 0xff) ^ lTd2((t2 >>  8) & 0xff) ^ lTd3(t1 & 0xff) ^ k0; \
-s1 = lTd[t1 >> 24] ^ lTd1((t0 >> 16) & 0xff) ^ lTd2((t3 >>  8) & 0xff) ^ lTd3(t2 & 0xff) ^ k1; \
-s2 = lTd[t2 >> 24] ^ lTd1((t1 >> 16) & 0xff) ^ lTd2((t0 >>  8) & 0xff) ^ lTd3(t3 & 0xff) ^ k2; \
-s3 = lTd[t3 >> 24] ^ lTd1((t2 >> 16) & 0xff) ^ lTd2((t1 >>  8) & 0xff) ^ lTd3(t0 & 0xff) ^ k3; \
+s0 = lTd[t0 >> 24U] ^ lTd1((t3 >> 16U) & 0xff) ^ lTd2((t2 >>  8U) & 0xff) ^ lTd3(t1 & 0xff) ^ k0; \
+s1 = lTd[t1 >> 24U] ^ lTd1((t0 >> 16U) & 0xff) ^ lTd2((t3 >>  8U) & 0xff) ^ lTd3(t2 & 0xff) ^ k1; \
+s2 = lTd[t2 >> 24U] ^ lTd1((t1 >> 16U) & 0xff) ^ lTd2((t0 >>  8U) & 0xff) ^ lTd3(t3 & 0xff) ^ k2; \
+s3 = lTd[t3 >> 24U] ^ lTd1((t2 >> 16U) & 0xff) ^ lTd2((t1 >>  8U) & 0xff) ^ lTd3(t0 & 0xff) ^ k3; \
 }
 
 #define AES256_GET_KEYS0 { \
@@ -637,27 +633,27 @@ k0=rk0;k1=rk1;k2=rk2;k3=rk3; \
 
 #define AES256_FINAL { \
 s0 = \
-    (lTdK[(t0 >> 24)] << 24) ^ \
-    (lTdK[(t3 >> 16) & 0xff] << 16) ^ \
-    (lTdK[(t2 >>  8) & 0xff] << 8) ^ \
+    (lTdK[(t0 >> 24)] << 24U) ^ \
+    (lTdK[(t3 >> 16) & 0xff] << 16U) ^ \
+    (lTdK[(t2 >>  8) & 0xff] << 8U) ^ \
     (lTdK[(t1) & 0xff] ) ^ rk0; \
 Endian_Reverse32(s0); \
 s1 = \
-    (lTdK[(t1 >> 24)] << 24) ^ \
-    (lTdK[(t0 >> 16) & 0xff] << 16) ^ \
-    (lTdK[(t3 >>  8) & 0xff] << 8) ^ \
+    (lTdK[(t1 >> 24)] << 24U) ^ \
+    (lTdK[(t0 >> 16) & 0xff] << 16U) ^ \
+    (lTdK[(t3 >>  8) & 0xff] << 8U) ^ \
     (lTdK[(t2) & 0xff] ) ^ rk1; \
 Endian_Reverse32(s1); \
 s2 = \
-    (lTdK[(t2 >> 24)] << 24) ^ \
-    (lTdK[(t1 >> 16) & 0xff] << 16) ^ \
-    (lTdK[(t0 >>  8) & 0xff] << 8) ^ \
+    (lTdK[(t2 >> 24)] << 24U) ^ \
+    (lTdK[(t1 >> 16) & 0xff] << 16U) ^ \
+    (lTdK[(t0 >>  8) & 0xff] << 8U) ^ \
     (lTdK[(t3) & 0xff] ) ^ rk2; \
 Endian_Reverse32(s2); \
 s3 = \
-    (lTdK[(t3 >> 24)] << 24) ^ \
-    (lTdK[(t2 >> 16) & 0xff] << 16) ^ \
-    (lTdK[(t1 >>  8) & 0xff] << 8) ^ \
+    (lTdK[(t3 >> 24)] << 24U) ^ \
+    (lTdK[(t2 >> 16) & 0xff] << 16U) ^ \
+    (lTdK[(t1 >>  8) & 0xff] << 8U) ^ \
     (lTdK[(t0) & 0xff] ) ^ rk3; \
 Endian_Reverse32(s3); \
 }
@@ -990,9 +986,8 @@ __attribute__((reqd_work_group_size(64, 1, 1)))
 void officeprep( __global uint *dst,  __global uint *inp, __global uint *size, uint16 salt)
 {
 uint SIZE,TSIZE;  
-uint ib,ic,id;  
-uint tmp1, tmp2,l,elem; 
-uint w0, w1, w2, w3, w4, w5, w6, w7,w8,w9,w10,w11,w12,w13,w14,w15,w16;
+uint tmp1,elem; 
+uint w0, w1, w2, w3, w4, w5, w6, w7,w8,w9,w10,w11,w12,w13,w14,w16;
 uint ww0, ww1, ww2, ww3, ww4, ww5, ww6, ww7,ww8,ww9,ww10,ww11,ww12,ww13,ww14,ww15,ww16;
 uint ww17, ww18, ww19, ww20, ww21, ww22, ww23, ww24;
 uint t1,t2,t3;
@@ -1014,7 +1009,6 @@ uint ttmp1,ttmp2,tl;
 
 
 
-id=get_global_id(0);
 
 SIZE=(uint)size[GGI];
 y0 = inp[GGI*8+0];
