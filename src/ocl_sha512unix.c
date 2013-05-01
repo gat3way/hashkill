@@ -501,6 +501,7 @@ static void ocl_sha512unix_crack_callback(char *line, int self)
 	_clFinish(rule_oclqueue[self]);
 	for (a=0;a<5000;a+=200)
 	{
+	    if (attack_over!=0) pthread_exit(NULL);
 	    salt.sA=a;
 	    salt.sB=a+200;
 	    if (salt.sB>5000) salt.sB=5000;
@@ -577,7 +578,7 @@ static void ocl_sha512unix_callback(char *line, int self)
 
     if (rule_counts[self][cc]==ocl_rule_workset[self]*wthreads[self].vectorsize-1)
     {
-	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images162_buf[cc][self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*16, rule_images162[cc][self], 0, NULL, NULL);
+	//_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images162_buf[cc][self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*16, rule_images162[cc][self], 0, NULL, NULL);
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_sizes162_buf[cc][self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), rule_sizes162[self], 0, NULL, NULL);
 	self_kernel16[self]=cc;
 	rule_offload_perform(ocl_sha512unix_crack_callback,self);
@@ -589,7 +590,7 @@ static void ocl_sha512unix_callback(char *line, int self)
     for (cc=1;cc<16;cc++)
     {
 	self_kernel16[self]=cc;
-	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images162_buf[cc][self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*16, rule_images162[cc][self], 0, NULL, NULL);
+	//_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images162_buf[cc][self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*16, rule_images162[cc][self], 0, NULL, NULL);
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_sizes162_buf[cc][self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), rule_sizes162[self], 0, NULL, NULL);
 	rule_offload_perform(ocl_sha512unix_crack_callback,self);
     	bzero(&rule_images162[cc][self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*16);
@@ -638,8 +639,8 @@ void* ocl_rule_sha512unix_thread(void *arg)
         rule_images163_buf[a][self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*96, NULL, &err );
         rule_sizes16_buf[a][self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), NULL, &err );
         rule_sizes162_buf[a][self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), NULL, &err );
-        rule_sizes16[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int));
-        rule_sizes162[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int));
+        rule_sizes16[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
+        rule_sizes162[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
         rule_images16[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*96);
         rule_images162[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*96);
         rule_images163[a][self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*96);
