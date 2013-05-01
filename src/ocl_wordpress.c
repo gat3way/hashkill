@@ -123,11 +123,20 @@ static void ocl_wordpress_crack_callback(char *line, int self)
     cl_uint16 singlehash;
     char mhash[20];
     char base64[64];
+    size_t gws,gws1;
 
     mylist = hash_list;
     while (mylist)
     {
         if (mylist->salt2[0]==1) {mylist=mylist->next;continue;}
+	
+	if (rule_counts[self][0]==-1) return;
+        gws = (rule_counts[self][0] / wthreads[self].vectorsize);
+        while ((gws%64)!=0) gws++;
+        gws1 = gws*wthreads[self].vectorsize;
+        if (gws1==0) gws1=64;
+        if (gws==0) gws=64;
+
 	/* setup addline */
 	addline.s0=addline.s1=addline.s2=addline.s3=addline.s4=addline.s5=addline.s6=addline.s7=addline.sF=0;
 	addline.sF=strlen(line);
@@ -195,25 +204,24 @@ static void ocl_wordpress_crack_callback(char *line, int self)
 	_clSetKernelArg(rule_kernellast[self], 5, sizeof(cl_uint4), (void*) &singlehash);
 	_clSetKernelArg(rule_kernellast[self], 6, sizeof(cl_uint16), (void*) &salt);
 
-        size_t nws=ocl_rule_workset[self]*wthreads[self].vectorsize;
-        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelmod[self], 1, NULL, &nws, rule_local_work_size, 0, NULL, NULL);
+        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelmod[self], 1, NULL, &gws1, rule_local_work_size, 0, NULL, NULL);
     	_clFinish(rule_oclqueue[self]);
-        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
+        _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelpre1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
     	_clFinish(rule_oclqueue[self]);
 	for (a=0;a<(iter/1024);a++)
 	{
     	    if (attack_over!=0) pthread_exit(NULL);
     	    wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/((get_hashes_num()*(iter/1024)));
-    	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
+    	    _clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
     	    _clFinish(rule_oclqueue[self]);
     	}
-	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernellast[self], 1, NULL, &ocl_rule_workset[self], rule_local_work_size, 0, NULL, NULL);
+	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernellast[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 
         found = _clEnqueueMapBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE,CL_MAP_READ, 0, 4, 0, 0, NULL, &err);
         if (err!=CL_SUCCESS) continue;
         if (*found>0) 
         {
-            _clEnqueueReadBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_TRUE, 0, ocl_rule_workset[self]*sizeof(cl_uint), rule_found_ind[self], 0, NULL, NULL);
+            _clEnqueueReadBuffer(rule_oclqueue[self], rule_found_ind_buf[self], CL_TRUE, 0, gws*sizeof(cl_uint), rule_found_ind[self], 0, NULL, NULL);
     	    for (a=0;a<ocl_rule_workset[self];a++)
 	    if (rule_found_ind[self][a]==1)
 	    {
@@ -265,7 +273,7 @@ static void ocl_wordpress_callback(char *line, int self)
     rule_sizes[self][rule_counts[self][0]] = strlen(line);
     strcpy(&rule_images[self][0]+(rule_counts[self][0]*MAX),line);
 
-    if ((rule_counts[self][0]>=ocl_rule_workset[self]*wthreads[self].vectorsize-1)||(line[0]==0x01))
+    if ((rule_counts[self][0]==ocl_rule_workset[self]*wthreads[self].vectorsize-1)||(line[0]==0x01))
     {
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, rule_images[self], 0, NULL, NULL);
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_sizes_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), rule_sizes[self], 0, NULL, NULL);
@@ -315,17 +323,17 @@ void* ocl_rule_wordpress_thread(void *arg)
     _clEnqueueWriteBuffer(rule_oclqueue[self], rule_found_buf[self], CL_TRUE, 0, 4, &found, 0, NULL, NULL);
     rule_images_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
     rule_images2_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
-    rule_images3_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*16, NULL, &err );
+    rule_images3_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, NULL, &err );
     rule_sizes_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), NULL, &err );
     rule_sizes2_buf[self] = _clCreateBuffer(context[self], CL_MEM_READ_WRITE, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), NULL, &err );
     rule_sizes[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int));
     rule_sizes2[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int));
     rule_images[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
     rule_images2[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
-    rule_images3[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*16);
+    rule_images3[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
     bzero(&rule_images[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
     bzero(&rule_images2[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
-    bzero(&rule_images3[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*16);
+    bzero(&rule_images3[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
     bzero(&rule_sizes[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
     bzero(&rule_sizes2[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
 

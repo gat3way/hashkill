@@ -537,7 +537,7 @@ static void ocl_dmg_callback(char *line, int self)
     rule_sizes[self][rule_counts[self][0]] = strlen(line);
     strcpy(&rule_images[self][0]+(rule_counts[self][0]*MAX),line);
 
-    if ((rule_counts[self][0]>=ocl_rule_workset[self]*wthreads[self].vectorsize-1)||(line[0]==0x01))
+    if ((rule_counts[self][0]==ocl_rule_workset[self]*wthreads[self].vectorsize-1)||(line[0]==0x01))
     {
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, rule_images[self], 0, NULL, NULL);
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_sizes_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint), rule_sizes[self], 0, NULL, NULL);
@@ -597,9 +597,12 @@ void* ocl_rule_dmg_thread(void *arg)
     rule_sizes2[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
     rule_images[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
     rule_images2[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
-    rule_images2[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*160);
+    rule_images3[self]=malloc(ocl_rule_workset[self]*wthreads[self].vectorsize*160);
     bzero(&rule_images[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
+    bzero(&rule_images2[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
+    bzero(&rule_images3[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*160);
     bzero(rule_sizes[self],ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
+    bzero(rule_sizes2[self],ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint));
     pthread_mutex_unlock(&biglock); 
 
     worker_gen(self,ocl_dmg_callback);
