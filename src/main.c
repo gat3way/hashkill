@@ -761,7 +761,7 @@ int main(int argc, char *argv[])
         print_cracked_list_to_file(out_cracked_file);
     }
     
-    if (hash_plugin_is_special()==0)
+    if ((hash_plugin_is_special)&&(hash_plugin_is_special()==0))
     {
     
 	if (out_uncracked_file)
