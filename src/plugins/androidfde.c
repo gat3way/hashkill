@@ -60,19 +60,18 @@ static unsigned char blockbuf[512*3];
 
 char * hash_plugin_summary(void)
 {
-    return("androidfde \t\tandroidfde encrypted block device plugin");
+    return("androidfde \tAndroid Full Disk Encryption plugin");
 }
 
 
 char * hash_plugin_detailed(void)
 {
-    return("androidfde - androidfde encrypted block device plugin\n"
+    return("androidfde - Android Full Disk Encryption plugin\n"
 	    "------------------------------------------------\n"
-	    "Use this module to crack androidfde encrypted partitions\n"
-	    "Input should be a androidfde device file specified with -f\n"
-	    "Warning: currently only aes256/cbc-essiv:sha256 images supported!\n"
+	    "Use this module to crack Android encrypted partitions\n"
+	    "Input should be a encrypted device file specified with -f\n"
 	    "Known software that uses this password hashing method:\n"
-	    "cryptsetup/androidfde\n"
+	    "Android\n"
 	    "\nAuthor: Milen Rangelov <gat3way@gat3way.eu>\n");
 }
 
