@@ -105,7 +105,6 @@ static int chunk_no;
 static int chunkoffset;
 static char myfilename[255];
 
-
 static void header_byteorder_fix(cencrypted_v1_header *hdr) 
 {
     hdr->kdf_iteration_count = htonl(hdr->kdf_iteration_count);
@@ -462,17 +461,13 @@ static void ocl_dmg_crack_callback(char *line, int self)
     _clSetKernelArg(rule_kernelpre1[self], 0, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
     _clSetKernelArg(rule_kernelpre1[self], 1, sizeof(cl_mem), (void*) &rule_images2_buf[self]);
     _clSetKernelArg(rule_kernelpre1[self], 2, sizeof(cl_mem), (void*) &rule_sizes2_buf[self]);
-    _clSetKernelArg(rule_kernelpre1[self], 3, sizeof(cl_mem), (void*) &rule_found_ind_buf[self]);
-    _clSetKernelArg(rule_kernelpre1[self], 4, sizeof(cl_mem), (void*) &rule_found_buf[self]);
-    _clSetKernelArg(rule_kernelpre1[self], 5, sizeof(cl_uint16), (void*) &salt);
-    _clSetKernelArg(rule_kernelpre1[self], 6, sizeof(cl_uint16), (void*) &salt);
+    _clSetKernelArg(rule_kernelpre1[self], 3, sizeof(cl_uint16), (void*) &salt);
+    _clSetKernelArg(rule_kernelpre1[self], 4, sizeof(cl_uint16), (void*) &salt);
     _clSetKernelArg(rule_kernelbl1[self], 0, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
     _clSetKernelArg(rule_kernelbl1[self], 1, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
     _clSetKernelArg(rule_kernelbl1[self], 2, sizeof(cl_mem), (void*) &rule_sizes2_buf[self]);
-    _clSetKernelArg(rule_kernelbl1[self], 3, sizeof(cl_mem), (void*) &rule_found_ind_buf[self]);
-    _clSetKernelArg(rule_kernelbl1[self], 4, sizeof(cl_mem), (void*) &rule_found_buf[self]);
-    _clSetKernelArg(rule_kernelbl1[self], 5, sizeof(cl_uint16), (void*) &salt);
-    _clSetKernelArg(rule_kernelbl1[self], 6, sizeof(cl_uint16), (void*) &salt);
+    _clSetKernelArg(rule_kernelbl1[self], 3, sizeof(cl_uint16), (void*) &salt);
+    _clSetKernelArg(rule_kernelbl1[self], 4, sizeof(cl_uint16), (void*) &salt);
     _clSetKernelArg(rule_kernelend[self], 0, sizeof(cl_mem), (void*) &rule_buffer[self]);
     _clSetKernelArg(rule_kernelend[self], 1, sizeof(cl_mem), (void*) &rule_images3_buf[self]);
     _clSetKernelArg(rule_kernelend[self], 2, sizeof(cl_mem), (void*) &rule_sizes2_buf[self]);
@@ -503,7 +498,7 @@ static void ocl_dmg_crack_callback(char *line, int self)
 	salt.sA=a;
 	salt.sB=a+1000;
 	if (salt.sB>iterations) salt.sB=iterations;
-	_clSetKernelArg(rule_kernelbl1[self], 5, sizeof(cl_uint16), (void*) &salt);
+	_clSetKernelArg(rule_kernelbl1[self], 3, sizeof(cl_uint16), (void*) &salt);
 	_clEnqueueNDRangeKernel(rule_oclqueue[self], rule_kernelbl1[self], 1, NULL, &gws, rule_local_work_size, 0, NULL, NULL);
 	_clFinish(rule_oclqueue[self]);
 	wthreads[self].tries+=(ocl_rule_workset[self]*wthreads[self].vectorsize)/(iterations/1000);
@@ -565,7 +560,7 @@ void* ocl_rule_dmg_thread(void *arg)
 
     if (wthreads[self].type==nv_thread) rule_local_work_size = nvidia_local_work_size;
     else rule_local_work_size = amd_local_work_size;
-    ocl_rule_workset[self]=128*128*2;
+    ocl_rule_workset[self]=256*128;
     if (wthreads[self].type==nv_thread) ocl_rule_workset[self]/=2;
     if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=4;
     if (ocl_gpu_double) ocl_rule_workset[self]*=2;
@@ -582,7 +577,6 @@ void* ocl_rule_dmg_thread(void *arg)
     rule_oclqueue[self] = _clCreateCommandQueue(context[self], wthreads[self].cldeviceid, 0, &err );
     rule_buffer[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, ocl_rule_workset[self]*wthreads[self].vectorsize*hash_ret_len1, NULL, &err );
     rule_found_buf[self] = _clCreateBuffer(context[self], CL_MEM_WRITE_ONLY, 4, NULL, &err );
-
 
     rule_found_ind[self]=malloc(ocl_rule_workset[self]*sizeof(cl_uint));
     bzero(rule_found_ind[self],sizeof(uint)*ocl_rule_workset[self]);

@@ -2168,10 +2168,10 @@ static void ocl_zip_callback(char *line, int self)
     rule_counts[self][0]++;
     rule_sizes[self][rule_counts[self][0]] = strlen(line);
     strcpy(&rule_images[self][0]+(rule_counts[self][0]*MAX),line);
-    if ((rule_counts[self][0]>=ocl_rule_workset[self]*wthreads[self].vectorsize-1)||(line[0]==0x01))
+    if ((rule_counts[self][0]==ocl_rule_workset[self]*wthreads[self].vectorsize-1)||(line[0]==0x01))
     {
 	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_images_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*MAX, rule_images[self], 0, NULL, NULL);
-	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_sizes_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(int), rule_sizes[self], 0, NULL, NULL);
+	_clEnqueueWriteBuffer(rule_oclqueue[self], rule_sizes_buf[self], CL_FALSE, 0, ocl_rule_workset[self]*wthreads[self].vectorsize*sizeof(cl_uint), rule_sizes[self], 0, NULL, NULL);
 	rule_offload_perform(ocl_zip_crack_callback,self);
     	bzero(&rule_images[self][0],ocl_rule_workset[self]*wthreads[self].vectorsize*MAX);
 	rule_counts[self][0]=-1;
@@ -2202,7 +2202,7 @@ void* ocl_rule_zip_thread(void *arg)
     else rule_local_work_size = amd_local_work_size;
 
     if (has_winzip_encryption==1) ocl_rule_workset[self]=256*128;
-    else ocl_rule_workset[self]=1024*512;
+    else ocl_rule_workset[self]=256*256;
     if (wthreads[self].ocl_have_gcn) ocl_rule_workset[self]*=4;
     if (ocl_gpu_double) ocl_rule_workset[self]*=2;
     if (interactive_mode==1) ocl_rule_workset[self]/=4;

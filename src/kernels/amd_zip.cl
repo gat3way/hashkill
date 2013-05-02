@@ -12,7 +12,7 @@
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str)
 {
-__local uint inpc[64][14];
+__local uint inpc[64][17];
 uint SIZE;
 uint elem,tmp1;
 

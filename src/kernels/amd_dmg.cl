@@ -12,7 +12,7 @@
 __kernel void __attribute__((reqd_work_group_size(64, 1, 1))) 
 strmodify( __global uint *dst,  __global uint *inp, __global uint *size, __global uint *sizein, uint16 str, uint16 salt)
 {
-__local uint inpc[64][14];
+__local uint inpc[64][17];
 uint SIZE;
 uint elem,tmp1;
 
@@ -97,7 +97,7 @@ dst[GGI*8+7] = inpc[GLI][7];
 #ifndef GCN
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))
-void prepare( __global uint *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *found, uint16 salt,uint16 str)
+void prepare( __global uint *dst,  __global uint *input, __global uint *size, uint16 salt,uint16 str)
 {
 uint2 SIZE;  
 uint ib,ic,id;  
@@ -892,7 +892,7 @@ dst[get_global_id(0)*80+79]=TTE.s1;
 
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))
-void block( __global uint *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *found, uint16 salt,uint16 str)
+void block( __global uint *dst,  __global uint *input, __global uint *size,uint16 salt,uint16 str)
 {
 uint2 SIZE;  
 uint ib,ic,id;  
@@ -1512,7 +1512,7 @@ dst[(get_global_id(0)*3)+2] = (uint4)(TTC.s1,TTD.s1,TTE.s1,TA.s1);
 
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))
-void prepare( __global uint *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *found, uint16 salt,uint16 str)
+void prepare( __global uint *dst,  __global uint *input, __global uint *size, uint16 salt,uint16 str)
 {
 uint SIZE;  
 uint ib,ic,id;  
@@ -2257,7 +2257,7 @@ dst[get_global_id(0)*40+39]=TTE;
 
 __kernel 
 __attribute__((reqd_work_group_size(64, 1, 1)))
-void block( __global uint *dst,  __global uint *input, __global uint *size,  __global uint *found_ind, __global uint *found, uint16 salt,uint16 str)
+void block( __global uint *dst,  __global uint *input, __global uint *size, uint16 salt,uint16 str)
 {
 uint SIZE;  
 uint ib,ic,id;  
