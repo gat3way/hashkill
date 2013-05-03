@@ -1004,7 +1004,7 @@ hash_stat session_restore(char *sessionname)
     free(padditional_options);
     padditional_options = malloc(strlen(json_object_get_string(json_object_object_get(main_header_node,"paddopts")))+1);
     strcpy(padditional_options,json_object_get_string(json_object_object_get(main_header_node,"paddopts")));
-    process_addopts(json_object_get_string(json_object_object_get(main_header_node,"paddopts")));
+    process_addopts((char*)json_object_get_string(json_object_object_get(main_header_node,"paddopts")));
 
     free(additional_options);
     padditional_options = malloc(strlen(json_object_get_string(json_object_object_get(main_header_node,"addopts")))+1);
