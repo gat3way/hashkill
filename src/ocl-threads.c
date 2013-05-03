@@ -107,6 +107,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"odf",&ocl_bruteforce_odf, &ocl_markov_odf, &ocl_rule_odf},
                             {1,"grub2",&ocl_bruteforce_grub2, &ocl_markov_grub2, &ocl_rule_grub2},
                             {1,"androidfde",&ocl_bruteforce_androidfde, &ocl_markov_androidfde, &ocl_rule_androidfde},
+                            {1,"androidpin",&ocl_bruteforce_androidpin, &ocl_markov_androidpin, &ocl_rule_androidpin},
                             {0, "", NULL, NULL, NULL}
                         };
 
@@ -317,6 +318,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"vbulletin")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"ipb2")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"joomla")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"androidpin")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"oscommerce")==0)) loops=2;
 	    }
 
@@ -332,6 +334,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"sha384")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"whirlpool")==0)) ocl_vector=2;
 		if ((strcmp(get_current_plugin(),"joomla")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"androidpin")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"oscommerce")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"ipb2")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"sha256")==0)) ocl_vector=4;
@@ -344,6 +347,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"nsldap")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"vbulletin")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"joomla")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"androidpin")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"oscommerce")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"osx-old")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"osxlion")==0)) ocl_vector=2;
@@ -471,6 +475,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"vbulletin")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"ipb2")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"joomla")==0)) loops=2;
+		if ((strcmp(get_current_plugin(),"androidpin")==0)) loops=2;
 		if ((strcmp(get_current_plugin(),"oscommerce")==0)) loops=2;
 	    }
 
@@ -514,6 +519,7 @@ hash_stat ocl_get_device()
 		if ((strcmp(get_current_plugin(),"md5md5")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"mysql5")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"joomla")==0)) ocl_vector=4;
+		if ((strcmp(get_current_plugin(),"androidpin")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"oscommerce")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"nsldap")==0)) ocl_vector=4;
 		if ((strcmp(get_current_plugin(),"ipb2")==0)) ocl_vector=4;

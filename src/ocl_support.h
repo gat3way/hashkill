@@ -325,6 +325,11 @@ hash_stat ocl_bruteforce_androidfde(void);
 hash_stat ocl_markov_androidfde(void);
 hash_stat ocl_rule_androidfde(void);
 
+/* androidpin plugin support */
+hash_stat ocl_bruteforce_androidpin(void);
+hash_stat ocl_markov_androidpin(void);
+hash_stat ocl_rule_androidpin(void);
+
 
 /* test plugin support */
 //hash_stat ocl_bruteforce_test(void);
