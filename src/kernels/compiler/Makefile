@@ -343,7 +343,7 @@ amd_rar: amd-compiler
 
 amd_dmg: amd-compiler
 		@if [ "$(CL_AMDFLAGS)" = "yes" ]; then \
-		if [ ! -e amd_dmg__Juniper.bin ]; then ./amd-compiler amd_dmg no ;fi; \
+		if [ ! -e amd_dmg__Juniper.bin ]; then ./amd-compiler amd_dmg n ;fi; \
 		fi
 
 amd_osx_old: amd-compiler

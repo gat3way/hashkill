@@ -1,4 +1,6 @@
 #include "compiler.h"
+#include <sys/types.h>
+#include <fcntl.h>
 
 #define CL_CONTEXT_OFFLINE_DEVICES_AMD        0x403F
 
@@ -187,15 +189,15 @@ int compile(char *filename, char *buildparams)
         if (strstr(pbuf,"Cats")) continue;
         if (strstr(pbuf,"Raccoons")) continue;
 
-	printf("Building %s for %s\n",filename,pbuf);
 	char flags[1000];
 	char flags1[1000];
 	//-save-temps=test
 	if (strstr(pbuf,"ATI")) sprintf(flags,"-fno-bin-amdil -fno-bin-llvmir -fno-bin-source -DOLD_ATI   %s",buildparams);
 	else if (strstr(pbuf,"Cayman"))  sprintf(flags,"-fno-bin-amdil -fno-bin-llvmir -fno-bin-source -DVLIW4  -Dcl_amd_media_ops2 %s",buildparams);
 	else if ((strstr(pbuf,"Capeverde"))||(strstr(pbuf,"Pitcairn"))||(strstr(pbuf,"Tahiti")))  sprintf(flags,"-fno-bin-amdil -fno-bin-llvmir -fno-bin-source -DGCN  -Dcl_amd_media_ops2 %s",buildparams);
-	else sprintf(flags,"-fno-bin-amdil -fno-bin-llvmir -fno-bin-source  -Dcl_amd_media_ops2  %s",buildparams);
-	if (optdisable==1) sprintf(flags,"%s -cl-opt-disable -fno-bin-amdil -fno-bin-llvmir -fno-bin-source -Dcl_amd_media_ops2 -O0",flags);
+	else sprintf(flags,"-fno-bin-amdil -fno-bin-llvmir -fno-bin-source   %s",buildparams);
+	if (optdisable==1) sprintf(flags,"%s -cl-opt-disable -fno-bin-amdil -fno-bin-llvmir -fno-bin-source -O0 ",flags);
+	printf("%s: building for %s \n%s: flags = %s\n",filename,pbuf,filename,flags);
 	if (big16==1) 
 	{
 	strcpy(flags1,flags);
@@ -284,7 +286,6 @@ int compile(char *filename, char *buildparams)
 	}
 	binary_sizes = (size_t *)malloc( sizeof(size_t)*nDevices );
 	binaries = (char **)malloc( sizeof(char *)*nDevices );
-
 	err = _clGetProgramInfo( program, CL_PROGRAM_BINARY_SIZES, sizeof(size_t)*(nDevices), binary_sizes, NULL );
 	checkErr( "clGetProgramInfo", err );
 
@@ -293,6 +294,7 @@ int compile(char *filename, char *buildparams)
 	    if( binary_sizes[j] != 0 )
 	    {
     		binaries[j] = (char *)malloc( sizeof(char)*binary_sizes[j] );
+		printf("%s: compilation for %s successful (size = %d KB)\n",filename,pbuf,binary_sizes[j]/1024);
 	    }
 	    else
 	    {
@@ -354,6 +356,10 @@ int compile(char *filename, char *buildparams)
         	if (!ofname) exit(1);
         	unlink(outfilename);
         	rename(ofname,outfilename);
+        	int fd=open(outfilename,O_RDONLY);
+        	size_t fsize = lseek(fd,0,SEEK_END);
+        	close(fd);
+        	printf("%s: compressed %s kernel (compressed size = %d KB)\n",filename,pbuf,fsize/1024);
         	free(ofname);
     	    }
 	}
@@ -393,52 +399,52 @@ int main(int argc, char *argv[])
 
     if (big16==1)
     {
-	printf("\nCompiling %s with BIG16...\n",argv[1]);
+	//printf("\nCompiling %s with BIG16...\n",argv[1]);
 	compile(argv[1],"");
 	return 0;
     }
 
-    printf("\nCompiling %s without flags...\n",argv[1]);
+    //printf("\nCompiling %s without flags...\n",argv[1]);
     compile(argv[1],"");
     if (csingle==1)
     {
-	printf("\nCompiling %s with SINGLE_MODE...\n",argv[1]);
+	//printf("\nCompiling %s with SINGLE_MODE...\n",argv[1]);
 	compile(argv[1],"-DSINGLE_MODE");
     }
     if (cdouble==1)
     {
-	printf("\nCompiling %s with DOUBLE...\n",argv[1]);
+	//printf("\nCompiling %s with DOUBLE...\n",argv[1]);
 	compile(argv[1],"-DDOUBLE");
     }
 
     if (cmax8==1)
     {
-	printf("\nCompiling %s with MAX8...\n",argv[1]);
+	//printf("\nCompiling %s with MAX8...\n",argv[1]);
 	compile(argv[1],"-DMAX8");
     }
 
 
     if ((csingle==1) && (cdouble==1))
     {
-	printf("\nCompiling %s with SINGLE_MODE and DOUBLE...\n",argv[1]);
+	//printf("\nCompiling %s with SINGLE_MODE and DOUBLE...\n",argv[1]);
 	compile(argv[1],"-DDOUBLE -DSINGLE_MODE");
     }
 
     if ((csingle==1) && (cdouble==1) && (cmax8==1))
     {
-	printf("\nCompiling %s with SINGLE_MODE and DOUBLE and MAX8...\n",argv[1]);
+	//printf("\nCompiling %s with SINGLE_MODE and DOUBLE and MAX8...\n",argv[1]);
 	compile(argv[1],"-DDOUBLE -DSINGLE_MODE -DMAX8");
     }
 
     if ((csingle==1) && (cmax8==1))
     {
-	printf("\nCompiling %s with SINGLE_MODE and MAX8...\n",argv[1]);
+	//printf("\nCompiling %s with SINGLE_MODE and MAX8...\n",argv[1]);
 	compile(argv[1],"-DSINGLE_MODE -DMAX8");
     }
 
     if ((cdouble==1) && (cmax8==1))
     {
-	printf("\nCompiling %s with DOUBLE and MAX8...\n",argv[1]);
+	//printf("\nCompiling %s with DOUBLE and MAX8...\n",argv[1]);
 	compile(argv[1],"-DDOUBLE -DMAX8");
     }
     return 0;
