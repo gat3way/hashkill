@@ -34,7 +34,7 @@ int vectorsize;
 
 char * hash_plugin_summary(void)
 {
-    return("androidpin \t\tAnrdoid PIN lock plugin");
+    return("androidpin \tAnrdoid PIN lock plugin");
 }
 
 

@@ -50,12 +50,12 @@ static struct custom_salt {
 
 char *hash_plugin_summary(void)
 {
-	return ("pwsafe \t\tPassword Safe pwsafe passphrase plugin");
+	return ("pwsafe \t\tPassword Safe passphrase plugin");
 }
 
 char *hash_plugin_detailed(void)
 {
-	return ("pwsafe - Password Safe pwsafe passphrase plugin\n"
+	return ("pwsafe - Password Safe passphrase plugin\n"
 	    "------------------------------------------------\n"
 	    "Use this module to crack Password Safe pwsafe files\n"
 	    "Input should be a Password Safe pwsafe (specified with -f)\n"

@@ -39,7 +39,7 @@ extern void __bf_swap(unsigned int *x, int count);
 
 char * hash_plugin_summary(void)
 {
-    return("bfunix \t\tbfunix plugin (shadow files)");
+    return("bfunix \t\tbcrypt (Blowfish) plugin");
 }
 
 

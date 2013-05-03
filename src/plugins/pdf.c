@@ -64,13 +64,13 @@ static struct custom_salt {
 
 char *hash_plugin_summary(void)
 {
-	return ("pdf \t\tpdf passphrase plugin");
+	return ("pdf \t\tPDF documents password plugin");
 }
 
 
 char *hash_plugin_detailed(void)
 {
-	return ("pdf - pdf passphrase plugin\n"
+	return ("pdf - PDF documents password plugin\n"
 	    "------------------------------------------------\n"
 	    "Use this module to crack pdf files\n"
 	    "Input should be a pdf document file (specified with -f)\n"

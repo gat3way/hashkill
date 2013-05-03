@@ -31,13 +31,13 @@ int vectorsize;
 
 char * hash_plugin_summary(void)
 {
-    return("vbulletin \tmd5(md5(pass).salt) plugin");
+    return("vbulletin \tmd5(md5(pass).salt) plugin (vBulletin)");
 }
 
 
 char * hash_plugin_detailed(void)
 {
-    return("vbulletin - A simple md5(md5(pass).salt) plugin\n"
+    return("vbulletin - A simple md5(md5(pass).salt) plugin (vBulletin)\n"
 	    "------------------------\n"
 	    "Use this module to crack md5(md5(pass).salt) hashes\n"
 	    "Input should be in form: \'user:hash:salt\' or just \'hash:salt\'\n"
@@ -141,6 +141,7 @@ hash_stat hash_plugin_check_hash_dictionary(const char *hash, const char *passwo
     char *hash2[VECTORSIZE];
     char *hash3[VECTORSIZE];
     int a,b;
+    int lens[VECTORSIZE];
     
     for (a=0;a<vectorsize;a++)
     {
@@ -148,9 +149,10 @@ hash_stat hash_plugin_check_hash_dictionary(const char *hash, const char *passwo
 	hash3[a]=alloca(64);
 	hash2[a][0]=0;
 	hash3[a][0]=0;
+	lens[a]=strlen(password[a]);
     }
 
-    (void)hash_md5_slow((const char **)password, hash2, *num, threadid);
+    (void)hash_md5_unicode((const char **)password, hash2, lens);
     (void)hash_md5_hex((const char **)hash2, hash3);
     b = strlen(salt);
     for (a=0;a<vectorsize;a++) strcpy(hash3[a]+32, salt);
