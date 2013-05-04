@@ -164,9 +164,9 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     char ostr[255],ustr[255];
     int v,r,length,p,meta;
     size_t hashsize,usize,osize;
-    size_t uesize,oesize;
+    //size_t uesize,oesize;
 
-    oesize=uesize=0;
+    //oesize=uesize=0;
     osize=usize=0;
     fd = open(filename,O_RDONLY);
     size = lseek(fd,0,SEEK_END);

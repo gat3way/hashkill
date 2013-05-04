@@ -74,6 +74,13 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     if (fd < 1) return hash_err;
     size = lseek(fd,0,SEEK_END);
     lseek(fd,0,SEEK_SET);
+
+    // key3.db size sanity check
+    if (size > 1024*1024) 
+    {
+	close(fd);
+	return hash_err;
+    }
     buf = malloc(size);
     read(fd,buf,size);
     close(fd);
@@ -84,7 +91,14 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	free(buf);
 	return hash_err;
     }
+
     tok -= 20;
+    // Sanity check
+    if (tok < buf)
+    {
+	free(buf);
+	return hash_err;
+    }
     memcpy(globalsalt,tok,20);
     tok = (char *)memmem(buf, size, "password-check", strlen("password-check"));
     if (!tok) 
@@ -92,6 +106,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 	free(buf);
 	return hash_err;
     }
+
     tok -= 52;
     memcpy(pwdcheck,tok,52);
     memcpy(entrysalt,&pwdcheck[3],20);
@@ -99,6 +114,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
 
     free(buf);
     strcpy(myfilename, filename);
+
     (void)hash_add_username(filename);
     (void)hash_add_hash("mozilla key3.db\0",0);
     (void)hash_add_salt("123");
