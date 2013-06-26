@@ -330,6 +330,12 @@ hash_stat ocl_bruteforce_androidpin(void);
 hash_stat ocl_markov_androidpin(void);
 hash_stat ocl_rule_androidpin(void);
 
+/* osx-ml plugin support */
+hash_stat ocl_bruteforce_osx_ml(void);
+hash_stat ocl_markov_osx_ml(void);
+hash_stat ocl_rule_osx_ml(void);
+
+
 
 /* test plugin support */
 //hash_stat ocl_bruteforce_test(void);

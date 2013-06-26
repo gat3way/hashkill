@@ -144,7 +144,8 @@ am_hashkill_OBJECTS = hashkill-ocl-base.$(OBJEXT) \
 	hashkill-ocl_msoffice-old.$(OBJEXT) hashkill-ocl_pdf.$(OBJEXT) \
 	hashkill-ocl_sha384.$(OBJEXT) hashkill-ocl_odf.$(OBJEXT) \
 	hashkill-ocl_grub2.$(OBJEXT) hashkill-ocl_androidfde.$(OBJEXT) \
-	hashkill-ocl_androidpin.$(OBJEXT)
+	hashkill-ocl_androidpin.$(OBJEXT) \
+	hashkill-ocl_osx-ml.$(OBJEXT)
 hashkill_OBJECTS = $(am_hashkill_OBJECTS)
 hashkill_DEPENDENCIES = libtargets.la
 hashkill_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -367,7 +368,7 @@ ocl_dmg.c unrargpu.c ocl_rar.c ocl_bfunix.c ocl_drupal7.c ocl_zip.c ocl_django25
 ocl_o5logon.c ocl_mssql-2012.c ocl_msoffice.c ocl_luks.c ocl_ripemd160.c ocl_whirlpool.c \
 cpu-serpent.c cpu-twofish.c ocl_truecrypt.c ocl_lastpass.c ocl_keepass.c ocl_mozilla.c ocl_pwsafe.c \
 ocl_keyring.c ocl_kwallet.c bad_blowfish.c ocl_msoffice-old.c ocl_pdf.c ocl_sha384.c ocl_odf.c \
-ocl_grub2.c ocl_androidfde.c ocl_androidpin.c
+ocl_grub2.c ocl_androidfde.c ocl_androidpin.c ocl_osx-ml.c
 
 
 #ocl_test.c
@@ -574,6 +575,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_oracle-old.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_oracle11g.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_oscommerce.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_osx-ml.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_osx-old.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_osxlion.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hashkill-ocl_pdf.Po@am__quote@
@@ -1901,6 +1903,20 @@ hashkill-ocl_androidpin.obj: ocl_androidpin.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_androidpin.c' object='hashkill-ocl_androidpin.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_androidpin.obj `if test -f 'ocl_androidpin.c'; then $(CYGPATH_W) 'ocl_androidpin.c'; else $(CYGPATH_W) '$(srcdir)/ocl_androidpin.c'; fi`
+
+hashkill-ocl_osx-ml.o: ocl_osx-ml.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_osx-ml.o -MD -MP -MF $(DEPDIR)/hashkill-ocl_osx-ml.Tpo -c -o hashkill-ocl_osx-ml.o `test -f 'ocl_osx-ml.c' || echo '$(srcdir)/'`ocl_osx-ml.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_osx-ml.Tpo $(DEPDIR)/hashkill-ocl_osx-ml.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_osx-ml.c' object='hashkill-ocl_osx-ml.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_osx-ml.o `test -f 'ocl_osx-ml.c' || echo '$(srcdir)/'`ocl_osx-ml.c
+
+hashkill-ocl_osx-ml.obj: ocl_osx-ml.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -MT hashkill-ocl_osx-ml.obj -MD -MP -MF $(DEPDIR)/hashkill-ocl_osx-ml.Tpo -c -o hashkill-ocl_osx-ml.obj `if test -f 'ocl_osx-ml.c'; then $(CYGPATH_W) 'ocl_osx-ml.c'; else $(CYGPATH_W) '$(srcdir)/ocl_osx-ml.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hashkill-ocl_osx-ml.Tpo $(DEPDIR)/hashkill-ocl_osx-ml.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ocl_osx-ml.c' object='hashkill-ocl_osx-ml.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hashkill_CFLAGS) $(CFLAGS) -c -o hashkill-ocl_osx-ml.obj `if test -f 'ocl_osx-ml.c'; then $(CYGPATH_W) 'ocl_osx-ml.c'; else $(CYGPATH_W) '$(srcdir)/ocl_osx-ml.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
