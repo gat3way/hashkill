@@ -165,16 +165,16 @@ int parse_pcap(char *filename)
 
 
     /* Is that a 802.11 dump? */
-    if ((mainhead.network!=105)&&(mainhead.network!=127)&&(mainhead.network!=163))
+    if ((mainhead.network!=105)&&(mainhead.network!=127)&&(mainhead.network!=163)&&(mainhead.network!=192))
     {
-        printf("pcap dump not from 802.11 network!\n");
-        return 0;
+	printf("pcap dump not from 802.11 network! (type=%d)\n",mainhead.network);
+    	return 0;
     }
-
 
     /* Radiotap header is always 24 bytes */
     if (mainhead.network==105) headerseek=0;
     if (mainhead.network==127) headerseek=24;
+    if (mainhead.network==192) headerseek=8;
 
 
     err=1;
