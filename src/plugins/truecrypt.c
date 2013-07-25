@@ -225,7 +225,7 @@ hash_stat hash_plugin_parse_hash(char *hashline, char *filename)
     keyfile=0;
 
     /* We have plugin options */
-    if (hashline)
+    if (hashline[0]!=0)
     {
 	myline = malloc(strlen(hashline)+1);
 	strcpy(myline,hashline);
