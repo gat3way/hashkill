@@ -216,6 +216,7 @@ void session_close_file_ocl(FILE *sessionfile)
 
     sf = sessionfile;
     jsonbuf = malloc(strlen(json_object_to_json_string(root_node))+1);
+    memset(jsonbuf,0,strlen(json_object_to_json_string(root_node))+1);
     strcpy(jsonbuf,json_object_to_json_string(root_node));
     fputs(jsonbuf,sf);
     free(jsonbuf);
@@ -680,7 +681,7 @@ hash_stat session_write_parameters(char *plugin, attack_method_t attacktype, uin
 #ifdef HAVE_JSON_JSON_H
     time_t myclock;
     json_object *jobj;
-    char buf[4096];
+    char buf[4096*2];
     int cnt;
     char *space=" ";
     struct tm *lotime;
@@ -688,7 +689,7 @@ hash_stat session_write_parameters(char *plugin, attack_method_t attacktype, uin
     if (get_cracked_num()==get_hashes_num()) return(hash_ok);
     main_header_node = json_object_new_object();
     cnt=0;
-    bzero(buf,4096);
+    memset(buf,0,4096);
     while ((session_argv[cnt])&&(cnt<MAXARGV-1)) 
     {
 	strcat(buf,session_argv[cnt]);

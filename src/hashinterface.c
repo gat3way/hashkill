@@ -123,6 +123,7 @@ static struct termios old_term;
 
 #ifdef HAVE_SSE2
 /* Optimized strlen() for x86 architectures */
+/*
 #define strlen my_strlen
 size_t my_strlen(const char *s) {
     size_t len = 0;
@@ -135,6 +136,7 @@ size_t my_strlen(const char *s) {
         s += 4, len += 4;
     }
 }
+*/
 #endif
 
 
@@ -2520,12 +2522,14 @@ void process_addopts(char *addopt_parm)
 	return;
     }
     addopts[0]=malloc(strlen(option)+1);
+    memset(addopts[0],0,strlen(option)+1);
     strcpy(addopts[0],option);
     a=0;
     while ( ((option=strtok(NULL,":"))!=NULL)&&(a<9))
     {
         a++;
-        addopts[a]=malloc(strlen(option));
+        addopts[a]=malloc(strlen(option)+1);
+        memset(addopts[a],0,strlen(option)+1);
         strcpy(addopts[a],option);
     }
     if (free2) free(addopt1);
