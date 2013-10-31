@@ -109,6 +109,7 @@ struct ocl_supported_plugins_s ocl_supported_plugins[] =
                             {1,"osx-ml",&ocl_bruteforce_osx_ml, &ocl_markov_osx_ml, &ocl_rule_osx_ml},
                             {1,"androidfde",&ocl_bruteforce_androidfde, &ocl_markov_androidfde, &ocl_rule_androidfde},
                             {1,"androidpin",&ocl_bruteforce_androidpin, &ocl_markov_androidpin, &ocl_rule_androidpin},
+                            {1,"a51",&ocl_bruteforce_a51, &ocl_markov_a51, &ocl_rule_a51},
                             {0, "", NULL, NULL, NULL}
                         };
 
@@ -1239,7 +1240,7 @@ hash_stat ocl_spawn_threads(unsigned int num, unsigned int queue_size)
         return hash_err;
     }
     
-    if (attack_method == attack_method_markov)
+    if ((attack_method == attack_method_markov)&&(strcmp(get_current_plugin(),"a51")!=0))
     {
         hlog("Markov max len: %d threshold:%d\n",markov_max_len, markov_threshold);
         hlog("Progress indicator will be available once Markov calculations are done...\n%s","");

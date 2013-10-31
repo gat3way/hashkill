@@ -336,6 +336,12 @@ hash_stat ocl_markov_osx_ml(void);
 hash_stat ocl_rule_osx_ml(void);
 
 
+/* a51 plugin support */
+hash_stat ocl_bruteforce_a51(void);
+hash_stat ocl_markov_a51(void);
+hash_stat ocl_rule_a51(void);
+
+
 
 /* test plugin support */
 //hash_stat ocl_bruteforce_test(void);

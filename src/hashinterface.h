@@ -119,7 +119,7 @@ typedef struct workthreads_s
     int ocl_have_old_ati;	// Device is 4xxx ?
     int ocl_have_vliw4;		// Device is VLIW4 ?
     int ocl_have_gcn;		// Device is GCN?
-    uint64_t tries;		// c/s on that thread since last check
+    volatile uint64_t tries;	// c/s on that thread since last check
     int currentsalt;		// GPU only: salt# increment
     uint64_t oldtries;		// c/s on that thread before last check
     int temperature;		// Temperature
@@ -163,7 +163,7 @@ pthread_t scheduler_thread;
 attack_method_t attack_method;
 int hash_ret_len;
 int single_hash;
-uint64_t attack_overall_count;
+volatile uint64_t attack_overall_count;
 uint64_t attack_current_count;
 uint64_t attack_checkpoints;
 uint64_t attack_avgspeed;;
