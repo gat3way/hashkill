@@ -25,7 +25,7 @@ amd_sha512_passsaltu amd_sha512_passsaltu_long amd_msoffice2007 amd_msoffice2010
 amd_luks128 amd_luks256 amd_ripemd160 amd_ripemd160_long amd_whirlpool amd_whirlpool_long \
 amd_truecrypt amd_lastpass amd_keepass amd_keepass2 amd_mozilla amd_mozilla_long amd_pwsafe \
 amd_keyring amd_kwallet amd_msoffice_old amd_msoffice_old_md5 amd_pdf2 amd_pdf3 amd_pdf4 amd_pdf5 \
-amd_sha384 amd_sha384_long amd_pdf6 amd_odf amd_odf2 amd_grub2 amd_androidfde amd_osxml
+amd_sha384 amd_sha384_long amd_pdf6 amd_odf amd_odf2 amd_grub2 amd_androidfde amd_osxml amd_a51
 
 
 build_nvidia: nvidia_ipb2_long nvidia_ipb2 nvidia_md5_long nvidia_md5 nvidia_sha1 nvidia_sha1_long nvidia_ntlm nvidia_ntlm_long \
@@ -554,6 +554,11 @@ amd_androidfde: amd-compiler
 amd_osxml: amd-compiler
 		@if [ "$(CL_AMDFLAGS)" = "yes" ]; then \
 		if [ ! -e amd_osxml__Juniper.bin ]; then ./amd-compiler amd_osxml n ;fi; \
+		fi
+
+amd_a51: amd-compiler
+		@if [ "$(CL_AMDFLAGS)" = "yes" ]; then \
+		if [ ! -e amd_a51__Juniper.bin ]; then ./amd-compiler amd_a51 n ;fi; \
 		fi
 
 

@@ -21,7 +21,7 @@ all: plugin_md5 plugin_md5md5 plugin_joomla plugin_sha1 plugin_smf plugin_md4 \
      plugin_msoffice-old plugin_luks plugin_whirlpool plugin_truecrypt plugin_lastpass \
      plugin_keepass plugin_pdf plugin_keyring plugin_pwsafe plugin_mozilla plugin_kwallet \
      plugin_sha384 plugin_odf plugin_grub2 plugin_androidfde plugin_androidpin plugin_samsungpin \
-     plugin_osx-ml
+     plugin_osx-ml plugin_a51
      #plugin_bitcoin  plugin_mysql-old plugin_test 
 
 
@@ -235,6 +235,9 @@ plugin_androidfde:
 
 plugin_test:
 	@if [ ! -e test.so ]; then  $(CC)  plugin.c test.c -o test.so $(CFLAGS) $(LDFLAGS) ;fi
+
+plugin_a51:
+	@if [ ! -e a51.so ]; then  $(CC)  plugin.c a51.c -o a51.so $(CFLAGS) $(LDFLAGS) ;fi
 
 
 
