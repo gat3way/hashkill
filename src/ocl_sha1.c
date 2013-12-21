@@ -45,7 +45,7 @@
 #define K0 0x5A827999
 
 
-
+static int bruteforce_start_orig;
 
 static void ocl_set_params(int loopnr, cl_uint4 param1, cl_uint4 param2, cl_uint16 param3, cl_uint16 *p1, cl_uint16 *p2, cl_uint16 *p3, cl_uint16 *p4, cl_uint16 *p5, cl_uint16 *p6)
 {
@@ -200,7 +200,8 @@ static void ocl_get_cracked(cl_command_queue queuein,cl_mem plains_buf, char *pl
         	pthread_mutex_unlock(&crackedmutex);
         	if (flag == 0)
         	{
-            	    add_cracked_list(mylist->username, mylist->hash, mylist->salt, plain);
+            	    if ((attack_method == attack_method_simple_bruteforce) && (strlen(plain) >= bruteforce_start_orig))
+            		add_cracked_list(mylist->username, mylist->hash, mylist->salt, plain);
         	}
     	    }
     	    mylist = mylist->indexnext;
@@ -2340,7 +2341,7 @@ hash_stat ocl_bruteforce_sha1(void)
     int err;
     int worker_thread_keys[32];
 
-
+    bruteforce_start_orig = bruteforce_start;
     bcnt=1;
     bruteforce_start=4;
     for (a=bruteforce_start;a<bruteforce_end;a++) bcnt*=strlen(bruteforce_charset);
