@@ -15,12 +15,8 @@ AC_ARG_WITH(json,
   else
     AC_MSG_WARN([Sorry, $withval does not exist, checking usual places])
   fi
-  
-else
-  AC_MSG_RESULT(no)
-  ADDON="";
-fi],
-[AC_MSG_RESULT(yes)])
+
+
 
 #JS_CFLAGS="-ljson"
 JS_LIBS="-ljson"
@@ -66,6 +62,13 @@ fi
                 AC_MSG_CHECKING(jsonlib in ${JSONLIB_HOME})
                 AC_MSG_RESULT(failed)
         fi
+
+
+
+else
+  AC_MSG_RESULT(no)
+  ADDON="";
+fi],
 
 ])
 
