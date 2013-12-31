@@ -637,11 +637,11 @@ ac_subst_vars='DEPS_LIBS
 DEPS_CFLAGS
 OPENSSL_LIBS
 OPENSSL_CFLAGS
-JS_LIBS
-JS_CFLAGS
 PKG_CONFIG_LIBDIR
 PKG_CONFIG_PATH
 PKG_CONFIG
+JS_LIBS
+JS_CFLAGS
 SIMD_FLAGS
 CL_NVFLAGS
 CL_AMDFLAGS
@@ -1439,8 +1439,8 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
-  --with-json=DIR	  root directory path of jsonlib installation
-  --without-json	  disable json (no session functionality)
+ --with-json=DIR         root directory path of jsonlib installation
+ --without-json         disable json (no session functionality)
 
 Some influential environment variables:
   CC          C compiler command
@@ -1453,6 +1453,11 @@ Some influential environment variables:
   CPP         C preprocessor
   CCAS        assembler compiler command (defaults to CC)
   CCASFLAGS   assembler compiler flags (defaults to CFLAGS)
+  PKG_CONFIG  path to pkg-config utility
+  PKG_CONFIG_PATH
+              directories to add to pkg-config's search path
+  PKG_CONFIG_LIBDIR
+              path overriding pkg-config's built-in search path
   OPENSSL_CFLAGS
               C compiler flags for OPENSSL, overriding pkg-config
   OPENSSL_LIBS
@@ -15604,6 +15609,7 @@ fi
 
 
 
+
 # Check whether --enable-amd-ocl was given.
 if test "${enable_amd_ocl+set}" = set; then :
   enableval=$enable_amd_ocl; case "${enableval}" in
@@ -15786,6 +15792,15 @@ $as_echo "yes" >&6; }
 $as_echo "$as_me: WARNING: Sorry, $withval does not exist, checking usual places" >&2;}
   fi
 
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+  ADDON="";
+fi
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+fi
 
 
 #JS_CFLAGS="-ljson"
@@ -15797,13 +15812,13 @@ LIBS=""
 #
 if test -n "${jsonlib_places}"
 then
-	# check the user supplied or any other more or less 'standard' place:
-	#   Most UNIX systems      : /usr/local and /usr
-	#   MacPorts / Fink on OSX : /opt/local respectively /sw
-	for JSONLIB_HOME in ${jsonlib_places} ; do
-	  if test -f "/usr/include/json/json.h"; then break; fi
-	  JSONLIB_HOME=""
-	done
+        # check the user supplied or any other more or less 'standard' place:
+        # Most UNIX systems : /usr/local and /usr
+        # MacPorts / Fink on OSX : /opt/local respectively /sw
+        for JSONLIB_HOME in ${jsonlib_places} ; do
+         if test -f "/usr/include/json/json.h"; then break; fi
+         JSONLIB_HOME=""
+        done
 fi
 
         JSONLIB_OLD_LDFLAGS=$LDFLAGS
@@ -15858,7 +15873,7 @@ else
   jsonlib_cv_libjson=no
 fi
 
-    	ac_fn_c_check_header_mongrel "$LINENO" "json/json.h" "ac_cv_header_json_json_h" "$ac_includes_default"
+            ac_fn_c_check_header_mongrel "$LINENO" "json/json.h" "ac_cv_header_json_json_h" "$ac_includes_default"
 if test "x$ac_cv_header_json_json_h" = xyes; then :
   jsonlib_cv_jsonlib_h=yes
 else
@@ -15872,7 +15887,7 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
-        if test "$jsonlib_cv_libjson" = "yes" -a "$jsonlib_cv_jsonlib_h" = "yes"
+        if test "$jsonlib_cv_libjson" = "yes" -a "$jsonlib_cv_jsonlib_h" = "yes" -a "$withval" != no
         then
                 #
                 # If both library and header were found, use them
@@ -15897,12 +15912,6 @@ $as_echo "failed" >&6; }
 
 
 
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-  ADDON="";
-fi
-else
 
 
 
@@ -15910,13 +15919,6 @@ else
 
 
 
-  PKG_CONFIG  path to pkg-config utility
-
-  PKG_CONFIG_PATH
-              directories to add to pkg-config's search path
-
-  PKG_CONFIG_LIBDIR
-              path overriding pkg-config's built-in search path
 
 
 if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
@@ -15929,9 +15931,7 @@ if ${ac_cv_path_PKG_CONFIG+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   case $PKG_CONFIG in
-  \\/* | ?:\\/*
-fi
-
+  [\\/]* | ?:[\\/]*)
   ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
   ;;
   *)

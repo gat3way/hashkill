@@ -4,8 +4,8 @@ AC_DEFUN([AX_CHECK_JSONLIB],
 #
 [AC_MSG_CHECKING(if json-c is available)
 AC_ARG_WITH(json,
-[  --with-json=DIR	  root directory path of jsonlib installation]
-[  --without-json	  disable json (no session functionality)],
+[ --with-json=DIR         root directory path of jsonlib installation]
+[ --without-json         disable json (no session functionality)],
 [if test "$withval" != no ; then
   jsonlib_places="/usr/local /usr /opt/local /sw"
   AC_MSG_RESULT(yes)
@@ -15,8 +15,12 @@ AC_ARG_WITH(json,
   else
     AC_MSG_WARN([Sorry, $withval does not exist, checking usual places])
   fi
-
-
+  
+else
+  AC_MSG_RESULT(no)
+  ADDON="";
+fi],
+[AC_MSG_RESULT(yes)])
 
 #JS_CFLAGS="-ljson"
 JS_LIBS="-ljson"
@@ -27,13 +31,13 @@ LIBS=""
 #
 if test -n "${jsonlib_places}"
 then
-	# check the user supplied or any other more or less 'standard' place:
-	#   Most UNIX systems      : /usr/local and /usr
-	#   MacPorts / Fink on OSX : /opt/local respectively /sw
-	for JSONLIB_HOME in ${jsonlib_places} ; do
-	  if test -f "/usr/include/json/json.h"; then break; fi
-	  JSONLIB_HOME=""
-	done
+        # check the user supplied or any other more or less 'standard' place:
+        # Most UNIX systems : /usr/local and /usr
+        # MacPorts / Fink on OSX : /opt/local respectively /sw
+        for JSONLIB_HOME in ${jsonlib_places} ; do
+         if test -f "/usr/include/json/json.h"; then break; fi
+         JSONLIB_HOME=""
+        done
 fi
 
         JSONLIB_OLD_LDFLAGS=$LDFLAGS
@@ -42,9 +46,9 @@ fi
         AC_LANG_SAVE
         AC_LANG_C
         AC_CHECK_LIB(json, json_tokener_parse, [jsonlib_cv_libjson=yes], [jsonlib_cv_libjson=no])
-    	AC_CHECK_HEADER(json/json.h, [jsonlib_cv_jsonlib_h=yes], [jsonlib_cv_jsonlib_h=no])
+            AC_CHECK_HEADER(json/json.h, [jsonlib_cv_jsonlib_h=yes], [jsonlib_cv_jsonlib_h=no])
         AC_LANG_RESTORE
-        if test "$jsonlib_cv_libjson" = "yes" -a "$jsonlib_cv_jsonlib_h" = "yes"
+        if test "$jsonlib_cv_libjson" = "yes" -a "$jsonlib_cv_jsonlib_h" = "yes" -a "$withval" != no
         then
                 #
                 # If both library and header were found, use them
@@ -63,12 +67,6 @@ fi
                 AC_MSG_RESULT(failed)
         fi
 
-
-
-else
-  AC_MSG_RESULT(no)
-  ADDON="";
-fi],
-
 ])
+
 
