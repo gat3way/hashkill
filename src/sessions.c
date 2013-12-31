@@ -455,8 +455,8 @@ hash_stat session_write_markov_parm(char *statfile, int threshold, int len, uint
     jobj = json_object_new_string(ltemp);
     json_object_object_add(attack_header_node,"currentcount", jobj);
     json_object_object_add(root_node,"markov", attack_header_node);
-    return hash_ok;
 #endif
+    return hash_ok;
 }
 
 
@@ -486,9 +486,8 @@ hash_stat session_write_rule_parm(char *rulename, uint64_t current, uint64_t ove
     json_object_object_add(attack_header_node,"currentcount", jobj);
 
     json_object_object_add(root_node,"rule", attack_header_node);
-    return hash_ok;
 #endif
-
+    return hash_ok;
 }
 
 

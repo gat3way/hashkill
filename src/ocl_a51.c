@@ -268,7 +268,6 @@ uint64_t unmixkey(uint64_t cand)
     uint64_t mMat2[64];
     uint64_t mMat3[64];
     uint64_t clock_in = 1;
-    int moved[64];
     int i,j,k;
 
     for (i=0; i<19; i++) lfsr1[i]=0ULL;
@@ -298,10 +297,8 @@ uint64_t unmixkey(uint64_t cand)
     for (i=0; i<22; i++) mMat2[i+19] = lfsr2[i];
     for (i=0; i<23; i++) mMat2[i+41] = lfsr3[i];
     for (i=0; i<64; i++) mMat3[i] = mMat2[i];
-    for (i=0; i<64; i++) moved[i] = 0;
 
 
-    int swaps = 1;
     /* elimination */
     uint64_t b = 1ULL;
     for (i=0; i<64; i++) 
@@ -325,8 +322,8 @@ uint64_t unmixkey(uint64_t cand)
                     }
                     if (!found) 
                     {
-                        printf("Trøbbel i tårnet!\n");
-                        return;
+                        printf("ERROR!\n");
+                        return 0;
                     }
                 }
             } 
@@ -461,7 +458,8 @@ void fillback(uint64_t final)
     wlfsr2 = wlfsr2 & 0x3fffff;
     wlfsr3 = wlfsr3 & 0x7fffff;
 
-    uint64_t cmp = (uint64_t)wlfsr1 | ((uint64_t)wlfsr2<<19) | ((uint64_t)wlfsr3<<41);
+    // do not cmp
+    //uint64_t cmp = (uint64_t)wlfsr1 | ((uint64_t)wlfsr2<<19) | ((uint64_t)wlfsr3<<41);
 }
 
 
@@ -583,7 +581,7 @@ void clockback(uint64_t final, int steps, int o1, int o2, int o3)
 
 int checkforwardpre(uint64_t cand)
 {
-    int a,b;
+    int a;
     byte st[8];
 
     st[0]=st[1]=st[2]=st[3]=st[4]=st[5]=st[6]=st[7]=0;
@@ -603,7 +601,7 @@ int checkforwardpre(uint64_t cand)
 
 int checkforward(uint64_t cand)
 {
-    int a,b;
+    int a;
     byte st[8];
 
     st[0]=st[1]=st[2]=st[3]=st[4]=st[5]=st[6]=st[7]=0;
@@ -621,11 +619,9 @@ int checkforward(uint64_t cand)
 }
 
 
-
+/*
 static void brute_recursive_1 (uint64_t cand, uint64_t *vectors, int bits, int level)
 {
-    int a;
-
     if (bits==level)
     {
 	if (attack_over!=0) pthread_exit(NULL);
@@ -653,7 +649,7 @@ static void brute_recursive_1 (uint64_t cand, uint64_t *vectors, int bits, int l
     cand ^= vectors[level];
     brute_recursive_1(cand,vectors,bits,level+1);
 }
-
+*/
 
 
 
@@ -663,14 +659,11 @@ static void brute_recursive_1 (uint64_t cand, uint64_t *vectors, int bits, int l
 static void bruteforce(uint64_t *vec, uint64_t sol)
 {
     uint64_t a,b,d,j,k,l;
-    int i;
     uint64_t vec2[64];
-    uint64_t vectors[64];
     // NBITS
     uint64_t free[16];
     uint64_t vfree=0ULL;
     uint64_t sol2;
-    int solutions=0;
     int self = __th_self;
     int base = crack_counts*16;
     cl_uint found;
@@ -742,7 +735,6 @@ static void bruteforce(uint64_t *vec, uint64_t sol)
     	    pthread_exit(NULL);
 	}
 	// GPU crack
-	int err;
 	_clEnqueueWriteBuffer(queue, input_buf, CL_FALSE, 0, 4096*16*8, &crack_vectors[self][0], 0, NULL, NULL);
 	_clEnqueueNDRangeKernel(queue, kernel, 1, NULL, global_work_size, local_work_size, 0, NULL, NULL);
 	_clEnqueueReadBuffer(queue, found_buf, CL_TRUE, 0, 4, &found, 0, NULL, NULL);
@@ -777,7 +769,7 @@ static void bruteforce(uint64_t *vec, uint64_t sol)
 
 void precalc()
 {
-    uint64_t a,b,c,t;
+    uint64_t a,b,t;
 
     for (a=0;a<19;a++) sta[a]=(1ULL<<a);
     for (a=0;a<22;a++) stb[a]=(1ULL<<a);
@@ -829,7 +821,7 @@ static void solve_system(uint64_t *vec, uint64_t sol, unsigned int dep,uint64_t 
     int sacl,sbcl,sccl;
     uint64_t ta,tb,tc,ssol,sneq;
     uint64_t ca,cb,cc;
-    uint64_t i,j,k,a,s;
+    uint64_t i,j,k;
 
 
     //if (neq>51ULL)
@@ -979,10 +971,7 @@ void init_bruteforce_long()
 void* ocl_bruteforce_a51_thread(void *arg)
 {
     int err;
-    unsigned char hex1[hash_ret_len];
     int self;
-    int a;
-    int try=0;
     int found;
 
     pthread_mutex_lock(&biglock);
@@ -1048,7 +1037,6 @@ void* ocl_bruteforce_a51_thread(void *arg)
 hash_stat ocl_bruteforce_a51(void)
 {
     int a,i;
-    uint64_t bcnt;
     int err;
     int worker_thread_keys[32];
 

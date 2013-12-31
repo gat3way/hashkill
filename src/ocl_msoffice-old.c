@@ -66,12 +66,6 @@ static char* get_buf_offset(int sector)
     return (buf+(sector+1)*sectorsize);
 }
 
-/* Get sector offset for sector */
-static int get_offset(int sector)
-{
-    return ((sector+1)*sectorsize);
-}
-
 
 
 /* Get FAT table for a given sector */
@@ -155,24 +149,6 @@ static int get_mini_offset(int sector)
 }
 
 
-static char* read_stream_mini(int start, int size)
-{
-    char *lbuf=malloc(4);
-    int lsize=0;
-    int *mtab=NULL;     // current minitab
-    int sector;
-
-    sector=start;
-    while (lsize<size)
-    {
-        lbuf = realloc(lbuf,lsize+64);
-        memcpy(lbuf + lsize,get_buf_offset(get_minisection_sector(sector)) + get_mini_offset(sector), 64);
-        lsize += 64;
-        mtab = get_mtab(sector);
-        sector = mtab[sector];
-    }
-    return lbuf;
-}
 
 /* Read stream from table - callee needs to free memory */
 static char* read_stream(int start, int size)

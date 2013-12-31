@@ -87,14 +87,12 @@ static void ocl_grub2_crack_callback(char *line, int self)
 	/* setup salt */
 	char mysalt[144];
         char mysalt2[64];
-        int len;
 	strcpy(mysalt,mylist->salt);
 	strncpy(hex1,mylist->salt+128,16);
 	iterations = atoi(hex1);
 	for (a=0;a<128;a++) mysalt[a] = tolower(mysalt[a]);
 	hex2str(mysalt2,mysalt,128);
 	bzero(mhash,128);
-	len=64;
 	memcpy(mhash,mysalt2,64);
 
         salt.s0=(mhash[0])|(mhash[1]<<8)|(mhash[2]<<16)|(mhash[3]<<24);
