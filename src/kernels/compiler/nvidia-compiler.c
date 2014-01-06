@@ -25,7 +25,7 @@ int compile(char *filename, char *buildparams)
     int csingle=0;
     int cmax8=0;
     int smiter=0;
-    char archs[7][5] = { "sm10", "sm11", "sm12", "sm13", "sm20", "sm21", "sm30" };
+    char archs[8][5] = { "sm10", "sm11", "sm12", "sm13", "sm20", "sm21", "sm30", "sm35" };
     char *ofname;
     
     sprintf(fullname,"../%s.cl",filename);
@@ -420,13 +420,14 @@ int compile_big16(char *filename, char *buildparams)
 	
 	switch (ccmax)
 	{
-	    case 10: if (smiter>0) smiter=7; break;
-	    case 11: if (smiter>1) smiter=7; break;
-	    case 12: if (smiter>2) smiter=7; break;
-	    case 13: if (smiter>3) smiter=7; break;
-	    case 20: if (smiter>4) smiter=7; break;
-	    case 21: if (smiter>5) smiter=7; break;
-	    case 30: if (smiter>6) smiter=7; break;
+	    case 10: if (smiter>0) smiter=8; break;
+	    case 11: if (smiter>1) smiter=8; break;
+	    case 12: if (smiter>2) smiter=8; break;
+	    case 13: if (smiter>3) smiter=8; break;
+	    case 20: if (smiter>4) smiter=8; break;
+	    case 21: if (smiter>5) smiter=8; break;
+	    case 30: if (smiter>6) smiter=8; break;
+	    case 35: if (smiter>7) smiter=8; break;
 	}
 
 	for (i=0;i<1; i++)
@@ -463,6 +464,9 @@ int compile_big16(char *filename, char *buildparams)
 		    break;
 		case 6:
 		    sprintf(flags,"%s -cl-nv-arch sm_30 ",flags);
+		    break;
+		case 7:
+		    sprintf(flags,"%s -cl-nv-arch sm_35 ",flags);
 		    break;
 	    }
 	    char *eflags="";
@@ -522,6 +526,9 @@ int compile_big16(char *filename, char *buildparams)
 		    break;
 		case 6:
 		    sprintf(pbuf,"sm30");
+		    break;
+		case 7:
+		    sprintf(pbuf,"sm35");
 		    break;
 	    }
 
